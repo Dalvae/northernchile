@@ -829,11 +829,11 @@ s3://northern-chile-assets/
 
 ### **Fase 1: Núcleo y Infraestructura (Semanas 1-4)**
 
-- \[ ] Setup monorepo con Docker
-- \[ ] Configuración PostgreSQL +
-- \[ ] Entidades JPA y repositorios base
-- \[ ] Autenticación JWT y seguridad
-- \[ ] Layout base Nuxt 3 + Tailwind
+- [x] Setup monorepo con Docker
+- [x] Configuración PostgreSQL +
+- [x] Entidades JPA y repositorios base
+- [ ] Autenticación JWT y seguridad
+- [ ] Layout base Nuxt 3 + Tailwind
 
 ### **Fase 2: Módulos de Negocio (Semanas 5-8)**
 
