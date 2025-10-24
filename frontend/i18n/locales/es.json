@@ -7,6 +7,7 @@
   },
   "tours": {
     "all": "Nuestras Experiencias",
-    "hero_description": "Desde el corazón del desierto más árido del mundo, te invitamos a conectar con el cosmos."
+    "hero_description": "Desde el corazón del desierto más árido del mundo, te invitamos a conectar con el cosmos.",
+    "view_details": "Ver Detalles"
   }
 }

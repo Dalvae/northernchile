@@ -2,7 +2,6 @@
   <UHeader :links="links">
     <template #left>
       <NuxtLink to="/" class="flex items-center gap-2">
-        <AppLogo class="w-auto h-8" />
         <span class="font-bold text-xl">Northern Chile</span>
       </NuxtLink>
     </template>
