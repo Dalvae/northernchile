@@ -21,14 +21,12 @@ public class WebhookController {
 
     @PostMapping("/payment")
     public ResponseEntity<Void> handlePaymentWebhook(@RequestBody Map<String, Object> payload) {
-        // This is a placeholder. A real implementation would:
-        // 1. Verify the webhook signature to ensure it's from the payment gateway.
-        // 2. Parse the payload to get the booking ID and payment status.
-        // 3. Update the booking status in the database.
-
+        // TODO: La lógica real dependerá de la pasarela de pago elegida (Transbank, Mercado Pago).
+        // Por ahora, solo registramos la recepción del webhook.
         System.out.println("Received payment webhook: " + payload);
 
-        // Example of updating booking status
+        /*
+        // Ejemplo de lógica a implementar en el futuro:
         String eventType = (String) payload.get("type");
         if ("payment_intent.succeeded".equals(eventType)) {
             Map<String, Object> data = (Map<String, Object>) payload.get("data");
@@ -42,6 +40,7 @@ public class WebhookController {
                 });
             }
         }
+        */
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
