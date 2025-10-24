@@ -8,7 +8,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "generate-api-client": "curl http://localhost:8080/api-docs -o openapi.json && pnpm openapi-generator-cli generate -i openapi.json -g typescript-axios -o ./lib/api-client --additional-properties=supportsES6=true,typescriptThreePlus=true"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.70",
@@ -18,6 +19,7 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.9.0",
+    "@openapitools/openapi-generator-cli": "^2.25.0",
     "eslint": "^9.38.0",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.1.1"
