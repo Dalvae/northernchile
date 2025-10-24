@@ -20,6 +20,8 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -97,6 +99,17 @@ public class BookingService {
         emailService.sendNewBookingNotificationToAdmin(savedBooking.getId().toString());
 
         return toBookingRes(savedBooking);
+    }
+
+    public List<BookingRes> getAllBookings() {
+        return bookingRepository.findAll().stream()
+                .map(this::toBookingRes)
+                .collect(Collectors.toList());
+    }
+
+    public Optional<BookingRes> getBookingById(UUID bookingId) {
+        return bookingRepository.findById(bookingId)
+                .map(this::toBookingRes);
     }
 
     private BookingRes toBookingRes(Booking booking) {

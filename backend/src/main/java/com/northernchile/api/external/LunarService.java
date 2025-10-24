@@ -1,15 +1,16 @@
 package com.northernchile.api.external;
 
-import ch.eobermuhlner.astro.Moon;
+import org.shredzone.commons.suncalc.MoonIllumination;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @Service
 public class LunarService {
 
-    private static final double FULL_MOON_ILLUMINATION_THRESHOLD = 0.95;
+    private static final double FULL_MOON_ILLUMINATION_THRESHOLD = 0.95; // 95% de iluminación
 
     public boolean isFullMoon(LocalDate date) {
         double illumination = getMoonIllumination(date);
@@ -17,7 +18,10 @@ public class LunarService {
     }
 
     public double getMoonIllumination(LocalDate date) {
-        LocalDateTime dateTime = date.atTime(12, 0); // Use midday as a reference
-        return Moon.getIlluminatedFraction(dateTime);
+        ZonedDateTime zonedDateTime = date.atStartOfDay(ZoneId.systemDefault());
+        MoonIllumination moonIllumination = MoonIllumination.compute()
+                .on(zonedDateTime)
+                .execute();
+        return moonIllumination.getFraction();
     }
 }
