@@ -5,15 +5,14 @@
 </template>
 
 <script setup>
-const { locales, setLocale } = useI18n()
+const { locales } = useI18n();
+const switchLocalePath = useSwitchLocalePath();
 
 const items = computed(() => {
-  const menuItems = locales.value.map(l => ({
+  const menuItems = locales.value.map((l) => ({
     label: l.name,
-    // La función setLocale se encargará de la navegación a la URL correcta.
-    click: () => setLocale(l.code)
-  }))
-  // UDropdownMenu espera un array de arrays para los grupos de items.
-  return [menuItems]
-})
+    to: switchLocalePath(l.code),
+  }));
+  return [menuItems];
+});
 </script>
