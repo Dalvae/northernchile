@@ -1,12 +1,19 @@
 package com.northernchile.api.cart;
 
+import com.northernchile.api.cart.dto.CartItemReq;
+import com.northernchile.api.cart.dto.CartRes;
 import com.northernchile.api.model.Cart;
-import com.northernchile.api.model.CartItem;
+import com.northernchile.api.model.User;
+import com.northernchile.api.user.UserRepository;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -15,26 +22,57 @@ public class CartController {
 
     @Autowired
     private CartService cartService;
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<Cart> getCart(@CookieValue(name = "cartId", required = false) String cartId) {
-        Cart cart = cartService.getOrCreateCart(cartId);
-        return new ResponseEntity<>(cart, HttpStatus.OK);
+    public ResponseEntity<CartRes> getCart(@CookieValue(name = "cartId", required = false) String cartId) {
+        Cart cart = cartService.getOrCreateCart(getCurrentUser(), getCartId(cartId));
+        return ResponseEntity.ok(cartService.toCartRes(cart));
     }
 
     @PostMapping("/items")
-    public ResponseEntity<Cart> addItemToCart(
+    public ResponseEntity<CartRes> addItemToCart(
             @CookieValue(name = "cartId", required = false) String cartId,
-            @RequestBody CartItem item) {
-        Cart updatedCart = cartService.addItemToCart(cartId, item);
-        return new ResponseEntity<>(updatedCart, HttpStatus.OK);
+            @RequestBody CartItemReq itemReq,
+            HttpServletResponse response) {
+        Cart cart = cartService.getOrCreateCart(getCurrentUser(), getCartId(cartId));
+        Cart updatedCart = cartService.addItemToCart(cart, itemReq);
+        setCartIdCookie(response, updatedCart.getId());
+        return ResponseEntity.ok(cartService.toCartRes(updatedCart));
     }
 
     @DeleteMapping("/items/{itemId}")
-    public ResponseEntity<Cart> removeItemFromCart(
+    public ResponseEntity<CartRes> removeItemFromCart(
             @CookieValue(name = "cartId", required = false) String cartId,
             @PathVariable UUID itemId) {
-        Cart updatedCart = cartService.removeItemFromCart(cartId, itemId);
-        return new ResponseEntity<>(updatedCart, HttpStatus.OK);
+        Cart cart = cartService.getOrCreateCart(getCurrentUser(), getCartId(cartId));
+        Cart updatedCart = cartService.removeItemFromCart(cart, itemId);
+        return ResponseEntity.ok(cartService.toCartRes(updatedCart));
+    }
+
+    private Optional<User> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            return Optional.empty();
+        }
+        String currentPrincipalName = authentication.getName();
+        return userRepository.findByEmail(currentPrincipalName);
+    }
+
+    private Optional<UUID> getCartId(String cartId) {
+        try {
+            return Optional.of(UUID.fromString(cartId));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    private void setCartIdCookie(HttpServletResponse response, UUID cartId) {
+        Cookie cookie = new Cookie("cartId", cartId.toString());
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60 * 24 * 30); // 30 days
+        response.addCookie(cookie);
     }
 }
