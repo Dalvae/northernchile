@@ -1,10 +1,12 @@
 package com.northernchile.api.tour;
 
 import com.northernchile.api.model.Tour;
+import com.northernchile.api.model.User;
 import com.northernchile.api.tour.dto.TourCreateReq;
 import com.northernchile.api.tour.dto.TourRes;
 import com.northernchile.api.tour.dto.TourUpdateReq;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,10 +19,9 @@ public class TourService {
     @Autowired
     private TourRepository tourRepository;
 
-    public TourRes createTour(TourCreateReq tourCreateReq) {
+    public TourRes createTour(TourCreateReq tourCreateReq, User currentUser) {
         Tour tour = new Tour();
-        // For now, we don't have user management, so we can't set the owner.
-        // This will be added later.
+        tour.setOwner(currentUser);
         tour.setName(tourCreateReq.getName());
         tour.setDescription(tourCreateReq.getDescription());
         tour.setCategory(tourCreateReq.getCategory());
@@ -46,9 +47,12 @@ public class TourService {
                 .orElse(null); // Or throw an exception
     }
 
-    public TourRes updateTour(UUID id, TourUpdateReq tourUpdateReq) {
+    public TourRes updateTour(UUID id, TourUpdateReq tourUpdateReq, User currentUser) {
         return tourRepository.findById(id)
                 .map(tour -> {
+                    if (!tour.getOwner().getId().equals(currentUser.getId()) && !currentUser.getRole().equals("ROLE_SUPER_ADMIN")) {
+                        throw new AccessDeniedException("You do not have permission to edit this tour.");
+                    }
                     tour.setName(tourUpdateReq.getName());
                     tour.setDescription(tourUpdateReq.getDescription());
                     tour.setCategory(tourUpdateReq.getCategory());
