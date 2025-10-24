@@ -6,25 +6,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/availability")
 public class AvailabilityController {
 
-    // TODO: Inject AvailabilityService
+    @Autowired
+    private AvailabilityService availabilityService;
 
     @GetMapping
-    public ResponseEntity<?> getAvailability(
+    public ResponseEntity<Map<LocalDate, AvailabilityService.DayAvailability>> getAvailability(
             @RequestParam UUID tourId,
             @RequestParam String month) { // Format "YYYY-MM"
 
-        // TODO: Implement logic to call the service
-        // and return available days, unavailable days, windy days, full moon days, etc.
-
         YearMonth yearMonth = YearMonth.parse(month);
-        String response = "Fetching availability for tour " + tourId + " for month " + yearMonth;
-        return ResponseEntity.ok(response);
+        Map<LocalDate, AvailabilityService.DayAvailability> availability =
+                availabilityService.getAvailabilityForMonth(tourId, yearMonth.getYear(), yearMonth.getMonthValue());
+
+        return ResponseEntity.ok(availability);
     }
 }
