@@ -31,8 +31,10 @@ public class SecurityConfig {
                                 "/api-docs/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
+                                "/swagger-ui.html",
                                 "/api/tours/**",
-                                "/api/availability/**"
+                                "/api/availability/**",
+                                "/error"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasAnyRole("SUPER_ADMIN", "PARTNER_ADMIN")
                         .anyRequest().authenticated()

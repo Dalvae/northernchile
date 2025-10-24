@@ -1,5 +1,12 @@
 {
   // https://nuxt.com/docs/guide/concepts/typescript
+  "compilerOptions": {
+    "paths": {
+      "~/*": ["./*"],
+      "@/*": ["./*"],
+      "~/lib/api-client": ["./lib/api-client"]
+    }
+  },
   "files": [],
   "references": [
     { "path": "./.nuxt/tsconfig.app.json" },
