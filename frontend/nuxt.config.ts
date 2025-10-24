@@ -17,13 +17,14 @@ export default defineNuxtConfig({
 
   i18n: {
     locales: [
-      { code: "es", language: "Español", file: "es.json" },
-      { code: "en", language: "English", file: "en.json" },
-      { code: "pt", language: "Português", file: "pt.json" },
+      { code: "es", iso: "es-ES", name: "Español", file: "es.json" },
+      { code: "en", iso: "en-US", name: "English", file: "en.json" },
+      { code: "pt", iso: "pt-PT", name: "Português", file: "pt.json" },
     ],
     lazy: true,
     defaultLocale: "es",
     strategy: "prefix_except_default",
+    baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:3000'
   },
 
   devtools: {

@@ -1,6 +1,17 @@
 <script setup lang="ts">
 const { fetchAll } = useTours()
 const { data: tours, pending, error } = await fetchAll()
+const { t } = useI18n()
+
+// SEO específico para la página de inicio
+useSeoMeta({
+  title: () => t('nav.tours'), // Esto se insertará en el '%s' de la plantilla
+  description: () => t('tours.hero_description'),
+  ogTitle: () => `${t('nav.tours')} | Northern Chile`,
+  ogDescription: () => t('tours.hero_description'),
+  ogImage: 'https://www.northernchile.cl/og-image-homepage.jpg', // URL a una imagen representativa
+  twitterCard: 'summary_large_image'
+})
 </script>
 
 <template>
