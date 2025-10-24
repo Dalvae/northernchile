@@ -1,8 +1,11 @@
 package com.northernchile.api.privatetour;
 
+import com.northernchile.api.model.PrivateTourRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -10,26 +13,32 @@ import java.util.UUID;
 @RequestMapping("/api")
 public class PrivateTourRequestController {
 
-    // TODO: Inyectar PrivateTourRequestService
+    @Autowired
+    private PrivateTourRequestService privateTourRequestService;
+
+    @Autowired
+    private PrivateTourRequestRepository privateTourRequestRepository; // For admin part
 
     // Endpoint PÚBLICO para que clientes envíen una solicitud
     @PostMapping("/private-tours/requests")
-    public ResponseEntity<String> submitRequest(@RequestBody Map<String, Object> requestPayload) {
-        // TODO: Crear un DTO para el request
-        // TODO: Llamar al servicio para guardar la solicitud y notificar al admin
+    public ResponseEntity<String> submitRequest(@RequestBody PrivateTourRequest request) {
+        // In a real app, you'd use a DTO here
+        privateTourRequestService.createRequest(request);
         return ResponseEntity.ok("Request received. We will contact you shortly.");
     }
 
     // Endpoints de ADMINISTRACIÓN para gestionar las solicitudes
     @GetMapping("/admin/private-tours/requests")
-    public ResponseEntity<?> getAllRequests() {
-        // TODO: Devolver todas las solicitudes
-        return ResponseEntity.ok().build();
+    public ResponseEntity<List<PrivateTourRequest>> getAllRequests() {
+        return ResponseEntity.ok(privateTourRequestRepository.findAll());
     }
 
     @PutMapping("/admin/private-tours/requests/{id}")
-    public ResponseEntity<?> updateRequestStatus(@PathVariable UUID id, @RequestBody Map<String, String> statusUpdate) {
-        // TODO: Lógica para actualizar el estado (ej: a 'QUOTED' o 'CONFIRMED')
-        return ResponseEntity.ok().build();
+    public ResponseEntity<PrivateTourRequest> updateRequestStatus(@PathVariable UUID id, @RequestBody Map<String, String> statusUpdate) {
+        return privateTourRequestRepository.findById(id).map(request -> {
+            request.setStatus(statusUpdate.get("status"));
+            // In a real app, you might also set quotedPrice, paymentLinkId, etc.
+            return ResponseEntity.ok(privateTourRequestRepository.save(request));
+        }).orElse(ResponseEntity.notFound().build());
     }
 }

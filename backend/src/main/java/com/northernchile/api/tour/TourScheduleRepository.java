@@ -11,4 +11,5 @@ import java.util.UUID;
 @Repository
 public interface TourScheduleRepository extends JpaRepository<TourSchedule, UUID> {
     List<TourSchedule> findByTourIdAndStartDatetimeBetween(UUID tourId, Instant start, Instant end);
+    boolean existsByTourIdAndStartDatetime(UUID tourId, Instant startDatetime);
 }
