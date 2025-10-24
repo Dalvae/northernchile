@@ -1,0 +1,5 @@
+@theme {
+  /* Fuentes personalizadas */
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+}

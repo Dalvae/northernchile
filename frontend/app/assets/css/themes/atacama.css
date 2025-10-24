@@ -1,0 +1,57 @@
+ @theme {
+  /* Paleta Cobre (Acento) en Oklch */
+  --color-copper-50: oklch(95% 0.03 70);
+  --color-copper-100: oklch(90% 0.06 70);
+  --color-copper-200: oklch(85% 0.09 70);
+  --color-copper-300: oklch(80% 0.12 70);
+  --color-copper-400: oklch(75% 0.15 70);
+  --color-copper-500: oklch(70% 0.18 70);
+  --color-copper-600: oklch(65% 0.15 65);
+  --color-copper-700: oklch(60% 0.12 65);
+  --color-copper-800: oklch(55% 0.09 65);
+  --color-copper-900: oklch(50% 0.06 65);
+  --color-copper-950: oklch(45% 0.03 65);
+
+  /* Paleta Sand (Primario) en Oklch */
+  --color-sand-50: oklch(97.2% 0.024 93);
+  --color-sand-100: oklch(94.5% 0.032 93);
+  --color-sand-200: oklch(88.8% 0.048 93);
+  --color-sand-300: oklch(83.2% 0.064 93);
+  --color-sand-400: oklch(77.5% 0.08 93);
+  --color-sand-500: oklch(71.9% 0.096 93);
+  --color-sand-600: oklch(65.1% 0.09 88);
+  --color-sand-700: oklch(57.2% 0.08 88);
+  --color-sand-800: oklch(49.4% 0.07 88);
+  --color-sand-900: oklch(41.6% 0.06 88);
+  --color-sand-950: oklch(29.8% 0.045 88);
+
+  /* Paleta Earth (Gris/Neutral) en Oklch */
+  --color-earth-50: oklch(95.8% 0.012 90);
+  --color-earth-100: oklch(89.5% 0.019 90);
+  --color-earth-200: oklch(83.3% 0.026 90);
+  --color-earth-300: oklch(77.1% 0.033 90);
+  --color-earth-400: oklch(70.8% 0.04 90);
+  --color-earth-500: oklch(64.6% 0.047 90);
+  --color-earth-600: oklch(57.4% 0.043 90);
+  --color-earth-700: oklch(49.2% 0.038 90);
+  --color-earth-800: oklch(41.0% 0.032 90);
+  --color-earth-900: oklch(32.8% 0.026 90);
+  --color-earth-950: oklch(20% 0.015 90); /* Más oscuro para fondos */
+
+  /* Paleta Celeste (Secundario) en Oklch */
+  --color-celeste-50: oklch(96.9% 0.02 230);
+  --color-celeste-100: oklch(94.2% 0.04 230);
+  --color-celeste-200: oklch(88.6% 0.08 230);
+  --color-celeste-300: oklch(83.0% 0.12 230);
+  --color-celeste-400: oklch(77.4% 0.16 230);
+  --color-celeste-500: oklch(71.8% 0.2 230);
+  --color-celeste-600: oklch(63.9% 0.17 235);
+  --color-celeste-700: oklch(55.2% 0.14 240);
+  --color-celeste-800: oklch(46.5% 0.11 245);
+  --color-celeste-900: oklch(37.8% 0.08 250);
+  --color-celeste-950: oklch(29% 0.05 255);
+
+  /* Fuentes personalizadas */
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+}

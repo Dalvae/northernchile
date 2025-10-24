@@ -2,6 +2,16 @@ import viteTsconfigPaths from "vite-tsconfig-paths";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  app: {
+    head: {
+      link: [
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;600&display=swap'
+        }
+      ]
+    }
+  },
   modules: ["@nuxt/eslint", "@nuxt/ui", "@nuxtjs/i18n", "@pinia/nuxt"],
 
   runtimeConfig: {
@@ -13,6 +23,10 @@ export default defineNuxtConfig({
     public: {
       // Dejamos esto por si alguna configuración pública es necesaria más adelante.
     },
+  },
+
+  ui: {
+    colorMode: { preference: 'dark' }
   },
 
   i18n: {
