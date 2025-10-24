@@ -1,9 +1,14 @@
 package com.northernchile.api.booking;
 
-import com.northernchile.api.model.Booking;
+import com.northernchile.api.booking.dto.BookingCreateReq;
+import com.northernchile.api.booking.dto.BookingRes;
+import com.northernchile.api.model.User;
+import com.northernchile.api.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,9 +24,13 @@ public class BookingController {
     @Autowired
     private BookingRepository bookingRepository; // For basic CRUD
 
+    @Autowired
+    private UserRepository userRepository;
+
     @PostMapping
-    public ResponseEntity<Booking> createBooking(@RequestBody Booking booking) {
-        Booking createdBooking = bookingService.createBooking(booking);
+    public ResponseEntity<BookingRes> createBooking(@RequestBody BookingCreateReq req) {
+        User currentUser = getCurrentUser();
+        BookingRes createdBooking = bookingService.createBooking(req, currentUser);
         return new ResponseEntity<>(createdBooking, HttpStatus.CREATED);
     }
 
@@ -38,5 +47,12 @@ public class BookingController {
         return bookingRepository.findById(id)
                 .map(booking -> new ResponseEntity<>(booking, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+        return userRepository.findByEmail(currentPrincipalName)
+                .orElseThrow(() -> new RuntimeException("User not found: " + currentPrincipalName));
     }
 }
