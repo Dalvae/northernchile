@@ -1,22 +1,23 @@
 package com.northernchile.api.external;
 
+import ch.eobermuhlner.astro.Moon;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Service
 public class LunarService {
 
-    // This is a placeholder. A real implementation would use a library like astro-algo.
+    private static final double FULL_MOON_ILLUMINATION_THRESHOLD = 0.95;
+
     public boolean isFullMoon(LocalDate date) {
-        // Dummy implementation: returns true if the day is 15th of the month
-        return date.getDayOfMonth() == 15;
+        double illumination = getMoonIllumination(date);
+        return illumination >= FULL_MOON_ILLUMINATION_THRESHOLD;
     }
 
     public double getMoonIllumination(LocalDate date) {
-        // Dummy implementation
-        if (date.getDayOfMonth() == 15) return 1.0;
-        if (date.getDayOfMonth() == 1) return 0.0;
-        return 0.5;
+        LocalDateTime dateTime = date.atTime(12, 0); // Use midday as a reference
+        return Moon.getIlluminatedFraction(dateTime);
     }
 }

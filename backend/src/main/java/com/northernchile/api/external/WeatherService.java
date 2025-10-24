@@ -1,5 +1,6 @@
 package com.northernchile.api.external;
 
+import com.northernchile.api.external.dto.WeatherForecastResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -9,9 +10,6 @@ import java.time.LocalDate;
 
 @Service
 public class WeatherService {
-
-    // In a real application, you would map the JSON response to DTOs.
-    // For simplicity, we'll just return the raw JSON string for now.
 
     @Value("${weather.api.key:dummy}")
     private String apiKey;
@@ -23,22 +21,37 @@ public class WeatherService {
     private String location;
 
     @Cacheable(value = "weatherForecast", key = "#days")
-    public String getForecast(int days) {
+    public WeatherForecastResponse getForecast(int days) {
         if ("dummy".equals(apiKey)) {
-            // Return a dummy response if no API key is configured
-            return "{\"error\": \"Weather API key not configured\"}";
+            return null;
         }
 
         String url = String.format("%s?key=%s&q=%s&days=%d&aqi=no&alerts=no",
                 baseUrl, apiKey, location, days);
 
-        RestTemplate restTemplate = new RestTemplate();
-        return restTemplate.getForObject(url, String.class);
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            return restTemplate.getForObject(url, WeatherForecastResponse.class);
+        } catch (Exception e) {
+            // Log the error in a real application
+            System.err.println("Error fetching weather forecast: " + e.getMessage());
+            return null;
+        }
     }
 
-    // This is a placeholder for the wind validation logic
     public boolean isWindAboveThreshold(LocalDate date, double thresholdKnots) {
-        // Dummy implementation
-        return false;
+        // 1 nudo = 1.852 km/h
+        double thresholdKph = thresholdKnots * 1.852;
+
+        WeatherForecastResponse forecast = getForecast(14);
+        if (forecast == null || forecast.forecast == null || forecast.forecast.forecastday == null) {
+            return false; // Could not get forecast, assume wind is not strong
+        }
+
+        return forecast.forecast.forecastday.stream()
+                .filter(forecastDay -> LocalDate.parse(forecastDay.date).equals(date))
+                .findFirst()
+                .map(day -> day.hour.stream().anyMatch(hour -> hour.wind_kph > thresholdKph))
+                .orElse(false); // Day not found in forecast, assume it's fine
     }
 }
