@@ -1,1 +1,12 @@
-{}
+{
+  "nav": {
+    "tours": "Tours",
+    "private_tours": "Private Tours",
+    "about_us": "About Us",
+    "login": "Login"
+  },
+  "tours": {
+    "all": "Our Experiences",
+    "hero_description": "From the heart of the world's driest desert, we invite you to connect with the cosmos."
+  }
+}

@@ -1,1 +1,12 @@
-{}
+{
+  "nav": {
+    "tours": "Passeios",
+    "private_tours": "Passeios Privados",
+    "about_us": "Sobre Nós",
+    "login": "Entrar"
+  },
+  "tours": {
+    "all": "Nossas Experiências",
+    "hero_description": "Do coração do deserto mais árido do mundo, convidamos você a se conectar com o cosmos."
+  }
+}

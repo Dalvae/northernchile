@@ -4,8 +4,11 @@ const { data: tours, pending, error } = await fetchAll()
 </script>
 
 <template>
-  <div>
-    <h1 class="text-3xl font-bold mb-8">{{ $t('tours.all') }}</h1>
+  <UContainer>
+    <UPageHero
+      :title="$t('tours.all')"
+      :description="$t('tours.hero_description')"
+    />
 
     <div v-if="pending">
       <p>Cargando tours...</p>
@@ -13,8 +16,12 @@ const { data: tours, pending, error } = await fetchAll()
     <div v-else-if="error">
       <p>Ocurrió un error al cargar los tours: {{ error.message }}</p>
     </div>
-    <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <TourCard v-for="tour in tours" :key="tour.id" :tour="tour" />
+    <div v-else-if="tours && tours.data" class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
+      <!-- Asumiendo que `tours.data` contiene el array -->
+      <TourCard v-for="tour in tours.data" :key="tour.id" :tour="tour" />
     </div>
-  </div>
+    <div v-else>
+      <p>No se encontraron tours.</p>
+    </div>
+  </UContainer>
 </template>
