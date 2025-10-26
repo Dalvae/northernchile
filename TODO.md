@@ -1,0 +1,3 @@
+- [ ] Faltan traducciones
+- [ ] Settear themes no esta usandose, generar 1 solo hay un problema con light and dark-
+- [ ] Sacar la diferencia entre adulto y niño backend-frontend
