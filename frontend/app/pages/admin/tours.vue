@@ -13,11 +13,11 @@ const isSlideoverOpen = ref(false);
 const selectedTour = ref<TourRes | null>(null);
 
 const columns = [
-  { key: 'name', label: 'Nombre', sortable: true },
-  { key: 'category', label: 'Categoría', sortable: true },
-  { key: 'priceAdult', label: 'Precio Adulto', sortable: true },
-  { key: 'status', label: 'Estado', sortable: true },
-  { key: 'actions', label: 'Acciones' }
+  { id: 'name', key: 'name', label: 'Nombre', sortable: true },
+  { id: 'category', key: 'category', label: 'Categoría', sortable: true },
+  { id: 'priceAdult', key: 'priceAdult', label: 'Precio Adulto', sortable: true },
+  { id: 'status', key: 'status', label: 'Estado', sortable: true },
+  { id: 'actions', key: 'actions', label: 'Acciones' }
 ];
 
 const filteredRows = computed(() => {
