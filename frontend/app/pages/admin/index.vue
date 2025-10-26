@@ -8,19 +8,16 @@ definePageMeta({
 
 const { fetchAdminBookings, fetchAdminTours } = useAdminData();
 
-// Hacemos que la respuesta de la API sea reactiva
-const { data: bookingsResponse, pending: pendingBookings } = await useAsyncData('latestBookings', () => fetchAdminBookings({ limit: 5, sortBy: 'createdAt', order: 'desc' }));
-const { data: toursResponse, pending: pendingTours } = await useAsyncData('adminTours', () => fetchAdminTours());
+const { data: bookingsData, pending: pendingBookings } = await fetchAdminBookings();
+const { data: tours, pending: pendingTours } = await fetchAdminTours();
 
-// Extraemos los datos de la respuesta
-const latestBookings = computed(() => bookingsResponse.value?.data || []);
-const totalBookings = computed(() => bookingsResponse.value?.totalElements || 0);
-const tours = computed(() => toursResponse.value || []);
+// Asumimos que la respuesta de bookings es una lista
+const latestBookings = computed(() => bookingsData.value?.slice(0, 5) || []);
 
 const stats = computed(() => [
   { label: 'Ingresos Totales (placeholder)', value: '$12,345', icon: 'i-lucide-dollar-sign' },
-  { label: 'Total Reservas', value: totalBookings.value, icon: 'i-lucide-book-marked' },
-  { label: 'Total Tours', value: tours.value.length, icon: 'i-lucide-map' },
+  { label: 'Total Reservas', value: bookingsData.value?.length || 0, icon: 'i-lucide-book-marked' },
+  { label: 'Total Tours', value: tours.value?.length || 0, icon: 'i-lucide-map' },
   { label: 'Nuevos Clientes (placeholder)', value: '12', icon: 'i-lucide-users' },
 ]);
 
@@ -45,15 +42,12 @@ function formatCurrency(amount: number) {
       description="Vista general del sistema de administración."
     />
 
-    <!-- Estadísticas -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-8">
       <template v-for="(stat, index) in stats" :key="index">
-        <!-- Corregimos el nombre del componente -->
         <AdminDashboardStat :label="stat.label" :value="stat.value" :icon="stat.icon" />
       </template>
     </div>
 
-    <!-- Últimas Reservas -->
     <UCard>
       <template #header>
         <h2 class="font-semibold text-lg">Últimas Reservas</h2>

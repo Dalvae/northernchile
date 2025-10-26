@@ -1,8 +1,14 @@
-export default defineNuxtRouteMiddleware((to) => {
+export default defineNuxtRouteMiddleware(async (to) => {
   // Solo aplicar a rutas que empiecen con /admin
   if (to.path.startsWith("/admin")) {
     if (process.client) {
       const authStore = useAuthStore();
+
+      // Ensure the auth state is loaded from localStorage
+      // This is crucial for client-side navigation after initial load
+      if (!authStore.isAuthenticated && localStorage.getItem("auth_token")) {
+        authStore.checkAuth();
+      }
 
       console.log('Middleware (client) - Start:', { isAuthenticated: authStore.isAuthenticated, user: authStore.user });
 
