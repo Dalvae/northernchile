@@ -6,35 +6,25 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class CartItemReq {
-    private UUID tourId;
-    private LocalDate tourDate;
+    private UUID scheduleId;
     private int numAdults;
     private int numChildren;
 
     public CartItemReq() {
     }
 
-    public CartItemReq(UUID tourId, LocalDate tourDate, int numAdults, int numChildren) {
-        this.tourId = tourId;
-        this.tourDate = tourDate;
+    public CartItemReq(UUID scheduleId, int numAdults, int numChildren) {
+        this.scheduleId = scheduleId;
         this.numAdults = numAdults;
         this.numChildren = numChildren;
     }
 
-    public UUID getTourId() {
-        return tourId;
+    public UUID getScheduleId() {
+        return scheduleId;
     }
 
-    public void setTourId(UUID tourId) {
-        this.tourId = tourId;
-    }
-
-    public LocalDate getTourDate() {
-        return tourDate;
-    }
-
-    public void setTourDate(LocalDate tourDate) {
-        this.tourDate = tourDate;
+    public void setScheduleId(UUID scheduleId) {
+        this.scheduleId = scheduleId;
     }
 
     public int getNumAdults() {
@@ -58,19 +48,18 @@ public class CartItemReq {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CartItemReq that = (CartItemReq) o;
-        return numAdults == that.numAdults && numChildren == that.numChildren && Objects.equals(tourId, that.tourId) && Objects.equals(tourDate, that.tourDate);
+        return numAdults == that.numAdults && numChildren == that.numChildren && Objects.equals(scheduleId, that.scheduleId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tourId, tourDate, numAdults, numChildren);
+        return Objects.hash(scheduleId, numAdults, numChildren);
     }
 
     @Override
     public String toString() {
         return "CartItemReq{" +
-                "tourId=" + tourId +
-                ", tourDate=" + tourDate +
+                "scheduleId=" + scheduleId +
                 ", numAdults=" + numAdults +
                 ", numChildren=" + numChildren +
                 '}';

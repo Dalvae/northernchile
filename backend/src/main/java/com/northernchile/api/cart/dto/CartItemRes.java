@@ -8,9 +8,9 @@ import java.util.UUID;
 
 public class CartItemRes {
     private UUID itemId;
+    private UUID scheduleId;
     private UUID tourId;
     private String tourName;
-    private LocalDate tourDate;
     private int numAdults;
     private int numChildren;
     private BigDecimal priceAdult;
@@ -20,11 +20,11 @@ public class CartItemRes {
     public CartItemRes() {
     }
 
-    public CartItemRes(UUID itemId, UUID tourId, String tourName, LocalDate tourDate, int numAdults, int numChildren, BigDecimal priceAdult, BigDecimal priceChild, BigDecimal itemTotal) {
+    public CartItemRes(UUID itemId, UUID scheduleId, UUID tourId, String tourName, int numAdults, int numChildren, BigDecimal priceAdult, BigDecimal priceChild, BigDecimal itemTotal) {
         this.itemId = itemId;
+        this.scheduleId = scheduleId;
         this.tourId = tourId;
         this.tourName = tourName;
-        this.tourDate = tourDate;
         this.numAdults = numAdults;
         this.numChildren = numChildren;
         this.priceAdult = priceAdult;
@@ -38,6 +38,14 @@ public class CartItemRes {
 
     public void setItemId(UUID itemId) {
         this.itemId = itemId;
+    }
+
+    public UUID getScheduleId() {
+        return scheduleId;
+    }
+
+    public void setScheduleId(UUID scheduleId) {
+        this.scheduleId = scheduleId;
     }
 
     public UUID getTourId() {
@@ -54,14 +62,6 @@ public class CartItemRes {
 
     public void setTourName(String tourName) {
         this.tourName = tourName;
-    }
-
-    public LocalDate getTourDate() {
-        return tourDate;
-    }
-
-    public void setTourDate(LocalDate tourDate) {
-        this.tourDate = tourDate;
     }
 
     public int getNumAdults() {
@@ -109,21 +109,21 @@ public class CartItemRes {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CartItemRes that = (CartItemRes) o;
-        return numAdults == that.numAdults && numChildren == that.numChildren && Objects.equals(itemId, that.itemId) && Objects.equals(tourId, that.tourId) && Objects.equals(tourName, that.tourName) && Objects.equals(tourDate, that.tourDate) && Objects.equals(priceAdult, that.priceAdult) && Objects.equals(priceChild, that.priceChild) && Objects.equals(itemTotal, that.itemTotal);
+        return numAdults == that.numAdults && numChildren == that.numChildren && Objects.equals(itemId, that.itemId) && Objects.equals(scheduleId, that.scheduleId) && Objects.equals(tourId, that.tourId) && Objects.equals(tourName, that.tourName) && Objects.equals(priceAdult, that.priceAdult) && Objects.equals(priceChild, that.priceChild) && Objects.equals(itemTotal, that.itemTotal);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(itemId, tourId, tourName, tourDate, numAdults, numChildren, priceAdult, priceChild, itemTotal);
+        return Objects.hash(itemId, scheduleId, tourId, tourName, numAdults, numChildren, priceAdult, priceChild, itemTotal);
     }
 
     @Override
     public String toString() {
         return "CartItemRes{" +
                 "itemId=" + itemId +
+                ", scheduleId=" + scheduleId +
                 ", tourId=" + tourId +
                 ", tourName='" + tourName + '\'' +
-                ", tourDate=" + tourDate +
                 ", numAdults=" + numAdults +
                 ", numChildren=" + numChildren +
                 ", priceAdult=" + priceAdult +

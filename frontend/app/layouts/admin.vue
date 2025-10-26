@@ -1,88 +1,74 @@
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
 import { useAuthStore } from '~/stores/auth';
 
-const authStore = useAuthStore()
-const open = ref(false)
+const authStore = useAuthStore();
 
-const links: NavigationMenuItem[][] = [
-  [{
+const links = [
+  {
     label: 'Dashboard',
     icon: 'i-lucide-layout-dashboard',
     to: '/admin',
-    exact: true
   }, {
     label: 'Reservas',
     icon: 'i-lucide-book-marked',
-    to: '/admin/bookings'
+    to: '/admin/bookings',
   }, {
     label: 'Tours',
     icon: 'i-lucide-map',
-    to: '/admin/tours'
+    to: '/admin/tours',
   }, {
     label: 'Calendario',
     icon: 'i-lucide-calendar-days',
-    to: '/admin/calendar'
+    to: '/admin/calendar',
   }, {
     label: 'Usuarios',
     icon: 'i-lucide-users',
-    to: '/admin/users'
-  }]
-]
+    to: '/admin/users',
+  },
+];
 </script>
 
 <template>
-  <UDashboardGroup unit="rem">
-    <UDashboardSidebar
-      v-model:open="open"
-      collapsible
-      resizable
-      class="bg-elevated/25"
-      :ui="{ footer: 'lg:border-t lg:border-default' }"
-    >
-      <template #header="{ collapsed }">
+  <div class="min-h-screen flex">
+    <!-- Barra Lateral (Sidebar) -->
+    <aside class="w-64 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 flex flex-col">
+      <!-- Encabezado del Sidebar -->
+      <div class="h-16 flex-shrink-0 px-4 flex items-center gap-2">
         <NuxtLink to="/admin" class="flex items-center gap-2 font-bold text-xl">
-           <UIcon
-            name="i-lucide-shield-check"
-            class="w-6 h-6 text-primary"
-          />
-          <span v-if="!collapsed">Admin Panel</span>
+          <UIcon name="i-lucide-shield-check" class="w-6 h-6 text-primary" />
+          <span>Admin Panel</span>
         </NuxtLink>
-      </template>
+      </div>
 
-      <template #default="{ collapsed }">
-        <UDashboardSearchButton :collapsed="collapsed" class="bg-transparent ring-default" />
-        <UNavigationMenu
-          :collapsed="collapsed"
-          :items="links[0]"
-          orientation="vertical"
-          tooltip
-          popover
-        />
-      </template>
+      <!-- Menú de Navegación -->
+      <div class="flex-1 overflow-y-auto p-4">
+        <UNavigationMenu :links="links" orientation="vertical" />
+      </div>
 
-      <template #footer="{ collapsed }">
-         <div class="flex items-center gap-2 p-2">
-          <UAvatar
-            size="sm"
-            src="https://avatars.githubusercontent.com/u/739984?v=4"
-          />
-          <div v-if="!collapsed" class="flex-1 min-w-0">
+      <!-- Pie de página del Sidebar -->
+      <div class="p-4 border-t border-gray-200 dark:border-gray-800">
+        <div class="flex items-center gap-2">
+          <UAvatar v-if="authStore.user" size="sm" :alt="authStore.user.fullName" />
+          <div class="flex-1 min-w-0">
             <p class="text-sm font-medium truncate">{{ authStore.user?.fullName || 'Administrador' }}</p>
             <p class="text-xs text-gray-400 truncate">{{ authStore.user?.email }}</p>
           </div>
-           <UButton
-            v-if="!collapsed"
+          <UButton
             icon="i-lucide-log-out"
             color="gray"
             variant="ghost"
             aria-label="Salir"
             @click="authStore.logout()"
-           />
+          />
         </div>
-      </template>
-    </UDashboardSidebar>
+      </div>
+    </aside>
 
-    <slot />
-  </UDashboardGroup>
+    <!-- Contenido Principal -->
+    <main class="flex-1 overflow-y-auto">
+      <div class="p-4 sm:p-6 lg:p-8">
+        <slot />
+      </div>
+    </main>
+  </div>
 </template>

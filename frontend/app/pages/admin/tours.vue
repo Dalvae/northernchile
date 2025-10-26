@@ -13,11 +13,11 @@ const isSlideoverOpen = ref(false);
 const selectedTour = ref<TourRes | null>(null);
 
 const columns = [
-  { key: 'name', label: 'Nombre', sortable: true },
-  { key: 'category', label: 'Categoría', sortable: true },
-  { key: 'priceAdult', label: 'Precio Adulto', sortable: true },
-  { key: 'status', label: 'Estado', sortable: true },
-  { key: 'actions', label: 'Acciones' }
+  { id: 'name', key: 'name', label: 'Nombre', sortable: true },
+  { id: 'category', key: 'category', label: 'Categoría', sortable: true },
+  { id: 'priceAdult', key: 'priceAdult', label: 'Precio Adulto', sortable: true },
+  { id: 'status', key: 'status', label: 'Estado', sortable: true },
+  { id: 'actions', key: 'actions', label: 'Acciones' }
 ];
 
 const filteredRows = computed(() => {
@@ -71,15 +71,15 @@ function onActionSuccess() {
 </script>
 
 <template>
-  <UDashboardPanel grow>
-    <UDashboardNavbar title="Gestión de Tours">
-       <template #right>
-        <UInput ref="input" v-model="q" icon="i-lucide-search" placeholder="Buscar tour..." />
+  <div>
+    <UPageHeader title="Gestión de Tours">
+      <template #right>
+        <UInput ref="input" v-model="q" icon="i-lucide-search" placeholder="Buscar tour..." class="w-64" />
         <UButton label="Crear Tour" trailing-icon="i-lucide-plus" color="primary" @click="openCreateSlideover" />
       </template>
-    </UDashboardNavbar>
+    </UPageHeader>
 
-    <UDashboardPanelContent>
+    <UPageBody>
       <UTable
         :rows="filteredRows"
         :columns="columns"
@@ -103,8 +103,8 @@ function onActionSuccess() {
           </UDropdown>
         </template>
       </UTable>
-    </UDashboardPanelContent>
+    </UPageBody>
 
-    <TourSlideover v-model="isSlideoverOpen" :tour="selectedTour" @success="onActionSuccess" />
-  </UDashboardPanel>
+    <AdminTourSlideover v-model="isSlideoverOpen" :tour="selectedTour" @success="onActionSuccess" />
+  </div>
 </template>

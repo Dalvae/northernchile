@@ -4,8 +4,11 @@ export default defineNuxtRouteMiddleware((to) => {
     if (process.client) {
       const authStore = useAuthStore();
 
+      console.log('Middleware (client) - Start:', { isAuthenticated: authStore.isAuthenticated, user: authStore.user });
+
       // Verificar autenticación
       if (!authStore.isAuthenticated) {
+        console.log('Middleware (client) - Not authenticated, redirecting to /auth');
         return navigateTo("/auth");
       }
 
@@ -13,9 +16,13 @@ export default defineNuxtRouteMiddleware((to) => {
       const userRoles = authStore.user?.role || [];
       const hasAdminAccess = userRoles.includes("ROLE_SUPER_ADMIN") || userRoles.includes("ROLE_PARTNER_ADMIN");
 
+      console.log('Middleware (client) - Authenticated, checking roles:', { userRoles, hasAdminAccess });
+
       if (!hasAdminAccess) {
+        console.log('Middleware (client) - Not admin or partner admin, redirecting to /');
         return navigateTo("/");
       }
+      console.log('Middleware (client) - Admin authenticated, proceeding.');
     }
   }
 });

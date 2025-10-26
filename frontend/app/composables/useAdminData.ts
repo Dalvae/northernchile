@@ -16,25 +16,73 @@ export const useAdminData = () => {
   });
 
   // Pasamos el `computed` directamente a `useFetch`, que sabe cómo manejarlo.
-  const fetchAdminTours = () => useFetch('/api/admin/tours', { headers });
-  const createAdminTour = (tourData: any) => useFetch('/api/admin/tours', { method: 'POST', body: tourData, headers });
-  const updateAdminTour = (id: string, tourData: any) => useFetch(`/api/admin/tours/${id}`, { method: 'PUT', body: tourData, headers });
-  const deleteAdminTour = (id: string) => useFetch(`/api/admin/tours/${id}`, { method: 'DELETE', headers });
+  const fetchAdminTours = () => {
+    const { data, pending, error } = useFetch('/api/admin/tours', { headers: headers.value });
+    return { data, pending, error };
+  };
+  const createAdminTour = (tourData: any) => {
+    const { data, pending, error } = useFetch('/api/admin/tours', { method: 'POST', body: tourData, headers: headers.value });
+    return { data, pending, error };
+  };
+  const updateAdminTour = (id: string, tourData: any) => {
+    const { data, pending, error } = useFetch(`/api/admin/tours/${id}`, { method: 'PUT', body: tourData, headers: headers.value });
+    return { data, pending, error };
+  };
+  const deleteAdminTour = (id: string) => {
+    const { data, pending, error } = useFetch(`/api/admin/tours/${id}`, { method: 'DELETE', headers: headers.value });
+    return { data, pending, error };
+  };
 
-  const fetchAdminSchedules = (params?: any) => useFetch('/api/admin/schedules', { params, headers });
-  const createAdminSchedule = (scheduleData: any) => useFetch('/api/admin/schedules', { method: 'POST', body: scheduleData, headers });
-  const updateAdminSchedule = (id: string, scheduleData: any) => useFetch(`/api/admin/schedules/${id}`, { method: 'PUT', body: scheduleData, headers });
-  const deleteAdminSchedule = (id: string) => useFetch(`/api/admin/schedules/${id}`, { method: 'DELETE', headers });
+  const fetchAdminSchedules = (params?: any) => {
+    const { data, pending, error } = useFetch('/api/admin/schedules', { params, headers: headers.value });
+    return { data, pending, error };
+  };
+  const createAdminSchedule = (scheduleData: any) => {
+    const { data, pending, error } = useFetch('/api/admin/schedules', { method: 'POST', body: scheduleData, headers: headers.value });
+    return { data, pending, error };
+  };
+  const updateAdminSchedule = (id: string, scheduleData: any) => {
+    const { data, pending, error } = useFetch(`/api/admin/schedules/${id}`, { method: 'PUT', body: scheduleData, headers: headers.value });
+    return { data, pending, error };
+  };
+  const deleteAdminSchedule = (id: string) => {
+    const { data, pending, error } = useFetch(`/api/admin/schedules/${id}`, { method: 'DELETE', headers: headers.value });
+    return { data, pending, error };
+  };
 
-  const fetchAdminBookings = (params?: any) => useFetch('/api/admin/bookings', { params, headers });
-  const fetchAdminBookingById = (id: string) => useFetch(`/api/admin/bookings/${id}`, { headers });
-  const updateAdminBooking = (id: string, bookingData: any) => useFetch(`/api/admin/bookings/${id}`, { method: 'PUT', body: bookingData, headers });
-  const deleteAdminBooking = (id: string) => useFetch(`/api/admin/bookings/${id}`, { method: 'DELETE', headers });
+  const fetchAdminBookings = (params?: any) => {
+    const { data, pending, error } = useFetch('/api/admin/bookings', { params, headers: headers.value });
+    return { data, pending, error };
+  };
+  const fetchAdminBookingById = (id: string) => {
+    const { data, pending, error } = useFetch(`/api/admin/bookings/${id}`, { headers: headers.value });
+    return { data, pending, error };
+  };
+  const updateAdminBooking = (id: string, bookingData: any) => {
+    const { data, pending, error } = useFetch(`/api/admin/bookings/${id}`, { method: 'PUT', body: bookingData, headers: headers.value });
+    return { data, pending, error };
+  };
+  const deleteAdminBooking = (id: string) => {
+    const { data, pending, error } = useFetch(`/api/admin/bookings/${id}`, { method: 'DELETE', headers: headers.value });
+    return { data, pending, error };
+  };
 
-  const fetchAdminUsers = (params?: any) => useFetch('/api/admin/users', { params, headers });
-  const fetchAdminUserById = (id: string) => useFetch(`/api/admin/users/${id}`, { headers });
-  const updateAdminUser = (id: string, userData: any) => useFetch(`/api/admin/users/${id}`, { method: 'PUT', body: userData, headers });
-  const deleteAdminUser = (id: string) => useFetch(`/api/admin/users/${id}`, { method: 'DELETE', headers });
+  const fetchAdminUsers = (params?: any) => {
+    const { data, pending, error } = useFetch('/api/admin/users', { params, headers: headers.value });
+    return { data, pending, error };
+  };
+  const fetchAdminUserById = (id: string) => {
+    const { data, pending, error } = useFetch(`/api/admin/users/${id}`, { headers: headers.value });
+    return { data, pending, error };
+  };
+  const updateAdminUser = (id: string, userData: any) => {
+    const { data, pending, error } = useFetch(`/api/admin/users/${id}`, { method: 'PUT', body: userData, headers: headers.value });
+    return { data, pending, error };
+  };
+  const deleteAdminUser = (id: string) => {
+    const { data, pending, error } = useFetch(`/api/admin/users/${id}`, { method: 'DELETE', headers: headers.value });
+    return { data, pending, error };
+  };
 
   return {
     fetchAdminTours,
