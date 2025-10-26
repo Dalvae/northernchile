@@ -22,11 +22,8 @@ public class CartItem {
     private Cart cart;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tour_id", nullable = false)
-    private Tour tour;
-
-    @Column(nullable = false)
-    private LocalDate tourDate;
+    @JoinColumn(name = "schedule_id", nullable = false)
+    private TourSchedule schedule;
 
     @Column(nullable = false)
     private Integer numAdults;
@@ -39,11 +36,10 @@ public class CartItem {
     public CartItem() {
     }
 
-    public CartItem(UUID id, Cart cart, Tour tour, LocalDate tourDate, Integer numAdults, Integer numChildren, Instant createdAt) {
+    public CartItem(UUID id, Cart cart, TourSchedule schedule, Integer numAdults, Integer numChildren, Instant createdAt) {
         this.id = id;
         this.cart = cart;
-        this.tour = tour;
-        this.tourDate = tourDate;
+        this.schedule = schedule;
         this.numAdults = numAdults;
         this.numChildren = numChildren;
         this.createdAt = createdAt;
@@ -65,20 +61,12 @@ public class CartItem {
         this.cart = cart;
     }
 
-    public Tour getTour() {
-        return tour;
+    public TourSchedule getSchedule() {
+        return schedule;
     }
 
-    public void setTour(Tour tour) {
-        this.tour = tour;
-    }
-
-    public LocalDate getTourDate() {
-        return tourDate;
-    }
-
-    public void setTourDate(LocalDate tourDate) {
-        this.tourDate = tourDate;
+    public void setSchedule(TourSchedule schedule) {
+        this.schedule = schedule;
     }
 
     public Integer getNumAdults() {
@@ -110,12 +98,12 @@ public class CartItem {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CartItem cartItem = (CartItem) o;
-        return Objects.equals(id, cartItem.id) && Objects.equals(cart, cartItem.cart) && Objects.equals(tour, cartItem.tour) && Objects.equals(tourDate, cartItem.tourDate) && Objects.equals(numAdults, cartItem.numAdults) && Objects.equals(numChildren, cartItem.numChildren) && Objects.equals(createdAt, cartItem.createdAt);
+        return Objects.equals(id, cartItem.id) && Objects.equals(cart, cartItem.cart) && Objects.equals(schedule, cartItem.schedule) && Objects.equals(numAdults, cartItem.numAdults) && Objects.equals(numChildren, cartItem.numChildren) && Objects.equals(createdAt, cartItem.createdAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, cart, tour, tourDate, numAdults, numChildren, createdAt);
+        return Objects.hash(id, cart, schedule, numAdults, numChildren, createdAt);
     }
 
     @Override
@@ -123,8 +111,7 @@ public class CartItem {
         return "CartItem{" +
                 "id=" + id +
                 ", cart=" + cart +
-                ", tour=" + tour +
-                ", tourDate=" + tourDate +
+                ", schedule=" + schedule +
                 ", numAdults=" + numAdults +
                 ", numChildren=" + numChildren +
                 ", createdAt=" + createdAt +

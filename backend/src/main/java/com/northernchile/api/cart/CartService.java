@@ -6,7 +6,7 @@ import com.northernchile.api.cart.dto.CartRes;
 import com.northernchile.api.model.Cart;
 import com.northernchile.api.model.CartItem;
 import com.northernchile.api.model.User;
-import com.northernchile.api.tour.TourRepository;
+import com.northernchile.api.tour.TourScheduleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,7 @@ public class CartService {
     @Autowired
     private CartItemRepository cartItemRepository;
     @Autowired
-    private TourRepository tourRepository;
+    private TourScheduleRepository tourScheduleRepository;
 
     @Transactional
     public Cart getOrCreateCart(Optional<User> currentUser, Optional<UUID> cartId) {
@@ -55,13 +55,12 @@ public class CartService {
 
     @Transactional
     public Cart addItemToCart(Cart cart, CartItemReq itemReq) {
-        var tour = tourRepository.findById(itemReq.getTourId())
-                .orElseThrow(() -> new EntityNotFoundException("Tour not found"));
+        var schedule = tourScheduleRepository.findById(itemReq.getScheduleId())
+                .orElseThrow(() -> new EntityNotFoundException("TourSchedule not found"));
 
         CartItem newItem = new CartItem();
         newItem.setCart(cart);
-        newItem.setTour(tour);
-        newItem.setTourDate(itemReq.getTourDate());
+        newItem.setSchedule(schedule);
         newItem.setNumAdults(itemReq.getNumAdults());
         newItem.setNumChildren(itemReq.getNumChildren());
 
@@ -107,17 +106,18 @@ public class CartService {
         List<CartItemRes> itemResponses = cart.getItems() == null ? new ArrayList<>() : cart.getItems().stream().map(item -> {
             CartItemRes itemRes = new CartItemRes();
             itemRes.setItemId(item.getId());
-            itemRes.setTourId(item.getTour().getId());
-            itemRes.setTourName(item.getTour().getName());
-            itemRes.setTourDate(item.getTourDate());
+            itemRes.setScheduleId(item.getSchedule().getId());
+            itemRes.setTourId(item.getSchedule().getTour().getId());
+            itemRes.setTourName(item.getSchedule().getTour().getName());
+            itemRes.setTourDate(LocalDate.ofInstant(item.getSchedule().getStartDatetime(), ZoneOffset.UTC));
             itemRes.setNumAdults(item.getNumAdults());
             itemRes.setNumChildren(item.getNumChildren());
-            itemRes.setPriceAdult(item.getTour().getPriceAdult());
-            itemRes.setPriceChild(item.getTour().getPriceChild());
+            itemRes.setPriceAdult(item.getSchedule().getTour().getPriceAdult());
+            itemRes.setPriceChild(item.getSchedule().getTour().getPriceChild());
 
-            BigDecimal adultTotal = item.getTour().getPriceAdult().multiply(BigDecimal.valueOf(item.getNumAdults()));
-            BigDecimal childTotal = item.getTour().getPriceChild() != null ?
-                    item.getTour().getPriceChild().multiply(BigDecimal.valueOf(item.getNumChildren())) : BigDecimal.ZERO;
+            BigDecimal adultTotal = item.getSchedule().getTour().getPriceAdult().multiply(BigDecimal.valueOf(item.getNumAdults()));
+            BigDecimal childTotal = item.getSchedule().getTour().getPriceChild() != null ?
+                    item.getSchedule().getTour().getPriceChild().multiply(BigDecimal.valueOf(item.getNumChildren())) : BigDecimal.ZERO;
             itemRes.setItemTotal(adultTotal.add(childTotal));
             return itemRes;
         }).collect(Collectors.toList());
