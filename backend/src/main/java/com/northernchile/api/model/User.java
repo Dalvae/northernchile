@@ -1,19 +1,13 @@
-// backend/src/main/java/com/northernchile/api/model/User.java
 package com.northernchile.api.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "users")
 public class User {
@@ -47,4 +41,120 @@ public class User {
 
     @UpdateTimestamp
     private Instant updatedAt;
+
+    // No-argument constructor
+    public User() {
+    }
+
+    // All-argument constructor (excluding auto-generated fields)
+    public User(UUID id, String email, String passwordHash, String fullName, String nationality, String role, String authProvider, String providerId) {
+        this.id = id;
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.fullName = fullName;
+        this.nationality = nationality;
+        this.role = role;
+        this.authProvider = authProvider;
+        this.providerId = providerId;
+    }
+
+    // Getters
+    public UUID getId() {
+        return id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public String getNationality() {
+        return nationality;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public String getAuthProvider() {
+        return authProvider;
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    // Setters (excluding id, createdAt, updatedAt)
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public void setNationality(String nationality) {
+        this.nationality = nationality;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public void setAuthProvider(String authProvider) {
+        this.authProvider = authProvider;
+    }
+
+    public void setProviderId(String providerId) {
+        this.providerId = providerId;
+    }
+
+    // equals, hashCode, toString
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id) && Objects.equals(email, user.email) && Objects.equals(passwordHash, user.passwordHash) && Objects.equals(fullName, user.fullName) && Objects.equals(nationality, user.nationality) && Objects.equals(role, user.role) && Objects.equals(authProvider, user.authProvider) && Objects.equals(providerId, user.providerId) && Objects.equals(createdAt, user.createdAt) && Objects.equals(updatedAt, user.updatedAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, email, passwordHash, fullName, nationality, role, authProvider, providerId, createdAt, updatedAt);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" + 
+               "id=" + id + 
+               ", email='" + email + "'" + 
+               ", passwordHash='" + passwordHash + "'" + 
+               ", fullName='" + fullName + "'" + 
+               ", nationality='" + nationality + "'" + 
+               ", role='" + role + "'" + 
+               ", authProvider='" + authProvider + "'" + 
+               ", providerId='" + providerId + "'" + 
+               ", createdAt=" + createdAt + 
+               ", updatedAt=" + updatedAt + 
+               '}';
+    }
 }

@@ -1,19 +1,14 @@
-// backend/src/main/java/com/northernchile/api/model/Cart.java
+
 package com.northernchile.api.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "carts")
 public class Cart {
@@ -36,4 +31,89 @@ public class Cart {
 
     @CreationTimestamp
     private Instant createdAt;
+
+    public Cart() {
+    }
+
+    public Cart(UUID id, User user, List<CartItem> items, String status, Instant expiresAt, Instant createdAt) {
+        this.id = id;
+        this.user = user;
+        this.items = items;
+        this.status = status;
+        this.expiresAt = expiresAt;
+        this.createdAt = createdAt;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public List<CartItem> getItems() {
+        return items;
+    }
+
+    public void setItems(List<CartItem> items) {
+        this.items = items;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Instant getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(Instant expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Cart cart = (Cart) o;
+        return Objects.equals(id, cart.id) && Objects.equals(user, cart.user) && Objects.equals(items, cart.items) && Objects.equals(status, cart.status) && Objects.equals(expiresAt, cart.expiresAt) && Objects.equals(createdAt, cart.createdAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, user, items, status, expiresAt, createdAt);
+    }
+
+    @Override
+    public String toString() {
+        return "Cart{" +
+                "id=" + id +
+                ", user=" + user +
+                ", items=" + items +
+                ", status='" + status + ''' +
+                ", expiresAt=" + expiresAt +
+                ", createdAt=" + createdAt +
+                '}';
+    }
 }

@@ -1,40 +1,95 @@
-import { defineStore } from 'pinia'
+import { defineStore } from "pinia";
 
-export const useAuthStore = defineStore('auth', {
+interface User {
+  id: string;
+  email: string;
+  fullName: string;
+  role: string[];
+}
+
+export const useAuthStore = defineStore("auth", {
   state: () => ({
     isAuthenticated: false,
-    user: null as { id: number; email: string; role: string[] } | null,
-    token: null as string | null
+    user: null as User | null,
+    token: null as string | null,
+    loading: false,
   }),
+
   actions: {
-    login(user: { id: number; email: string; role: string[] }, token: string) {
-      this.isAuthenticated = true
-      this.user = user
-      this.token = token
-      localStorage.setItem('token', token)
-      // Aquí podrías guardar más datos del usuario si es necesario
-    },
-    logout() {
-      this.isAuthenticated = false
-      this.user = null
-      this.token = null
-      localStorage.removeItem('token')
-      // Redirigir al login o a la página principal
-      const router = useRouter()
-      router.push('/login')
-    },
-    checkAuth() {
-      const token = localStorage.getItem('token')
-      if (token) {
-        // Aquí podrías validar el token con el backend si es necesario
-        // Por ahora, asumimos que si hay token, está autenticado
-        this.isAuthenticated = true
-        // Podrías decodificar el token para obtener datos del usuario
-        // this.user = decodeToken(token)
+    async login(credentials: { email: string; password: string }) {
+      this.loading = true;
+      try {
+        const config = useRuntimeConfig();
+        const apiBase = config.public.apiBase;
+        const response: any = await $fetch(`${apiBase}/api/auth/login`, {
+          method: 'POST',
+          body: credentials,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        this.isAuthenticated = true;
+        this.user = response.user;
+        this.token = response.token;
+
+        if (process.client) {
+          localStorage.setItem('auth_token', response.token);
+          localStorage.setItem('user', JSON.stringify(response.user));
+        }
+
+        return response;
+      } catch (error: any) {
+        throw new Error(error.data?.message || 'Error en el login');
+      } finally {
+        this.loading = false;
       }
-    }
+    },
+
+    async register(userData: {
+      email: string;
+      password: string;
+      fullName: string;
+    }) {
+      this.loading = true;
+      try {
+        const config = useRuntimeConfig();
+        const apiBase = config.public.apiBase;
+        const response: any = await $fetch(`${apiBase}/api/auth/register`, {
+          method: 'POST',
+          body: userData,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        return response;
+      } catch (error: any) {
+        throw new Error(error.data?.message || 'Error en el registro');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    logout() {
+      this.isAuthenticated = false;
+      this.user = null;
+      this.token = null;
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("user");
+      const router = useRouter();
+      router.push("/auth");
+    },
+
+    checkAuth() {
+      if (process.client) {
+        const token = localStorage.getItem("auth_token");
+        const user = localStorage.getItem("user");
+        if (token && user) {
+          this.isAuthenticated = true;
+          this.token = token;
+          this.user = JSON.parse(user);
+        }
+      }
+    },
   },
-  getters: {
-    // Puedes añadir getters si necesitas datos derivados del estado
-  }
-})
+});

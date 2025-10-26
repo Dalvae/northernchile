@@ -6,11 +6,11 @@ export default defineNuxtConfig({
     head: {
       link: [
         {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;600&display=swap'
-        }
-      ]
-    }
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;600&display=swap",
+        },
+      ],
+    },
   },
   modules: ["@nuxt/eslint", "@nuxt/ui", "@nuxtjs/i18n", "@pinia/nuxt"],
 
@@ -21,12 +21,13 @@ export default defineNuxtConfig({
 
     // Las claves públicas SÍ se exponen al cliente.
     public: {
-      // Dejamos esto por si alguna configuración pública es necesaria más adelante.
+      // Hacemos la URL base de la API accesible en el lado del cliente.
+      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
     },
   },
 
   ui: {
-    colorMode: { preference: 'dark' }
+    colorMode: { preference: "dark" },
   },
 
   i18n: {
@@ -38,7 +39,8 @@ export default defineNuxtConfig({
     lazy: true,
     defaultLocale: "es",
     strategy: "prefix_except_default",
-    baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    baseUrl: process.env.NUXT_PUBLIC_BASE_URL || "http://localhost:3000",
+    exclude: ["/admin/*"],
   },
 
   devtools: {
@@ -66,4 +68,3 @@ export default defineNuxtConfig({
     plugins: [viteTsconfigPaths()],
   },
 });
-

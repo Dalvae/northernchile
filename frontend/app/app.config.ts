@@ -15,9 +15,7 @@ export default defineAppConfig({
     // Descomenta este bloque para usar la paleta Cosmic
     colors: {
       primary: "nebula",
-      gray: "deep-space",
-      secondary: "celeste",
-      accent: "starburst",
+      secondary: "deep-space",
     },
 
     button: {
@@ -29,8 +27,6 @@ export default defineAppConfig({
       ring: "ring-1 ring-gray-800",
     },
     header: {
-      wrapper:
-        "!bg-gray-900 !dark:bg-gray-900 backdrop-blur-md border-b border-gray-800",
       base: "!bg-transparent",
       background: "!bg-transparent",
       container: "!bg-transparent",

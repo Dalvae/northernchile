@@ -1,21 +1,10 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
-/* 1. Importa las fuentes base */
-@import "./theme.css";
-
-/* 2. Activa UNA de las siguientes paletas de colores */
-@import "./themes/cosmic.css"; /* @import "./themes/cosmic.css"; */
+@import "./themes/cosmic.css";
 
 @theme static {
   --font-sans: var(--font-body);
   --font-serif: var(--font-display);
 }
 
-body {
-  font-family: var(--font-body);
-  background-color: var(--color-gray-950);
-  color: var(--color-gray-200);
-}
-.bg-default {
-  background-color: var(--color-deep-space-900) !important;
-}
+/* Elimina cualquier estilo de body adicional */

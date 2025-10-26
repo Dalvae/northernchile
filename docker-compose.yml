@@ -28,6 +28,9 @@ services:
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - SPRING_DEVTOOLS_REMOTE_SECRET=tu-secreto-aqui
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_FULL_NAME=${ADMIN_FULL_NAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     volumes:
       - ./backend:/app
       - maven_cache:/root/.m2
