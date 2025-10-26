@@ -7,6 +7,21 @@ interface User {
   role: string[];
 }
 
+// Función auxiliar para decodificar el payload del JWT de forma segura
+function decodeJwtPayload(token: string): any | null {
+  try {
+    const payloadBase64 = token.split(".")[1];
+    if (!payloadBase64) return null;
+    const decodedJson = atob(
+      payloadBase64.replace(/-/g, "+").replace(/_/g, "/"),
+    );
+    return JSON.parse(decodedJson);
+  } catch (error) {
+    console.error("Failed to decode JWT:", error);
+    return null;
+  }
+}
+
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     isAuthenticated: false,
@@ -15,6 +30,16 @@ export const useAuthStore = defineStore("auth", {
     loading: false,
   }),
 
+  getters: {
+    isAdmin(state): boolean {
+      if (!state.user?.role) return false;
+      return (
+        state.user.role.includes("ROLE_SUPER_ADMIN") ||
+        state.user.role.includes("ROLE_PARTNER_ADMIN")
+      );
+    },
+  },
+
   actions: {
     async login(credentials: { email: string; password: string }) {
       this.loading = true;
@@ -22,28 +47,62 @@ export const useAuthStore = defineStore("auth", {
       try {
         const config = useRuntimeConfig();
         const apiBase = config.public.apiBase;
-        const response: any = await $fetch(`${apiBase}/api/auth/login`, {
-          method: 'POST',
-          body: credentials,
-          headers: {
-            'Content-Type': 'application/json',
+        const response: { token: string } = await $fetch(
+          `${apiBase}/api/auth/login`,
+          {
+            method: "POST",
+            body: credentials,
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
-        });
+        );
 
-        return response;
+        if (response && response.token) {
+          const token = response.token;
+          const payload = decodeJwtPayload(token);
+
+          if (!payload) {
+            throw new Error("Token de autenticación inválido.");
+          }
+
+          const user: User = {
+            id: payload.sub,
+            email: payload.email,
+            fullName: payload.fullName,
+            role: payload.roles || [],
+          };
+
+          this.isAuthenticated = true;
+          this.user = user;
+          this.token = token;
+
+          if (process.client) {
+            localStorage.setItem("auth_token", token);
+            localStorage.setItem("user", JSON.stringify(user));
+          }
+
+          toast.add({
+            title: "¡Bienvenido!",
+            description: "Has iniciado sesión correctamente.",
+            color: "green",
+          });
+        } else {
+          throw new Error("La respuesta del login no contiene un token.");
+        }
       } catch (error: any) {
-        let errorMessage = error.data?.message || 'Error en el login';
-        if (error.statusCode === 403) {
-          errorMessage = 'Acceso denegado. Credenciales inválidas.';
-        } else if (error.statusCode === 401) {
-          errorMessage = 'No autorizado. Por favor, verifica tus credenciales.';
+        let errorMessage = error.data?.message || "Error en el login";
+        if (error.statusCode === 403 || error.statusCode === 401) {
+          errorMessage =
+            "Credenciales inválidas. Verifica tu email y contraseña.";
         }
         toast.add({
-          title: 'Error',
+          title: "Error de Autenticación",
           description: errorMessage,
-          color: 'error',
+          color: "red",
         });
-        throw new Error(errorMessage);
+        // Relanzamos el error para que el componente que llama pueda manejarlo
+        throw error;
       } finally {
         this.loading = false;
       }
@@ -59,34 +118,30 @@ export const useAuthStore = defineStore("auth", {
       try {
         const config = useRuntimeConfig();
         const apiBase = config.public.apiBase;
-        const response: any = await $fetch(`${apiBase}/api/auth/register`, {
-          method: 'POST',
+        await $fetch(`${apiBase}/api/auth/register`, {
+          method: "POST",
           body: userData,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         });
 
         toast.add({
-          title: 'Éxito',
-          description: 'Registro exitoso. Por favor, inicia sesión.',
-          color: 'green',
+          title: "Registro Exitoso",
+          description: "Tu cuenta ha sido creada. Ahora puedes iniciar sesión.",
+          color: "green",
         });
-
-        return response;
       } catch (error: any) {
-        let errorMessage = error.data?.message || 'Error en el registro';
-        if (error.statusCode === 409) { // Assuming 409 Conflict for existing user
-          errorMessage = 'El usuario ya existe. Por favor, inicia sesión o usa otro correo.';
-        } else if (error.statusCode === 400) { // Assuming 400 Bad Request for validation errors
-          errorMessage = 'Datos de registro inválidos. Por favor, verifica la información.';
+        let errorMessage = error.data?.message || "Error en el registro";
+        if (error.statusCode === 409) {
+          errorMessage = "El correo electrónico ya está en uso.";
         }
         toast.add({
-          title: 'Error',
+          title: "Error de Registro",
           description: errorMessage,
-          color: 'error',
+          color: "red",
         });
-        throw new Error(errorMessage);
+        throw error;
       } finally {
         this.loading = false;
       }
@@ -96,10 +151,12 @@ export const useAuthStore = defineStore("auth", {
       this.isAuthenticated = false;
       this.user = null;
       this.token = null;
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("user");
-      const router = useRouter();
-      router.push("/auth");
+      if (process.client) {
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("user");
+      }
+      // Redirigir usando navigateTo para asegurar que funcione en cualquier contexto
+      navigateTo("/auth");
     },
 
     checkAuth() {
@@ -110,6 +167,8 @@ export const useAuthStore = defineStore("auth", {
           this.isAuthenticated = true;
           this.token = token;
           this.user = JSON.parse(user);
+        } else {
+          this.logout();
         }
       }
     },

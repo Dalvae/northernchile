@@ -1,43 +1,95 @@
 <script setup lang="ts">
-const { fetchAll } = useTours()
-const { data: tours, pending, error } = await fetchAll()
-const { t } = useI18n()
+import { format } from "date-fns";
+import type { BookingRes } from "~/lib/api-client";
 
-// SEO específico para la página de inicio
-useSeoMeta({
-  title: () => t('nav.tours'), // Esto se insertará en el '%s' de la plantilla
-  description: () => t('tours.hero_description'),
-  ogTitle: () => `${t('nav.tours')} | Northern Chile`,
-  ogDescription: () => t('tours.hero_description'),
-  ogImage: 'https://www.northernchile.cl/og-image-homepage.jpg', // URL a una imagen representativa
-  twitterCard: 'summary_large_image'
-})
+definePageMeta({
+  layout: "admin",
+});
+
+const { fetchAdminBookings, fetchAdminTours } = useAdminData();
+
+const { data: bookingsData, pending: pendingBookings } =
+  await fetchAdminBookings({ limit: 5, sortBy: "createdAt", order: "desc" });
+const { data: tours, pending: pendingTours } = await fetchAdminTours();
+
+const latestBookings = computed(() => bookingsData.value?.data || []);
+
+const stats = computed(() => [
+  { label: "Ingresos Totales", value: "$12,345", icon: "i-lucide-dollar-sign" },
+  {
+    label: "Total Reservas",
+    value: bookingsData.value?.totalElements || 0,
+    icon: "i-lucide-book-marked",
+  },
+  {
+    label: "Total Tours",
+    value: tours.value?.length || 0,
+    icon: "i-lucide-map",
+  },
+  { label: "Nuevos Clientes (Mes)", value: "12", icon: "i-lucide-users" },
+]);
+
+const bookingColumns = [
+  { key: "id", label: "ID" },
+  { key: "userFullName", label: "Cliente" },
+  { key: "tourName", label: "Tour" },
+  { key: "status", label: "Estado" },
+  { key: "totalAmount", label: "Monto" },
+  { key: "createdAt", label: "Fecha Creación" },
+];
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+  }).format(amount);
+}
 </script>
 
 <template>
-  <div>
-    <UContainer>
-      <div class="py-16">
-        <div class="text-center mb-12">
-          <h1 class="text-4xl font-bold font-display tracking-tight sm:text-6xl">{{ $t('tours.all') }}</h1>
-          <p class="mt-6 text-lg leading-8 text-gray-300">{{ $t('tours.hero_description') }}</p>
-        </div>
-
-        <div v-if="pending" class="text-center">
-          <p>Cargando experiencias...</p>
-        </div>
-        <div v-else-if="error" class="text-center text-red-400">
-          <p>Ocurrió un error al cargar los tours. Por favor, intenta más tarde.</p>
-        </div>
-        <div v-else-if="tours && tours.data?.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <TourCard v-for="tour in tours.data" :key="tour.id" :tour="tour" />
-        </div>
-        <div v-else class="text-center bg-gray-800/50 p-8 rounded-lg border border-gray-700 max-w-md mx-auto">
-          <UIcon name="i-lucide-telescope" class="text-4xl text-primary-400 mb-4" />
-          <p class="font-semibold text-lg">No se encontraron tours. </p>
-          <p class="text-sm text-gray-400 mt-2">Estamos preparando nuevas aventuras bajo las estrellas. ¡Vuelve pronto!</p>
-        </div>
+  <UDashboardPanel grow>
+    <UDashboardNavbar title="Dashboard" />
+    <UDashboardPanelContent>
+      <!-- Estadísticas -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <template v-for="(stat, index) in stats" :key="index">
+          <DashboardStat
+            :label="stat.label"
+            :value="stat.value"
+            :icon="stat.icon"
+          />
+        </template>
       </div>
-    </UContainer>
-    </div>
+
+      <!-- Últimas Reservas -->
+      <UCard>
+        <template #header>
+          <h2 class="font-semibold text-lg">Últimas Reservas</h2>
+        </template>
+        <UTable
+          :rows="latestBookings"
+          :columns="bookingColumns"
+          :loading="pendingBookings"
+        >
+          <template #status-data="{ row }">
+            <UBadge
+              :color="row.status === 'CONFIRMED' ? 'green' : 'orange'"
+              variant="subtle"
+            >
+              {{ row.status }}
+            </UBadge>
+          </template>
+          <template #totalAmount-data="{ row }">
+            <span>{{ formatCurrency(row.totalAmount) }}</span>
+          </template>
+          <template #createdAt-data="{ row }">
+            <span>{{
+              format(new Date(row.createdAt), "dd MMM yyyy, HH:mm")
+            }}</span>
+          </template>
+        </UTable>
+      </UCard>
+    </UDashboardPanelContent>
+  </UDashboardPanel>
 </template>
+

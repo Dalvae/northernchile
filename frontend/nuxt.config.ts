@@ -12,7 +12,13 @@ export default defineNuxtConfig({
       ],
     },
   },
-  modules: ["@nuxt/eslint", ["@nuxt/ui", { components: true }], "@nuxtjs/i18n", "@pinia/nuxt"],
+  modules: [
+    "@nuxt/eslint",
+    "@nuxt/ui",
+    "@nuxtjs/i18n",
+    "@pinia/nuxt",
+    "@vueuse/nuxt",
+  ],
 
   runtimeConfig: {
     // Estas claves SOLO están disponibles en el servidor de Nuxt.
@@ -22,7 +28,7 @@ export default defineNuxtConfig({
     // Las claves públicas SÍ se exponen al cliente.
     public: {
       // Hacemos la URL base de la API accesible en el lado del cliente.
-      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
+      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:8080",
     },
   },
 
