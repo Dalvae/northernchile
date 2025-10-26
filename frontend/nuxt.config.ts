@@ -34,6 +34,10 @@ export default defineNuxtConfig({
 
   ui: {
     colorMode: { preference: "dark" },
+    colors: {
+      primary: 'green',
+      neutral: 'zinc'
+    }
   },
 
   i18n: {

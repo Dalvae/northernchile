@@ -57,21 +57,22 @@ import { useAuthStore } from "~/stores/auth";
 
 const { t } = useI18n();
 const authStore = useAuthStore();
+const localePath = useLocalePath();
 
-const isAdmin = computed(() => authStore.user?.role?.includes("ADMIN"));
+const isAdmin = computed(() => authStore.isAdmin);
 
 const links = computed(() => [
-  {
+  { 
     label: t("nav.tours"),
-    to: "/",
+    to: localePath("/"),
   },
   {
     label: t("nav.private_tours"),
-    to: "/private-tours",
+    to: localePath("/private-tours"),
   },
   {
     label: t("nav.about_us"),
-    to: "/about",
+    to: localePath("/about"),
   },
 ]);
 </script>
