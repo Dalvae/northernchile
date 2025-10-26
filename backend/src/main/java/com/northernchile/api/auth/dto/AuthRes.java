@@ -37,7 +37,7 @@ public class AuthRes {
     @Override
     public String toString() {
         return "AuthRes{" +
-                "token='" + token + ''' +
+                "token='" + token + '\'' +
                 '}';
     }
 }

@@ -141,14 +141,14 @@ public class TourRes {
     public String toString() {
         return "TourRes{" +
                 "id=" + id +
-                ", name='" + name + ''' +
-                ", description='" + description + ''' +
-                ", category='" + category + ''' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", category='" + category + '\'' +
                 ", priceAdult=" + priceAdult +
                 ", priceChild=" + priceChild +
                 ", defaultMaxParticipants=" + defaultMaxParticipants +
                 ", durationHours=" + durationHours +
-                ", status='" + status + ''' +
+                ", status='" + status + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

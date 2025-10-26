@@ -47,8 +47,8 @@ public class LoginReq {
     @Override
     public String toString() {
         return "LoginReq{" +
-                "email='" + email + ''' +
-                ", password='" + password + ''' +
+                "email='" + email + '\'' +
+                ", password='" + password + '\'' +
                 '}';
     }
 }

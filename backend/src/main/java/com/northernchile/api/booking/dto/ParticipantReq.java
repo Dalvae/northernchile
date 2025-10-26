@@ -47,8 +47,8 @@ public class ParticipantReq {
     @Override
     public String toString() {
         return "ParticipantReq{" +
-                "fullName='" + fullName + ''' +
-                ", type='" + type + ''' +
+                "fullName='" + fullName + '\'' +
+                ", type='" + type + '\'' +
                 '}';
     }
 }

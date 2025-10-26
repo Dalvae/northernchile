@@ -1,3 +1,5 @@
+package com.northernchile.api.auth;
+
 import com.northernchile.api.auth.dto.LoginReq;
 import com.northernchile.api.auth.dto.RegisterReq;
 import com.northernchile.api.config.security.JwtUtil;

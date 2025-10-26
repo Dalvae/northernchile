@@ -59,8 +59,8 @@ public class ParticipantRes {
     public String toString() {
         return "ParticipantRes{" +
                 "id=" + id +
-                ", fullName='" + fullName + ''' +
-                ", type='" + type + ''' +
+                ", fullName='" + fullName + '\'' +
+                ", type='" + type + '\'' +
                 '}';
     }
 }

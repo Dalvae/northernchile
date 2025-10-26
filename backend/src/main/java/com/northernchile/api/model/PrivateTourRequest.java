@@ -189,17 +189,17 @@ public class PrivateTourRequest {
         return "PrivateTourRequest{" +
                 "id=" + id +
                 ", user=" + user +
-                ", customerName='" + customerName + ''' +
-                ", customerEmail='" + customerEmail + ''' +
-                ", customerPhone='" + customerPhone + ''' +
-                ", requestedTourType='" + requestedTourType + ''' +
+                ", customerName='" + customerName + '\'' +
+                ", customerEmail='" + customerEmail + '\'' +
+                ", customerPhone='" + customerPhone + '\'' +
+                ", requestedTourType='" + requestedTourType + '\'' +
                 ", requestedDatetime=" + requestedDatetime +
                 ", numAdults=" + numAdults +
                 ", numChildren=" + numChildren +
-                ", specialRequests='" + specialRequests + ''' +
-                ", status='" + status + ''' +
+                ", specialRequests='" + specialRequests + '\'' +
+                ", status='" + status + '\'' +
                 ", quotedPrice=" + quotedPrice +
-                ", paymentLinkId='" + paymentLinkId + ''' +
+                ", paymentLinkId='" + paymentLinkId + '\'' +
                 ", createdAt=" + createdAt +
                 '}';
     }

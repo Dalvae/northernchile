@@ -1,3 +1,5 @@
+package com.northernchile.api.config;
+
 import com.northernchile.api.config.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

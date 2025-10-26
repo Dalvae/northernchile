@@ -164,7 +164,7 @@ public class Tour {
         this.durationHours = durationHours;
     }
 
-    public Boolean getWindSensitive() {
+    public Boolean isWindSensitive() {
         return isWindSensitive;
     }
 
@@ -230,18 +230,18 @@ public class Tour {
         return "Tour{" +
                 "id=" + id +
                 ", owner=" + owner +
-                ", name='" + name + ''' +
-                ", description='" + description + ''' +
-                ", contentKey='" + contentKey + ''' +
-                ", category='" + category + ''' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", contentKey='" + contentKey + '\'' +
+                ", category='" + category + '\'' +
                 ", priceAdult=" + priceAdult +
                 ", priceChild=" + priceChild +
                 ", defaultMaxParticipants=" + defaultMaxParticipants +
                 ", durationHours=" + durationHours +
                 ", isWindSensitive=" + isWindSensitive +
                 ", isRecurring=" + isRecurring +
-                ", recurrenceRule='" + recurrenceRule + ''' +
-                ", status='" + status + ''' +
+                ", recurrenceRule='" + recurrenceRule + '\'' +
+                ", status='" + status + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

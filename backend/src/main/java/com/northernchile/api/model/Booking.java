@@ -189,12 +189,12 @@ public class Booking {
                 ", schedule=" + schedule +
                 ", participants=" + participants +
                 ", tourDate=" + tourDate +
-                ", status='" + status + ''' +
+                ", status='" + status + '\'' +
                 ", subtotal=" + subtotal +
                 ", taxAmount=" + taxAmount +
                 ", totalAmount=" + totalAmount +
-                ", languageCode='" + languageCode + ''' +
-                ", specialRequests='" + specialRequests + ''' +
+                ", languageCode='" + languageCode + '\'' +
+                ", specialRequests='" + specialRequests + '\'' +
                 ", createdAt=" + createdAt +
                 '}';
     }

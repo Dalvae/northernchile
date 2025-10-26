@@ -125,7 +125,7 @@ public class TourSchedule {
                 ", tour=" + tour +
                 ", startDatetime=" + startDatetime +
                 ", maxParticipants=" + maxParticipants +
-                ", status='" + status + ''' +
+                ", status='" + status + '\'' +
                 ", assignedGuide=" + assignedGuide +
                 ", createdAt=" + createdAt +
                 '}';

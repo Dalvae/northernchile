@@ -49,7 +49,7 @@ public class CartRes {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CartRes cartRes = (CartRes) o;
-        return Objects.equals(cartId, cartRes.cartId) && Objects.equals(items, cart.items) && Objects.equals(cartTotal, cartRes.cartTotal);
+        return Objects.equals(cartId, cartRes.cartId) && Objects.equals(items, cartRes.items) && Objects.equals(cartTotal, cartRes.cartTotal);
     }
 
     @Override

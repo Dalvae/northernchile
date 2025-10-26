@@ -72,7 +72,7 @@ public class AvailabilityService {
         }
 
         // Check for strong wind on sensitive tours
-        if (schedule.getTour().getIsWindSensitive() && weatherService.isWindAboveThreshold(date, 25)) {
+        if (schedule.getTour().isWindSensitive() && weatherService.isWindAboveThreshold(date, 25)) {
             return new DayAvailability("UNAVAILABLE_WIND", 0, lunarService.getMoonIllumination(date));
         }
 

@@ -98,8 +98,8 @@ public class Participant {
         return "Participant{" +
                 "id=" + id +
                 ", booking=" + booking +
-                ", fullName='" + fullName + ''' +
-                ", type='" + type + ''' +
+                ", fullName='" + fullName + '\'' +
+                ", type='" + type + '\'' +
                 ", createdAt=" + createdAt +
                 '}';
     }

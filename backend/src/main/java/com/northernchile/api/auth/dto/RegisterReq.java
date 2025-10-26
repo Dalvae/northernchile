@@ -57,9 +57,9 @@ public class RegisterReq {
     @Override
     public String toString() {
         return "RegisterReq{" +
-                "email='" + email + ''' +
-                ", password='" + password + ''' +
-                ", fullName='" + fullName + ''' +
+                "email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", fullName='" + fullName + '\'' +
                 '}';
     }
 }

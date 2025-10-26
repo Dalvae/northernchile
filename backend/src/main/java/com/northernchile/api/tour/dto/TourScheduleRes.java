@@ -121,12 +121,12 @@ public class TourScheduleRes {
         return "TourScheduleRes{" +
                 "id=" + id +
                 ", tourId=" + tourId +
-                ", tourName='" + tourName + ''' +
+                ", tourName='" + tourName + '\'' +
                 ", startDatetime=" + startDatetime +
                 ", maxParticipants=" + maxParticipants +
-                ", status='" + status + ''' +
+                ", status='" + status + '\'' +
                 ", assignedGuideId=" + assignedGuideId +
-                ", assignedGuideName='" + assignedGuideName + ''' +
+                ", assignedGuideName='" + assignedGuideName + '\'' +
                 ", createdAt=" + createdAt +
                 '}';
     }

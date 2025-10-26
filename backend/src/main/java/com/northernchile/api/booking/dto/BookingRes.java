@@ -174,16 +174,16 @@ public class BookingRes {
         return "BookingRes{" +
                 "id=" + id +
                 ", userId=" + userId +
-                ", userFullName='" + userFullName + ''' +
+                ", userFullName='" + userFullName + '\'' +
                 ", scheduleId=" + scheduleId +
-                ", tourName='" + tourName + ''' +
+                ", tourName='" + tourName + '\'' +
                 ", tourDate=" + tourDate +
-                ", status='" + status + ''' +
+                ", status='" + status + '\'' +
                 ", subtotal=" + subtotal +
                 ", taxAmount=" + taxAmount +
                 ", totalAmount=" + totalAmount +
-                ", languageCode='" + languageCode + ''' +
-                ", specialRequests='" + specialRequests + ''' +
+                ", languageCode='" + languageCode + '\'' +
+                ", specialRequests='" + specialRequests + '\'' +
                 ", createdAt=" + createdAt +
                 ", participants=" + participants +
                 '}';

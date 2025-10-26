@@ -26,46 +26,15 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
+    private final AuthService authService;
 
-    @Autowired
-    private AuthService authService;
-
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    public AuthController(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        this.authenticationManager = authenticationConfiguration.getAuthenticationManager();
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginReq loginReq) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginReq.getEmail(), loginReq.getPassword())
-        );
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtil.generateToken(authentication.getName());
-
-        User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found after authentication"));
-
-        // Creamos un mapa para el usuario para no exponer el hash de la contraseña
-        Map<String, Object> userMap = new HashMap<>();
-        userMap.put("id", user.getId());
-        userMap.put("email", user.getEmail());
-        userMap.put("fullName", user.getFullName());
-        // El frontend espera un array de roles, así que lo envolvemos en una lista
-        userMap.put("role", Collections.singletonList(user.getRole()));
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("token", jwt);
-        response.put("user", userMap);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(authService.login(loginReq));
     }
 
     @PostMapping("/register")

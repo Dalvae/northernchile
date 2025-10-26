@@ -111,7 +111,7 @@ public class Cart {
                 "id=" + id +
                 ", user=" + user +
                 ", items=" + items +
-                ", status='" + status + ''' +
+                ", status='" + status + '\'' +
                 ", expiresAt=" + expiresAt +
                 ", createdAt=" + createdAt +
                 '}';

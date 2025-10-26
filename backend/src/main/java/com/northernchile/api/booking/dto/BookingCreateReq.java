@@ -71,8 +71,8 @@ public class BookingCreateReq {
         return "BookingCreateReq{" +
                 "scheduleId=" + scheduleId +
                 ", participants=" + participants +
-                ", languageCode='" + languageCode + ''' +
-                ", specialRequests='" + specialRequests + ''' +
+                ", languageCode='" + languageCode + '\'' +
+                ", specialRequests='" + specialRequests + '\'' +
                 '}';
     }
 }

@@ -122,7 +122,7 @@ public class CartItemRes {
         return "CartItemRes{" +
                 "itemId=" + itemId +
                 ", tourId=" + tourId +
-                ", tourName='" + tourName + ''' +
+                ", tourName='" + tourName + '\'' +
                 ", tourDate=" + tourDate +
                 ", numAdults=" + numAdults +
                 ", numChildren=" + numChildren +

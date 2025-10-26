@@ -1,4 +1,3 @@
-
 package com.northernchile.api.tour.dto;
 
 import java.math.BigDecimal;
@@ -107,15 +106,15 @@ public class TourUpdateReq {
 
     @Override
     public String toString() {
-        return "TourUpdateReq{" +
-                "name='" + name + ''' +
-                ", description='" + description + ''' +
-                ", category='" + category + ''' +
+        return "TourUpdateReq{"
+                + "name='" + name + "'" +
+                ", description='" + description + "'" +
+                ", category='" + category + "'" +
                 ", priceAdult=" + priceAdult +
                 ", priceChild=" + priceChild +
                 ", defaultMaxParticipants=" + defaultMaxParticipants +
                 ", durationHours=" + durationHours +
-                ", status='" + status + ''' +
-                '}';
+                ", status='" + status + "'" +
+                "' }";
     }
 }
