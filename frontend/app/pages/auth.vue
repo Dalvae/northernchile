@@ -161,11 +161,6 @@ async function handleSubmit(event: FormSubmitEvent<any>) {
         email: event.data.email,
         password: event.data.password,
       });
-      toast.add({
-        title: "¡Bienvenido!",
-        description: "Has iniciado sesión correctamente",
-        color: "green",
-      });
       await router.push("/");
     } else {
       console.log('Intentando registro con:', {
@@ -176,11 +171,6 @@ async function handleSubmit(event: FormSubmitEvent<any>) {
         email: event.data.email,
         password: event.data.password,
         fullName: event.data.fullName,
-      });
-      toast.add({
-        title: "¡Cuenta creada!",
-        description: "Tu cuenta ha sido creada exitosamente",
-        color: "green",
       });
       // Opcional: cambiar a login después del registro
       isLogin.value = true;
@@ -200,12 +190,6 @@ async function handleSubmit(event: FormSubmitEvent<any>) {
       errorMessage = error.message;
     }
 
-    toast.add({
-      title: "Error",
-      description: errorMessage,
-      color: "red",
-      timeout: 5000, // 5 segundos para poder leer el mensaje
-    });
   } finally {
     loading.value = false;
   }

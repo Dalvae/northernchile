@@ -1,4 +1,3 @@
-// Importamos los tipos directamente, ya que son útiles
 import type { TourRes } from '~/lib/api-client'
 
 export const useTours = () => {

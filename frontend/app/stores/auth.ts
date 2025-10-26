@@ -18,6 +18,7 @@ export const useAuthStore = defineStore("auth", {
   actions: {
     async login(credentials: { email: string; password: string }) {
       this.loading = true;
+      const toast = useToast();
       try {
         const config = useRuntimeConfig();
         const apiBase = config.public.apiBase;
@@ -29,18 +30,20 @@ export const useAuthStore = defineStore("auth", {
           },
         });
 
-        this.isAuthenticated = true;
-        this.user = response.user;
-        this.token = response.token;
-
-        if (process.client) {
-          localStorage.setItem('auth_token', response.token);
-          localStorage.setItem('user', JSON.stringify(response.user));
-        }
-
         return response;
       } catch (error: any) {
-        throw new Error(error.data?.message || 'Error en el login');
+        let errorMessage = error.data?.message || 'Error en el login';
+        if (error.statusCode === 403) {
+          errorMessage = 'Acceso denegado. Credenciales inválidas.';
+        } else if (error.statusCode === 401) {
+          errorMessage = 'No autorizado. Por favor, verifica tus credenciales.';
+        }
+        toast.add({
+          title: 'Error',
+          description: errorMessage,
+          color: 'error',
+        });
+        throw new Error(errorMessage);
       } finally {
         this.loading = false;
       }
@@ -52,6 +55,7 @@ export const useAuthStore = defineStore("auth", {
       fullName: string;
     }) {
       this.loading = true;
+      const toast = useToast();
       try {
         const config = useRuntimeConfig();
         const apiBase = config.public.apiBase;
@@ -62,9 +66,27 @@ export const useAuthStore = defineStore("auth", {
             'Content-Type': 'application/json',
           },
         });
+
+        toast.add({
+          title: 'Éxito',
+          description: 'Registro exitoso. Por favor, inicia sesión.',
+          color: 'green',
+        });
+
         return response;
       } catch (error: any) {
-        throw new Error(error.data?.message || 'Error en el registro');
+        let errorMessage = error.data?.message || 'Error en el registro';
+        if (error.statusCode === 409) { // Assuming 409 Conflict for existing user
+          errorMessage = 'El usuario ya existe. Por favor, inicia sesión o usa otro correo.';
+        } else if (error.statusCode === 400) { // Assuming 400 Bad Request for validation errors
+          errorMessage = 'Datos de registro inválidos. Por favor, verifica la información.';
+        }
+        toast.add({
+          title: 'Error',
+          description: errorMessage,
+          color: 'error',
+        });
+        throw new Error(errorMessage);
       } finally {
         this.loading = false;
       }

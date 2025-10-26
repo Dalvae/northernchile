@@ -1,16 +1,21 @@
 export default defineNuxtRouteMiddleware((to) => {
   // Solo aplicar a rutas que empiecen con /admin
   if (to.path.startsWith("/admin")) {
-    const authStore = useAuthStore();
+    if (process.client) {
+      const authStore = useAuthStore();
 
-    // Verificar autenticación
-    if (!authStore.isAuthenticated) {
-      return navigateTo("/auth");
-    }
+      // Verificar autenticación
+      if (!authStore.isAuthenticated) {
+        return navigateTo("/auth");
+      }
 
-    // Verificar rol de admin
-    if (!authStore.user?.role?.includes("ADMIN")) {
-      return navigateTo("/");
+      // Verificar rol de admin
+      const userRoles = authStore.user?.role || [];
+      const hasAdminAccess = userRoles.includes("ROLE_SUPER_ADMIN") || userRoles.includes("ROLE_PARTNER_ADMIN");
+
+      if (!hasAdminAccess) {
+        return navigateTo("/");
+      }
     }
   }
 });
