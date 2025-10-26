@@ -12,7 +12,7 @@ export default defineNuxtConfig({
       ],
     },
   },
-  modules: ["@nuxt/eslint", "@nuxt/ui", "@nuxtjs/i18n", "@pinia/nuxt"],
+  modules: ["@nuxt/eslint", ["@nuxt/ui", { components: true }], "@nuxtjs/i18n", "@pinia/nuxt"],
 
   runtimeConfig: {
     // Estas claves SOLO están disponibles en el servidor de Nuxt.
