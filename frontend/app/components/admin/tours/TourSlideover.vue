@@ -1,33 +1,32 @@
 <script setup lang="ts">
-import { z } from 'zod';
-import type { FormSubmitEvent } from '@nuxt/ui';
-import type { TourRes, TourCreateReq, TourUpdateReq } from '~/lib/api-client';
+import { z } from "zod";
+import type { FormSubmitEvent } from "@nuxt/ui";
+import type { TourRes, TourCreateReq, TourUpdateReq } from "~/lib/api-client";
 
 const props = defineProps<{
   modelValue: boolean;
   tour?: TourRes | null;
 }>();
 
-const emit = defineEmits(['update:modelValue', 'success']);
+const emit = defineEmits(["update:modelValue", "success"]);
 
 const isOpen = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value),
+  set: (value) => emit("update:modelValue", value),
 });
 
 const isEditing = computed(() => !!props.tour);
 
 const schema = z.object({
-  name: z.string().min(3, 'El nombre es requerido'),
-  description: z.string().min(10, 'La descripción es requerida'),
-  category: z.string().min(3, 'La categoría es requerida'),
-  priceAdult: z.number().min(0, 'El precio debe ser positivo'),
-  priceChild: z.number().min(0, 'El precio debe ser positivo'),
-  defaultMaxParticipants: z.number().int().min(1, 'Debe ser al menos 1'),
-  durationHours: z.number().int().min(1, 'Debe ser al menos 1'),
-  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional(),
+  name: z.string().min(3, "El nombre es requerido"),
+  description: z.string().min(10, "La descripción es requerida"),
+  category: z.string().min(3, "La categoría es requerida"),
+  priceAdult: z.number().min(0, "El precio debe ser positivo"),
+  priceChild: z.number().min(0, "El precio debe ser positivo").nullable(),
+  defaultMaxParticipants: z.number().int().min(1, "Debe ser al menos 1"),
+  durationHours: z.number().int().min(1, "Debe ser al menos 1"),
+  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
 });
-
 type Schema = z.output<typeof schema>;
 
 const state = reactive<Partial<Schema>>({});
@@ -43,8 +42,15 @@ function setFormState(tour: TourRes | null | undefined) {
     state.durationHours = tour.durationHours;
     state.status = tour.status as any;
   } else {
-    Object.keys(state).forEach(key => delete state[key as keyof typeof state]);
-    state.status = 'DRAFT';
+    // Resetea el formulario a valores por defecto para creación
+    state.name = "";
+    state.description = "";
+    state.category = "ASTRONOMICAL";
+    state.priceAdult = 0;
+    state.priceChild = 0;
+    state.defaultMaxParticipants = 10;
+    state.durationHours = 2;
+    state.status = "DRAFT";
   }
 }
 
@@ -57,17 +63,23 @@ const loading = ref(false);
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   loading.value = true;
   try {
+    const data = { ...event.data }; // Copiamos los datos para poder modificarlos si es necesario
+
     if (isEditing.value && props.tour?.id) {
-      await updateAdminTour(props.tour.id, event.data as TourUpdateReq);
-      toast.add({ title: 'Tour actualizado con éxito', color: 'green' });
+      await updateAdminTour(props.tour.id, data as TourUpdateReq);
+      toast.add({ title: "Tour actualizado con éxito", color: "green" });
     } else {
-      await createAdminTour(event.data as TourCreateReq);
-      toast.add({ title: 'Tour creado con éxito', color: 'green' });
+      await createAdminTour(data as TourCreateReq);
+      toast.add({ title: "Tour creado con éxito", color: "green" });
     }
-    emit('success');
+    emit("success");
     isOpen.value = false;
   } catch (error: any) {
-    toast.add({ title: 'Error', description: error.message || 'No se pudo guardar el tour', color: 'red' });
+    toast.add({
+      title: "Error",
+      description: error.message || "No se pudo guardar el tour",
+      color: "red",
+    });
   } finally {
     loading.value = false;
   }
@@ -76,49 +88,107 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
 <template>
   <USlideover v-model="isOpen">
-    <UCard class="flex flex-col flex-1" :ui="{ body: { base: 'flex-1' }, ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
+    <UCard
+      class="flex flex-col flex-1"
+      :ui="{
+        body: { base: 'flex-1' },
+        ring: '',
+        divide: 'divide-y divide-gray-100 dark:divide-gray-800',
+      }"
+    >
       <template #header>
         <div class="flex items-center justify-between">
-          <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-            {{ isEditing ? 'Editar Tour' : 'Crear Nuevo Tour' }}
+          <h3 class="text-base font-semibold leading-6 text-white">
+            {{ isEditing ? "Editar Tour" : "Crear Nuevo Tour" }}
           </h3>
-          <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1" @click="isOpen = false" />
+          <UButton
+            color="gray"
+            variant="ghost"
+            icon="i-heroicons-x-mark-20-solid"
+            class="-my-1"
+            @click="isOpen = false"
+          />
         </div>
       </template>
 
-      <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
-        <UFormGroup label="Nombre" name="name">
-          <UInput v-model="state.name" />
+      <!-- El UForm va aquí adentro del UCard -->
+      <UForm
+        :schema="schema"
+        :state="state"
+        class="space-y-4"
+        @submit="onSubmit"
+      >
+        <UFormGroup label="Nombre del Tour" name="name">
+          <UInput
+            v-model="state.name"
+            placeholder="Ej: Tour Astronómico Premium"
+          />
         </UFormGroup>
+
         <UFormGroup label="Descripción" name="description">
-          <UTextarea v-model="state.description" autoresize />
+          <UTextarea
+            v-model="state.description"
+            autoresize
+            placeholder="Describe la experiencia del tour..."
+          />
         </UFormGroup>
+
         <UFormGroup label="Categoría" name="category">
-          <UInput v-model="state.category" />
+          <USelectMenu
+            v-model="state.category"
+            :options="['ASTRONOMICAL', 'REGULAR', 'SPECIAL', 'PRIVATE']"
+          />
         </UFormGroup>
+
         <div class="grid grid-cols-2 gap-4">
           <UFormGroup label="Precio Adulto" name="priceAdult">
-            <UInput v-model.number="state.priceAdult" type="number" />
+            <UInput
+              v-model.number="state.priceAdult"
+              type="number"
+              icon="i-lucide-dollar-sign"
+            />
           </UFormGroup>
-          <UFormGroup label="Precio Niño" name="priceChild">
-            <UInput v-model.number="state.priceChild" type="number" />
+          <UFormGroup label="Precio Niño (Opcional)" name="priceChild">
+            <UInput
+              v-model.number="state.priceChild"
+              type="number"
+              icon="i-lucide-dollar-sign"
+            />
           </UFormGroup>
         </div>
+
         <div class="grid grid-cols-2 gap-4">
           <UFormGroup label="Max. Participantes" name="defaultMaxParticipants">
-            <UInput v-model.number="state.defaultMaxParticipants" type="number" />
+            <UInput
+              v-model.number="state.defaultMaxParticipants"
+              type="number"
+            />
           </UFormGroup>
           <UFormGroup label="Duración (Horas)" name="durationHours">
             <UInput v-model.number="state.durationHours" type="number" />
           </UFormGroup>
         </div>
+
         <UFormGroup v-if="isEditing" label="Estado" name="status">
-            <USelectMenu v-model="state.status" :options="['DRAFT', 'PUBLISHED', 'ARCHIVED']" />
+          <USelectMenu
+            v-model="state.status"
+            :options="['DRAFT', 'PUBLISHED', 'ARCHIVED']"
+          />
         </UFormGroup>
 
-        <div class="flex justify-end gap-3">
-            <UButton label="Cancelar" color="gray" variant="ghost" @click="isOpen = false" />
-            <UButton type="submit" :label="isEditing ? 'Guardar Cambios' : 'Crear Tour'" color="primary" :loading="loading" />
+        <div class="flex justify-end gap-3 pt-4">
+          <UButton
+            label="Cancelar"
+            color="gray"
+            variant="ghost"
+            @click="isOpen = false"
+          />
+          <UButton
+            type="submit"
+            :label="isEditing ? 'Guardar Cambios' : 'Crear Tour'"
+            color="primary"
+            :loading="loading"
+          />
         </div>
       </UForm>
     </UCard>

@@ -29,7 +29,7 @@ export const useAuthStore = defineStore("auth", {
     isAuthenticated: false,
     user: null as User | null,
     token: null as string | null,
-    loading: false,
+    loading: true, // Start in a loading state
   }),
 
   getters: {
@@ -162,6 +162,7 @@ export const useAuthStore = defineStore("auth", {
     },
 
     checkAuth() {
+      this.loading = true; // Set loading to true when check starts
       if (process.client) {
         const token = localStorage.getItem("auth_token");
         const user = localStorage.getItem("user");
@@ -170,9 +171,13 @@ export const useAuthStore = defineStore("auth", {
           this.token = token;
           this.user = JSON.parse(user);
         } else {
-          this.logout();
+          // No need to call logout(), just ensure state is clear
+          this.isAuthenticated = false;
+          this.user = null;
+          this.token = null;
         }
       }
+      this.loading = false; // Set loading to false when check is complete
     },
   },
 });

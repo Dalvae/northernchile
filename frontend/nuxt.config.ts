@@ -35,21 +35,38 @@ export default defineNuxtConfig({
   ui: {
     colorMode: { preference: "dark" },
     colors: {
-      primary: 'green',
-      neutral: 'zinc'
-    }
+      primary: "green",
+      neutral: "zinc",
+    },
   },
 
   i18n: {
     locales: [
-      { code: "es", iso: "es-ES", name: "Español", file: "es.json" },
-      { code: "en", iso: "en-US", name: "English", file: "en.json" },
-      { code: "pt", iso: "pt-PT", name: "Português", file: "pt.json" },
+      // Añadimos la propiedad 'iso' a cada locale
+      {
+        code: "es",
+        iso: "es-CL", // Español de Chile
+        name: "Español",
+        file: "es.json",
+      },
+      {
+        code: "en",
+        iso: "en-US", // Inglés de Estados Unidos (estándar global)
+        name: "English",
+        file: "en.json",
+      },
+      {
+        code: "pt",
+        iso: "pt-BR", // Portugués de Brasil (clave para tu mercado)
+        name: "Português",
+        file: "pt.json",
+      },
     ],
     lazy: true,
     defaultLocale: "es",
     strategy: "prefix_except_default",
     baseUrl: process.env.NUXT_PUBLIC_BASE_URL || "http://localhost:3000",
+    // Esta línea es correcta y debe mantenerse
     exclude: ["/admin/*"],
   },
 
