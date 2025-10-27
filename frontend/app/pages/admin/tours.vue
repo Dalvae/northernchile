@@ -12,7 +12,7 @@ const {
   pending,
   refresh,
 } = await useAsyncData("admin-tours", () => fetchAdminTours());
-const tours = computed(() => toursResponse.value?.data || []);
+const tours = computed(() => toursResponse.value || []);
 
 // --- ESTADO ---
 const selectedTour = ref<TourRes | null>(null);
@@ -20,7 +20,7 @@ const selectedTour = ref<TourRes | null>(null);
 // --- BÚSQUEDA Y COLUMNAS ---
 const q = ref("");
 const columns = [
-  { id: "name", key: "name", label: "Nombre", sortable: true },
+  { id: "name", key: "nameTranslations.es", label: "Nombre (ES)", sortable: true },
   { id: "category", key: "category", label: "Categoría", sortable: true },
   {
     id: "priceAdult",
@@ -36,7 +36,8 @@ const filteredRows = computed(() => {
   if (!q.value) return tours.value;
   return tours.value.filter(
     (tour) =>
-      tour.name && tour.name.toLowerCase().includes(q.value.toLowerCase()),
+      tour.nameTranslations?.es &&
+      tour.nameTranslations.es.toLowerCase().includes(q.value.toLowerCase()),
   );
 });
 

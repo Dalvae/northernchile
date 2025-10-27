@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/tours")
+@RequestMapping("/api") // Cambiar a /api para poder añadir /admin
 public class TourController {
 
     @Autowired
@@ -25,20 +25,26 @@ public class TourController {
     @Autowired
     private UserRepository userRepository;
 
-    @PostMapping
+    @PostMapping("/admin/tours")
     public ResponseEntity<TourRes> createTour(@RequestBody TourCreateReq tourCreateReq) {
         User currentUser = getCurrentUser();
         TourRes createdTour = tourService.createTour(tourCreateReq, currentUser);
         return new ResponseEntity<>(createdTour, HttpStatus.CREATED);
     }
 
-    @GetMapping
-    public ResponseEntity<List<TourRes>> getAllTours() {
+    @GetMapping("/tours") // <-- Endpoint Público
+    public ResponseEntity<List<TourRes>> getPublishedTours() {
+        List<TourRes> tours = tourService.getPublishedTours();
+        return new ResponseEntity<>(tours, HttpStatus.OK);
+    }
+    
+    @GetMapping("/admin/tours") // <-- NUEVO Endpoint de Admin
+    public ResponseEntity<List<TourRes>> getAllToursForAdmin() {
         List<TourRes> tours = tourService.getAllTours();
         return new ResponseEntity<>(tours, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/tours/{id}")
     public ResponseEntity<TourRes> getTourById(@PathVariable UUID id) {
         TourRes tour = tourService.getTourById(id);
         if (tour != null) {
@@ -48,7 +54,7 @@ public class TourController {
         }
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/admin/tours/{id}")
     public ResponseEntity<TourRes> updateTour(@PathVariable UUID id, @RequestBody TourUpdateReq tourUpdateReq) {
         User currentUser = getCurrentUser();
         TourRes updatedTour = tourService.updateTour(id, tourUpdateReq, currentUser);
@@ -59,7 +65,7 @@ public class TourController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/admin/tours/{id}")
     public ResponseEntity<Void> deleteTour(@PathVariable UUID id) {
         tourService.deleteTour(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

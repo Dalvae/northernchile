@@ -10,6 +10,7 @@ import com.northernchile.api.tour.dto.TourImageRes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +22,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class TourService {
 
     @Autowired
@@ -34,15 +36,15 @@ public class TourService {
         tour.setOwner(currentUser);
         tour.setNameTranslations(tourCreateReq.getNameTranslations());
         tour.setDescriptionTranslations(tourCreateReq.getDescriptionTranslations());
-        tour.setWindSensitive(tourCreateReq.isWindSensitive());
-        tour.setMoonSensitive(tourCreateReq.isMoonSensitive());
-        tour.setCloudSensitive(tourCreateReq.isCloudSensitive());
+        tour.setWindSensitive(tourCreateReq.isWindSensitive() != null && tourCreateReq.isWindSensitive());
+        tour.setMoonSensitive(tourCreateReq.isMoonSensitive() != null && tourCreateReq.isMoonSensitive());
+        tour.setCloudSensitive(tourCreateReq.isCloudSensitive() != null && tourCreateReq.isCloudSensitive());
         tour.setCategory(tourCreateReq.getCategory());
         tour.setPriceAdult(tourCreateReq.getPriceAdult());
         tour.setPriceChild(tourCreateReq.getPriceChild());
         tour.setDefaultMaxParticipants(tourCreateReq.getDefaultMaxParticipants());
         tour.setDurationHours(tourCreateReq.getDurationHours());
-        tour.setStatus("DRAFT"); // Default status
+        tour.setStatus(tourCreateReq.getStatus()); // <-- ¡CORREGIDO!
 
         Tour savedTour = tourRepository.save(tour);
 
@@ -64,18 +66,28 @@ public class TourService {
         return toTourResponse(savedTour);
     }
 
+    @Transactional(readOnly = true)
+    public List<TourRes> getPublishedTours() { // <-- NUEVO MÉTODO PÚBLICO
+        return tourRepository.findByStatus("PUBLISHED").stream()
+                .map(this::toTourResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true) // <-- AÑADIR AQUÍ
     public List<TourRes> getAllTours() {
         return tourRepository.findAll().stream()
                 .map(this::toTourResponse)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true) // <-- AÑADIR AQUÍ
     public TourRes getTourById(UUID id) {
         return tourRepository.findById(id)
                 .map(this::toTourResponse)
                 .orElse(null); // Or throw an exception
     }
 
+    @Transactional // <-- AÑADIR AQUÍ (sin readOnly porque modifica datos)
     public TourRes updateTour(UUID id, TourUpdateReq tourUpdateReq, User currentUser) {
         return tourRepository.findById(id)
                 .map(tour -> {
@@ -84,9 +96,9 @@ public class TourService {
                     }
                     tour.setNameTranslations(tourUpdateReq.getNameTranslations());
                     tour.setDescriptionTranslations(tourUpdateReq.getDescriptionTranslations());
-                    tour.setWindSensitive(tourUpdateReq.isWindSensitive());
-                    tour.setMoonSensitive(tourUpdateReq.isMoonSensitive());
-                    tour.setCloudSensitive(tourUpdateReq.isCloudSensitive());
+                    tour.setWindSensitive(tourUpdateReq.isWindSensitive() != null && tourUpdateReq.isWindSensitive());
+                    tour.setMoonSensitive(tourUpdateReq.isMoonSensitive() != null && tourUpdateReq.isMoonSensitive());
+                    tour.setCloudSensitive(tourUpdateReq.isCloudSensitive() != null && tourUpdateReq.isCloudSensitive());
                     tour.setCategory(tourUpdateReq.getCategory());
                     tour.setPriceAdult(tourUpdateReq.getPriceAdult());
                     tour.setPriceChild(tourUpdateReq.getPriceChild());

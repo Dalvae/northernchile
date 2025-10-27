@@ -9,5 +9,6 @@ import java.util.UUID;
 
 @Repository
 public interface TourRepository extends JpaRepository<Tour, UUID> {
+    List<Tour> findByStatus(String status); // <-- AÑADIR ESTO
     List<Tour> findByIsRecurringAndStatus(boolean isRecurring, String status);
 }

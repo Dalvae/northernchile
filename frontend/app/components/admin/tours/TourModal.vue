@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { z } from "zod";
-import type { FormSubmitEvent } from "@nuxt/ui";
+import type { FormSubmitEvent, FormErrorEvent, FormError } from "@nuxt/ui";
 import type { TourRes, TourCreateReq, TourUpdateReq } from "~/lib/api-client";
 
 const props = defineProps<{
@@ -13,7 +13,6 @@ const emit = defineEmits<{
 
 const isEditing = computed(() => !!props.tour);
 
-// Schema con mensajes de error en español
 const schema = z.object({
   nameTranslations: z.object({
     es: z.string().min(3, "El nombre (ES) debe tener al menos 3 caracteres"),
@@ -31,8 +30,7 @@ const schema = z.object({
       .string()
       .min(10, "La descripción (PT) debe tener al menos 10 caracteres"),
   }),
-
-  imageUrls: z.array(z.string().url("Debe ser una URL válida")).optional(), // O .min(0) si quieres permitir array vacío
+  imageUrls: z.array(z.string().url("Debe ser una URL válida")).optional(),
   isMoonSensitive: z.boolean(),
   isWindSensitive: z.boolean(),
   isCloudSensitive: z.boolean(),
@@ -49,7 +47,6 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>;
 
-// Estado inicial con tipos correctos
 const initialState: Schema = {
   nameTranslations: { es: "", en: "", pt: "" },
   descriptionTranslations: { es: "", en: "", pt: "" },
@@ -67,38 +64,33 @@ const initialState: Schema = {
 
 const state = reactive<Schema>({ ...initialState });
 const form = ref();
-
-// Para manejar imageUrls como string temporal
 const imageUrlsString = ref("");
 
-// Configurar estado basado en props.tour
+// NUEVO: Variable para guardar los errores de validación
+const formErrors = ref<FormError[]>([]);
+
 watch(
   () => props.tour,
   (tour) => {
     if (tour) {
-      state.nameTranslations = tour.nameTranslations || {
-        es: "",
-        en: "",
-        pt: "",
-      };
-      state.descriptionTranslations = tour.descriptionTranslations || {
-        es: "",
-        en: "",
-        pt: "",
-      };
-      state.imageUrls = tour.images?.map((img) => img.imageUrl) || [];
+      Object.assign(state, {
+        nameTranslations:
+          tour.nameTranslations || initialState.nameTranslations,
+        descriptionTranslations:
+          tour.descriptionTranslations || initialState.descriptionTranslations,
+        imageUrls: tour.images?.map((img) => img.imageUrl) || [],
+        isMoonSensitive: tour.isMoonSensitive || false,
+        isWindSensitive: tour.isWindSensitive || false,
+        isCloudSensitive: tour.isCloudSensitive || false,
+        category: tour.category,
+        priceAdult: tour.priceAdult,
+        priceChild: tour.priceChild,
+        defaultMaxParticipants: tour.defaultMaxParticipants,
+        durationHours: tour.durationHours,
+        status: tour.status,
+      });
       imageUrlsString.value = state.imageUrls.join(", ");
-      state.isMoonSensitive = tour.isMoonSensitive || false;
-      state.isWindSensitive = tour.isWindSensitive || false;
-      state.isCloudSensitive = tour.isCloudSensitive || false;
-      state.category = tour.category;
-      state.priceAdult = tour.priceAdult;
-      state.priceChild = tour.priceChild;
-      state.defaultMaxParticipants = tour.defaultMaxParticipants;
-      state.durationHours = tour.durationHours;
-      state.status = tour.status;
     } else {
-      // Resetear a valores por defecto
       Object.assign(state, initialState);
       imageUrlsString.value = "";
     }
@@ -106,103 +98,45 @@ watch(
   { immediate: true, deep: true },
 );
 
-// Watch para convertir string de imageUrls a array
 watch(imageUrlsString, (newValue) => {
-  if (newValue.trim()) {
-    state.imageUrls = newValue
-      .split(",")
-      .map((url) => url.trim())
-      .filter((url) => url.length > 0);
-  } else {
-    state.imageUrls = [];
-  }
+  state.imageUrls = newValue.trim()
+    ? newValue
+        .split(",")
+        .map((url) => url.trim())
+        .filter(Boolean)
+    : [];
 });
 
-// DEBUG: Watch para ver cambios en el estado
-watch(
-  state,
-  (newState) => {
-    console.log("🔄 State changed:", newState);
-  },
-  { deep: true },
-);
-
-// DEBUG: Watch para ver cambios en el form ref
-watch(
-  form,
-  (newForm) => {
-    console.log("📝 Form ref changed:", newForm);
-  },
-  { immediate: true },
-);
-
-// Submit function
 const { createAdminTour, updateAdminTour } = useAdminData();
 const toast = useToast();
 const loading = ref(false);
 
-// Función para validar manualmente con Zod
-function validateWithZod(data: any) {
-  try {
-    const result = schema.parse(data);
-    console.log("✅ Zod validation passed:", result);
-    return { success: true, data: result, errors: null };
-  } catch (error: any) {
-    console.error("❌ Zod validation failed:", error.errors);
-    const formattedErrors = error.errors.map((err: any) => ({
-      path: err.path.join("."),
-      message: err.message,
-    }));
-    return { success: false, data: null, errors: formattedErrors };
-  }
+// onError ahora guarda los errores en nuestra variable local
+function onError(event: FormErrorEvent) {
+  formErrors.value = event.errors;
+  toast.add({
+    title: "Error de validación",
+    description: "Por favor, corrige los campos marcados en rojo.",
+    color: "error",
+    icon: "i-heroicons-exclamation-circle",
+  });
 }
 
+// onSubmit ahora limpia los errores antes de empezar
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  console.log("🎯 Form submitted with event data:", event.data);
+  formErrors.value = []; // Limpiar errores al intentar enviar
   loading.value = true;
-
-  // DEBUG: Validación manual con Zod
-  const validation = validateWithZod(event.data);
-  if (!validation.success) {
-    console.error("❌ Form validation errors:", validation.errors);
-    validation.errors.forEach((error) => {
-      toast.add({
-        title: "Error de validación",
-        description: `${error.path}: ${error.message}`,
-        color: "red",
-        icon: "i-heroicons-exclamation-triangle",
-      });
-    });
-    loading.value = false;
-    return;
-  }
-
   try {
-    const data = event.data;
-    console.log("📤 Sending payload to API:", data);
-
-    const payload = {
-      ...data,
-      nameTranslations: data.nameTranslations,
-      descriptionTranslations: data.descriptionTranslations,
-      imageUrls: data.imageUrls,
-      isMoonSensitive: data.isMoonSensitive,
-      isWindSensitive: data.isWindSensitive,
-      isCloudSensitive: data.isCloudSensitive,
-    };
-
-    console.log("🚀 Final payload:", payload);
+    const payload = { ...event.data };
 
     if (isEditing.value && props.tour?.id) {
-      console.log("✏️ Updating tour:", props.tour.id);
       await updateAdminTour(props.tour.id, payload as TourUpdateReq);
       toast.add({
         title: "Tour actualizado con éxito",
-        color: "green",
+        color: "success",
         icon: "i-heroicons-check-circle",
       });
     } else {
-      console.log("🆕 Creating new tour");
       await createAdminTour(payload as TourCreateReq);
       toast.add({
         title: "Tour creado con éxito",
@@ -212,11 +146,12 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     }
     emit("success");
   } catch (error: any) {
-    console.error("💥 Error submitting form:", error);
+    const description =
+      error.data?.message || error.message || "No se pudo guardar el tour";
     toast.add({
-      title: "Error",
-      description: error.message || "No se pudo guardar el tour",
-      color: "red",
+      title: "Error al guardar",
+      description,
+      color: "error",
       icon: "i-heroicons-exclamation-triangle",
     });
   } finally {
@@ -224,37 +159,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   }
 }
 
-// Función para manejar el envío manual del formulario
 function handleSubmit() {
-  console.log("🖱️ HandleSubmit called");
-  console.log("📝 Form ref:", form.value);
-
-  if (!form.value) {
-    console.error("❌ Form reference is not available");
-    toast.add({
-      title: "Error",
-      description: "El formulario no está disponible",
-      color: "red",
-      icon: "i-heroicons-exclamation-triangle",
-    });
-    return;
-  }
-
-  try {
-    console.log("🔄 Calling form.submit()");
-    form.value.submit();
-  } catch (error) {
-    console.error("💥 Error in form.submit():", error);
-    toast.add({
-      title: "Error",
-      description: "Error al enviar el formulario",
-      color: "red",
-      icon: "i-heroicons-exclamation-triangle",
-    });
-  }
+  form.value?.submit();
 }
 
-// Opciones para los selects
+// NUEVO: Función para encontrar el error de un campo específico
+const findError = (path: string) =>
+  formErrors.value.find((e) => e.path === path)?.message;
+
 const categoryOptions = [
   { label: "Astronómico", value: "ASTRONOMICAL" },
   { label: "Regular", value: "REGULAR" },
@@ -271,18 +183,14 @@ const statusOptions = [
 
 <template>
   <UModal>
-    <!-- TRIGGER - Botón integrado en el componente -->
     <UButton
       :label="isEditing ? 'Editar Tour' : 'Agregar Tour'"
       :trailing-icon="isEditing ? 'i-lucide-pencil' : 'i-lucide-plus'"
       color="primary"
       class="shrink-0"
     />
-
-    <!-- CONTENIDO COMPLETO DEL MODAL DENTRO DE #content -->
     <template #content>
       <div class="flex flex-col h-full">
-        <!-- HEADER -->
         <div
           class="flex items-center justify-between p-5 pb-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0"
         >
@@ -305,9 +213,7 @@ const statusOptions = [
             class="-my-1"
           />
         </div>
-
         <div class="flex-1 overflow-y-auto max-h-[60vh]">
-          <!-- En el contenido principal -->
           <div class="p-5">
             <div class="space-y-8">
               <UForm
@@ -315,16 +221,15 @@ const statusOptions = [
                 :schema="schema"
                 :state="state"
                 @submit="onSubmit"
+                @error="onError"
                 class="space-y-8"
               >
-                <!-- Información Básica -->
                 <div class="space-y-6">
                   <h4
                     class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
                   >
                     Información Básica
                   </h4>
-
                   <UTabs
                     :items="[
                       { label: 'Español', slot: 'es' },
@@ -339,6 +244,7 @@ const statusOptions = [
                           label="Nombre (ES)"
                           name="nameTranslations.es"
                           required
+                          :error="findError('nameTranslations.es')"
                         >
                           <UInput
                             v-model="state.nameTranslations.es"
@@ -347,28 +253,28 @@ const statusOptions = [
                             class="w-full"
                           />
                         </UFormGroup>
-
                         <UFormGroup
                           label="Descripción (ES)"
                           name="descriptionTranslations.es"
                           required
+                          :error="findError('descriptionTranslations.es')"
                         >
                           <UTextarea
                             v-model="state.descriptionTranslations.es"
-                            placeholder="Describe la experiencia, incluyendo actividades, puntos de interés y qué hace especial este tour..."
+                            placeholder="Describe la experiencia..."
                             :rows="4"
                             class="w-full min-h-[100px]"
                           />
                         </UFormGroup>
                       </div>
                     </template>
-
                     <template #en>
                       <div class="pt-4 space-y-6">
                         <UFormGroup
                           label="Nombre (EN)"
                           name="nameTranslations.en"
                           required
+                          :error="findError('nameTranslations.en')"
                         >
                           <UInput
                             v-model="state.nameTranslations.en"
@@ -377,28 +283,28 @@ const statusOptions = [
                             class="w-full"
                           />
                         </UFormGroup>
-
                         <UFormGroup
                           label="Descripción (EN)"
                           name="descriptionTranslations.en"
                           required
+                          :error="findError('descriptionTranslations.en')"
                         >
                           <UTextarea
                             v-model="state.descriptionTranslations.en"
-                            placeholder="Describe the experience, including activities, points of interest and what makes this tour special..."
+                            placeholder="Describe the experience..."
                             :rows="4"
                             class="w-full min-h-[100px]"
                           />
                         </UFormGroup>
                       </div>
                     </template>
-
                     <template #pt>
                       <div class="pt-4 space-y-6">
                         <UFormGroup
                           label="Nombre (PT)"
                           name="nameTranslations.pt"
                           required
+                          :error="findError('nameTranslations.pt')"
                         >
                           <UInput
                             v-model="state.nameTranslations.pt"
@@ -407,15 +313,15 @@ const statusOptions = [
                             class="w-full"
                           />
                         </UFormGroup>
-
                         <UFormGroup
                           label="Descripción (PT)"
                           name="descriptionTranslations.pt"
                           required
+                          :error="findError('descriptionTranslations.pt')"
                         >
                           <UTextarea
                             v-model="state.descriptionTranslations.pt"
-                            placeholder="Descreva a experiência, incluindo atividades, pontos de interesse e o que torna este passeio especial..."
+                            placeholder="Descreva a experiência..."
                             :rows="4"
                             class="w-full min-h-[100px]"
                           />
@@ -423,11 +329,11 @@ const statusOptions = [
                       </div>
                     </template>
                   </UTabs>
-
                   <UFormGroup
                     label="URLs de Imágenes (separadas por comas)"
                     name="imageUrls"
                     required
+                    :error="findError('imageUrls')"
                   >
                     <UTextarea
                       v-model="imageUrlsString"
@@ -435,15 +341,13 @@ const statusOptions = [
                       :rows="3"
                       class="w-full"
                     />
-                    <template #help>
-                      <p class="text-xs text-gray-500 mt-1">
-                        Separe las URLs con comas. Mínimo 1 imagen requerida.
-                      </p>
-                    </template>
+                    <template #help
+                      ><p class="text-xs text-gray-500 mt-1">
+                        Separe las URLs con comas.
+                      </p></template
+                    >
                   </UFormGroup>
                 </div>
-
-                <!-- Reglas de Negocio -->
                 <div class="space-y-4">
                   <h4
                     class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
@@ -468,8 +372,6 @@ const statusOptions = [
                     />
                   </div>
                 </div>
-
-                <!-- Categoría y Estado -->
                 <div class="space-y-4">
                   <h4
                     class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
@@ -477,33 +379,38 @@ const statusOptions = [
                     Clasificación
                   </h4>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <UFormGroup label="Categoría" name="category" required>
+                    <UFormGroup
+                      label="Categoría"
+                      name="category"
+                      required
+                      :error="findError('category')"
+                    >
                       <USelect
                         v-model="state.category"
                         :items="categoryOptions"
                         option-attribute="label"
                         value-attribute="value"
-                        placeholder="Selecciona una categoría"
                         size="lg"
                         class="w-full"
                       />
                     </UFormGroup>
-
-                    <UFormGroup label="Estado" name="status" required>
+                    <UFormGroup
+                      label="Estado"
+                      name="status"
+                      required
+                      :error="findError('status')"
+                    >
                       <USelect
                         v-model="state.status"
                         :items="statusOptions"
                         option-attribute="label"
                         value-attribute="value"
-                        placeholder="Selecciona un estado"
                         size="lg"
                         class="w-full"
                       />
                     </UFormGroup>
                   </div>
                 </div>
-
-                <!-- Precios -->
                 <div class="space-y-4">
                   <h4
                     class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
@@ -515,48 +422,31 @@ const statusOptions = [
                       label="Precio Adulto"
                       name="priceAdult"
                       required
+                      :error="findError('priceAdult')"
                     >
-                      <div class="relative">
-                        <UInput
-                          v-model.number="state.priceAdult"
-                          type="number"
-                          min="1"
-                          placeholder="25000"
-                          size="lg"
-                          class="w-full pr-16"
-                        />
-                        <div
-                          class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-                        >
-                          <span class="text-gray-500 text-sm">CLP</span>
-                        </div>
-                      </div>
+                      <UInput
+                        v-model.number="state.priceAdult"
+                        type="number"
+                        min="1"
+                        size="lg"
+                        class="w-full"
+                      />
                     </UFormGroup>
-
                     <UFormGroup
                       label="Precio Niño (Opcional)"
                       name="priceChild"
+                      :error="findError('priceChild')"
                     >
-                      <div class="relative">
-                        <UInput
-                          v-model.number="state.priceChild"
-                          type="number"
-                          min="0"
-                          placeholder="15000"
-                          size="lg"
-                          class="w-full pr-16"
-                        />
-                        <div
-                          class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-                        >
-                          <span class="text-gray-500 text-sm">CLP</span>
-                        </div>
-                      </div>
+                      <UInput
+                        v-model.number="state.priceChild"
+                        type="number"
+                        min="0"
+                        size="lg"
+                        class="w-full"
+                      />
                     </UFormGroup>
                   </div>
                 </div>
-
-                <!-- Configuración -->
                 <div class="space-y-4">
                   <h4
                     class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
@@ -568,42 +458,31 @@ const statusOptions = [
                       label="Máximo de Participantes"
                       name="defaultMaxParticipants"
                       required
+                      :error="findError('defaultMaxParticipants')"
                     >
-                      <div class="relative">
-                        <UInput
-                          v-model.number="state.defaultMaxParticipants"
-                          type="number"
-                          min="1"
-                          max="100"
-                          placeholder="10"
-                          size="lg"
-                          class="w-full pr-24"
-                        />
-                        <div
-                          class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-                        >
-                          <span class="text-gray-500 text-sm">personas</span>
-                        </div>
-                      </div>
+                      <UInput
+                        v-model.number="state.defaultMaxParticipants"
+                        type="number"
+                        min="1"
+                        max="100"
+                        size="lg"
+                        class="w-full"
+                      />
                     </UFormGroup>
-
-                    <UFormGroup label="Duración" name="durationHours" required>
-                      <div class="relative">
-                        <UInput
-                          v-model.number="state.durationHours"
-                          type="number"
-                          min="1"
-                          max="24"
-                          placeholder="2"
-                          size="lg"
-                          class="w-full pr-20"
-                        />
-                        <div
-                          class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-                        >
-                          <span class="text-gray-500 text-sm">horas</span>
-                        </div>
-                      </div>
+                    <UFormGroup
+                      label="Duración (Horas)"
+                      name="durationHours"
+                      required
+                      :error="findError('durationHours')"
+                    >
+                      <UInput
+                        v-model.number="state.durationHours"
+                        type="number"
+                        min="1"
+                        max="24"
+                        size="lg"
+                        class="w-full"
+                      />
                     </UFormGroup>
                   </div>
                 </div>
@@ -611,8 +490,6 @@ const statusOptions = [
             </div>
           </div>
         </div>
-
-        <!-- FOOTER -->
         <div
           class="flex justify-between items-center p-5 pt-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0"
         >
@@ -633,7 +510,6 @@ const statusOptions = [
               color="primary"
               :loading="loading"
               @click="handleSubmit"
-              :disabled="loading"
             />
           </div>
         </div>

@@ -9,6 +9,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -35,7 +36,7 @@ public class Tour {
     private Map<String, String> descriptionTranslations;
 
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TourImage> images;
+    private List<TourImage> images = new ArrayList<>();
 
     private boolean isWindSensitive;
     private boolean isMoonSensitive;

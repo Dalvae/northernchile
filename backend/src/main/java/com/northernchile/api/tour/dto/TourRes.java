@@ -1,6 +1,7 @@
 
 package com.northernchile.api.tour.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.northernchile.api.model.TourImage; // Nueva importación
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -20,8 +21,11 @@ public class TourRes {
     private Integer durationHours;
     private String status;
     private List<TourImageRes> images; // CAMBIO: List<TourImageRes>
+    @JsonProperty("isMoonSensitive")
     private boolean isMoonSensitive;
+    @JsonProperty("isWindSensitive")
     private boolean isWindSensitive;
+    @JsonProperty("isCloudSensitive")
     private boolean isCloudSensitive; // NUEVO
     private Instant createdAt;
     private Instant updatedAt;

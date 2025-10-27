@@ -1,11 +1,11 @@
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
-  const backendUrl = config.public.backendApiUrl; // Use public runtime config
+  const backendUrl = config.backendApiUrl; // Use public runtime config
   const authToken = getHeader(event, 'Authorization'); // Pasa el token del admin
 
   try {
     // Llama al endpoint de admin del backend, no al público
-    const tours = await $fetch(`${backendUrl}/api/tours`, { // Asegúrate de que el endpoint del backend sea el correcto
+    const tours = await $fetch(`${backendUrl}/api/admin/tours`, { // Asegúrate de que el endpoint del backend sea el correcto
       headers: { 'Authorization': authToken || '' }
     });
     return tours;

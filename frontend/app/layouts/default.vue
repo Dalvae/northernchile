@@ -20,13 +20,11 @@ useHead({
 })
 </script>
 <template>
-  <UApp>
-    <div>
-      <LayoutTheHeader />
-      <UMain>
-        <slot />
-      </UMain>
-      <LayoutTheFooter />
-    </div>
-  </UApp>
+  <div>
+    <LayoutTheHeader />
+    <UMain>
+      <slot />
+    </UMain>
+    <LayoutTheFooter />
+  </div>
 </template>

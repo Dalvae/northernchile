@@ -15,7 +15,7 @@ export const useAdminData = () => {
 
   return {
     // CAMBIO AQUÍ: La ruta debe ser '/api/tours' en lugar de '/api/admin/tours'
-    fetchAdminTours: async () => { const { data } = await useFetch('/api/tours', { headers }); return data.value; },
+    fetchAdminTours: async () => { const { data } = await useFetch('/api/admin/tours', { headers }); return data.value; },
     
     createAdminTour: async (tourData: any) => { const { data } = await useFetch('/api/admin/tours', { method: 'POST', body: tourData, headers }); return data.value; },
     updateAdminTour: async (id: string, tourData: any) => { const { data } = await useFetch(`/api/admin/tours/${id}`, { method: 'PUT', body: tourData, headers }); return data.value; },

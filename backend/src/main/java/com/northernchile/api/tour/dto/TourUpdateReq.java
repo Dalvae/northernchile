@@ -1,5 +1,7 @@
 package com.northernchile.api.tour.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -9,8 +11,11 @@ public class TourUpdateReq {
     private Map<String, String> nameTranslations;
     private Map<String, String> descriptionTranslations;
     private List<String> imageUrls; // Nuevo. List<String>
+    @JsonProperty("isMoonSensitive")
     private Boolean isMoonSensitive; // Nuevo
+    @JsonProperty("isWindSensitive")
     private Boolean isWindSensitive; // Nuevo
+    @JsonProperty("isCloudSensitive")
     private Boolean isCloudSensitive; // Nuevo
     private String category;
     private BigDecimal priceAdult;
