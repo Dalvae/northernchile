@@ -2,11 +2,17 @@
 package com.northernchile.api.tour.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class TourCreateReq {
-  private String name;
-  private String description;
+  private Map<String, String> nameTranslations; // CAMBIO
+  private Map<String, String> descriptionTranslations; // CAMBIO
+  private List<String> imageUrls; // NUEVO CAMPO
+  private Boolean isWindSensitive;
+  private Boolean isMoonSensitive;
+  private Boolean isCloudSensitive; // NUEVO
   private String category;
   private BigDecimal priceAdult;
   private BigDecimal priceChild;
@@ -16,10 +22,14 @@ public class TourCreateReq {
   public TourCreateReq() {
   }
 
-  public TourCreateReq(String name, String description, String category, BigDecimal priceAdult, BigDecimal priceChild,
+  public TourCreateReq(Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<String> imageUrls, Boolean isWindSensitive, Boolean isMoonSensitive, Boolean isCloudSensitive, String category, BigDecimal priceAdult, BigDecimal priceChild,
       Integer defaultMaxParticipants, Integer durationHours) {
-    this.name = name;
-    this.description = description;
+    this.nameTranslations = nameTranslations;
+    this.descriptionTranslations = descriptionTranslations;
+    this.imageUrls = imageUrls;
+    this.isWindSensitive = isWindSensitive;
+    this.isMoonSensitive = isMoonSensitive;
+    this.isCloudSensitive = isCloudSensitive;
     this.category = category;
     this.priceAdult = priceAdult;
     this.priceChild = priceChild;
@@ -27,20 +37,52 @@ public class TourCreateReq {
     this.durationHours = durationHours;
   }
 
-  public String getName() {
-    return name;
+  public Map<String, String> getNameTranslations() {
+    return nameTranslations;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setNameTranslations(Map<String, String> nameTranslations) {
+    this.nameTranslations = nameTranslations;
   }
 
-  public String getDescription() {
-    return description;
+  public Map<String, String> getDescriptionTranslations() {
+    return descriptionTranslations;
   }
 
-  public void setDescription(String description) {
-    this.description = description;
+  public void setDescriptionTranslations(Map<String, String> descriptionTranslations) {
+    this.descriptionTranslations = descriptionTranslations;
+  }
+
+  public List<String> getImageUrls() {
+    return imageUrls;
+  }
+
+  public void setImageUrls(List<String> imageUrls) {
+    this.imageUrls = imageUrls;
+  }
+
+  public Boolean isWindSensitive() {
+    return isWindSensitive;
+  }
+
+  public void setWindSensitive(Boolean windSensitive) {
+    isWindSensitive = windSensitive;
+  }
+
+  public Boolean isMoonSensitive() {
+    return isMoonSensitive;
+  }
+
+  public void setMoonSensitive(Boolean moonSensitive) {
+    isMoonSensitive = moonSensitive;
+  }
+
+  public Boolean isCloudSensitive() {
+    return isCloudSensitive;
+  }
+
+  public void setCloudSensitive(Boolean cloudSensitive) {
+    isCloudSensitive = cloudSensitive;
   }
 
   public String getCategory() {
@@ -90,7 +132,9 @@ public class TourCreateReq {
     if (o == null || getClass() != o.getClass())
       return false;
     TourCreateReq that = (TourCreateReq) o;
-    return Objects.equals(name, that.name) && Objects.equals(description, that.description)
+    return Objects.equals(nameTranslations, that.nameTranslations) && Objects.equals(descriptionTranslations, that.descriptionTranslations)
+        && Objects.equals(imageUrls, that.imageUrls) && Objects.equals(isWindSensitive, that.isWindSensitive)
+        && Objects.equals(isMoonSensitive, that.isMoonSensitive) && Objects.equals(isCloudSensitive, that.isCloudSensitive)
         && Objects.equals(category, that.category) && Objects.equals(priceAdult, that.priceAdult)
         && Objects.equals(priceChild, that.priceChild)
         && Objects.equals(defaultMaxParticipants, that.defaultMaxParticipants)
@@ -99,14 +143,18 @@ public class TourCreateReq {
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, description, category, priceAdult, priceChild, defaultMaxParticipants, durationHours);
+    return Objects.hash(nameTranslations, descriptionTranslations, imageUrls, isWindSensitive, isMoonSensitive, isCloudSensitive, category, priceAdult, priceChild, defaultMaxParticipants, durationHours);
   }
 
   @Override
     public String toString() {
         return "TourCreateReq{" +
-                "name='" + name + '\'' +
-                ", description='" + description + '\'' +
+                "nameTranslations=" + nameTranslations +
+                ", descriptionTranslations=" + descriptionTranslations +
+                ", imageUrls=" + imageUrls +
+                ", isWindSensitive=" + isWindSensitive +
+                ", isMoonSensitive=" + isMoonSensitive +
+                ", isCloudSensitive=" + isCloudSensitive +
                 ", category='" + category + '\'' +
                 ", priceAdult=" + priceAdult +
                 ", priceChild=" + priceChild +

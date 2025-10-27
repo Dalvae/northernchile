@@ -94,7 +94,7 @@ public class BookingService {
                 savedBooking.getLanguageCode(),
                 savedBooking.getId().toString(),
                 savedBooking.getUser().getFullName(),
-                savedBooking.getSchedule().getTour().getName()
+                savedBooking.getSchedule().getTour().getNameTranslations().get(savedBooking.getLanguageCode())
         );
         emailService.sendNewBookingNotificationToAdmin(savedBooking.getId().toString());
 
@@ -118,7 +118,7 @@ public class BookingService {
         res.setUserId(booking.getUser().getId());
         res.setUserFullName(booking.getUser().getFullName());
         res.setScheduleId(booking.getSchedule().getId());
-        res.setTourName(booking.getSchedule().getTour().getName());
+        res.setTourName(booking.getSchedule().getTour().getNameTranslations().get(booking.getLanguageCode()));
         res.setTourDate(booking.getTourDate());
         res.setStatus(booking.getStatus());
         res.setSubtotal(booking.getSubtotal());

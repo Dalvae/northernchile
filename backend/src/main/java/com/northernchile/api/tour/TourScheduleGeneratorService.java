@@ -70,7 +70,7 @@ public class TourScheduleGeneratorService {
                         // Guide is not assigned automatically
 
                         tourScheduleRepository.save(newSchedule);
-                        System.out.println("Created schedule for tour '" + tour.getName() + "' on " + date);
+                        System.out.println("Created schedule for tour '" + tour.getNameTranslations().get("es") + "' on " + date);
                     }
                 }
             }

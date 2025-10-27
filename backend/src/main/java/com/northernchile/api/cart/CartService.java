@@ -113,7 +113,7 @@ public class CartService {
             itemRes.setItemId(item.getId());
             itemRes.setScheduleId(item.getSchedule().getId());
             itemRes.setTourId(item.getSchedule().getTour().getId());
-            itemRes.setTourName(item.getSchedule().getTour().getName());
+            itemRes.setTourName(item.getSchedule().getTour().getNameTranslations().get("es"));
             itemRes.setNumAdults(item.getNumAdults());
             itemRes.setNumChildren(item.getNumChildren());
             itemRes.setPriceAdult(item.getSchedule().getTour().getPriceAdult());

@@ -77,7 +77,7 @@ public class TourScheduleService {
         TourScheduleRes res = new TourScheduleRes();
         res.setId(schedule.getId());
         res.setTourId(schedule.getTour().getId());
-        res.setTourName(schedule.getTour().getName());
+        res.setTourName(schedule.getTour().getNameTranslations().get("es"));
         res.setStartDatetime(schedule.getStartDatetime());
         res.setMaxParticipants(schedule.getMaxParticipants());
         res.setStatus(schedule.getStatus());

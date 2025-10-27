@@ -1,8 +1,18 @@
 <script setup lang="ts">
 import type { TourRes } from '~/lib/api-client'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{ tour: TourRes }>()
 const localePath = useLocalePath()
+const { locale } = useI18n()
+
+const translatedName = computed(() => 
+  props.tour.nameTranslations?.[locale.value] || props.tour.nameTranslations?.['es']
+)
+
+const heroImage = computed(() => 
+  props.tour.images?.find(img => img.isHeroImage)?.imageUrl || props.tour.images?.[0]?.imageUrl || 'https://source.unsplash.com/random/800x600?desert,stars'
+)
 </script>
 
 <template>
@@ -18,17 +28,14 @@ const localePath = useLocalePath()
       <div class="aspect-w-16 aspect-h-9">
         <img
           class="w-full h-48 object-cover"
-          src="https://source.unsplash.com/random/800x600?desert,stars"
-          alt="Tour Image"
+          :src="heroImage"
+          :alt="translatedName"
         />
       </div>
     </template>
 
     <div class="p-4">
-      <h3 class="text-xl font-bold mb-2 h-14 text-ellipsis overflow-hidden font-display text-gray-100">{{ props.tour.name }}</h3>
-      <p class="text-gray-300 text-sm mb-4 h-20 overflow-hidden text-ellipsis">
-        {{ props.tour.description }}
-      </p>
+      <h3 class="text-xl font-bold mb-2 h-14 text-ellipsis overflow-hidden font-display text-gray-100">{{ translatedName }}</h3>
     </div>
 
     <template #footer>

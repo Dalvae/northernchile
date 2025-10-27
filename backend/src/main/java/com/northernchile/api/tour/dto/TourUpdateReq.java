@@ -1,11 +1,17 @@
 package com.northernchile.api.tour.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class TourUpdateReq {
-    private String name;
-    private String description;
+    private Map<String, String> nameTranslations;
+    private Map<String, String> descriptionTranslations;
+    private List<String> imageUrls; // Nuevo. List<String>
+    private Boolean isMoonSensitive; // Nuevo
+    private Boolean isWindSensitive; // Nuevo
+    private Boolean isCloudSensitive; // Nuevo
     private String category;
     private BigDecimal priceAdult;
     private BigDecimal priceChild;
@@ -16,9 +22,13 @@ public class TourUpdateReq {
     public TourUpdateReq() {
     }
 
-    public TourUpdateReq(String name, String description, String category, BigDecimal priceAdult, BigDecimal priceChild, Integer defaultMaxParticipants, Integer durationHours, String status) {
-        this.name = name;
-        this.description = description;
+    public TourUpdateReq(Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<String> imageUrls, Boolean isMoonSensitive, Boolean isWindSensitive, Boolean isCloudSensitive, String category, BigDecimal priceAdult, BigDecimal priceChild, Integer defaultMaxParticipants, Integer durationHours, String status) {
+        this.nameTranslations = nameTranslations;
+        this.descriptionTranslations = descriptionTranslations;
+        this.imageUrls = imageUrls;
+        this.isMoonSensitive = isMoonSensitive;
+        this.isWindSensitive = isWindSensitive;
+        this.isCloudSensitive = isCloudSensitive;
         this.category = category;
         this.priceAdult = priceAdult;
         this.priceChild = priceChild;
@@ -27,20 +37,52 @@ public class TourUpdateReq {
         this.status = status;
     }
 
-    public String getName() {
-        return name;
+    public Map<String, String> getNameTranslations() {
+        return nameTranslations;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setNameTranslations(Map<String, String> nameTranslations) {
+        this.nameTranslations = nameTranslations;
     }
 
-    public String getDescription() {
-        return description;
+    public Map<String, String> getDescriptionTranslations() {
+        return descriptionTranslations;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setDescriptionTranslations(Map<String, String> descriptionTranslations) {
+        this.descriptionTranslations = descriptionTranslations;
+    }
+
+    public List<String> getImageUrls() {
+        return imageUrls;
+    }
+
+    public void setImageUrls(List<String> imageUrls) {
+        this.imageUrls = imageUrls;
+    }
+
+    public Boolean isMoonSensitive() {
+        return isMoonSensitive;
+    }
+
+    public void setMoonSensitive(Boolean moonSensitive) {
+        isMoonSensitive = moonSensitive;
+    }
+
+    public Boolean isWindSensitive() {
+        return isWindSensitive;
+    }
+
+    public void setWindSensitive(Boolean windSensitive) {
+        isWindSensitive = windSensitive;
+    }
+
+    public Boolean isCloudSensitive() {
+        return isCloudSensitive;
+    }
+
+    public void setCloudSensitive(Boolean cloudSensitive) {
+        isCloudSensitive = cloudSensitive;
     }
 
     public String getCategory() {
@@ -91,30 +133,64 @@ public class TourUpdateReq {
         this.status = status;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TourUpdateReq that = (TourUpdateReq) o;
-        return Objects.equals(name, that.name) && Objects.equals(description, that.description) && Objects.equals(category, that.category) && Objects.equals(priceAdult, that.priceAdult) && Objects.equals(priceChild, that.priceChild) && Objects.equals(defaultMaxParticipants, that.defaultMaxParticipants) && Objects.equals(durationHours, that.durationHours) && Objects.equals(status, that.status);
-    }
+        @Override
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, description, category, priceAdult, priceChild, defaultMaxParticipants, durationHours, status);
-    }
+        public boolean equals(Object o) {
 
-    @Override
-    public String toString() {
-        return "TourUpdateReq{"
-                + "name='" + name + "'" +
-                ", description='" + description + "'" +
-                ", category='" + category + "'" +
-                ", priceAdult=" + priceAdult +
-                ", priceChild=" + priceChild +
-                ", defaultMaxParticipants=" + defaultMaxParticipants +
-                ", durationHours=" + durationHours +
-                ", status='" + status + "'" +
-                "' }";
+            if (this == o) return true;
+
+            if (o == null || getClass() != o.getClass()) return false;
+
+            TourUpdateReq that = (TourUpdateReq) o;
+
+            return Objects.equals(nameTranslations, that.nameTranslations) && Objects.equals(descriptionTranslations, that.descriptionTranslations) && Objects.equals(imageUrls, that.imageUrls) && Objects.equals(isMoonSensitive, that.isMoonSensitive) && Objects.equals(isWindSensitive, that.isWindSensitive) && Objects.equals(isCloudSensitive, that.isCloudSensitive) && Objects.equals(category, that.category) && Objects.equals(priceAdult, that.priceAdult) && Objects.equals(priceChild, that.priceChild) && Objects.equals(defaultMaxParticipants, that.defaultMaxParticipants) && Objects.equals(durationHours, that.durationHours) && Objects.equals(status, that.status);
+
+        }
+
+    
+
+        @Override
+
+        public int hashCode() {
+
+            return Objects.hash(nameTranslations, descriptionTranslations, imageUrls, isMoonSensitive, isWindSensitive, isCloudSensitive, category, priceAdult, priceChild, defaultMaxParticipants, durationHours, status);
+
+        }
+
+    
+
+        @Override
+
+        public String toString() {
+
+            return "TourUpdateReq{"
+
+                    + "nameTranslations=" + nameTranslations
+
+                    + ", descriptionTranslations=" + descriptionTranslations
+
+                    + ", imageUrls=" + imageUrls
+
+                    + ", isMoonSensitive=" + isMoonSensitive
+
+                    + ", isWindSensitive=" + isWindSensitive
+
+                    + ", isCloudSensitive=" + isCloudSensitive
+
+                    + ", category='" + category + "'"
+
+                    + ", priceAdult=" + priceAdult
+
+                    + ", priceChild=" + priceChild
+
+                    + ", defaultMaxParticipants=" + defaultMaxParticipants
+
+                    + ", durationHours=" + durationHours
+
+                    + ", status='" + status + "'"
+
+                    + '}';
+
+        }
+
     }
-}
