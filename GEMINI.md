@@ -129,11 +129,9 @@ The backend uses Flyway for database migrations. The migration scripts are locat
 
 ## Frontend - Nuxt UI
 
-Basándome en las lecciones aprendidas, aquí está la sección que debes agregar a la documentación de Nuxt UI sobre el componente Modal:
+### Uso Práctico del Modal
 
-## Lecciones Aprendidas - Uso Práctico del Modal
-
-### Estructura Correcta de Slots
+#### Estructura Correcta de Slots
 
 El componente `UModal` requiere que TODO el contenido esté dentro del slot `#content`:
 
@@ -199,6 +197,63 @@ Usa `USelect` en lugar de `USelectMenu` para mejor compatibilidad:
   size="lg"
   class="w-full"
 />
+```
+
+### Estructura Recomendada
+
+```vue
+<template #content>
+  <!-- 1. Header personalizado -->
+  <div class="flex justify-between items-center pb-4 border-b">
+    <h3>Título</h3>
+    <UButton icon="i-heroicons-x-mark" @click="$emit('close')" />
+  </div>
+
+  <!-- 2. Contenido scrolleable -->
+  <div class="max-h-[60vh] overflow-y-auto py-4">
+    <!-- Tu formulario aquí -->
+  </div>
+
+  <!-- 3. Footer con acciones -->
+  <div class="flex justify-end gap-3 pt-4 border-t">
+    <UButton label="Cancelar" />
+    <UButton label="Guardar" color="primary" />
+  </div>
+</template>
+```
+
+### Selects en Formularios
+
+#### Configuración Correcta de USelect
+
+Cuando se usan objetos en las opciones del `USelect`, es crucial definir los atributos:
+
+```vue
+<USelect
+  v-model="state.status"
+  :items="statusOptions"
+  option-attribute="label"
+  value-attribute="value"
+  placeholder="Selecciona un estado"
+  size="lg"
+  class="w-full"
+/>
+```
+
+**Donde:**
+
+- `option-attribute="label"` - Define qué propiedad mostrar en la interfaz
+- `value-attribute="value"` - Define qué propiedad usar para el valor del modelo
+- Las opciones deben ser objetos con estructura: `{ label: "Texto visible", value: "valor" }`
+
+#### Opciones de Ejemplo Correctas:
+
+```typescript
+const statusOptions = [
+  { label: "Borrador", value: "DRAFT" },
+  { label: "Publicado", value: "PUBLISHED" },
+  { label: "Archivado", value: "ARCHIVED" },
+];
 ```
 
 ### Estructura Recomendada
