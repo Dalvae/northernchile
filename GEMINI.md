@@ -126,3 +126,102 @@ This will fetch the OpenAPI specification from the backend and generate a TypeSc
 ## Database Migrations
 
 The backend uses Flyway for database migrations. The migration scripts are located in the `backend/src/main/resources/db/migration` directory. Flyway will automatically apply the migrations when the backend starts.
+
+## Frontend - Nuxt UI
+
+Basándome en las lecciones aprendidas, aquí está la sección que debes agregar a la documentación de Nuxt UI sobre el componente Modal:
+
+## Lecciones Aprendidas - Uso Práctico del Modal
+
+### Estructura Correcta de Slots
+
+El componente `UModal` requiere que TODO el contenido esté dentro del slot `#content`:
+
+```vue
+<UModal>
+  <!-- Trigger -->
+  <UButton label="Abrir Modal" />
+  
+  <template #content>
+    <!-- HEADER -->
+    <div class="header-custom">
+      Título y botón cerrar
+    </div>
+    
+    <!-- CONTENIDO SCROLLEABLE -->
+    <div class="max-h-[60vh] overflow-y-auto">
+      Formularios y contenido largo
+    </div>
+    
+    <!-- FOOTER -->
+    <div class="footer-custom">
+      Botones de acción
+    </div>
+  </template>
+</UModal>
+```
+
+### Manejo de Estado
+
+❌ **NO es necesario** controlar manualmente `isOpen`:
+
+```vue
+<!-- INCORRECTO -->
+<UModal v-model:open="isOpen"></UModal>
+```
+
+✅ **CORRECTO** - El modal maneja su estado internamente:
+
+```vue
+<!-- CORRECTO -->
+<UModal></UModal>
+```
+
+### Scroll en Contenido Largo
+
+Para formularios largos, aplica estas clases al contenedor del contenido:
+
+```vue
+<div class="max-h-[60vh] overflow-y-auto px-4 py-2">
+  <!-- Contenido del formulario -->
+</div>
+```
+
+### Selects en Modals
+
+Usa `USelect` en lugar de `USelectMenu` para mejor compatibilidad:
+
+```vue
+<USelect
+  v-model="state.categoria"
+  :options="opciones"
+  placeholder="Selecciona..."
+  size="lg"
+  class="w-full"
+/>
+```
+
+### Estructura Recomendada
+
+```vue
+<template #content>
+  <!-- 1. Header personalizado -->
+  <div class="flex justify-between items-center pb-4 border-b">
+    <h3>Título</h3>
+    <UButton icon="i-heroicons-x-mark" @click="$emit('close')" />
+  </div>
+
+  <!-- 2. Contenido scrolleable -->
+  <div class="max-h-[60vh] overflow-y-auto py-4">
+    <!-- Tu formulario aquí -->
+  </div>
+
+  <!-- 3. Footer con acciones -->
+  <div class="flex justify-end gap-3 pt-4 border-t">
+    <UButton label="Cancelar" />
+    <UButton label="Guardar" color="primary" />
+  </div>
+</template>
+```
+
+Esto asegura que el modal funcione correctamente con contenido largo y formularios complejos.
