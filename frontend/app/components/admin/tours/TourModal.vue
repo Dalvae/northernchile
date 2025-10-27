@@ -59,7 +59,7 @@ const initialState: Schema = {
   isWindSensitive: false,
   isCloudSensitive: false,
   category: "ASTRONOMICAL",
-  priceAdult: 0,
+  priceAdult: 1,
   priceChild: null,
   defaultMaxParticipants: 10,
   durationHours: 2,
@@ -394,8 +394,9 @@ const statusOptions = [
                     <!-- USelect SIMPLE sin search -->
                     <USelect
                       v-model="state.category"
-                      :options="categoryOptions"
-                      placeholder="Selecciona una categoría"
+                      :items="categoryOptions"
+                      option-attribute="label"
+                      value-attribute="value"
                       size="lg"
                       class="w-full"
                     />
@@ -405,7 +406,9 @@ const statusOptions = [
                     <!-- USelect SIMPLE sin search -->
                     <USelect
                       v-model="state.status"
-                      :options="statusOptions"
+                      :items="statusOptions"
+                      option-attribute="label"
+                      value-attribute="value"
                       placeholder="Selecciona un estado"
                       size="lg"
                       class="w-full"
