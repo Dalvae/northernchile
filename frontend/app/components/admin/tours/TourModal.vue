@@ -31,9 +31,8 @@ const schema = z.object({
       .string()
       .min(10, "La descripción (PT) debe tener al menos 10 caracteres"),
   }),
-  imageUrls: z
-    .array(z.string().url("Debe ser una URL válida"))
-    .min(1, "Al menos una imagen es requerida"),
+
+  imageUrls: z.array(z.string().url("Debe ser una URL válida")).optional(), // O .min(0) si quieres permitir array vacío
   isMoonSensitive: z.boolean(),
   isWindSensitive: z.boolean(),
   isCloudSensitive: z.boolean(),
@@ -119,16 +118,68 @@ watch(imageUrlsString, (newValue) => {
   }
 });
 
+// DEBUG: Watch para ver cambios en el estado
+watch(
+  state,
+  (newState) => {
+    console.log("🔄 State changed:", newState);
+  },
+  { deep: true },
+);
+
+// DEBUG: Watch para ver cambios en el form ref
+watch(
+  form,
+  (newForm) => {
+    console.log("📝 Form ref changed:", newForm);
+  },
+  { immediate: true },
+);
+
 // Submit function
 const { createAdminTour, updateAdminTour } = useAdminData();
 const toast = useToast();
 const loading = ref(false);
 
+// Función para validar manualmente con Zod
+function validateWithZod(data: any) {
+  try {
+    const result = schema.parse(data);
+    console.log("✅ Zod validation passed:", result);
+    return { success: true, data: result, errors: null };
+  } catch (error: any) {
+    console.error("❌ Zod validation failed:", error.errors);
+    const formattedErrors = error.errors.map((err: any) => ({
+      path: err.path.join("."),
+      message: err.message,
+    }));
+    return { success: false, data: null, errors: formattedErrors };
+  }
+}
+
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  console.log("Form submitted with data:", event.data);
+  console.log("🎯 Form submitted with event data:", event.data);
   loading.value = true;
+
+  // DEBUG: Validación manual con Zod
+  const validation = validateWithZod(event.data);
+  if (!validation.success) {
+    console.error("❌ Form validation errors:", validation.errors);
+    validation.errors.forEach((error) => {
+      toast.add({
+        title: "Error de validación",
+        description: `${error.path}: ${error.message}`,
+        color: "red",
+        icon: "i-heroicons-exclamation-triangle",
+      });
+    });
+    loading.value = false;
+    return;
+  }
+
   try {
     const data = event.data;
+    console.log("📤 Sending payload to API:", data);
 
     const payload = {
       ...data,
@@ -140,7 +191,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       isCloudSensitive: data.isCloudSensitive,
     };
 
+    console.log("🚀 Final payload:", payload);
+
     if (isEditing.value && props.tour?.id) {
+      console.log("✏️ Updating tour:", props.tour.id);
       await updateAdminTour(props.tour.id, payload as TourUpdateReq);
       toast.add({
         title: "Tour actualizado con éxito",
@@ -148,6 +202,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         icon: "i-heroicons-check-circle",
       });
     } else {
+      console.log("🆕 Creating new tour");
       await createAdminTour(payload as TourCreateReq);
       toast.add({
         title: "Tour creado con éxito",
@@ -157,7 +212,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     }
     emit("success");
   } catch (error: any) {
-    console.error("Error submitting form:", error);
+    console.error("💥 Error submitting form:", error);
     toast.add({
       title: "Error",
       description: error.message || "No se pudo guardar el tour",
@@ -169,7 +224,37 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   }
 }
 
-// Opciones para los selects CORREGIDAS - usando objetos con label y value
+// Función para manejar el envío manual del formulario
+function handleSubmit() {
+  console.log("🖱️ HandleSubmit called");
+  console.log("📝 Form ref:", form.value);
+
+  if (!form.value) {
+    console.error("❌ Form reference is not available");
+    toast.add({
+      title: "Error",
+      description: "El formulario no está disponible",
+      color: "red",
+      icon: "i-heroicons-exclamation-triangle",
+    });
+    return;
+  }
+
+  try {
+    console.log("🔄 Calling form.submit()");
+    form.value.submit();
+  } catch (error) {
+    console.error("💥 Error in form.submit():", error);
+    toast.add({
+      title: "Error",
+      description: "Error al enviar el formulario",
+      color: "red",
+      icon: "i-heroicons-exclamation-triangle",
+    });
+  }
+}
+
+// Opciones para los selects
 const categoryOptions = [
   { label: "Astronómico", value: "ASTRONOMICAL" },
   { label: "Regular", value: "REGULAR" },
@@ -196,10 +281,10 @@ const statusOptions = [
 
     <!-- CONTENIDO COMPLETO DEL MODAL DENTRO DE #content -->
     <template #content>
-      <div class="p-5">
+      <div class="flex flex-col h-full">
         <!-- HEADER -->
         <div
-          class="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700"
+          class="flex items-center justify-between p-5 pb-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0"
         >
           <div>
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -221,306 +306,315 @@ const statusOptions = [
           />
         </div>
 
-        <!-- CONTENIDO PRINCIPAL CON SCROLL -->
-        <div class="flex-1 overflow-y-auto max-h-[60vh] py-4">
-          <div class="space-y-8">
-            <UForm
-              ref="form"
-              :schema="schema"
-              :state="state"
-              @submit="onSubmit"
-            >
-              <!-- Información Básica -->
-              <div class="space-y-6">
-                <h4
-                  class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
-                >
-                  Información Básica
-                </h4>
+        <div class="flex-1 overflow-y-auto max-h-[60vh]">
+          <!-- En el contenido principal -->
+          <div class="p-5">
+            <div class="space-y-8">
+              <UForm
+                ref="form"
+                :schema="schema"
+                :state="state"
+                @submit="onSubmit"
+                class="space-y-8"
+              >
+                <!-- Información Básica -->
+                <div class="space-y-6">
+                  <h4
+                    class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
+                  >
+                    Información Básica
+                  </h4>
 
-                <UTabs
-                  :items="[
-                    { label: 'Español', slot: 'es' },
-                    { label: 'Inglés', slot: 'en' },
-                    { label: 'Portugués', slot: 'pt' },
-                  ]"
-                  class="w-full"
-                >
-                  <template #es>
-                    <div class="pt-4 space-y-6">
-                      <UFormGroup
-                        label="Nombre (ES)"
-                        name="nameTranslations.es"
-                        required
-                      >
-                        <UInput
-                          v-model="state.nameTranslations.es"
-                          placeholder="Ej: Tour Astronómico Premium en el Desierto"
-                          size="lg"
-                          class="w-full"
-                        />
-                      </UFormGroup>
-
-                      <UFormGroup
-                        label="Descripción (ES)"
-                        name="descriptionTranslations.es"
-                        required
-                      >
-                        <UTextarea
-                          v-model="state.descriptionTranslations.es"
-                          placeholder="Describe la experiencia, incluyendo actividades, puntos de interés y qué hace especial este tour..."
-                          :rows="4"
-                          class="w-full min-h-[100px]"
-                        />
-                      </UFormGroup>
-                    </div>
-                  </template>
-
-                  <template #en>
-                    <div class="pt-4 space-y-6">
-                      <UFormGroup
-                        label="Nombre (EN)"
-                        name="nameTranslations.en"
-                        required
-                      >
-                        <UInput
-                          v-model="state.nameTranslations.en"
-                          placeholder="Ej: Premium Astronomical Tour in the Desert"
-                          size="lg"
-                          class="w-full"
-                        />
-                      </UFormGroup>
-
-                      <UFormGroup
-                        label="Descripción (EN)"
-                        name="descriptionTranslations.en"
-                        required
-                      >
-                        <UTextarea
-                          v-model="state.descriptionTranslations.en"
-                          placeholder="Describe the experience, including activities, points of interest and what makes this tour special..."
-                          :rows="4"
-                          class="w-full min-h-[100px]"
-                        />
-                      </UFormGroup>
-                    </div>
-                  </template>
-
-                  <template #pt>
-                    <div class="pt-4 space-y-6">
-                      <UFormGroup
-                        label="Nombre (PT)"
-                        name="nameTranslations.pt"
-                        required
-                      >
-                        <UInput
-                          v-model="state.nameTranslations.pt"
-                          placeholder="Ex: Tour Astronômico Premium no Deserto"
-                          size="lg"
-                          class="w-full"
-                        />
-                      </UFormGroup>
-
-                      <UFormGroup
-                        label="Descripción (PT)"
-                        name="descriptionTranslations.pt"
-                        required
-                      >
-                        <UTextarea
-                          v-model="state.descriptionTranslations.pt"
-                          placeholder="Descreva a experiência, incluindo atividades, pontos de interesse e o que torna este passeio especial..."
-                          :rows="4"
-                          class="w-full min-h-[100px]"
-                        />
-                      </UFormGroup>
-                    </div>
-                  </template>
-                </UTabs>
-
-                <UFormGroup
-                  label="URLs de Imágenes (separadas por comas)"
-                  name="imageUrls"
-                  required
-                >
-                  <UTextarea
-                    v-model="imageUrlsString"
-                    placeholder="https://example.com/image1.jpg, https://example.com/image2.png"
-                    :rows="3"
+                  <UTabs
+                    :items="[
+                      { label: 'Español', slot: 'es' },
+                      { label: 'Inglés', slot: 'en' },
+                      { label: 'Portugués', slot: 'pt' },
+                    ]"
                     class="w-full"
-                  />
-                  <template #help>
-                    <p class="text-xs text-gray-500 mt-1">
-                      Separe las URLs con comas. Mínimo 1 imagen requerida.
-                    </p>
-                  </template>
-                </UFormGroup>
-              </div>
+                  >
+                    <template #es>
+                      <div class="pt-4 space-y-6">
+                        <UFormGroup
+                          label="Nombre (ES)"
+                          name="nameTranslations.es"
+                          required
+                        >
+                          <UInput
+                            v-model="state.nameTranslations.es"
+                            placeholder="Ej: Tour Astronómico Premium en el Desierto"
+                            size="lg"
+                            class="w-full"
+                          />
+                        </UFormGroup>
 
-              <!-- Reglas de Negocio -->
-              <div class="space-y-4">
-                <h4
-                  class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
-                >
-                  Condiciones Meteorológicas
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <UCheckbox
-                    v-model="state.isWindSensitive"
-                    label="Sensible al Viento"
-                    name="isWindSensitive"
-                  />
-                  <UCheckbox
-                    v-model="state.isMoonSensitive"
-                    label="Sensible a la Luna"
-                    name="isMoonSensitive"
-                  />
-                  <UCheckbox
-                    v-model="state.isCloudSensitive"
-                    label="Sensible a la Nubosidad"
-                    name="isCloudSensitive"
-                  />
-                </div>
-              </div>
-
-              <!-- Categoría y Estado -->
-              <div class="space-y-4">
-                <h4
-                  class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
-                >
-                  Clasificación
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <UFormGroup label="Categoría" name="category" required>
-                    <!-- USelect SIMPLE sin search -->
-                    <USelect
-                      v-model="state.category"
-                      :items="categoryOptions"
-                      option-attribute="label"
-                      value-attribute="value"
-                      size="lg"
-                      class="w-full"
-                    />
-                  </UFormGroup>
-
-                  <UFormGroup label="Estado" name="status" required>
-                    <!-- USelect SIMPLE sin search -->
-                    <USelect
-                      v-model="state.status"
-                      :items="statusOptions"
-                      option-attribute="label"
-                      value-attribute="value"
-                      placeholder="Selecciona un estado"
-                      size="lg"
-                      class="w-full"
-                    />
-                  </UFormGroup>
-                </div>
-              </div>
-
-              <!-- Precios CORREGIDOS con placeholders específicos -->
-              <div class="space-y-4">
-                <h4
-                  class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
-                >
-                  Precios (CLP)
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <UFormGroup label="Precio Adulto" name="priceAdult" required>
-                    <div class="relative">
-                      <UInput
-                        v-model.number="state.priceAdult"
-                        type="number"
-                        min="0"
-                        placeholder="25000"
-                        size="lg"
-                        class="w-full pr-16"
-                      />
-                      <div
-                        class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-                      >
-                        <span class="text-gray-500 text-sm">CLP</span>
+                        <UFormGroup
+                          label="Descripción (ES)"
+                          name="descriptionTranslations.es"
+                          required
+                        >
+                          <UTextarea
+                            v-model="state.descriptionTranslations.es"
+                            placeholder="Describe la experiencia, incluyendo actividades, puntos de interés y qué hace especial este tour..."
+                            :rows="4"
+                            class="w-full min-h-[100px]"
+                          />
+                        </UFormGroup>
                       </div>
-                    </div>
-                  </UFormGroup>
+                    </template>
 
-                  <UFormGroup label="Precio Niño (Opcional)" name="priceChild">
-                    <div class="relative">
-                      <UInput
-                        v-model.number="state.priceChild"
-                        type="number"
-                        min="0"
-                        placeholder="15000"
-                        size="lg"
-                        class="w-full pr-16"
-                      />
-                      <div
-                        class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-                      >
-                        <span class="text-gray-500 text-sm">CLP</span>
+                    <template #en>
+                      <div class="pt-4 space-y-6">
+                        <UFormGroup
+                          label="Nombre (EN)"
+                          name="nameTranslations.en"
+                          required
+                        >
+                          <UInput
+                            v-model="state.nameTranslations.en"
+                            placeholder="Ej: Premium Astronomical Tour in the Desert"
+                            size="lg"
+                            class="w-full"
+                          />
+                        </UFormGroup>
+
+                        <UFormGroup
+                          label="Descripción (EN)"
+                          name="descriptionTranslations.en"
+                          required
+                        >
+                          <UTextarea
+                            v-model="state.descriptionTranslations.en"
+                            placeholder="Describe the experience, including activities, points of interest and what makes this tour special..."
+                            :rows="4"
+                            class="w-full min-h-[100px]"
+                          />
+                        </UFormGroup>
                       </div>
-                    </div>
-                  </UFormGroup>
-                </div>
-              </div>
+                    </template>
 
-              <!-- Configuración CORREGIDA -->
-              <div class="space-y-4">
-                <h4
-                  class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
-                >
-                  Configuración
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <template #pt>
+                      <div class="pt-4 space-y-6">
+                        <UFormGroup
+                          label="Nombre (PT)"
+                          name="nameTranslations.pt"
+                          required
+                        >
+                          <UInput
+                            v-model="state.nameTranslations.pt"
+                            placeholder="Ex: Tour Astronômico Premium no Deserto"
+                            size="lg"
+                            class="w-full"
+                          />
+                        </UFormGroup>
+
+                        <UFormGroup
+                          label="Descripción (PT)"
+                          name="descriptionTranslations.pt"
+                          required
+                        >
+                          <UTextarea
+                            v-model="state.descriptionTranslations.pt"
+                            placeholder="Descreva a experiência, incluindo atividades, pontos de interesse e o que torna este passeio especial..."
+                            :rows="4"
+                            class="w-full min-h-[100px]"
+                          />
+                        </UFormGroup>
+                      </div>
+                    </template>
+                  </UTabs>
+
                   <UFormGroup
-                    label="Máximo de Participantes"
-                    name="defaultMaxParticipants"
+                    label="URLs de Imágenes (separadas por comas)"
+                    name="imageUrls"
                     required
                   >
-                    <div class="relative">
-                      <UInput
-                        v-model.number="state.defaultMaxParticipants"
-                        type="number"
-                        min="1"
-                        max="100"
-                        placeholder="10"
-                        size="lg"
-                        class="w-full pr-24"
-                      />
-                      <div
-                        class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-                      >
-                        <span class="text-gray-500 text-sm">personas</span>
-                      </div>
-                    </div>
-                  </UFormGroup>
-
-                  <UFormGroup label="Duración" name="durationHours" required>
-                    <div class="relative">
-                      <UInput
-                        v-model.number="state.durationHours"
-                        type="number"
-                        min="1"
-                        max="24"
-                        placeholder="2"
-                        size="lg"
-                        class="w-full pr-20"
-                      />
-                      <div
-                        class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-                      >
-                        <span class="text-gray-500 text-sm">horas</span>
-                      </div>
-                    </div>
+                    <UTextarea
+                      v-model="imageUrlsString"
+                      placeholder="https://example.com/image1.jpg, https://example.com/image2.png"
+                      :rows="3"
+                      class="w-full"
+                    />
+                    <template #help>
+                      <p class="text-xs text-gray-500 mt-1">
+                        Separe las URLs con comas. Mínimo 1 imagen requerida.
+                      </p>
+                    </template>
                   </UFormGroup>
                 </div>
-              </div>
-            </UForm>
+
+                <!-- Reglas de Negocio -->
+                <div class="space-y-4">
+                  <h4
+                    class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
+                  >
+                    Condiciones Meteorológicas
+                  </h4>
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <UCheckbox
+                      v-model="state.isWindSensitive"
+                      label="Sensible al Viento"
+                      name="isWindSensitive"
+                    />
+                    <UCheckbox
+                      v-model="state.isMoonSensitive"
+                      label="Sensible a la Luna"
+                      name="isMoonSensitive"
+                    />
+                    <UCheckbox
+                      v-model="state.isCloudSensitive"
+                      label="Sensible a la Nubosidad"
+                      name="isCloudSensitive"
+                    />
+                  </div>
+                </div>
+
+                <!-- Categoría y Estado -->
+                <div class="space-y-4">
+                  <h4
+                    class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
+                  >
+                    Clasificación
+                  </h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <UFormGroup label="Categoría" name="category" required>
+                      <USelect
+                        v-model="state.category"
+                        :items="categoryOptions"
+                        option-attribute="label"
+                        value-attribute="value"
+                        placeholder="Selecciona una categoría"
+                        size="lg"
+                        class="w-full"
+                      />
+                    </UFormGroup>
+
+                    <UFormGroup label="Estado" name="status" required>
+                      <USelect
+                        v-model="state.status"
+                        :items="statusOptions"
+                        option-attribute="label"
+                        value-attribute="value"
+                        placeholder="Selecciona un estado"
+                        size="lg"
+                        class="w-full"
+                      />
+                    </UFormGroup>
+                  </div>
+                </div>
+
+                <!-- Precios -->
+                <div class="space-y-4">
+                  <h4
+                    class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
+                  >
+                    Precios (CLP)
+                  </h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <UFormGroup
+                      label="Precio Adulto"
+                      name="priceAdult"
+                      required
+                    >
+                      <div class="relative">
+                        <UInput
+                          v-model.number="state.priceAdult"
+                          type="number"
+                          min="1"
+                          placeholder="25000"
+                          size="lg"
+                          class="w-full pr-16"
+                        />
+                        <div
+                          class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                        >
+                          <span class="text-gray-500 text-sm">CLP</span>
+                        </div>
+                      </div>
+                    </UFormGroup>
+
+                    <UFormGroup
+                      label="Precio Niño (Opcional)"
+                      name="priceChild"
+                    >
+                      <div class="relative">
+                        <UInput
+                          v-model.number="state.priceChild"
+                          type="number"
+                          min="0"
+                          placeholder="15000"
+                          size="lg"
+                          class="w-full pr-16"
+                        />
+                        <div
+                          class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                        >
+                          <span class="text-gray-500 text-sm">CLP</span>
+                        </div>
+                      </div>
+                    </UFormGroup>
+                  </div>
+                </div>
+
+                <!-- Configuración -->
+                <div class="space-y-4">
+                  <h4
+                    class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
+                  >
+                    Configuración
+                  </h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <UFormGroup
+                      label="Máximo de Participantes"
+                      name="defaultMaxParticipants"
+                      required
+                    >
+                      <div class="relative">
+                        <UInput
+                          v-model.number="state.defaultMaxParticipants"
+                          type="number"
+                          min="1"
+                          max="100"
+                          placeholder="10"
+                          size="lg"
+                          class="w-full pr-24"
+                        />
+                        <div
+                          class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                        >
+                          <span class="text-gray-500 text-sm">personas</span>
+                        </div>
+                      </div>
+                    </UFormGroup>
+
+                    <UFormGroup label="Duración" name="durationHours" required>
+                      <div class="relative">
+                        <UInput
+                          v-model.number="state.durationHours"
+                          type="number"
+                          min="1"
+                          max="24"
+                          placeholder="2"
+                          size="lg"
+                          class="w-full pr-20"
+                        />
+                        <div
+                          class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                        >
+                          <span class="text-gray-500 text-sm">horas</span>
+                        </div>
+                      </div>
+                    </UFormGroup>
+                  </div>
+                </div>
+              </UForm>
+            </div>
           </div>
         </div>
 
         <!-- FOOTER -->
         <div
-          class="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700"
+          class="flex justify-between items-center p-5 pt-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0"
         >
           <div class="text-sm text-gray-500 dark:text-gray-400">
             {{
@@ -528,12 +622,17 @@ const statusOptions = [
             }}
           </div>
           <div class="flex gap-3">
-            <UButton label="Cancelar" color="gray" variant="ghost" />
+            <UButton
+              label="Cancelar"
+              color="gray"
+              variant="ghost"
+              :disabled="loading"
+            />
             <UButton
               :label="isEditing ? 'Guardar Cambios' : 'Crear Tour'"
               color="primary"
               :loading="loading"
-              @click="form?.submit()"
+              @click="handleSubmit"
               :disabled="loading"
             />
           </div>
