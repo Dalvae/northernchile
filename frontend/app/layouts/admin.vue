@@ -85,12 +85,18 @@ const links = [
       </main>
     </div>
 
-    <!-- Show a loading spinner while the auth state is being checked -->
+    <!-- Show loading progress while the auth state is being checked -->
     <div
       v-else-if="authStore.loading"
-      class="min-h-screen flex items-center justify-center bg-gray-950"
+      class="min-h-screen flex flex-col items-center justify-center bg-gray-950"
     >
-      <USpinner size="lg" />
+      <UProgress
+        animation="carousel"
+        size="lg"
+        :show-progress="false"
+        class="w-64"
+      />
+      <p class="mt-4 text-gray-400">Verificando acceso...</p>
     </div>
 
     <!--
@@ -100,4 +106,3 @@ const links = [
     -->
   </div>
 </template>
-

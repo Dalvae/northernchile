@@ -20,7 +20,12 @@ const selectedTour = ref<TourRes | null>(null);
 // --- BÚSQUEDA Y COLUMNAS ---
 const q = ref("");
 const columns = [
-  { id: "name", key: "nameTranslations.es", label: "Nombre (ES)", sortable: true },
+  {
+    id: "name",
+    key: "nameTranslations.es",
+    label: "Nombre (ES)",
+    sortable: true,
+  },
   { id: "category", key: "category", label: "Categoría", sortable: true },
   {
     id: "priceAdult",
@@ -187,14 +192,14 @@ const items = (row: TourRes) => [
 
           <template #actions-data="{ row }">
             <div class="flex justify-end">
-              <UDropdown :items="items(row)" :ui="{ width: 'w-48' }">
+              <UDropdownMenu :items="items(row)" :ui="{ width: 'w-48' }">
                 <UButton
                   color="gray"
                   variant="ghost"
                   icon="i-lucide-more-horizontal"
                   size="sm"
                 />
-              </UDropdown>
+              </UDropdownMenu>
             </div>
           </template>
         </UTable>

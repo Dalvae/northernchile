@@ -130,13 +130,13 @@ const actions = (row: BookingRes) => [
             }}</span>
           </template>
           <template #actions-data="{ row }">
-            <UDropdown :items="actions(row)">
+            <UDropdownMenu :items="actions(row)">
               <UButton
                 color="gray"
                 variant="ghost"
                 icon="i-lucide-more-horizontal"
               />
-            </UDropdown>
+            </UDropdownMenu>
           </template>
         </UTable>
       </UCard>

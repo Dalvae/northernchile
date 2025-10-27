@@ -66,7 +66,7 @@ const state = reactive<Schema>({ ...initialState });
 const form = ref();
 const imageUrlsString = ref("");
 
-// NUEVO: Variable para guardar los errores de validación
+// Variable para guardar los errores de validación
 const formErrors = ref<FormError[]>([]);
 
 watch(
@@ -163,7 +163,7 @@ function handleSubmit() {
   form.value?.submit();
 }
 
-// NUEVO: Función para encontrar el error de un campo específico
+// Función para encontrar el error de un campo específico
 const findError = (path: string) =>
   formErrors.value.find((e) => e.path === path)?.message;
 
@@ -240,7 +240,7 @@ const statusOptions = [
                   >
                     <template #es>
                       <div class="pt-4 space-y-6">
-                        <UFormGroup
+                        <UFormField
                           label="Nombre (ES)"
                           name="nameTranslations.es"
                           required
@@ -252,8 +252,8 @@ const statusOptions = [
                             size="lg"
                             class="w-full"
                           />
-                        </UFormGroup>
-                        <UFormGroup
+                        </UFormField>
+                        <UFormField
                           label="Descripción (ES)"
                           name="descriptionTranslations.es"
                           required
@@ -265,12 +265,12 @@ const statusOptions = [
                             :rows="4"
                             class="w-full min-h-[100px]"
                           />
-                        </UFormGroup>
+                        </UFormField>
                       </div>
                     </template>
                     <template #en>
                       <div class="pt-4 space-y-6">
-                        <UFormGroup
+                        <UFormField
                           label="Nombre (EN)"
                           name="nameTranslations.en"
                           required
@@ -282,8 +282,8 @@ const statusOptions = [
                             size="lg"
                             class="w-full"
                           />
-                        </UFormGroup>
-                        <UFormGroup
+                        </UFormField>
+                        <UFormField
                           label="Descripción (EN)"
                           name="descriptionTranslations.en"
                           required
@@ -295,12 +295,12 @@ const statusOptions = [
                             :rows="4"
                             class="w-full min-h-[100px]"
                           />
-                        </UFormGroup>
+                        </UFormField>
                       </div>
                     </template>
                     <template #pt>
                       <div class="pt-4 space-y-6">
-                        <UFormGroup
+                        <UFormField
                           label="Nombre (PT)"
                           name="nameTranslations.pt"
                           required
@@ -312,8 +312,8 @@ const statusOptions = [
                             size="lg"
                             class="w-full"
                           />
-                        </UFormGroup>
-                        <UFormGroup
+                        </UFormField>
+                        <UFormField
                           label="Descripción (PT)"
                           name="descriptionTranslations.pt"
                           required
@@ -325,11 +325,11 @@ const statusOptions = [
                             :rows="4"
                             class="w-full min-h-[100px]"
                           />
-                        </UFormGroup>
+                        </UFormField>
                       </div>
                     </template>
                   </UTabs>
-                  <UFormGroup
+                  <UFormField
                     label="URLs de Imágenes (separadas por comas)"
                     name="imageUrls"
                     required
@@ -341,12 +341,12 @@ const statusOptions = [
                       :rows="3"
                       class="w-full"
                     />
-                    <template #help
-                      ><p class="text-xs text-gray-500 mt-1">
+                    <template #help>
+                      <p class="text-xs text-gray-500 mt-1">
                         Separe las URLs con comas.
-                      </p></template
-                    >
-                  </UFormGroup>
+                      </p>
+                    </template>
+                  </UFormField>
                 </div>
                 <div class="space-y-4">
                   <h4
@@ -379,7 +379,7 @@ const statusOptions = [
                     Clasificación
                   </h4>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <UFormGroup
+                    <UFormField
                       label="Categoría"
                       name="category"
                       required
@@ -393,8 +393,8 @@ const statusOptions = [
                         size="lg"
                         class="w-full"
                       />
-                    </UFormGroup>
-                    <UFormGroup
+                    </UFormField>
+                    <UFormField
                       label="Estado"
                       name="status"
                       required
@@ -408,7 +408,7 @@ const statusOptions = [
                         size="lg"
                         class="w-full"
                       />
-                    </UFormGroup>
+                    </UFormField>
                   </div>
                 </div>
                 <div class="space-y-4">
@@ -418,7 +418,7 @@ const statusOptions = [
                     Precios (CLP)
                   </h4>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <UFormGroup
+                    <UFormField
                       label="Precio Adulto"
                       name="priceAdult"
                       required
@@ -431,8 +431,8 @@ const statusOptions = [
                         size="lg"
                         class="w-full"
                       />
-                    </UFormGroup>
-                    <UFormGroup
+                    </UFormField>
+                    <UFormField
                       label="Precio Niño (Opcional)"
                       name="priceChild"
                       :error="findError('priceChild')"
@@ -444,7 +444,7 @@ const statusOptions = [
                         size="lg"
                         class="w-full"
                       />
-                    </UFormGroup>
+                    </UFormField>
                   </div>
                 </div>
                 <div class="space-y-4">
@@ -454,7 +454,7 @@ const statusOptions = [
                     Configuración
                   </h4>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <UFormGroup
+                    <UFormField
                       label="Máximo de Participantes"
                       name="defaultMaxParticipants"
                       required
@@ -468,8 +468,8 @@ const statusOptions = [
                         size="lg"
                         class="w-full"
                       />
-                    </UFormGroup>
-                    <UFormGroup
+                    </UFormField>
+                    <UFormField
                       label="Duración (Horas)"
                       name="durationHours"
                       required
@@ -483,7 +483,7 @@ const statusOptions = [
                         size="lg"
                         class="w-full"
                       />
-                    </UFormGroup>
+                    </UFormField>
                   </div>
                 </div>
               </UForm>
