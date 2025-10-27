@@ -4,6 +4,7 @@ import com.northernchile.api.config.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,16 +34,24 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        // Permitir GET a tours para todo el mundo (búsqueda pública)
+                        .requestMatchers(HttpMethod.GET, "/api/tours/**").permitAll()
+                        // Permitir GET a disponibilidad para todo el mundo
+                        .requestMatchers(HttpMethod.GET, "/api/availability/**").permitAll()
+                        // Proteger las operaciones de escritura en tours
+                        .requestMatchers(HttpMethod.POST, "/api/tours/**").hasAnyRole("SUPER_ADMIN", "PARTNER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/tours/**").hasAnyRole("SUPER_ADMIN", "PARTNER_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/tours/**").hasAnyRole("SUPER_ADMIN", "PARTNER_ADMIN")
+                        // Permitir rutas de autenticación y documentación
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/api-docs/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/api/tours/**",
-                                "/api/availability/**",
                                 "/error"
                         ).permitAll()
+                        // Proteger todas las rutas de administración
                         .requestMatchers("/api/admin/**").hasAnyRole("SUPER_ADMIN", "PARTNER_ADMIN")
                         .anyRequest().authenticated()
                 )

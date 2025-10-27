@@ -35,11 +35,11 @@ const heroImage = computed(() =>
     </template>
 
     <div class="p-4">
-      <h3 class="text-xl font-bold mb-2 h-14 text-ellipsis overflow-hidden font-display text-gray-100">{{ translatedName }}</h3>
+      <h3 class="text-xl font-bold mb-2 h-14 text-ellipsis overflow-hidden font-display text-gray-900 dark:text-white">{{ translatedName }}</h3>
     </div>
 
     <template #footer>
-      <div class="flex justify-between items-center p-4 bg-gray-900/50">
+      <div class="flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-900/50">
         <span class="text-2xl font-bold text-primary-400">${{ props.tour.priceAdult }}</span>
         <UButton
           :to="localePath(`/tours/${props.tour.id}`)"

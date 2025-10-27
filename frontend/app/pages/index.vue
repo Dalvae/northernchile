@@ -35,7 +35,7 @@ useSeoMeta({
         <div v-else class="text-center bg-gray-800/50 p-8 rounded-lg border border-gray-700 max-w-md mx-auto">
           <UIcon name="i-lucide-telescope" class="text-4xl text-primary-400 mb-4" />
           <p class="font-semibold text-lg">No se encontraron tours. </p>
-          <p class="text-sm text-gray-400 mt-2">Estamos preparando nuevas aventuras bajo las estrellas. ¡Vuelve pronto!</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Estamos preparando nuevas aventuras bajo las estrellas. ¡Vuelve pronto!</p>
         </div>
       </div>
     </UContainer>

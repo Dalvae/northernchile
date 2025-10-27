@@ -2,7 +2,7 @@
   <UHeader>
     <template #left>
       <NuxtLink to="/" class="flex items-center gap-2">
-        <span class="font-display font-bold text-2xl text-gray-100">
+        <span class="font-display font-bold text-2xl text-gray-900 dark:text-gray-100">
           Northern Chile
         </span>
       </NuxtLink>

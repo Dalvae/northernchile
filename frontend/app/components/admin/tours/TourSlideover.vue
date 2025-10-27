@@ -17,73 +17,172 @@ const isOpen = computed({
 
 const isEditing = computed(() => !!props.tour);
 
+// Schema actualizado con todas las funcionalidades del TourModal
 const schema = z.object({
-  name: z.string().min(3, "El nombre es requerido"),
-  description: z.string().min(10, "La descripción es requerida"),
-  category: z.string().min(3, "La categoría es requerida"),
-  priceAdult: z.number().min(0, "El precio debe ser positivo"),
-  priceChild: z.number().min(0, "El precio debe ser positivo").nullable(),
-  defaultMaxParticipants: z.number().int().min(1, "Debe ser al menos 1"),
-  durationHours: z.number().int().min(1, "Debe ser al menos 1"),
-  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
+  nameTranslations: z.object({
+    es: z.string().min(3, "El nombre (ES) debe tener al menos 3 caracteres"),
+    en: z.string().min(3, "El nombre (EN) debe tener al menos 3 caracteres"),
+    pt: z.string().min(3, "El nombre (PT) debe tener al menos 3 caracteres"),
+  }),
+  descriptionTranslations: z.object({
+    es: z
+      .string()
+      .min(10, "La descripción (ES) debe tener al menos 10 caracteres"),
+    en: z
+      .string()
+      .min(10, "La descripción (EN) debe tener al menos 10 caracteres"),
+    pt: z
+      .string()
+      .min(10, "La descripción (PT) debe tener al menos 10 caracteres"),
+  }),
+  imageUrls: z.array(z.string().url("Debe ser una URL válida")).optional(),
+  isMoonSensitive: z.boolean(),
+  isWindSensitive: z.boolean(),
+  isCloudSensitive: z.boolean(),
+  category: z.string().min(1, "La categoría es requerida"),
+  priceAdult: z.number().min(1, "El precio debe ser mayor a 0"),
+  priceChild: z.number().min(0, "El precio no puede ser negativo").nullable(),
+  defaultMaxParticipants: z
+    .number()
+    .int()
+    .min(1, "Debe ser al menos 1 participante"),
+  durationHours: z.number().int().min(1, "Debe ser al menos 1 hora"),
+  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
 });
 type Schema = z.output<typeof schema>;
 
-const state = reactive<Partial<Schema>>({});
+// Estado inicial con tipos correctos
+const initialState: Schema = {
+  nameTranslations: { es: "", en: "", pt: "" },
+  descriptionTranslations: { es: "", en: "", pt: "" },
+  imageUrls: [],
+  isMoonSensitive: false,
+  isWindSensitive: false,
+  isCloudSensitive: false,
+  category: "ASTRONOMICAL",
+  priceAdult: 0,
+  priceChild: null,
+  defaultMaxParticipants: 10,
+  durationHours: 2,
+  status: "DRAFT",
+};
 
-function setFormState(tour: TourRes | null | undefined) {
-  if (tour) {
-    state.name = tour.name;
-    state.description = tour.description;
-    state.category = tour.category;
-    state.priceAdult = tour.priceAdult;
-    state.priceChild = tour.priceChild;
-    state.defaultMaxParticipants = tour.defaultMaxParticipants;
-    state.durationHours = tour.durationHours;
-    state.status = tour.status as any;
+const state = reactive<Schema>({ ...initialState });
+const form = ref();
+
+// Para manejar imageUrls como string temporal
+const imageUrlsString = ref("");
+
+// Configurar estado basado en props.tour
+watch(
+  () => props.tour,
+  (tour) => {
+    if (tour) {
+      state.nameTranslations = tour.nameTranslations || {
+        es: "",
+        en: "",
+        pt: "",
+      };
+      state.descriptionTranslations = tour.descriptionTranslations || {
+        es: "",
+        en: "",
+        pt: "",
+      };
+      state.imageUrls = tour.images?.map((img) => img.imageUrl) || [];
+      imageUrlsString.value = state.imageUrls.join(", ");
+      state.isMoonSensitive = tour.isMoonSensitive || false;
+      state.isWindSensitive = tour.isWindSensitive || false;
+      state.isCloudSensitive = tour.isCloudSensitive || false;
+      state.category = tour.category;
+      state.priceAdult = tour.priceAdult;
+      state.priceChild = tour.priceChild;
+      state.defaultMaxParticipants = tour.defaultMaxParticipants;
+      state.durationHours = tour.durationHours;
+      state.status = tour.status;
+    } else {
+      // Resetear a valores por defecto
+      Object.assign(state, initialState);
+      imageUrlsString.value = "";
+    }
+  },
+  { immediate: true, deep: true },
+);
+
+// Watch para convertir string de imageUrls a array
+watch(imageUrlsString, (newValue) => {
+  if (newValue.trim()) {
+    state.imageUrls = newValue
+      .split(",")
+      .map((url) => url.trim())
+      .filter((url) => url.length > 0);
   } else {
-    // Resetea el formulario a valores por defecto para creación
-    state.name = "";
-    state.description = "";
-    state.category = "ASTRONOMICAL";
-    state.priceAdult = 0;
-    state.priceChild = 0;
-    state.defaultMaxParticipants = 10;
-    state.durationHours = 2;
-    state.status = "DRAFT";
+    state.imageUrls = [];
   }
-}
-
-watch(() => props.tour, setFormState, { immediate: true });
+});
 
 const { createAdminTour, updateAdminTour } = useAdminData();
 const toast = useToast();
 const loading = ref(false);
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
+  console.log("Form submitted with data:", event.data);
   loading.value = true;
   try {
-    const data = { ...event.data }; // Copiamos los datos para poder modificarlos si es necesario
+    const data = event.data;
+
+    const payload = {
+      ...data,
+      nameTranslations: data.nameTranslations,
+      descriptionTranslations: data.descriptionTranslations,
+      imageUrls: data.imageUrls,
+      isMoonSensitive: data.isMoonSensitive,
+      isWindSensitive: data.isWindSensitive,
+      isCloudSensitive: data.isCloudSensitive,
+    };
 
     if (isEditing.value && props.tour?.id) {
-      await updateAdminTour(props.tour.id, data as TourUpdateReq);
-      toast.add({ title: "Tour actualizado con éxito", color: "green" });
+      await updateAdminTour(props.tour.id, payload as TourUpdateReq);
+      toast.add({
+        title: "Tour actualizado con éxito",
+        color: "green",
+        icon: "i-heroicons-check-circle",
+      });
     } else {
-      await createAdminTour(data as TourCreateReq);
-      toast.add({ title: "Tour creado con éxito", color: "green" });
+      await createAdminTour(payload as TourCreateReq);
+      toast.add({
+        title: "Tour creado con éxito",
+        color: "green",
+        icon: "i-heroicons-check-circle",
+      });
     }
     emit("success");
     isOpen.value = false;
   } catch (error: any) {
+    console.error("Error submitting form:", error);
     toast.add({
       title: "Error",
       description: error.message || "No se pudo guardar el tour",
       color: "red",
+      icon: "i-heroicons-exclamation-triangle",
     });
   } finally {
     loading.value = false;
   }
 }
+
+// Opciones para los selects
+const categoryOptions = [
+  { value: "ASTRONOMICAL", label: "Astronómico" },
+  { value: "REGULAR", label: "Regular" },
+  { value: "SPECIAL", label: "Especial" },
+  { value: "PRIVATE", label: "Privado" },
+];
+
+const statusOptions = [
+  { value: "DRAFT", label: "Borrador" },
+  { value: "PUBLISHED", label: "Publicado" },
+  { value: "ARCHIVED", label: "Archivado" },
+];
 </script>
 
 <template>

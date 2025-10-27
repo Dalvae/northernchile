@@ -64,7 +64,7 @@ const links = [
               <p class="text-sm font-medium truncate">
                 {{ authStore.user?.fullName || "Administrador" }}
               </p>
-              <p class="text-xs text-gray-400 truncate">
+              <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {{ authStore.user?.email }}
               </p>
             </div>

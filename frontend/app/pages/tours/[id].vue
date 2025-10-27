@@ -44,7 +44,7 @@ onMounted(fetchTour)
     <div v-if="loading" class="text-center text-white">Cargando tour...</div>
     <div v-else-if="error" class="text-center text-red-500">{{ error }}</div>
     <div v-else-if="tour">
-      <h1 class="text-4xl font-bold mb-4 text-white">{{ translatedName }}</h1>
+      <h1 class="text-4xl font-bold mb-4 text-gray-900 dark:text-white">{{ translatedName }}</h1>
       <img :src="heroImage" :alt="translatedName" class="w-full h-96 object-cover rounded-lg mb-6" />
       <p class="text-lg text-gray-300 mb-6">{{ translatedDescription }}</p>
 
