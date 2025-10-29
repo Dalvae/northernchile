@@ -1,18 +1,28 @@
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
-  const backendUrl = config.backendApiUrl; // Use public runtime config
-  const authToken = getHeader(event, 'Authorization'); // Pasa el token del admin
+  const backendUrl = config.backendApiUrl;
+
+  // Intentamos obtener el token de la cookie primero.
+  const tokenFromCookie = getCookie(event, 'auth_token');
+  
+  if (!tokenFromCookie) {
+    // Si no hay cookie, no hay sesión válida en el servidor.
+    throw createError({
+      statusCode: 401,
+      message: 'No autenticado',
+    });
+  }
+
+  const authToken = `Bearer ${tokenFromCookie}`;
 
   try {
-    // Llama al endpoint de admin del backend, no al público
-    const tours = await $fetch(`${backendUrl}/api/admin/tours`, { // Asegúrate de que el endpoint del backend sea el correcto
-      headers: { 'Authorization': authToken || '' }
+    const tours = await $fetch(`${backendUrl}/api/admin/tours`, {
+      headers: { 'Authorization': authToken }
     });
     return tours;
   } catch (error: any) {
-    // Manejo de errores...
     throw createError({
-      statusCode: error.statusCode || 500,
+      statusCode: error.response?.status || 500,
       message: error.message || 'Error al obtener tours de administración',
     });
   }

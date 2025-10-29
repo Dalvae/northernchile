@@ -12,6 +12,7 @@ const {
   pending,
   refresh,
 } = await useAsyncData("admin-tours", () => fetchAdminTours());
+
 const tours = computed(() => toursResponse.value || []);
 
 // --- ESTADO ---
@@ -19,50 +20,60 @@ const selectedTour = ref<TourRes | null>(null);
 
 // --- BÚSQUEDA Y COLUMNAS ---
 const q = ref("");
+
+// ESTA ES LA CONFIGURACIÓN DE COLUMNAS CORRECTA Y ROBUSTA
 const columns = [
+  // Para columnas con slots, necesitamos un 'key' para el slot y un 'id' para la tabla.
+  // Hacerlos coincidir es la práctica más segura.
+  { key: "name", id: "name", label: "Nombre (ES)", sortable: true },
+
+  { key: "category", id: "category", label: "Categoría", sortable: true },
   {
-    id: "name",
-    key: "nameTranslations.es",
-    label: "Nombre (ES)",
-    sortable: true,
-  },
-  { id: "category", key: "category", label: "Categoría", sortable: true },
-  {
-    id: "priceAdult",
     key: "priceAdult",
+    id: "priceAdult",
     label: "Precio Adulto",
     sortable: true,
   },
-  { id: "status", key: "status", label: "Estado", sortable: true },
-  { id: "actions", key: "actions", label: "Acciones", sortable: false },
+  { key: "status", id: "status", label: "Estado", sortable: true },
+
+  // La columna de acciones también necesita un 'id' para ser identificada.
+  { key: "actions", id: "actions", label: "Acciones", sortable: false },
 ];
 
 const filteredRows = computed(() => {
-  if (!q.value) return tours.value;
-  return tours.value.filter(
-    (tour) =>
-      tour.nameTranslations?.es &&
-      tour.nameTranslations.es.toLowerCase().includes(q.value.toLowerCase()),
-  );
+  if (!q.value) {
+    return tours.value;
+  }
+  return tours.value.filter((tour) => {
+    // Aseguramos que la búsqueda funcione aunque nameTranslations no exista
+    const name = tour.nameTranslations?.es || "";
+    return name.toLowerCase().includes(q.value.toLowerCase());
+  });
 });
 
 // --- FUNCIONES MODAL ---
 function openCreateModal() {
   selectedTour.value = null;
+  // Lógica futura para un modal que se controla con v-model
 }
 
 function openEditModal(tour: TourRes) {
   selectedTour.value = tour;
+  // Lógica futura para un modal que se controla con v-model
 }
 
 function onModalSuccess() {
-  refresh();
+  refresh(); // Refresca los datos de la tabla
 }
 
 // --- ELIMINACIÓN ---
 const toast = useToast();
 async function handleDelete(tour: TourRes) {
-  if (confirm(`¿Estás seguro de que quieres eliminar "${tour.name}"?`)) {
+  if (
+    confirm(
+      `¿Estás seguro de que quieres eliminar "${tour.nameTranslations?.es}"?`,
+    )
+  ) {
     try {
       if (!tour.id) return;
       await deleteAdminTour(tour.id);
@@ -71,7 +82,7 @@ async function handleDelete(tour: TourRes) {
     } catch (e: any) {
       toast.add({
         title: "Error al eliminar",
-        description: e.message,
+        description: e.message || "Error desconocido",
         color: "red",
       });
     }
@@ -121,8 +132,6 @@ const items = (row: TourRes) => [
               placeholder="Buscar tour por nombre..."
               class="w-80"
             />
-
-            <!-- MODAL PARA CREAR - AHORA EL BOTÓN ESTÁ DENTRO DEL COMPONENTE -->
             <AdminToursTourModal
               :tour="selectedTour"
               @success="onModalSuccess"
@@ -151,14 +160,21 @@ const items = (row: TourRes) => [
             td: 'px-4 py-3 whitespace-nowrap',
           }"
         >
-          <template #category-data="{ row }">
+          <!-- Nombre del Slot: #<key>-cell -->
+          <template #name-cell="{ row }">
+            <span class="font-medium text-gray-900 dark:text-white">{{
+              row.nameTranslations.es
+            }}</span>
+          </template>
+
+          <template #category-cell="{ row }">
             <UBadge color="blue" variant="subtle" class="capitalize">
               {{ row.category.toLowerCase() }}
             </UBadge>
           </template>
 
-          <template #priceAdult-data="{ row }">
-            <span class="font-medium">
+          <template #priceAdult-cell="{ row }">
+            <span>
               {{
                 new Intl.NumberFormat("es-CL", {
                   style: "currency",
@@ -168,7 +184,7 @@ const items = (row: TourRes) => [
             </span>
           </template>
 
-          <template #status-data="{ row }">
+          <template #status-cell="{ row }">
             <UBadge
               :color="
                 row.status === 'PUBLISHED'
@@ -178,7 +194,6 @@ const items = (row: TourRes) => [
                     : 'red'
               "
               variant="subtle"
-              class="capitalize"
             >
               {{
                 row.status === "PUBLISHED"
@@ -190,17 +205,14 @@ const items = (row: TourRes) => [
             </UBadge>
           </template>
 
-          <template #actions-data="{ row }">
-            <div class="flex justify-end">
-              <UDropdownMenu :items="items(row)" :ui="{ width: 'w-48' }">
-                <UButton
-                  color="gray"
-                  variant="ghost"
-                  icon="i-lucide-more-horizontal"
-                  size="sm"
-                />
-              </UDropdownMenu>
-            </div>
+          <template #actions-cell="{ row }">
+            <UDropdownMenu :items="items(row)">
+              <UButton
+                color="gray"
+                variant="ghost"
+                icon="i-lucide-more-horizontal"
+              />
+            </UDropdownMenu>
           </template>
         </UTable>
       </div>

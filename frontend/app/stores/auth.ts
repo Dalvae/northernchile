@@ -47,41 +47,20 @@ export const useAuthStore = defineStore("auth", {
       this.loading = true;
       const toast = useToast();
       try {
-        const config = useRuntimeConfig();
-        const apiBase = config.public.apiBase;
-        const response: { token: string } = await $fetch(
-          `${apiBase}/api/auth/login`,
-          {
-            method: "POST",
-            body: credentials,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
-
-        if (response && response.token) {
-          const token = response.token;
-          const payload = decodeJwtPayload(token);
-
-          if (!payload) {
-            throw new Error("Token de autenticación inválido.");
-          }
-
-          const user: User = {
-            id: payload.sub,
-            email: payload.email,
-            fullName: payload.fullName,
-            role: payload.roles || [],
-          };
-
+        // La llamada a la API ahora devuelve solo el usuario, la cookie se maneja en segundo plano.
+        const response: { user: User } = await $fetch('/api/auth/login', {
+          method: "POST",
+          body: credentials,
+        });
+        
+        if (response && response.user) {
           this.isAuthenticated = true;
-          this.user = user;
-          this.token = token;
+          this.user = response.user;
+          // El token se maneja a través de la cookie, ya no necesitamos guardarlo en el state.
+          this.token = "cookie_set"; // Placeholder value
 
           if (process.client) {
-            localStorage.setItem("auth_token", token);
-            localStorage.setItem("user", JSON.stringify(user));
+            localStorage.setItem("user", JSON.stringify(response.user));
           }
 
           toast.add({
@@ -90,20 +69,18 @@ export const useAuthStore = defineStore("auth", {
             color: "green",
           });
         } else {
-          throw new Error("La respuesta del login no contiene un token.");
+          throw new Error("La respuesta del login es inválida.");
         }
       } catch (error: any) {
         let errorMessage = error.data?.message || "Error en el login";
         if (error.statusCode === 403 || error.statusCode === 401) {
-          errorMessage =
-            "Credenciales inválidas. Verifica tu email y contraseña.";
+          errorMessage = "Credenciales inválidas. Verifica tu email y contraseña.";
         }
         toast.add({
           title: "Error de Autenticación",
           description: errorMessage,
           color: "red",
         });
-        // Relanzamos el error para que el componente que llama pueda manejarlo
         throw error;
       } finally {
         this.loading = false;
@@ -149,20 +126,24 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    logout() {
+    async logout() {
+      // Llamamos a un endpoint de logout en el servidor para que borre la cookie httpOnly.
+      await $fetch('/api/auth/logout', { method: 'POST' });
+
       this.isAuthenticated = false;
       this.user = null;
       this.token = null;
+
       if (process.client) {
-        localStorage.removeItem("auth_token");
         localStorage.removeItem("user");
       }
-      // Redirigir usando navigateTo para asegurar que funcione en cualquier contexto
-      navigateTo("/auth");
+      
+      // Aseguramos la redirección después de que todo se haya limpiado.
+      await navigateTo("/auth");
     },
 
     checkAuth() {
-      this.loading = true; // Set loading to true when check starts
+      this.loading = true;
       if (process.client) {
         const token = localStorage.getItem("auth_token");
         const user = localStorage.getItem("user");
@@ -171,13 +152,11 @@ export const useAuthStore = defineStore("auth", {
           this.token = token;
           this.user = JSON.parse(user);
         } else {
-          // No need to call logout(), just ensure state is clear
-          this.isAuthenticated = false;
-          this.user = null;
-          this.token = null;
+          // Si no hay token en localStorage, nos aseguramos de que todo esté limpio.
+          this.logout();
         }
       }
-      this.loading = false; // Set loading to false when check is complete
+      this.loading = false;
     },
   },
 });
