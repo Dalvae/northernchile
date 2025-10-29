@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { h, resolveComponent } from "vue";
 import type { TourRes } from "~/lib/api-client";
 
 definePageMeta({
@@ -13,6 +14,9 @@ const {
   refresh,
 } = useAsyncData("admin-tours", () => fetchAdminTours());
 
+// ✅ Variables para controlar los modales
+const isCreateModalOpen = ref(false);
+const isEditModalOpen = ref(false);
 const selectedTour = ref<TourRes | null>(null);
 const q = ref("");
 
@@ -63,12 +67,28 @@ const filteredRows = computed(() => {
   return rows;
 });
 
-function openEditModal(tour: TourRes) {
-  selectedTour.value = tour;
+// ✅ Abrir modal de creación
+function openCreateModal() {
+  selectedTour.value = null;
+  isCreateModalOpen.value = true;
 }
 
-function onModalSuccess() {
+// ✅ Abrir modal de edición
+function openEditModal(tour: TourRes) {
+  selectedTour.value = tour;
+  isEditModalOpen.value = true;
+}
+
+// ✅ Cerrar ambos modales y limpiar
+function closeModals() {
+  isCreateModalOpen.value = false;
+  isEditModalOpen.value = false;
   selectedTour.value = null;
+}
+
+// ✅ Manejar éxito (crear o editar)
+function onModalSuccess() {
+  closeModals();
   refresh();
 }
 
@@ -118,9 +138,12 @@ async function handleDelete(tour: TourRes) {
               placeholder="Buscar tour..."
               class="w-80"
             />
-            <AdminToursTourModal
-              :tour="selectedTour"
-              @success="onModalSuccess"
+            <!-- ✅ Botón para abrir modal de CREAR -->
+            <UButton
+              label="Agregar Tour"
+              trailing-icon="i-lucide-plus"
+              color="primary"
+              @click="openCreateModal"
             />
           </div>
         </div>
@@ -193,7 +216,6 @@ async function handleDelete(tour: TourRes) {
           <!-- ✅ Acciones con dos botones separados -->
           <template #actions-cell="{ row }">
             <div class="flex items-center gap-2">
-              <!-- Botón Editar -->
               <UButton
                 icon="i-lucide-pencil"
                 color="gray"
@@ -203,7 +225,6 @@ async function handleDelete(tour: TourRes) {
                 @click="openEditModal(row.original)"
               />
 
-              <!-- Botón Eliminar -->
               <UButton
                 icon="i-lucide-trash-2"
                 color="red"
@@ -217,5 +238,21 @@ async function handleDelete(tour: TourRes) {
         </UTable>
       </div>
     </div>
+
+    <!-- ✅ Modal de CREAR (sin tour) -->
+    <AdminToursTourModal
+      v-model:open="isCreateModalOpen"
+      :tour="null"
+      @success="onModalSuccess"
+      @close="closeModals"
+    />
+
+    <!-- ✅ Modal de EDITAR (con tour seleccionado) -->
+    <AdminToursTourModal
+      v-model:open="isEditModalOpen"
+      :tour="selectedTour"
+      @success="onModalSuccess"
+      @close="closeModals"
+    />
   </div>
 </template>

@@ -5,13 +5,22 @@ import type { TourRes, TourCreateReq, TourUpdateReq } from "~/lib/api-client";
 
 const props = defineProps<{
   tour?: TourRes | null;
+  open?: boolean; // ✅ Añade esto
 }>();
 
 const emit = defineEmits<{
   success: [];
+  close: []; // ✅ Añade esto
+  'update:open': [value: boolean]; // ✅ Añade esto
 }>();
 
 const isEditing = computed(() => !!props.tour);
+
+// ✅ Control local del modal
+const isOpen = computed({
+  get: () => props.open ?? false,
+  set: (value) => emit('update:open', value)
+});
 
 const schema = z.object({
   nameTranslations: z.object({
@@ -117,7 +126,7 @@ function onError(event: FormErrorEvent) {
   toast.add({
     title: "Error de validación",
     description: "Por favor, corrige los campos marcados en rojo.",
-    color: "error",
+    color: "red",
     icon: "i-heroicons-exclamation-circle",
   });
 }
@@ -133,7 +142,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       await updateAdminTour(props.tour.id, payload as TourUpdateReq);
       toast.add({
         title: "Tour actualizado con éxito",
-        color: "success",
+        color: "green",
         icon: "i-heroicons-check-circle",
       });
     } else {
@@ -151,7 +160,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     toast.add({
       title: "Error al guardar",
       description,
-      color: "error",
+      color: "red",
       icon: "i-heroicons-exclamation-triangle",
     });
   } finally {
@@ -182,13 +191,7 @@ const statusOptions = [
 </script>
 
 <template>
-  <UModal>
-    <UButton
-      :label="isEditing ? 'Editar Tour' : 'Agregar Tour'"
-      :trailing-icon="isEditing ? 'i-lucide-pencil' : 'i-lucide-plus'"
-      color="primary"
-      class="shrink-0"
-    />
+  <UModal v-model:open="isOpen">
     <template #content>
       <div class="flex flex-col h-full">
         <div
@@ -206,11 +209,13 @@ const statusOptions = [
               }}
             </p>
           </div>
+          <!-- ✅ Botón de cerrar que emite el evento -->
           <UButton
             color="gray"
             variant="ghost"
             icon="i-heroicons-x-mark-20-solid"
             class="-my-1"
+            @click="emit('close')"
           />
         </div>
         <div class="flex-1 overflow-y-auto max-h-[60vh]">
@@ -238,7 +243,7 @@ const statusOptions = [
                     ]"
                     class="w-full"
                   >
-                    <template #es>
+                    <template #es="{ item }">
                       <div class="pt-4 space-y-6">
                         <UFormField
                           label="Nombre (ES)"
@@ -268,7 +273,7 @@ const statusOptions = [
                         </UFormField>
                       </div>
                     </template>
-                    <template #en>
+                    <template #en="{ item }">
                       <div class="pt-4 space-y-6">
                         <UFormField
                           label="Nombre (EN)"
@@ -298,7 +303,7 @@ const statusOptions = [
                         </UFormField>
                       </div>
                     </template>
-                    <template #pt>
+                    <template #pt="{ item }">
                       <div class="pt-4 space-y-6">
                         <UFormField
                           label="Nombre (PT)"
@@ -466,7 +471,7 @@ const statusOptions = [
                         min="1"
                         max="100"
                         size="lg"
-                        class="w-full"
+                        class="w-null"
                       />
                     </UFormField>
                     <UFormField
@@ -499,11 +504,13 @@ const statusOptions = [
             }}
           </div>
           <div class="flex gap-3">
+            <!-- ✅ Botón cancelar cierra el modal -->
             <UButton
               label="Cancelar"
               color="gray"
               variant="ghost"
               :disabled="loading"
+              @click="emit('close')"
             />
             <UButton
               :label="isEditing ? 'Guardar Cambios' : 'Crear Tour'"
