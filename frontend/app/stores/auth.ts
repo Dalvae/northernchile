@@ -43,24 +43,37 @@ export const useAuthStore = defineStore("auth", {
   },
 
   actions: {
-    async login(credentials: { email: string; password: string }) {
+    async login(credentials: { email: string; password:string }) {
       this.loading = true;
       const toast = useToast();
       try {
-        // La llamada a la API ahora devuelve solo el usuario, la cookie se maneja en segundo plano.
-        const response: { user: User } = await $fetch('/api/auth/login', {
+        const config = useRuntimeConfig();
+        const apiBase = config.public.apiBase;
+        
+        // Llamada directa al backend Java
+        const response = await $fetch<any>(`${apiBase}/api/auth/login`, {
           method: "POST",
           body: credentials,
         });
         
-        if (response && response.user) {
+        if (response && response.token) {
           this.isAuthenticated = true;
-          this.user = response.user;
-          // El token se maneja a través de la cookie, ya no necesitamos guardarlo en el state.
-          this.token = "cookie_set"; // Placeholder value
+          this.token = response.token;
+          
+          // Decodificar el JWT para obtener user info
+          const payload = decodeJwtPayload(response.token);
+          if (payload) {
+            this.user = {
+              id: payload.sub,
+              email: payload.email,
+              fullName: payload.fullName,
+              role: payload.roles || []
+            };
+          }
 
           if (process.client) {
-            localStorage.setItem("user", JSON.stringify(response.user));
+            localStorage.setItem("auth_token", response.token);
+            localStorage.setItem("user", JSON.stringify(this.user));
           }
 
           toast.add({
@@ -68,13 +81,11 @@ export const useAuthStore = defineStore("auth", {
             description: "Has iniciado sesión correctamente.",
             color: "green",
           });
-        } else {
-          throw new Error("La respuesta del login es inválida.");
         }
       } catch (error: any) {
         let errorMessage = error.data?.message || "Error en el login";
         if (error.statusCode === 403 || error.statusCode === 401) {
-          errorMessage = "Credenciales inválidas. Verifica tu email y contraseña.";
+          errorMessage = "Credenciales inválidas.";
         }
         toast.add({
           title: "Error de Autenticación",
@@ -127,18 +138,15 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async logout() {
-      // Llamamos a un endpoint de logout en el servidor para que borre la cookie httpOnly.
-      await $fetch('/api/auth/logout', { method: 'POST' });
-
       this.isAuthenticated = false;
       this.user = null;
       this.token = null;
 
       if (process.client) {
+        localStorage.removeItem("auth_token");
         localStorage.removeItem("user");
       }
       
-      // Aseguramos la redirección después de que todo se haya limpiado.
       await navigateTo("/auth");
     },
 
@@ -152,8 +160,9 @@ export const useAuthStore = defineStore("auth", {
           this.token = token;
           this.user = JSON.parse(user);
         } else {
-          // Si no hay token en localStorage, nos aseguramos de que todo esté limpio.
-          this.logout();
+          this.isAuthenticated = false;
+          this.user = null;
+          this.token = null;
         }
       }
       this.loading = false;

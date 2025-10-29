@@ -10,17 +10,6 @@ export const useAdminData = () => {
       "Content-Type": "application/json",
     };
 
-    // FIX CRÍTICO: Reenviar cookies durante SSR
-    // Si estamos en el servidor, obtenemos las cookies de la petición original
-    // y las pasamos a la llamada interna de Nitro.
-    if (import.meta.server) {
-      const browserCookies = useRequestHeaders(['cookie']);
-      if (browserCookies.cookie) {
-        headers.cookie = browserCookies.cookie;
-      }
-    }
-
-    // Tu lógica existente para el token (si es que lo sigues usando además de la cookie)
     if (authStore.token) {
       headers.Authorization = `Bearer ${authStore.token}`;
     }

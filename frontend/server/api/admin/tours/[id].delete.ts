@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   const tourId = getRouterParam(event, 'id');
 
   try {
-    await $fetch(`${backendUrl}/api/tours/${tourId}`, {
+    await $fetch(`${backendUrl}/api/admin/tours/${tourId}`, {
       method: 'DELETE',
       headers: { 'Authorization': authToken || '' },
     });
