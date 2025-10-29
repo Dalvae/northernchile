@@ -1,15 +1,30 @@
+// frontend/app/composables/useAdminData.ts
 import { useAuthStore } from "~/stores/auth";
 import { computed } from "vue";
 
 export const useAdminData = () => {
   const authStore = useAuthStore();
+
   const headers = computed(() => {
-    const headers: { "Content-Type": string; Authorization?: string } = {
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
+
+    // FIX CRÍTICO: Reenviar cookies durante SSR
+    // Si estamos en el servidor, obtenemos las cookies de la petición original
+    // y las pasamos a la llamada interna de Nitro.
+    if (import.meta.server) {
+      const browserCookies = useRequestHeaders(['cookie']);
+      if (browserCookies.cookie) {
+        headers.cookie = browserCookies.cookie;
+      }
+    }
+
+    // Tu lógica existente para el token (si es que lo sigues usando además de la cookie)
     if (authStore.token) {
       headers.Authorization = `Bearer ${authStore.token}`;
     }
+
     return headers;
   });
 
@@ -33,6 +48,7 @@ export const useAdminData = () => {
         method: "DELETE",
         headers: headers.value,
       }),
+    // ... (asegúrate de que todas las funciones usen headers: headers.value)
     fetchAdminSchedules: (params?: any) =>
       $fetch("/api/admin/schedules", { params, headers: headers.value }),
     createAdminSchedule: (scheduleData: any) =>
@@ -84,4 +100,3 @@ export const useAdminData = () => {
       }),
   };
 };
-
