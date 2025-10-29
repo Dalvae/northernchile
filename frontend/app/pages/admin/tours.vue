@@ -12,7 +12,18 @@ const {
   data: tours,
   pending,
   refresh,
-} = useAsyncData("admin-tours", () => fetchAdminTours());
+} = useAsyncData(
+  "admin-tours", 
+  () => fetchAdminTours(),
+  {
+    // Importante: solo ejecutar en el cliente
+    server: false,
+    // Ejecutar solo si está autenticado
+    lazy: true,
+    // Transformar data para manejar null
+    default: () => []
+  }
+);
 
 // ✅ Variables para controlar los modales
 const isCreateModalOpen = ref(false);

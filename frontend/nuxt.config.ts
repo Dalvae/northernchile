@@ -78,6 +78,10 @@ export default defineNuxtConfig({
 
   routeRules: {
     "/": { prerender: true },
+    // Deshabilitar SSR para rutas de admin
+    '/admin/**': { ssr: false },
+    '/profile/**': { ssr: false },
+    '/bookings/**': { ssr: false },
   },
 
   compatibilityDate: "2025-01-15",
