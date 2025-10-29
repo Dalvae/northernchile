@@ -66,15 +66,18 @@ public class TourService {
         return toTourResponse(savedTour);
     }
 
+    // ESTE MÉTODO ES PARA LA PÁGINA PÚBLICA. ¡DEBE FILTRAR!
     @Transactional(readOnly = true)
-    public List<TourRes> getPublishedTours() { // <-- NUEVO MÉTODO PÚBLICO
+    public List<TourRes> getPublishedTours() {
         return tourRepository.findByStatus("PUBLISHED").stream()
                 .map(this::toTourResponse)
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true) // <-- AÑADIR AQUÍ
+    // ESTE MÉTODO ES PARA EL PANEL DE ADMINISTRADOR. ¡NO DEBE FILTRAR!
+    @Transactional(readOnly = true)
     public List<TourRes> getAllTours() {
+        // La clave es usar findAll() para obtener absolutamente todos los tours.
         return tourRepository.findAll().stream()
                 .map(this::toTourResponse)
                 .collect(Collectors.toList());
