@@ -1,3 +1,8 @@
 - [ ] Faltan traducciones
 - [ ] Settear themes no esta usandose, generar 1 solo hay un problema con light and dark-
-- [ ] Sacar la diferencia entre adulto y niño backend-frontend
+- [ ] Implementar Frontend para Alertas Climáticas:
+    - [ ] Dashboard de Alertas (`frontend/app/pages/admin/alerts.vue`)
+    - [ ] Widget de Alertas (Componente global)
+- [ ] Integrar Fase Lunar y Alertas Climáticas en Calendario (`frontend/app/pages/admin/calendar.vue`)
+- [ ] Integrar Proveedores de Pago
+- [ ] Integrar Servicios de Correo
