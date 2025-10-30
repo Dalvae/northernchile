@@ -45,6 +45,9 @@ public class AuthService {
         user.setEmail(registerReq.getEmail());
         user.setFullName(registerReq.getFullName());
         user.setPasswordHash(passwordEncoder.encode(registerReq.getPassword()));
+        user.setNationality(registerReq.getNationality());
+        user.setPhoneNumber(registerReq.getPhoneNumber());
+        user.setDateOfBirth(registerReq.getDateOfBirth());
         user.setRole("ROLE_CLIENT"); // Default role
         user.setAuthProvider("LOCAL");
 
@@ -67,6 +70,9 @@ public class AuthService {
         userMap.put("id", user.getId());
         userMap.put("email", user.getEmail());
         userMap.put("fullName", user.getFullName());
+        userMap.put("nationality", user.getNationality());
+        userMap.put("phoneNumber", user.getPhoneNumber());
+        userMap.put("dateOfBirth", user.getDateOfBirth());
         userMap.put("role", Collections.singletonList(user.getRole()));
 
         Map<String, Object> response = new HashMap<>();

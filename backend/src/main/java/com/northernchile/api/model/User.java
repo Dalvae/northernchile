@@ -5,6 +5,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -27,6 +28,12 @@ public class User {
 
     private String nationality;
 
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
     @Column(nullable = false, length = 50)
     private String role;
 
@@ -47,12 +54,14 @@ public class User {
     }
 
     // All-argument constructor (excluding auto-generated fields)
-    public User(UUID id, String email, String passwordHash, String fullName, String nationality, String role, String authProvider, String providerId) {
+    public User(UUID id, String email, String passwordHash, String fullName, String nationality, String phoneNumber, LocalDate dateOfBirth, String role, String authProvider, String providerId) {
         this.id = id;
         this.email = email;
         this.passwordHash = passwordHash;
         this.fullName = fullName;
         this.nationality = nationality;
+        this.phoneNumber = phoneNumber;
+        this.dateOfBirth = dateOfBirth;
         this.role = role;
         this.authProvider = authProvider;
         this.providerId = providerId;
@@ -77,6 +86,14 @@ public class User {
 
     public String getNationality() {
         return nationality;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
     }
 
     public String getRole() {
@@ -116,6 +133,14 @@ public class User {
         this.nationality = nationality;
     }
 
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
     public void setRole(String role) {
         this.role = role;
     }
@@ -134,27 +159,29 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) && Objects.equals(email, user.email) && Objects.equals(passwordHash, user.passwordHash) && Objects.equals(fullName, user.fullName) && Objects.equals(nationality, user.nationality) && Objects.equals(role, user.role) && Objects.equals(authProvider, user.authProvider) && Objects.equals(providerId, user.providerId) && Objects.equals(createdAt, user.createdAt) && Objects.equals(updatedAt, user.updatedAt);
+        return Objects.equals(id, user.id) && Objects.equals(email, user.email) && Objects.equals(passwordHash, user.passwordHash) && Objects.equals(fullName, user.fullName) && Objects.equals(nationality, user.nationality) && Objects.equals(phoneNumber, user.phoneNumber) && Objects.equals(dateOfBirth, user.dateOfBirth) && Objects.equals(role, user.role) && Objects.equals(authProvider, user.authProvider) && Objects.equals(providerId, user.providerId) && Objects.equals(createdAt, user.createdAt) && Objects.equals(updatedAt, user.updatedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, email, passwordHash, fullName, nationality, role, authProvider, providerId, createdAt, updatedAt);
+        return Objects.hash(id, email, passwordHash, fullName, nationality, phoneNumber, dateOfBirth, role, authProvider, providerId, createdAt, updatedAt);
     }
 
     @Override
     public String toString() {
-        return "User{" + 
-               "id=" + id + 
-               ", email='" + email + "'" + 
-               ", passwordHash='" + passwordHash + "'" + 
-               ", fullName='" + fullName + "'" + 
-               ", nationality='" + nationality + "'" + 
-               ", role='" + role + "'" + 
-               ", authProvider='" + authProvider + "'" + 
-               ", providerId='" + providerId + "'" + 
-               ", createdAt=" + createdAt + 
-               ", updatedAt=" + updatedAt + 
+        return "User{" +
+               "id=" + id +
+               ", email='" + email + "'" +
+               ", passwordHash='" + passwordHash + "'" +
+               ", fullName='" + fullName + "'" +
+               ", nationality='" + nationality + "'" +
+               ", phoneNumber='" + phoneNumber + "'" +
+               ", dateOfBirth=" + dateOfBirth +
+               ", role='" + role + "'" +
+               ", authProvider='" + authProvider + "'" +
+               ", providerId='" + providerId + "'" +
+               ", createdAt=" + createdAt +
+               ", updatedAt=" + updatedAt +
                '}';
     }
 }
