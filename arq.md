@@ -214,8 +214,7 @@ CREATE TABLE tours (
     description TEXT, -- Descripción (puede venir de la BD para David)
     content_key VARCHAR(100) UNIQUE, -- NULLABLE. Clave para contenido "codeado" (ej: 'tour.astronomical')
     category VARCHAR(50) NOT NULL CHECK (category IN ('ASTRONOMICAL', 'REGULAR', 'SPECIAL', 'PRIVATE')),
-    price_adult DECIMAL(10,2) NOT NULL,
-    price_child DECIMAL(10,2),
+    price DECIMAL(10,2) NOT NULL,
     default_max_participants INTEGER NOT NULL,
     duration_hours INTEGER NOT NULL,
     is_wind_sensitive BOOLEAN DEFAULT FALSE,
@@ -287,7 +286,6 @@ CREATE TABLE participants (
     booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id), -- NULLABLE: puede ser un participant sin cuenta
     full_name VARCHAR(255) NOT NULL,
-    type VARCHAR(20) NOT NULL CHECK (type IN ('ADULT', 'CHILD')),
     is_primary_booker BOOLEAN DEFAULT FALSE, -- Indica si este participant es el que hizo la compra
     pickup_address TEXT,
     special_requirements TEXT,
