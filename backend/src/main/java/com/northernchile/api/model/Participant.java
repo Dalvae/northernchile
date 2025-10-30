@@ -23,9 +23,6 @@ public class Participant {
     @Column(nullable = false)
     private String fullName;
 
-    @Column(nullable = false, length = 20)
-    private String type; // ADULT o CHILD
-
     @Column(name = "document_id", length = 100)
     private String documentId;
 
@@ -46,11 +43,10 @@ public class Participant {
     public Participant() {
     }
 
-    public Participant(UUID id, Booking booking, String fullName, String type, String documentId, String nationality, Integer age, String pickupAddress, String specialRequirements, Instant createdAt) {
+    public Participant(UUID id, Booking booking, String fullName, String documentId, String nationality, Integer age, String pickupAddress, String specialRequirements, Instant createdAt) {
         this.id = id;
         this.booking = booking;
         this.fullName = fullName;
-        this.type = type;
         this.documentId = documentId;
         this.nationality = nationality;
         this.age = age;
@@ -81,14 +77,6 @@ public class Participant {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getDocumentId() {
@@ -144,12 +132,12 @@ public class Participant {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Participant that = (Participant) o;
-        return Objects.equals(id, that.id) && Objects.equals(booking, that.booking) && Objects.equals(fullName, that.fullName) && Objects.equals(type, that.type) && Objects.equals(documentId, that.documentId) && Objects.equals(nationality, that.nationality) && Objects.equals(age, that.age) && Objects.equals(pickupAddress, that.pickupAddress) && Objects.equals(specialRequirements, that.specialRequirements) && Objects.equals(createdAt, that.createdAt);
+        return Objects.equals(id, that.id) && Objects.equals(booking, that.booking) && Objects.equals(fullName, that.fullName) && Objects.equals(documentId, that.documentId) && Objects.equals(nationality, that.nationality) && Objects.equals(age, that.age) && Objects.equals(pickupAddress, that.pickupAddress) && Objects.equals(specialRequirements, that.specialRequirements) && Objects.equals(createdAt, that.createdAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, booking, fullName, type, documentId, nationality, age, pickupAddress, specialRequirements, createdAt);
+        return Objects.hash(id, booking, fullName, documentId, nationality, age, pickupAddress, specialRequirements, createdAt);
     }
 
     @Override
@@ -158,7 +146,6 @@ public class Participant {
                 "id=" + id +
                 ", booking=" + booking +
                 ", fullName='" + fullName + '\'' +
-                ", type='" + type + '\'' +
                 ", documentId='" + documentId + '\'' +
                 ", nationality='" + nationality + '\'' +
                 ", age=" + age +

@@ -83,6 +83,11 @@ public class BookingService {
             participant.setBooking(booking);
             participant.setFullName(participantReq.getFullName());
             participant.setType(participantReq.getType());
+            participant.setDocumentId(participantReq.getDocumentId());
+            participant.setNationality(participantReq.getNationality());
+            participant.setAge(participantReq.getAge());
+            participant.setPickupAddress(participantReq.getPickupAddress());
+            participant.setSpecialRequirements(participantReq.getSpecialRequirements());
             participants.add(participant);
         }
         booking.setParticipants(participants);
@@ -133,6 +138,11 @@ public class BookingService {
             pRes.setId(p.getId());
             pRes.setFullName(p.getFullName());
             pRes.setType(p.getType());
+            pRes.setDocumentId(p.getDocumentId());
+            pRes.setNationality(p.getNationality());
+            pRes.setAge(p.getAge());
+            pRes.setPickupAddress(p.getPickupAddress());
+            pRes.setSpecialRequirements(p.getSpecialRequirements());
             return pRes;
         }).collect(Collectors.toList()));
 
