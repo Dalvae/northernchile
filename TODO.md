@@ -3,6 +3,7 @@
 - [ ] Implementar Frontend para Alertas Climáticas:
     - [ ] Dashboard de Alertas (`frontend/app/pages/admin/alerts.vue`)
     - [ ] Widget de Alertas (Componente global)
-- [ ] Integrar Fase Lunar y Alertas Climáticas en Calendario (`frontend/app/pages/admin/calendar.vue`)
+- [ ] Completar Funcionalidad del Calendario (`frontend/app/pages/admin/calendar.vue`):
+    - [ ] Implementar formulario dentro del modal de schedules (crear/editar schedules).
 - [ ] Integrar Proveedores de Pago
 - [ ] Integrar Servicios de Correo
