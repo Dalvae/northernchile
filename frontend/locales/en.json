@@ -60,7 +60,6 @@
     "duration_hours": "{hours}h",
     "max_participants": "Max {count}",
     "price_from": "From",
-    "price_child": "Children",
     "category": {
       "ASTRONOMICAL": "Astronomical",
       "REGULAR": "Regular",

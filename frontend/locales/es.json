@@ -60,7 +60,6 @@
     "duration_hours": "{hours}h",
     "max_participants": "Max {count}",
     "price_from": "Desde",
-    "price_child": "Niños",
     "category": {
       "ASTRONOMICAL": "Astronómico",
       "REGULAR": "Regular",

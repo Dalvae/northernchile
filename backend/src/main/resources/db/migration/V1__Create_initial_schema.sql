@@ -68,8 +68,8 @@ CREATE TABLE bookings (
 CREATE TABLE participants (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
     full_name VARCHAR(255) NOT NULL,
+    document_id VARCHAR(100) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    document_id VARCHAR(100),
     nationality VARCHAR(100),
     age INTEGER,
     pickup_address VARCHAR(500),
@@ -86,13 +86,13 @@ CREATE TABLE carts (
 CREATE TABLE cart_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), cart_id UUID NOT NULL REFERENCES carts(id) ON DELETE CASCADE,
     schedule_id UUID NOT NULL REFERENCES tour_schedules(id),
-    num_adults INTEGER NOT NULL,
-    num_children INTEGER DEFAULT 0, created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    num_participants INTEGER NOT NULL DEFAULT 1,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE private_tour_requests (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), customer_name VARCHAR(255) NOT NULL,
     customer_email VARCHAR(255) NOT NULL, customer_phone VARCHAR(50), requested_tour_type VARCHAR(100) NOT NULL,
-    requested_datetime TIMESTAMP WITH TIME ZONE NOT NULL, num_adults INTEGER NOT NULL, num_children INTEGER DEFAULT 0,
+    requested_datetime TIMESTAMP WITH TIME ZONE NOT NULL, num_participants INTEGER NOT NULL DEFAULT 1,
     special_requests TEXT, status VARCHAR(20) DEFAULT 'PENDING', quoted_price DECIMAL(10,2),
     payment_link_id VARCHAR(255), created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

@@ -22,7 +22,7 @@
 
       <!-- Document ID and Nationality -->
       <div class="grid md:grid-cols-2 gap-4">
-        <UFormField :label="t('booking.document_id')" name="documentId">
+        <UFormField :label="t('booking.document_id')" name="documentId" required>
           <UInput
             :model-value="participant.documentId"
             :placeholder="t('booking.document_id_placeholder')"

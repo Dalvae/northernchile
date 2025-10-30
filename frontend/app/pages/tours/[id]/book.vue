@@ -321,6 +321,7 @@ const canProceed = computed(() => {
   if (currentStep.value === 2) {
     return bookingState.participants.every(p =>
       p.fullName.trim() !== '' &&
+      p.documentId.trim() !== '' &&
       p.pickupAddress.trim() !== ''
     )
   }
