@@ -1,209 +1,318 @@
 <template>
-  <UContainer class="min-h-screen flex items-center justify-center py-12">
-    <UPageCard class="w-full max-w-md">
-      <UAuthForm
-        :key="formKey"
-        :schema="schema"
-        :fields="fields"
-        :providers="providers"
-        :title="isLogin ? 'Bienvenido de vuelta' : 'Crear cuenta'"
-        :icon="isLogin ? 'i-lucide-log-in' : 'i-lucide-user-plus'"
-        :submit="submitButton"
-        separator="o"
-        @submit="handleSubmit"
-      >
-        <template #description>
-          <div class="text-center">
-            <span class="text-gray-500 dark:text-gray-400">
-              {{ isLogin ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?" }}
+  <div class="min-h-screen flex items-center justify-center py-12 px-4 bg-neutral-50 dark:bg-neutral-900">
+    <UCard class="w-full max-w-md">
+      <div class="p-6 space-y-6">
+        <!-- Header -->
+        <div class="text-center space-y-2">
+          <div class="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+            <UIcon :name="isLogin ? 'i-lucide-log-in' : 'i-lucide-user-plus'" class="w-6 h-6 text-primary" />
+          </div>
+          <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">
+            {{ isLogin ? t('auth.login') : t('auth.register') }}
+          </h2>
+          <p class="text-sm text-neutral-600 dark:text-neutral-400">
+            {{ isLogin ? t('auth.login_description') : t('auth.register_description') }}
+          </p>
+        </div>
+
+        <!-- OAuth Providers -->
+        <div class="space-y-3">
+          <UButton
+            icon="i-simple-icons-google"
+            color="neutral"
+            variant="outline"
+            block
+            size="lg"
+            @click="handleGoogleAuth"
+          >
+            {{ t('auth.continue_with_google') }}
+          </UButton>
+        </div>
+
+        <!-- Divider -->
+        <div class="relative">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-neutral-200 dark:border-neutral-800"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-white dark:bg-neutral-800 text-neutral-500">
+              {{ t('auth.or_continue_with') }}
             </span>
+          </div>
+        </div>
+
+        <!-- Form -->
+        <UForm :state="state" :schema="schema" @submit="handleSubmit">
+          <div class="space-y-4">
+            <!-- Login Fields -->
+            <template v-if="isLogin">
+              <UFormField :label="t('auth.email')" name="email" required>
+                <UInput
+                  v-model="state.email"
+                  type="email"
+                  :placeholder="t('auth.email_placeholder')"
+                  size="lg"
+                  icon="i-lucide-mail"
+                />
+              </UFormField>
+
+              <UFormField :label="t('auth.password')" name="password" required>
+                <UInput
+                  v-model="state.password"
+                  type="password"
+                  :placeholder="t('auth.password_placeholder')"
+                  size="lg"
+                  icon="i-lucide-lock"
+                />
+              </UFormField>
+            </template>
+
+            <!-- Register Fields -->
+            <template v-else>
+              <UFormField :label="t('auth.full_name')" name="fullName" required>
+                <UInput
+                  v-model="state.fullName"
+                  :placeholder="t('auth.full_name_placeholder')"
+                  size="lg"
+                  icon="i-lucide-user"
+                />
+              </UFormField>
+
+              <UFormField :label="t('auth.email')" name="email" required>
+                <UInput
+                  v-model="state.email"
+                  type="email"
+                  :placeholder="t('auth.email_placeholder')"
+                  size="lg"
+                  icon="i-lucide-mail"
+                />
+              </UFormField>
+
+              <div class="grid grid-cols-2 gap-4">
+                <UFormField :label="t('booking.nationality')" name="nationality">
+                  <UInput
+                    v-model="state.nationality"
+                    :placeholder="t('booking.nationality_placeholder')"
+                    size="lg"
+                    icon="i-lucide-globe"
+                  />
+                </UFormField>
+
+                <UFormField :label="t('booking.phone')" name="phoneNumber">
+                  <UInput
+                    v-model="state.phoneNumber"
+                    type="tel"
+                    :placeholder="t('booking.phone_placeholder')"
+                    size="lg"
+                    icon="i-lucide-phone"
+                  />
+                </UFormField>
+              </div>
+
+              <UFormField :label="t('booking.date_of_birth')" name="dateOfBirth">
+                <UInput
+                  v-model="state.dateOfBirth"
+                  type="date"
+                  size="lg"
+                  icon="i-lucide-calendar"
+                />
+              </UFormField>
+
+              <UFormField :label="t('auth.password')" name="password" required>
+                <UInput
+                  v-model="state.password"
+                  type="password"
+                  :placeholder="t('auth.password_placeholder')"
+                  size="lg"
+                  icon="i-lucide-lock"
+                />
+              </UFormField>
+
+              <UFormField :label="t('auth.confirm_password')" name="confirmPassword" required>
+                <UInput
+                  v-model="state.confirmPassword"
+                  type="password"
+                  :placeholder="t('auth.confirm_password_placeholder')"
+                  size="lg"
+                  icon="i-lucide-lock"
+                />
+              </UFormField>
+            </template>
+
+            <!-- Submit Button -->
             <UButton
-              variant="link"
+              type="submit"
               color="primary"
-              @click="toggleForm"
-              class="ml-1 p-0 h-auto"
+              size="lg"
+              block
+              :loading="loading"
             >
-              {{ isLogin ? "Regístrate aquí" : "Inicia sesión aquí" }}
+              {{ isLogin ? t('auth.login') : t('auth.register') }}
             </UButton>
           </div>
-        </template>
+        </UForm>
 
-        <template #footer>
-          <p class="text-xs text-center text-gray-500 dark:text-gray-400">
-            Al continuar, aceptas nuestros
-            <ULink to="/terms" class="text-primary font-medium"
-              >Términos de Servicio</ULink
-            >
-            y
-            <ULink to="/privacy" class="text-primary font-medium"
-              >Política de Privacidad</ULink
-            >.
-          </p>
-        </template>
-      </UAuthForm>
-    </UPageCard>
-  </UContainer>
+        <!-- Toggle Login/Register -->
+        <div class="text-center text-sm">
+          <span class="text-neutral-600 dark:text-neutral-400">
+            {{ isLogin ? t('auth.dont_have_account') : t('auth.already_have_account') }}
+          </span>
+          <UButton
+            variant="link"
+            color="primary"
+            @click="toggleForm"
+            class="ml-1"
+          >
+            {{ isLogin ? t('auth.register') : t('auth.login') }}
+          </UButton>
+        </div>
+
+        <!-- Terms -->
+        <p class="text-xs text-center text-neutral-500 dark:text-neutral-400">
+          {{ t('auth.terms_text') }}
+          <NuxtLink to="/terms" class="text-primary font-medium hover:underline">
+            {{ t('auth.terms_of_service') }}
+          </NuxtLink>
+          {{ t('common.and') }}
+          <NuxtLink to="/privacy" class="text-primary font-medium hover:underline">
+            {{ t('auth.privacy_policy') }}
+          </NuxtLink>
+        </p>
+      </div>
+    </UCard>
+  </div>
 </template>
 
 <script setup lang="ts">
-import type { FormSubmitEvent } from "@nuxt/ui";
-import { z } from "zod";
+import type { FormSubmitEvent } from '@nuxt/ui'
+import { z } from 'zod'
 
-// Estado para alternar entre login y registro
-const isLogin = ref(true);
-const formKey = ref(0);
-const loading = ref(false);
+const { t } = useI18n()
+const authStore = useAuthStore()
+const router = useRouter()
+const toast = useToast()
 
-// Función para alternar entre formularios
-function toggleForm() {
-  isLogin.value = !isLogin.value;
-  formKey.value++; // Force re-render
-}
+// Estado
+const isLogin = ref(true)
+const loading = ref(false)
+
+// State del formulario
+const state = reactive({
+  email: '',
+  password: '',
+  confirmPassword: '',
+  fullName: '',
+  nationality: '',
+  phoneNumber: '',
+  dateOfBirth: ''
+})
 
 // Schema de validación
 const schema = computed(() => {
   if (isLogin.value) {
     return z.object({
-      email: z.string().min(1, "Email es requerido").email("Email inválido"),
-      password: z.string().min(1, "Contraseña es requerida"),
-    });
+      email: z.string().email(t('auth.email_invalid')),
+      password: z.string().min(1, t('auth.password_required'))
+    })
   } else {
     return z.object({
-      fullName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-      email: z.string().min(1, "Email es requerido").email("Email inválido"),
-      password: z
-        .string()
-        .min(8, "La contraseña debe tener al menos 8 caracteres"),
-    });
+      fullName: z.string().min(2, t('auth.full_name_min')),
+      email: z.string().email(t('auth.email_invalid')),
+      nationality: z.string().optional(),
+      phoneNumber: z.string().optional(),
+      dateOfBirth: z.string().optional(),
+      password: z.string().min(8, t('auth.password_min')),
+      confirmPassword: z.string()
+    }).refine((data) => data.password === data.confirmPassword, {
+      message: t('auth.passwords_dont_match'),
+      path: ['confirmPassword']
+    })
   }
-});
+})
 
-// Campos del formulario
-const fields = computed(() => {
-  if (isLogin.value) {
-    return [
-      {
-        name: "email",
-        type: "email" as const,
-        label: "Email",
-        placeholder: "tu@email.com",
-        required: true,
-      },
-      {
-        name: "password",
-        type: "password" as const,
-        label: "Contraseña",
-        placeholder: "••••••••",
-        required: true,
-      },
-    ];
-  } else {
-    return [
-      {
-        name: "fullName",
-        type: "text" as const,
-        label: "Nombre Completo",
-        placeholder: "Tu nombre completo",
-        required: true,
-      },
-      {
-        name: "email",
-        type: "email" as const,
-        label: "Email",
-        placeholder: "tu@email.com",
-        required: true,
-      },
-      {
-        name: "password",
-        type: "password" as const,
-        label: "Contraseña",
-        placeholder: "••••••••",
-        required: true,
-      },
-    ];
-  }
-});
+// Alternar formulario
+function toggleForm() {
+  isLogin.value = !isLogin.value
+  // Reset form
+  Object.keys(state).forEach(key => {
+    state[key as keyof typeof state] = ''
+  })
+}
 
-// Proveedores de autenticación
-const providers = [
-  {
-    label: "Continuar con Google",
-    icon: "i-simple-icons-google",
-    color: "neutral" as const,
-    variant: "outline" as const,
-    block: true,
-    onClick: () => {
-      console.log("Login with Google");
-    },
-  },
-];
+// Google OAuth
+function handleGoogleAuth() {
+  // TODO: Implementar Google OAuth
+  toast.add({
+    title: 'Próximamente',
+    description: 'La autenticación con Google estará disponible pronto',
+    color: 'info'
+  })
+}
 
-// Botón de envío - más simple
-const submitButton = {
-  label: "Continuar",
-  block: true,
-  color: "secondary" as const,
-  class: "text-white",
-};
-
-// Manejo del envío
-const authStore = useAuthStore();
-const router = useRouter();
-const toast = useToast();
-
+// Submit
 async function handleSubmit(event: FormSubmitEvent<any>) {
-  loading.value = true;
+  loading.value = true
 
   try {
     if (isLogin.value) {
-      console.log('Intentando login con:', { email: event.data.email });
       await authStore.login({
-        email: event.data.email,
-        password: event.data.password,
-      });
-      await router.push("/");
+        email: state.email,
+        password: state.password
+      })
+
+      toast.add({
+        title: t('common.success'),
+        description: t('auth.login_success'),
+        color: 'success'
+      })
+
+      await router.push('/')
     } else {
-      console.log('Intentando registro con:', {
-        email: event.data.email,
-        fullName: event.data.fullName
-      });
       await authStore.register({
-        email: event.data.email,
-        password: event.data.password,
-        fullName: event.data.fullName,
-      });
-      // Opcional: cambiar a login después del registro
-      isLogin.value = true;
-      formKey.value++;
+        email: state.email,
+        password: state.password,
+        fullName: state.fullName,
+        nationality: state.nationality || undefined,
+        phoneNumber: state.phoneNumber || undefined,
+        dateOfBirth: state.dateOfBirth || undefined
+      })
+
+      toast.add({
+        title: t('common.success'),
+        description: t('auth.register_success'),
+        color: 'success'
+      })
+
+      // Cambiar a login
+      isLogin.value = true
+      Object.keys(state).forEach(key => {
+        state[key as keyof typeof state] = ''
+      })
     }
   } catch (error: any) {
-    console.error('Error en auth:', error);
+    console.error('Error en auth:', error)
 
-    // Manejo específico de errores
-    let errorMessage = "Ha ocurrido un error";
+    let errorMessage = t('common.error')
 
     if (error.response?.status === 403) {
-      errorMessage = "Credenciales incorrectas. Verifica tu email y contraseña.";
+      errorMessage = t('auth.invalid_credentials')
     } else if (error.response?.status === 400) {
-      errorMessage = "Datos inválidos. Verifica la información ingresada.";
+      errorMessage = t('auth.invalid_data')
     } else if (error.message) {
-      errorMessage = error.message;
+      errorMessage = error.message
     }
 
+    toast.add({
+      title: t('common.error'),
+      description: errorMessage,
+      color: 'error'
+    })
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
+
+definePageMeta({
+  layout: 'default'
+})
 </script>
-
-<style scoped>
-/* Si hay problemas con Tailwind, usar CSS nativo */
-:deep(.auth-form-container) {
-  width: 100%;
-}
-
-:deep(.submit-button) {
-  width: 100%;
-  margin-top: 1rem;
-}
-</style>
