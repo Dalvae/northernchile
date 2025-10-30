@@ -6,8 +6,12 @@ CREATE TABLE users (
     email VARCHAR(255) UNIQUE NOT NULL, password_hash VARCHAR(255), full_name VARCHAR(255) NOT NULL,
     nationality VARCHAR(100), role VARCHAR(50) NOT NULL, auth_provider VARCHAR(50) DEFAULT 'LOCAL',
     provider_id VARCHAR(255), created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    phone_number VARCHAR(20),
+    date_of_birth DATE
 );
+CREATE INDEX idx_users_phone_number ON users(phone_number);
+
 
 -- Tabla: tours (MODIFICADA para soportar JSONB y nuevas reglas)
 CREATE TABLE tours (
@@ -64,8 +68,15 @@ CREATE TABLE bookings (
 CREATE TABLE participants (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
     full_name VARCHAR(255) NOT NULL, type VARCHAR(20) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    document_id VARCHAR(100),
+    nationality VARCHAR(100),
+    age INTEGER,
+    pickup_address VARCHAR(500),
+    special_requirements TEXT
 );
+CREATE INDEX idx_participants_document_id ON participants(document_id);
+
 CREATE TABLE carts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), user_id UUID REFERENCES users(id),
     status VARCHAR(20) DEFAULT 'ACTIVE', expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
