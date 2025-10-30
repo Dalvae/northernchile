@@ -1,30 +1,75 @@
 package com.northernchile.api.user;
 
+import com.northernchile.api.model.User;
+import com.northernchile.api.user.dto.UserCreateReq;
+import com.northernchile.api.user.dto.UserRes;
+import com.northernchile.api.user.dto.UserUpdateReq;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/admin/users") // Endpoint protegido para admins
+@RequestMapping("/api/admin/users")
 public class UserController {
 
-    // TODO: Inyectar un UserService
+    @Autowired
+    private UserService userService;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @GetMapping
+    public ResponseEntity<List<UserRes>> getAllUsers() {
+        List<UserRes> users = userService.getAllUsers();
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserRes> getUserById(@PathVariable UUID userId) {
+        return userService.getUserById(userId)
+                .map(user -> new ResponseEntity<>(user, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody Map<String, String> userPayload) {
-        // TODO: Crear un DTO para la creación de usuarios (email, fullName, password, role)
-        // TODO: El UserService debe verificar que quien hace la llamada es SUPER_ADMIN
-        // TODO: La lógica del servicio creará el nuevo usuario con el rol especificado
+    public ResponseEntity<UserRes> createUser(@Valid @RequestBody UserCreateReq req) {
+        UserRes createdUser = userService.createUser(req);
+        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+    }
 
-        String email = userPayload.get("email");
-        String role = userPayload.get("role");
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PutMapping("/{userId}")
+    public ResponseEntity<UserRes> updateUser(
+            @PathVariable UUID userId,
+            @Valid @RequestBody UserUpdateReq req) {
+        User currentUser = getCurrentUser();
+        UserRes updatedUser = userService.updateUser(userId, req, currentUser);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+    }
 
-        System.out.println("Admin request to create user: " + email + " with role: " + role);
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
+        User currentUser = getCurrentUser();
+        userService.deleteUser(userId, currentUser);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 
-        return ResponseEntity.ok("User creation endpoint hit (implement logic).");
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+        return userRepository.findByEmail(currentPrincipalName)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

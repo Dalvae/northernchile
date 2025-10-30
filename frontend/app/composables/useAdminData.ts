@@ -76,6 +76,12 @@ export const useAdminData = () => {
       $fetch("/api/admin/users", { params, headers: headers.value }),
     fetchAdminUserById: (id: string) =>
       $fetch(`/api/admin/users/${id}`, { headers: headers.value }),
+    createAdminUser: (userData: any) =>
+      $fetch("/api/admin/users", {
+        method: "POST",
+        body: userData,
+        headers: headers.value,
+      }),
     updateAdminUser: (id: string, userData: any) =>
       $fetch(`/api/admin/users/${id}`, {
         method: "PUT",
