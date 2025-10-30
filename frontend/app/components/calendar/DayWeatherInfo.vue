@@ -3,7 +3,7 @@
     <!-- Fase lunar -->
     <div v-if="moonPhase" class="flex items-center gap-1 text-xs">
       <span class="text-lg">{{ moonPhase.icon }}</span>
-      <span class="text-gray-600 dark:text-gray-400">{{ moonPhase.illumination }}%</span>
+      <span class="text-neutral-600 dark:text-neutral-400">{{ moonPhase.illumination }}%</span>
     </div>
 
     <!-- Clima -->
@@ -11,7 +11,7 @@
       <!-- Temperatura -->
       <div class="flex items-center gap-1 text-xs">
         <span>{{ getWeatherIcon(weather.weather[0]?.main) }}</span>
-        <span class="text-gray-700 dark:text-gray-300">
+        <span class="text-neutral-700 dark:text-neutral-300">
           {{ Math.round(weather.temp.max) }}° / {{ Math.round(weather.temp.min) }}°
         </span>
       </div>
@@ -21,7 +21,7 @@
         <!-- Viento -->
         <UBadge
           v-if="conditions.hasWind"
-          color="red"
+          color="error"
           variant="soft"
           size="xs"
           :ui="{ rounded: 'rounded-full' }"
@@ -32,7 +32,7 @@
         <!-- Nubes -->
         <UBadge
           v-if="conditions.hasClouds"
-          color="yellow"
+          color="warning"
           variant="soft"
           size="xs"
           :ui="{ rounded: 'rounded-full' }"
@@ -43,7 +43,7 @@
         <!-- Lluvia -->
         <UBadge
           v-if="conditions.hasRain"
-          color="blue"
+          color="info"
           variant="soft"
           size="xs"
           :ui="{ rounded: 'rounded-full' }"
@@ -54,7 +54,7 @@
         <!-- Luna llena -->
         <UBadge
           v-if="conditions.hasFullMoon"
-          color="purple"
+          color="tertiary"
           variant="soft"
           size="xs"
           :ui="{ rounded: 'rounded-full' }"
