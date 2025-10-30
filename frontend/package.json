@@ -12,6 +12,11 @@
     "generate-api-client": "curl http://localhost:8080/api-docs -o openapi.json && pnpm openapi-generator-cli generate -i openapi.json -g typescript-axios -o ./lib/api-client --additional-properties=supportsES6=true,typescriptThreePlus=true"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.19",
+    "@fullcalendar/daygrid": "^6.1.19",
+    "@fullcalendar/interaction": "^6.1.19",
+    "@fullcalendar/timegrid": "^6.1.19",
+    "@fullcalendar/vue3": "^6.1.19",
     "@iconify-json/lucide": "^1.2.70",
     "@iconify-json/simple-icons": "^1.2.54",
     "@nuxt/ui": "^4.0.1",
