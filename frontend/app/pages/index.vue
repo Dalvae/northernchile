@@ -1,14 +1,44 @@
 <script setup lang="ts">
 const { fetchAll } = useTours()
-const { data: toursData, pending, error } = await fetchAll()
-const tours = computed(() => toursData.value || [])
-const { t } = useI18n()
+const { data: toursData } = await fetchAll()
 
+// Obtener tours destacados (primeros 6 publicados)
+const featuredTours = computed(() => {
+  const published = (toursData.value || []).filter(t => t.status === 'PUBLISHED')
+  return published.slice(0, 6)
+})
+
+// Características de la empresa
+const features = [
+  {
+    icon: 'i-lucide-telescope',
+    title: 'Equipamiento Profesional',
+    description: 'Telescopios de alta gama y equipos de observación certificados'
+  },
+  {
+    icon: 'i-lucide-users',
+    title: 'Guías Expertos',
+    description: 'Astrónomos y guías certificados con años de experiencia'
+  },
+  {
+    icon: 'i-lucide-star',
+    title: 'Cielos Únicos',
+    description: 'El mejor lugar del mundo para observación astronómica'
+  },
+  {
+    icon: 'i-lucide-shield-check',
+    title: 'Cancelación Gratis',
+    description: 'Cancela sin cargo hasta 24 horas antes'
+  }
+]
+
+// SEO
+const { t } = useI18n()
 useSeoMeta({
-  title: () => t('nav.tours'),
-  description: () => t('tours.hero_description'),
-  ogTitle: () => `${t('nav.tours')} | Northern Chile`,
-  ogDescription: () => t('tours.hero_description'),
+  title: 'Northern Chile - Tours Astronómicos en San Pedro de Atacama',
+  description: 'Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados. Experiencias únicas bajo el cielo más claro del mundo.',
+  ogTitle: 'Northern Chile - Tours Astronómicos en San Pedro de Atacama',
+  ogDescription: 'Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados',
   ogImage: 'https://www.northernchile.cl/og-image-homepage.jpg',
   twitterCard: 'summary_large_image'
 })
@@ -16,28 +46,106 @@ useSeoMeta({
 
 <template>
   <div>
-    <UContainer>
-      <div class="py-16">
+    <!-- Hero Section -->
+    <HomeHeroSection />
+
+    <!-- Tours Destacados -->
+    <section class="py-16 bg-white dark:bg-neutral-900">
+      <UContainer>
         <div class="text-center mb-12">
-          <h1 class="text-4xl font-bold font-display tracking-tight sm:text-6xl">{{ $t('tours.all') }}</h1>
-          <p class="mt-6 text-lg leading-8 text-gray-300">{{ $t('tours.hero_description') }}</p>
+          <h2 class="text-3xl font-bold text-neutral-900 dark:text-white">
+            Tours Destacados
+          </h2>
+          <p class="mt-4 text-lg text-neutral-600 dark:text-neutral-400">
+            Explora nuestras experiencias más populares bajo las estrellas
+          </p>
         </div>
 
-        <div v-if="pending" class="text-center">
-          <p>Cargando experiencias...</p>
+        <div v-if="featuredTours.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <HomeTourCard v-for="tour in featuredTours" :key="tour.id" :tour="tour" />
         </div>
-        <div v-else-if="error" class="text-center text-error-400">
-          <p>Ocurrió un error al cargar los tours. Por favor, intenta más tarde.</p>
+
+        <div v-else class="text-center text-neutral-600 dark:text-neutral-400 py-8">
+          <UIcon name="i-lucide-telescope" class="w-16 h-16 mx-auto mb-4 text-neutral-400" />
+          <p>Estamos preparando nuevas aventuras bajo las estrellas</p>
         </div>
-        <div v-else-if="tours.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <TourCard v-for="tour in tours" :key="tour.id" :tour="tour" />
+
+        <!-- CTA para ver todos -->
+        <div class="text-center mt-12">
+          <UButton
+            to="/tours"
+            size="xl"
+            color="primary"
+            icon="i-lucide-arrow-right"
+            trailing
+          >
+            Ver Todos los Tours
+          </UButton>
         </div>
-        <div v-else class="text-center bg-neutral-800/50 p-8 rounded-lg border border-neutral-700 max-w-md mx-auto">
-          <UIcon name="i-lucide-telescope" class="text-4xl text-primary-400 mb-4" />
-          <p class="font-semibold text-lg">No se encontraron tours. </p>
-          <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-2">Estamos preparando nuevas aventuras bajo las estrellas. ¡Vuelve pronto!</p>
+      </UContainer>
+    </section>
+
+    <!-- Features - ¿Por qué elegirnos? -->
+    <section class="py-16 bg-neutral-50 dark:bg-neutral-800/50">
+      <UContainer>
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold text-neutral-900 dark:text-white">
+            ¿Por Qué Elegirnos?
+          </h2>
+          <p class="mt-4 text-lg text-neutral-600 dark:text-neutral-400">
+            La mejor experiencia astronómica en el desierto de Atacama
+          </p>
         </div>
-      </div>
-    </UContainer>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <UCard v-for="feature in features" :key="feature.title" class="text-center">
+            <div class="space-y-4">
+              <div class="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <UIcon :name="feature.icon" class="w-8 h-8 text-primary" />
+              </div>
+              <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">
+                {{ feature.title }}
+              </h3>
+              <p class="text-neutral-600 dark:text-neutral-400">
+                {{ feature.description }}
+              </p>
+            </div>
+          </UCard>
+        </div>
+      </UContainer>
+    </section>
+
+    <!-- Call to Action Final -->
+    <section class="py-20 bg-gradient-to-b from-neutral-900 to-neutral-950 text-white">
+      <UContainer>
+        <div class="max-w-3xl mx-auto text-center space-y-6">
+          <h2 class="text-4xl font-bold">
+            ¿Listo para Explorar el Universo?
+          </h2>
+          <p class="text-xl text-neutral-300">
+            Reserva tu tour astronómico y vive una experiencia inolvidable bajo las estrellas del Atacama
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <UButton
+              to="/tours"
+              size="xl"
+              color="primary"
+              icon="i-lucide-calendar"
+            >
+              Reservar Ahora
+            </UButton>
+            <UButton
+              to="/contact"
+              size="xl"
+              color="neutral"
+              variant="outline"
+              icon="i-lucide-help-circle"
+            >
+              ¿Tienes Dudas?
+            </UButton>
+          </div>
+        </div>
+      </UContainer>
+    </section>
   </div>
 </template>
