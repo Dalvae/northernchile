@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,4 +13,6 @@ import java.util.UUID;
 public interface TourScheduleRepository extends JpaRepository<TourSchedule, UUID> {
     List<TourSchedule> findByTourIdAndStartDatetimeBetween(UUID tourId, Instant start, Instant end);
     boolean existsByTourIdAndStartDatetime(UUID tourId, Instant startDatetime);
+    boolean existsByTourIdAndStartDatetimeBetween(UUID tourId, ZonedDateTime start, ZonedDateTime end);
+    List<TourSchedule> findByStartDatetimeBetween(ZonedDateTime start, ZonedDateTime end);
 }

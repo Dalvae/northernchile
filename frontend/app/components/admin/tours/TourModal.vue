@@ -40,9 +40,9 @@ const schema = z.object({
       .min(10, "La descripción (PT) debe tener al menos 10 caracteres"),
   }),
   imageUrls: z.array(z.string().url("Debe ser una URL válida")).optional(),
-  isMoonSensitive: z.boolean(),
-  isWindSensitive: z.boolean(),
-  isCloudSensitive: z.boolean(),
+  moonSensitive: z.boolean(),
+  windSensitive: z.boolean(),
+  cloudSensitive: z.boolean(),
   category: z.string().min(1, "La categoría es requerida"),
   priceAdult: z.number().min(1, "El precio debe ser mayor a 0"),
   priceChild: z.number().min(0, "El precio no puede ser negativo").nullable(),
@@ -60,9 +60,9 @@ const initialState: Schema = {
   nameTranslations: { es: "", en: "", pt: "" },
   descriptionTranslations: { es: "", en: "", pt: "" },
   imageUrls: [],
-  isMoonSensitive: false,
-  isWindSensitive: false,
-  isCloudSensitive: false,
+  moonSensitive: false,
+  windSensitive: false,
+  cloudSensitive: false,
   category: "ASTRONOMICAL",
   priceAdult: 1,
   priceChild: null,
@@ -88,9 +88,9 @@ watch(
         descriptionTranslations:
           tour.descriptionTranslations || initialState.descriptionTranslations,
         imageUrls: tour.images?.map((img) => img.imageUrl) || [],
-        isMoonSensitive: tour.isMoonSensitive || false,
-        isWindSensitive: tour.isWindSensitive || false,
-        isCloudSensitive: tour.isCloudSensitive || false,
+        moonSensitive: tour.moonSensitive || false,
+        windSensitive: tour.windSensitive || false,
+        cloudSensitive: tour.cloudSensitive || false,
         category: tour.category,
         priceAdult: tour.priceAdult,
         priceChild: tour.priceChild,
@@ -361,19 +361,19 @@ const statusOptions = [
                   </h4>
                   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <UCheckbox
-                      v-model="state.isWindSensitive"
+                      v-model="state.windSensitive"
                       label="Sensible al Viento"
-                      name="isWindSensitive"
+                      name="windSensitive"
                     />
                     <UCheckbox
-                      v-model="state.isMoonSensitive"
+                      v-model="state.moonSensitive"
                       label="Sensible a la Luna"
-                      name="isMoonSensitive"
+                      name="moonSensitive"
                     />
                     <UCheckbox
-                      v-model="state.isCloudSensitive"
+                      v-model="state.cloudSensitive"
                       label="Sensible a la Nubosidad"
-                      name="isCloudSensitive"
+                      name="cloudSensitive"
                     />
                   </div>
                 </div>

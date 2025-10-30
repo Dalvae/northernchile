@@ -9,6 +9,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,9 +39,9 @@ public class Tour {
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TourImage> images = new ArrayList<>();
 
-    private boolean isWindSensitive;
-    private boolean isMoonSensitive;
-    private boolean isCloudSensitive; // NUEVO CAMPO
+    private boolean windSensitive;
+    private boolean moonSensitive;
+    private boolean cloudSensitive;
 
     @Column(unique = true, length = 100)
     private String contentKey;
@@ -60,7 +61,10 @@ public class Tour {
     @Column(nullable = false)
     private Integer durationHours;
 
-    private Boolean isRecurring = false;
+    @Column(name = "default_start_time")
+    private LocalTime defaultStartTime;
+
+    private Boolean recurring = false;
 
     @Column(length = 100)
     private String recurrenceRule;
@@ -77,22 +81,23 @@ public class Tour {
     public Tour() {
     }
 
-    public Tour(UUID id, User owner, Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<TourImage> images, boolean isWindSensitive, boolean isMoonSensitive, boolean isCloudSensitive, String contentKey, String category, BigDecimal priceAdult, BigDecimal priceChild, Integer defaultMaxParticipants, Integer durationHours, Boolean isRecurring, String recurrenceRule, String status, Instant createdAt, Instant updatedAt) {
+    public Tour(UUID id, User owner, Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<TourImage> images, boolean windSensitive, boolean moonSensitive, boolean cloudSensitive, String contentKey, String category, BigDecimal priceAdult, BigDecimal priceChild, Integer defaultMaxParticipants, Integer durationHours, LocalTime defaultStartTime, Boolean recurring, String recurrenceRule, String status, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.owner = owner;
         this.nameTranslations = nameTranslations;
         this.descriptionTranslations = descriptionTranslations;
         this.images = images;
-        this.isWindSensitive = isWindSensitive;
-        this.isMoonSensitive = isMoonSensitive;
-        this.isCloudSensitive = isCloudSensitive;
+        this.windSensitive = windSensitive;
+        this.moonSensitive = moonSensitive;
+        this.cloudSensitive = cloudSensitive;
         this.contentKey = contentKey;
         this.category = category;
         this.priceAdult = priceAdult;
         this.priceChild = priceChild;
         this.defaultMaxParticipants = defaultMaxParticipants;
         this.durationHours = durationHours;
-        this.isRecurring = isRecurring;
+        this.defaultStartTime = defaultStartTime;
+        this.recurring = recurring;
         this.recurrenceRule = recurrenceRule;
         this.status = status;
         this.createdAt = createdAt;
@@ -140,27 +145,27 @@ public class Tour {
     }
 
     public boolean isWindSensitive() {
-        return isWindSensitive;
+        return windSensitive;
     }
 
     public void setWindSensitive(boolean windSensitive) {
-        isWindSensitive = windSensitive;
+        this.windSensitive = windSensitive;
     }
 
     public boolean isMoonSensitive() {
-        return isMoonSensitive;
+        return moonSensitive;
     }
 
     public void setMoonSensitive(boolean moonSensitive) {
-        isMoonSensitive = moonSensitive;
+        this.moonSensitive = moonSensitive;
     }
 
     public boolean isCloudSensitive() {
-        return isCloudSensitive;
+        return cloudSensitive;
     }
 
     public void setCloudSensitive(boolean cloudSensitive) {
-        isCloudSensitive = cloudSensitive;
+        this.cloudSensitive = cloudSensitive;
     }
 
     public String getContentKey() {
@@ -211,12 +216,20 @@ public class Tour {
         this.durationHours = durationHours;
     }
 
-    public Boolean getRecurring() {
-        return isRecurring;
+    public LocalTime getDefaultStartTime() {
+        return defaultStartTime;
+    }
+
+    public void setDefaultStartTime(LocalTime defaultStartTime) {
+        this.defaultStartTime = defaultStartTime;
+    }
+
+    public Boolean isRecurring() {
+        return recurring;
     }
 
     public void setRecurring(Boolean recurring) {
-        isRecurring = recurring;
+        this.recurring = recurring;
     }
 
     public String getRecurrenceRule() {
@@ -256,12 +269,12 @@ public class Tour {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Tour tour = (Tour) o;
-        return isWindSensitive == tour.isWindSensitive && isMoonSensitive == tour.isMoonSensitive && isCloudSensitive == tour.isCloudSensitive && Objects.equals(id, tour.id) && Objects.equals(owner, tour.owner) && Objects.equals(nameTranslations, tour.nameTranslations) && Objects.equals(descriptionTranslations, tour.descriptionTranslations) && Objects.equals(images, tour.images) && Objects.equals(contentKey, tour.contentKey) && Objects.equals(category, tour.category) && Objects.equals(priceAdult, tour.priceAdult) && Objects.equals(priceChild, tour.priceChild) && Objects.equals(defaultMaxParticipants, tour.defaultMaxParticipants) && Objects.equals(durationHours, tour.durationHours) && Objects.equals(isRecurring, tour.isRecurring) && Objects.equals(recurrenceRule, tour.recurrenceRule) && Objects.equals(status, tour.status) && Objects.equals(createdAt, tour.createdAt) && Objects.equals(updatedAt, tour.updatedAt);
+        return windSensitive == tour.windSensitive && moonSensitive == tour.moonSensitive && cloudSensitive == tour.cloudSensitive && Objects.equals(id, tour.id) && Objects.equals(owner, tour.owner) && Objects.equals(nameTranslations, tour.nameTranslations) && Objects.equals(descriptionTranslations, tour.descriptionTranslations) && Objects.equals(images, tour.images) && Objects.equals(contentKey, tour.contentKey) && Objects.equals(category, tour.category) && Objects.equals(priceAdult, tour.priceAdult) && Objects.equals(priceChild, tour.priceChild) && Objects.equals(defaultMaxParticipants, tour.defaultMaxParticipants) && Objects.equals(durationHours, tour.durationHours) && Objects.equals(defaultStartTime, tour.defaultStartTime) && Objects.equals(recurring, tour.recurring) && Objects.equals(recurrenceRule, tour.recurrenceRule) && Objects.equals(status, tour.status) && Objects.equals(createdAt, tour.createdAt) && Objects.equals(updatedAt, tour.updatedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, owner, nameTranslations, descriptionTranslations, images, isWindSensitive, isMoonSensitive, isCloudSensitive, contentKey, category, priceAdult, priceChild, defaultMaxParticipants, durationHours, isRecurring, recurrenceRule, status, createdAt, updatedAt);
+        return Objects.hash(id, owner, nameTranslations, descriptionTranslations, images, windSensitive, moonSensitive, cloudSensitive, contentKey, category, priceAdult, priceChild, defaultMaxParticipants, durationHours, defaultStartTime, recurring, recurrenceRule, status, createdAt, updatedAt);
     }
 
     @Override
@@ -272,16 +285,17 @@ public class Tour {
                 ", nameTranslations=" + nameTranslations +
                 ", descriptionTranslations=" + descriptionTranslations +
                 ", images=" + images +
-                ", isWindSensitive=" + isWindSensitive +
-                ", isMoonSensitive=" + isMoonSensitive +
-                ", isCloudSensitive=" + isCloudSensitive +
+                ", windSensitive=" + windSensitive +
+                ", moonSensitive=" + moonSensitive +
+                ", cloudSensitive=" + cloudSensitive +
                 ", contentKey='" + contentKey + '\'' +
                 ", category='" + category +
                 ", priceAdult=" + priceAdult +
                 ", priceChild=" + priceChild +
                 ", defaultMaxParticipants=" + defaultMaxParticipants +
                 ", durationHours=" + durationHours +
-                ", isRecurring=" + isRecurring +
+                ", defaultStartTime=" + defaultStartTime +
+                ", recurring=" + recurring +
                 ", recurrenceRule='" + recurrenceRule + '\'' +
                 ", status='" + status + '\'' +
                 ", createdAt=" + createdAt +

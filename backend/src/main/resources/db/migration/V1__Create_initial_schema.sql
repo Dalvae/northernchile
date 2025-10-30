@@ -26,7 +26,9 @@ CREATE TABLE tours (
     -- CAMPOS ESTÁNDAR (sin cambios)
     content_key VARCHAR(100) UNIQUE,
     category VARCHAR(50) NOT NULL, price_adult DECIMAL(10,2) NOT NULL, price_child DECIMAL(10,2),
-    default_max_participants INTEGER NOT NULL, duration_hours INTEGER NOT NULL, is_recurring BOOLEAN DEFAULT FALSE,
+    default_max_participants INTEGER NOT NULL, duration_hours INTEGER NOT NULL,
+    default_start_time TIME DEFAULT '20:00:00', -- Horario por defecto para generar schedules
+    is_recurring BOOLEAN DEFAULT FALSE,
     recurrence_rule VARCHAR(100), status VARCHAR(20) DEFAULT 'DRAFT',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -82,3 +84,22 @@ CREATE TABLE private_tour_requests (
     special_requests TEXT, status VARCHAR(20) DEFAULT 'PENDING', quoted_price DECIMAL(10,2),
     payment_link_id VARCHAR(255), created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Tabla: weather_alerts (Para alertas de cambios climáticos)
+CREATE TABLE weather_alerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tour_schedule_id UUID NOT NULL REFERENCES tour_schedules(id) ON DELETE CASCADE,
+    alert_type VARCHAR(20) NOT NULL, -- 'WIND', 'CLOUDS', 'MOON'
+    severity VARCHAR(20) NOT NULL, -- 'WARNING', 'CRITICAL'
+    message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING', -- 'PENDING', 'REVIEWED', 'RESOLVED'
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolved_by VARCHAR(255), -- UUID del admin
+    resolution VARCHAR(50), -- 'CANCELLED', 'KEPT', 'RESCHEDULED'
+    wind_speed DOUBLE PRECISION, -- m/s
+    cloud_coverage INTEGER, -- %
+    moon_phase DOUBLE PRECISION -- 0.0-1.0
+);
+CREATE INDEX idx_weather_alerts_schedule_id ON weather_alerts(tour_schedule_id);
+CREATE INDEX idx_weather_alerts_status ON weather_alerts(status);
