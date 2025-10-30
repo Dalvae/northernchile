@@ -1,21 +1,30 @@
 export default defineAppConfig({
   ui: {
-    // --- TEMA ATACAMA (ACTUAL) ---
-    // Descomenta este bloque para usar la paleta Atacama
-    /*
+    // Colores Semánticos - Cambia estos colores para actualizar todo el tema
     colors: {
-      primary: 'sand',
-      gray: 'earth',
-      secondary: 'celeste',
-      accent: 'copper'
-    },
-    */
+      // Primary: Acciones principales, navegación activa, elementos de marca
+      primary: "green",
 
-    // --- TEMA COSMIC ---
-    // Descomenta este bloque para usar la paleta Cosmic
-    colors: {
-      primary: "nebula",
-      secondary: "deep-space",
+      // Secondary: Botones secundarios, acciones alternativas
+      secondary: "blue",
+
+      // Tertiary: Color astronómico profundo para acentos especiales
+      tertiary: "deep-space",
+
+      // Success: Mensajes de éxito, confirmaciones positivas
+      success: "green",
+
+      // Info: Alertas informativas, tooltips, notificaciones neutrales
+      info: "blue",
+
+      // Warning: Advertencias, estados pendientes, atención requerida
+      warning: "yellow",
+
+      // Error: Mensajes de error, validaciones, acciones destructivas
+      error: "red",
+
+      // Neutral: Textos, bordes, fondos, estados deshabilitados
+      neutral: "slate",
     },
 
     button: {
@@ -23,8 +32,8 @@ export default defineAppConfig({
     },
     card: {
       rounded: "rounded-xl",
-      background: "bg-gray-900/50 dark:bg-gray-900/50", // Fondo más oscuro
-      ring: "ring-1 ring-gray-800",
+      background: "bg-neutral-900/50 dark:bg-neutral-900/50",
+      ring: "ring-1 ring-neutral-800",
     },
     header: {
       base: "!bg-transparent",

@@ -125,8 +125,8 @@ function onError(event: FormErrorEvent) {
   formErrors.value = event.errors;
   toast.add({
     title: "Error de validación",
-    description: "Por favor, corrige los campos marcados en rojo.",
-    color: "red",
+    description: "Por favor, corrige los campos marcados.",
+    color: "error",
     icon: "i-heroicons-exclamation-circle",
   });
 }
@@ -142,14 +142,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       await updateAdminTour(props.tour.id, payload as TourUpdateReq);
       toast.add({
         title: "Tour actualizado con éxito",
-        color: "green",
+        color: "success",
         icon: "i-heroicons-check-circle",
       });
     } else {
       await createAdminTour(payload as TourCreateReq);
       toast.add({
         title: "Tour creado con éxito",
-        color: "green",
+        color: "success",
         icon: "i-heroicons-check-circle",
       });
     }
@@ -160,7 +160,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     toast.add({
       title: "Error al guardar",
       description,
-      color: "red",
+      color: "error",
       icon: "i-heroicons-exclamation-triangle",
     });
   } finally {
@@ -195,13 +195,13 @@ const statusOptions = [
     <template #content>
       <div class="flex flex-col h-full">
         <div
-          class="flex items-center justify-between p-5 pb-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0"
+          class="flex items-center justify-between p-5 pb-4 border-b border-neutral-200 dark:border-neutral-700 flex-shrink-0"
         >
           <div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
               {{ isEditing ? "Editar Tour" : "Crear Nuevo Tour" }}
             </h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
               {{
                 isEditing
                   ? "Modifica la información del tour"
@@ -231,7 +231,7 @@ const statusOptions = [
               >
                 <div class="space-y-6">
                   <h4
-                    class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
+                    class="text-base font-semibold text-neutral-900 dark:text-white border-b border-neutral-200 dark:border-neutral-700 pb-2"
                   >
                     Información Básica
                   </h4>
@@ -347,7 +347,7 @@ const statusOptions = [
                       class="w-full"
                     />
                     <template #help>
-                      <p class="text-xs text-gray-500 mt-1">
+                      <p class="text-xs text-neutral-500 mt-1">
                         Separe las URLs con comas.
                       </p>
                     </template>
@@ -355,7 +355,7 @@ const statusOptions = [
                 </div>
                 <div class="space-y-4">
                   <h4
-                    class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
+                    class="text-base font-semibold text-neutral-900 dark:text-white border-b border-neutral-200 dark:border-neutral-700 pb-2"
                   >
                     Condiciones Meteorológicas
                   </h4>
@@ -379,7 +379,7 @@ const statusOptions = [
                 </div>
                 <div class="space-y-4">
                   <h4
-                    class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
+                    class="text-base font-semibold text-neutral-900 dark:text-white border-b border-neutral-200 dark:border-neutral-700 pb-2"
                   >
                     Clasificación
                   </h4>
@@ -418,7 +418,7 @@ const statusOptions = [
                 </div>
                 <div class="space-y-4">
                   <h4
-                    class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
+                    class="text-base font-semibold text-neutral-900 dark:text-white border-b border-neutral-200 dark:border-neutral-700 pb-2"
                   >
                     Precios (CLP)
                   </h4>
@@ -454,7 +454,7 @@ const statusOptions = [
                 </div>
                 <div class="space-y-4">
                   <h4
-                    class="text-base font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2"
+                    class="text-base font-semibold text-neutral-900 dark:text-white border-b border-neutral-200 dark:border-neutral-700 pb-2"
                   >
                     Configuración
                   </h4>
@@ -496,9 +496,9 @@ const statusOptions = [
           </div>
         </div>
         <div
-          class="flex justify-between items-center p-5 pt-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0"
+          class="flex justify-between items-center p-5 pt-4 border-t border-neutral-200 dark:border-neutral-700 flex-shrink-0"
         >
-          <div class="text-sm text-gray-500 dark:text-gray-400">
+          <div class="text-sm text-neutral-500 dark:text-neutral-400">
             {{
               isEditing ? "Modificando tour existente" : "Creando nuevo tour"
             }}

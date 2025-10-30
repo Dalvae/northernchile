@@ -38,6 +38,18 @@ export default defineNuxtConfig({
       primary: "green",
       neutral: "zinc",
     },
+    theme: {
+      colors: [
+        "primary",
+        "secondary",
+        "tertiary",
+        "success",
+        "info",
+        "warning",
+        "error",
+        "neutral",
+      ],
+    },
   },
 
   i18n: {

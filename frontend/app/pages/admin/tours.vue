@@ -111,7 +111,7 @@ async function handleDelete(tour: TourRes) {
       await deleteAdminTour(tour.id);
       toast.add({
         title: "Tour eliminado",
-        color: "green",
+        color: "success",
         icon: "i-lucide-check-circle",
       });
       await refresh();
@@ -119,7 +119,7 @@ async function handleDelete(tour: TourRes) {
       toast.add({
         title: "Error al eliminar",
         description: e.message || "Error desconocido",
-        color: "red",
+        color: "error",
         icon: "i-lucide-x-circle",
       });
     }
@@ -212,7 +212,7 @@ async function handleDelete(tour: TourRes) {
           <template #status-data="{ row }">
             <UBadge
               :color="
-                row.getValue('status') === 'PUBLISHED' ? 'green' : 'yellow'
+                row.getValue('status') === 'PUBLISHED' ? 'success' : 'warning'
               "
               variant="subtle"
             >
@@ -238,7 +238,7 @@ async function handleDelete(tour: TourRes) {
 
               <UButton
                 icon="i-lucide-trash-2"
-                color="red"
+                color="error"
                 variant="ghost"
                 size="sm"
                 aria-label="Eliminar tour"

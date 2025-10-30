@@ -41,12 +41,12 @@ onMounted(fetchTour)
 
 <template>
   <div class="container mx-auto p-4">
-    <div v-if="loading" class="text-center text-white">Cargando tour...</div>
-    <div v-else-if="error" class="text-center text-red-500">{{ error }}</div>
+    <div v-if="loading" class="text-center text-neutral-100">Cargando tour...</div>
+    <div v-else-if="error" class="text-center text-error-500">{{ error }}</div>
     <div v-else-if="tour">
-      <h1 class="text-4xl font-bold mb-4 text-gray-900 dark:text-white">{{ translatedName }}</h1>
+      <h1 class="text-4xl font-bold mb-4 text-neutral-900 dark:text-white">{{ translatedName }}</h1>
       <img :src="heroImage" :alt="translatedName" class="w-full h-96 object-cover rounded-lg mb-6" />
-      <p class="text-lg text-gray-300 mb-6">{{ translatedDescription }}</p>
+      <p class="text-lg text-neutral-300 mb-6">{{ translatedDescription }}</p>
 
       <!-- Gallery -->
       <div v-if="tour.images && tour.images.length > 1" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
@@ -60,7 +60,7 @@ onMounted(fetchTour)
       </div>
 
       <!-- Other tour details -->
-      <div class="bg-gray-800 p-6 rounded-lg shadow-md text-gray-200">
+      <div class="bg-neutral-800 p-6 rounded-lg shadow-md text-neutral-200">
         <h2 class="text-2xl font-semibold mb-4">Detalles del Tour</h2>
         <p><strong>Categoría:</strong> {{ tour.category }}</p>
         <p><strong>Precio Adulto:</strong> ${{ tour.priceAdult }}</p>
@@ -72,6 +72,6 @@ onMounted(fetchTour)
         <p><strong>Sensible a la Nubosidad:</strong> {{ tour.isCloudSensitive ? 'Sí' : 'No' }}</p>
       </div>
     </div>
-    <div v-else class="text-center text-white">Tour no encontrado.</div>
+    <div v-else class="text-center text-neutral-100">Tour no encontrado.</div>
   </div>
 </template>
