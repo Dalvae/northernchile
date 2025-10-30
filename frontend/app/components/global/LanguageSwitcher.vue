@@ -1,6 +1,6 @@
 <template>
   <UDropdownMenu :items="items">
-    <UButton color="gray" variant="ghost" icon="i-heroicons-language" />
+    <UButton color="neutral" variant="ghost" icon="i-heroicons-language" />
   </UDropdownMenu>
 </template>
 
