@@ -211,7 +211,7 @@ const statusOptions = [
           </div>
           <!-- ✅ Botón de cerrar que emite el evento -->
           <UButton
-            color="gray"
+            color="neutral"
             variant="ghost"
             icon="i-heroicons-x-mark-20-solid"
             class="-my-1"
@@ -507,7 +507,7 @@ const statusOptions = [
             <!-- ✅ Botón cancelar cierra el modal -->
             <UButton
               label="Cancelar"
-              color="gray"
+              color="neutral"
               variant="ghost"
               :disabled="loading"
               @click="emit('close')"

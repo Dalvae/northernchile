@@ -186,110 +186,104 @@ const statusOptions = [
 </script>
 
 <template>
-  <USlideover v-model="isOpen">
-    <UCard
-      class="flex flex-col flex-1"
-      :ui="{
-        body: { base: 'flex-1' },
-        ring: '',
-        divide: 'divide-y divide-gray-100 dark:divide-gray-800',
-      }"
-    >
-      <template #header>
-        <div class="flex items-center justify-between">
-          <h3 class="text-base font-semibold leading-6 text-white">
-            {{ isEditing ? "Editar Tour" : "Crear Nuevo Tour" }}
-          </h3>
-          <UButton
-            color="gray"
-            variant="ghost"
-            icon="i-heroicons-x-mark-20-solid"
-            class="-my-1"
-            @click="isOpen = false"
-          />
-        </div>
-      </template>
+  <USlideover v-model="isOpen" :title="isEditing ? 'Editar Tour' : 'Crear Nuevo Tour'">
+    <template #content>
+      <!-- Header con botón de cerrar personalizado -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
+        <h3 class="text-base font-semibold leading-6 text-neutral-900 dark:text-white">
+          {{ isEditing ? "Editar Tour" : "Crear Nuevo Tour" }}
+        </h3>
+        <UButton
+          color="neutral"
+          variant="ghost"
+          icon="i-heroicons-x-mark-20-solid"
+          class="-my-1"
+          @click="isOpen = false"
+        />
+      </div>
 
-      <!-- El UForm va aquí adentro del UCard -->
-      <UForm
-        :schema="schema"
-        :state="state"
-        class="space-y-4"
-        @submit="onSubmit"
-      >
-        <UFormGroup label="Nombre del Tour" name="name">
-          <UInput
-            v-model="state.name"
-            placeholder="Ej: Tour Astronómico Premium"
-          />
-        </UFormGroup>
-
-        <UFormGroup label="Descripción" name="description">
-          <UTextarea
-            v-model="state.description"
-            autoresize
-            placeholder="Describe la experiencia del tour..."
-          />
-        </UFormGroup>
-
-        <UFormGroup label="Categoría" name="category">
-          <USelectMenu
-            v-model="state.category"
-            :options="['ASTRONOMICAL', 'REGULAR', 'SPECIAL', 'PRIVATE']"
-          />
-        </UFormGroup>
-
-        <div class="grid grid-cols-2 gap-4">
-          <UFormGroup label="Precio Adulto" name="priceAdult">
+      <!-- Body con el formulario -->
+      <div class="flex-1 overflow-y-auto px-6 py-4">
+        <UForm
+          :schema="schema"
+          :state="state"
+          class="space-y-4"
+          @submit="onSubmit"
+        >
+          <UFormGroup label="Nombre del Tour" name="name">
             <UInput
-              v-model.number="state.priceAdult"
-              type="number"
-              icon="i-lucide-dollar-sign"
+              v-model="state.name"
+              placeholder="Ej: Tour Astronómico Premium"
             />
           </UFormGroup>
-          <UFormGroup label="Precio Niño (Opcional)" name="priceChild">
-            <UInput
-              v-model.number="state.priceChild"
-              type="number"
-              icon="i-lucide-dollar-sign"
+
+          <UFormGroup label="Descripción" name="description">
+            <UTextarea
+              v-model="state.description"
+              autoresize
+              placeholder="Describe la experiencia del tour..."
             />
           </UFormGroup>
-        </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <UFormGroup label="Max. Participantes" name="defaultMaxParticipants">
-            <UInput
-              v-model.number="state.defaultMaxParticipants"
-              type="number"
+          <UFormGroup label="Categoría" name="category">
+            <USelectMenu
+              v-model="state.category"
+              :options="['ASTRONOMICAL', 'REGULAR', 'SPECIAL', 'PRIVATE']"
             />
           </UFormGroup>
-          <UFormGroup label="Duración (Horas)" name="durationHours">
-            <UInput v-model.number="state.durationHours" type="number" />
+
+          <div class="grid grid-cols-2 gap-4">
+            <UFormGroup label="Precio Adulto" name="priceAdult">
+              <UInput
+                v-model.number="state.priceAdult"
+                type="number"
+                icon="i-lucide-dollar-sign"
+              />
+            </UFormGroup>
+            <UFormGroup label="Precio Niño (Opcional)" name="priceChild">
+              <UInput
+                v-model.number="state.priceChild"
+                type="number"
+                icon="i-lucide-dollar-sign"
+              />
+            </UFormGroup>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <UFormGroup label="Max. Participantes" name="defaultMaxParticipants">
+              <UInput
+                v-model.number="state.defaultMaxParticipants"
+                type="number"
+              />
+            </UFormGroup>
+            <UFormGroup label="Duración (Horas)" name="durationHours">
+              <UInput v-model.number="state.durationHours" type="number" />
+            </UFormGroup>
+          </div>
+
+          <UFormGroup v-if="isEditing" label="Estado" name="status">
+            <USelectMenu
+              v-model="state.status"
+              :options="['DRAFT', 'PUBLISHED', 'ARCHIVED']"
+            />
           </UFormGroup>
-        </div>
 
-        <UFormGroup v-if="isEditing" label="Estado" name="status">
-          <USelectMenu
-            v-model="state.status"
-            :options="['DRAFT', 'PUBLISHED', 'ARCHIVED']"
-          />
-        </UFormGroup>
-
-        <div class="flex justify-end gap-3 pt-4">
-          <UButton
-            label="Cancelar"
-            color="gray"
-            variant="ghost"
-            @click="isOpen = false"
-          />
-          <UButton
-            type="submit"
-            :label="isEditing ? 'Guardar Cambios' : 'Crear Tour'"
-            color="primary"
-            :loading="loading"
-          />
-        </div>
-      </UForm>
-    </UCard>
+          <div class="flex justify-end gap-3 pt-4">
+            <UButton
+              label="Cancelar"
+              color="neutral"
+              variant="ghost"
+              @click="isOpen = false"
+            />
+            <UButton
+              type="submit"
+              :label="isEditing ? 'Guardar Cambios' : 'Crear Tour'"
+              color="primary"
+              :loading="loading"
+            />
+          </div>
+        </UForm>
+      </div>
+    </template>
   </USlideover>
 </template>
