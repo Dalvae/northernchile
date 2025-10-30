@@ -51,10 +51,10 @@ const filteredTours = computed(() => {
       tours.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
       break
     case 'price-asc':
-      tours.sort((a, b) => (a.priceAdult || 0) - (b.priceAdult || 0))
+      tours.sort((a, b) => (a.price || 0) - (b.price || 0))
       break
     case 'price-desc':
-      tours.sort((a, b) => (b.priceAdult || 0) - (a.priceAdult || 0))
+      tours.sort((a, b) => (b.price || 0) - (a.price || 0))
       break
     case 'duration':
       tours.sort((a, b) => (a.durationHours || 0) - (b.durationHours || 0))

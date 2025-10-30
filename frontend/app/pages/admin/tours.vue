@@ -43,14 +43,9 @@ const columns = [
     header: "Descripción",
   },
   {
-    id: "priceAdult",
-    accessorKey: "priceAdult",
-    header: "Precio Adulto",
-  },
-  {
-    id: "priceChild",
-    accessorKey: "priceChild",
-    header: "Precio Niño",
+    id: "price",
+    accessorKey: "price",
+    header: "Precio",
   },
   {
     id: "status",
@@ -186,27 +181,15 @@ async function handleDelete(tour: TourRes) {
             </span>
           </template>
 
-          <template #priceAdult-data="{ row }">
+          <template #price-data="{ row }">
             <span class="font-semibold">
               {{
                 new Intl.NumberFormat("es-CL", {
                   style: "currency",
                   currency: "CLP",
-                }).format(row.getValue("priceAdult") || 0)
+                }).format(row.getValue("price") || 0)
               }}
             </span>
-          </template>
-
-          <template #priceChild-data="{ row }">
-            <span v-if="row.getValue('priceChild')">
-              {{
-                new Intl.NumberFormat("es-CL", {
-                  style: "currency",
-                  currency: "CLP",
-                }).format(row.getValue("priceChild"))
-              }}
-            </span>
-            <span v-else class="text-neutral-400">N/A</span>
           </template>
 
           <template #status-data="{ row }">

@@ -75,10 +75,7 @@
         <div>
           <p class="text-xs text-neutral-500">{{ t('tours.price_from') }}</p>
           <p class="text-2xl font-bold text-neutral-900 dark:text-white">
-            {{ formatPrice(tour.priceAdult) }}
-          </p>
-          <p v-if="tour.priceChild" class="text-xs text-neutral-500">
-            {{ t('tours.price_child') }}: {{ formatPrice(tour.priceChild) }}
+            {{ formatPrice(tour.price) }}
           </p>
         </div>
         <UButton

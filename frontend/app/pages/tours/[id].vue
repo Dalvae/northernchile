@@ -63,8 +63,7 @@ onMounted(fetchTour)
       <div class="bg-neutral-800 p-6 rounded-lg shadow-md text-neutral-200">
         <h2 class="text-2xl font-semibold mb-4">Detalles del Tour</h2>
         <p><strong>Categoría:</strong> {{ tour.category }}</p>
-        <p><strong>Precio Adulto:</strong> ${{ tour.priceAdult }}</p>
-        <p v-if="tour.priceChild"><strong>Precio Niño:</strong> ${{ tour.priceChild }}</p>
+        <p><strong>Precio:</strong> ${{ tour.price }}</p>
         <p><strong>Duración:</strong> {{ tour.durationHours }} horas</p>
         <p><strong>Máximo Participantes:</strong> {{ tour.defaultMaxParticipants }}</p>
         <p><strong>Sensible al Viento:</strong> {{ tour.isWindSensitive ? 'Sí' : 'No' }}</p>

@@ -44,8 +44,7 @@ const schema = z.object({
   windSensitive: z.boolean(),
   cloudSensitive: z.boolean(),
   category: z.string().min(1, "La categoría es requerida"),
-  priceAdult: z.number().min(1, "El precio debe ser mayor a 0"),
-  priceChild: z.number().min(0, "El precio no puede ser negativo").nullable(),
+  price: z.number().min(1, "El precio debe ser mayor a 0"),
   defaultMaxParticipants: z
     .number()
     .int()
@@ -64,8 +63,7 @@ const initialState: Schema = {
   windSensitive: false,
   cloudSensitive: false,
   category: "ASTRONOMICAL",
-  priceAdult: 1,
-  priceChild: null,
+  price: 1,
   defaultMaxParticipants: 10,
   durationHours: 2,
   status: "DRAFT",
@@ -92,8 +90,7 @@ watch(
         windSensitive: tour.windSensitive || false,
         cloudSensitive: tour.cloudSensitive || false,
         category: tour.category,
-        priceAdult: tour.priceAdult,
-        priceChild: tour.priceChild,
+        price: tour.price,
         defaultMaxParticipants: tour.defaultMaxParticipants,
         durationHours: tour.durationHours,
         status: tour.status,
@@ -424,28 +421,15 @@ const statusOptions = [
                   </h4>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <UFormField
-                      label="Precio Adulto"
-                      name="priceAdult"
+                      label="Precio"
+                      name="price"
                       required
-                      :error="findError('priceAdult')"
+                      :error="findError('price')"
                     >
                       <UInput
-                        v-model.number="state.priceAdult"
+                        v-model.number="state.price"
                         type="number"
                         min="1"
-                        size="lg"
-                        class="w-full"
-                      />
-                    </UFormField>
-                    <UFormField
-                      label="Precio Niño (Opcional)"
-                      name="priceChild"
-                      :error="findError('priceChild')"
-                    >
-                      <UInput
-                        v-model.number="state.priceChild"
-                        type="number"
-                        min="0"
                         size="lg"
                         class="w-full"
                       />

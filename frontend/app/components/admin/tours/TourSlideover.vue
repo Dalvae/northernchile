@@ -40,8 +40,7 @@ const schema = z.object({
   isWindSensitive: z.boolean(),
   isCloudSensitive: z.boolean(),
   category: z.string().min(1, "La categoría es requerida"),
-  priceAdult: z.number().min(1, "El precio debe ser mayor a 0"),
-  priceChild: z.number().min(0, "El precio no puede ser negativo").nullable(),
+  price: z.number().min(1, "El precio debe ser mayor a 0"),
   defaultMaxParticipants: z
     .number()
     .int()
@@ -60,8 +59,7 @@ const initialState: Schema = {
   isWindSensitive: false,
   isCloudSensitive: false,
   category: "ASTRONOMICAL",
-  priceAdult: 0,
-  priceChild: null,
+  price: 0,
   defaultMaxParticipants: 10,
   durationHours: 2,
   status: "DRAFT",
@@ -94,8 +92,7 @@ watch(
       state.isWindSensitive = tour.isWindSensitive || false;
       state.isCloudSensitive = tour.isCloudSensitive || false;
       state.category = tour.category;
-      state.priceAdult = tour.priceAdult;
-      state.priceChild = tour.priceChild;
+      state.price = tour.price;
       state.defaultMaxParticipants = tour.defaultMaxParticipants;
       state.durationHours = tour.durationHours;
       state.status = tour.status;
@@ -233,16 +230,9 @@ const statusOptions = [
           </UFormGroup>
 
           <div class="grid grid-cols-2 gap-4">
-            <UFormGroup label="Precio Adulto" name="priceAdult">
+            <UFormGroup label="Precio" name="price">
               <UInput
-                v-model.number="state.priceAdult"
-                type="number"
-                icon="i-lucide-dollar-sign"
-              />
-            </UFormGroup>
-            <UFormGroup label="Precio Niño (Opcional)" name="priceChild">
-              <UInput
-                v-model.number="state.priceChild"
+                v-model.number="state.price"
                 type="number"
                 icon="i-lucide-dollar-sign"
               />

@@ -40,7 +40,7 @@ const heroImage = computed(() =>
 
     <template #footer>
       <div class="flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-900/50">
-        <span class="text-2xl font-bold text-primary-400">${{ props.tour.priceAdult }}</span>
+        <span class="text-2xl font-bold text-primary-400">${{ props.tour.price }}</span>
         <UButton
           :to="localePath(`/tours/${props.tour.id}`)"
           icon="i-lucide-arrow-right"
