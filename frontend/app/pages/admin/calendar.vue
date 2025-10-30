@@ -2,10 +2,10 @@
   <div class="p-6">
     <div class="flex justify-between items-center mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">
           Calendario de Tours
         </h1>
-        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
           Gestiona schedules con información climática y lunar
         </p>
       </div>
@@ -14,7 +14,7 @@
         <!-- Badge de alertas -->
         <UButton
           v-if="pendingAlerts > 0"
-          color="red"
+          color="error"
           variant="soft"
           :to="'/admin/alerts'"
           icon="i-heroicons-exclamation-triangle"
@@ -35,33 +35,33 @@
     </div>
 
     <!-- Leyenda -->
-    <div class="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+    <div class="mb-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
       <div class="flex flex-wrap gap-4 text-sm">
         <div class="flex items-center gap-2">
           <span class="text-lg">🌑🌒🌓🌔🌕🌖🌗🌘</span>
-          <span class="text-gray-700 dark:text-gray-300">Fases lunares</span>
+          <span class="text-neutral-700 dark:text-neutral-300">Fases lunares</span>
         </div>
         <div class="flex items-center gap-2">
-          <UBadge color="red" variant="soft" size="xs">💨 Viento</UBadge>
-          <span class="text-gray-700 dark:text-gray-300">&gt;25 nudos</span>
+          <UBadge color="error" variant="soft" size="xs">💨 Viento</UBadge>
+          <span class="text-neutral-700 dark:text-neutral-300">&gt;25 nudos</span>
         </div>
         <div class="flex items-center gap-2">
-          <UBadge color="yellow" variant="soft" size="xs">☁️ Nublado</UBadge>
-          <span class="text-gray-700 dark:text-gray-300">&gt;80%</span>
+          <UBadge color="warning" variant="soft" size="xs">☁️ Nublado</UBadge>
+          <span class="text-neutral-700 dark:text-neutral-300">&gt;80%</span>
         </div>
         <div class="flex items-center gap-2">
-          <UBadge color="blue" variant="soft" size="xs">🌧️ Lluvia</UBadge>
-          <span class="text-gray-700 dark:text-gray-300">Probabilidad &gt;50%</span>
+          <UBadge color="info" variant="soft" size="xs">🌧️ Lluvia</UBadge>
+          <span class="text-neutral-700 dark:text-neutral-300">Probabilidad &gt;50%</span>
         </div>
         <div class="flex items-center gap-2">
-          <UBadge color="purple" variant="soft" size="xs">🌕</UBadge>
-          <span class="text-gray-700 dark:text-gray-300">Luna llena</span>
+          <UBadge color="tertiary" variant="soft" size="xs">🌕</UBadge>
+          <span class="text-neutral-700 dark:text-neutral-300">Luna llena</span>
         </div>
       </div>
     </div>
 
     <!-- Calendario -->
-    <div class="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-4">
+    <div class="bg-white dark:bg-neutral-900 rounded-lg shadow-sm p-4">
       <FullCalendar
         v-if="calendarOptions"
         :options="calendarOptions"
@@ -69,32 +69,24 @@
     </div>
 
     <!-- Modal de schedule (crear/editar) -->
-    <UModal v-model="showScheduleModal">
-      <UCard>
-        <template #header>
-          <h3 class="text-lg font-semibold">
-            {{ selectedSchedule ? 'Editar Schedule' : 'Crear Schedule' }}
-          </h3>
-        </template>
-
-        <div class="space-y-4">
-          <p class="text-sm text-gray-600 dark:text-gray-400">
+    <UModal v-model:open="showScheduleModal" :title="selectedSchedule ? 'Editar Schedule' : 'Crear Schedule'">
+      <template #content>
+        <div class="p-6 space-y-4">
+          <p class="text-sm text-neutral-600 dark:text-neutral-400">
             Funcionalidad de crear/editar schedules pendiente de implementación
           </p>
           <!-- TODO: Formulario de schedule -->
         </div>
 
-        <template #footer>
-          <div class="flex justify-end gap-2">
-            <UButton color="gray" variant="ghost" @click="showScheduleModal = false">
-              Cancelar
-            </UButton>
-            <UButton color="primary">
-              Guardar
-            </UButton>
-          </div>
-        </template>
-      </UCard>
+        <div class="flex justify-end gap-2 px-6 pb-6 pt-4 border-t border-neutral-200 dark:border-neutral-700">
+          <UButton color="neutral" variant="ghost" @click="showScheduleModal = false">
+            Cancelar
+          </UButton>
+          <UButton color="primary">
+            Guardar
+          </UButton>
+        </div>
+      </template>
     </UModal>
   </div>
 </template>
@@ -289,7 +281,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
         moonDiv.className = 'flex items-center gap-1'
         moonDiv.innerHTML = `
           <span class="text-base">${moonPhase.icon}</span>
-          <span class="text-gray-500">${moonPhase.illumination}%</span>
+          <span class="text-neutral-500">${moonPhase.illumination}%</span>
         `
         weatherInfo.appendChild(moonDiv)
       }
@@ -300,7 +292,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
         tempDiv.className = 'flex items-center gap-1'
         tempDiv.innerHTML = `
           <span>${getWeatherIcon(dayWeather.weather[0]?.main)}</span>
-          <span class="text-gray-700 dark:text-gray-300">
+          <span class="text-neutral-700 dark:text-neutral-300">
             ${Math.round(dayWeather.temp.max)}° / ${Math.round(dayWeather.temp.min)}°
           </span>
         `

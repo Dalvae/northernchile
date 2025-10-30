@@ -128,17 +128,17 @@ async function handleDelete(tour: TourRes) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-900">
     <div
-      class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
+      class="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900"
     >
       <div class="px-6 py-4">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">
               Gestión de Tours
             </h1>
-            <p class="text-gray-600 dark:text-gray-400 mt-1">
+            <p class="text-neutral-600 dark:text-neutral-400 mt-1">
               Administra y crea nuevos tours
             </p>
           </div>
@@ -163,7 +163,7 @@ async function handleDelete(tour: TourRes) {
 
     <div class="p-6">
       <div
-        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+        class="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 overflow-hidden"
       >
         <UTable
           :data="filteredRows"
@@ -181,7 +181,7 @@ async function handleDelete(tour: TourRes) {
           </template>
 
           <template #description-data="{ row }">
-            <span class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+            <span class="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2">
               {{ row.getValue("description") || "Sin descripción" }}
             </span>
           </template>
@@ -206,7 +206,7 @@ async function handleDelete(tour: TourRes) {
                 }).format(row.getValue("priceChild"))
               }}
             </span>
-            <span v-else class="text-gray-400">N/A</span>
+            <span v-else class="text-neutral-400">N/A</span>
           </template>
 
           <template #status-data="{ row }">
@@ -229,7 +229,7 @@ async function handleDelete(tour: TourRes) {
             <div class="flex items-center gap-2">
               <UButton
                 icon="i-lucide-pencil"
-                color="gray"
+                color="neutral"
                 variant="ghost"
                 size="sm"
                 aria-label="Editar tour"

@@ -17,10 +17,10 @@ const props = withDefaults(defineProps<Props>(), {
          <UIcon :name="icon" class="w-8 h-8" :class="`text-${color}-500 dark:text-${color}-400`" />
       </div>
       <div>
-        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+        <p class="text-sm font-medium text-neutral-500 dark:text-neutral-400">
           {{ label }}
         </p>
-        <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+        <p class="text-2xl font-semibold text-neutral-900 dark:text-white">
           {{ value }}
         </p>
       </div>
