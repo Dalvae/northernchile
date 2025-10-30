@@ -15,8 +15,7 @@ public class TourRes {
     private Map<String, String> nameTranslations;
     private Map<String, String> descriptionTranslations;
     private String category;
-    private BigDecimal priceAdult;
-    private BigDecimal priceChild;
+    private BigDecimal price;
     private Integer defaultMaxParticipants;
     private Integer durationHours;
     private String status;
@@ -33,13 +32,12 @@ public class TourRes {
     public TourRes() {
     }
 
-    public TourRes(UUID id, Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, String category, BigDecimal priceAdult, BigDecimal priceChild, Integer defaultMaxParticipants, Integer durationHours, String status, List<TourImageRes> images, boolean isMoonSensitive, boolean isWindSensitive, boolean isCloudSensitive, Instant createdAt, Instant updatedAt) {
+    public TourRes(UUID id, Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, String status, List<TourImageRes> images, boolean isMoonSensitive, boolean isWindSensitive, boolean isCloudSensitive, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.nameTranslations = nameTranslations;
         this.descriptionTranslations = descriptionTranslations;
         this.category = category;
-        this.priceAdult = priceAdult;
-        this.priceChild = priceChild;
+        this.price = price;
         this.defaultMaxParticipants = defaultMaxParticipants;
         this.durationHours = durationHours;
         this.status = status;
@@ -83,20 +81,12 @@ public class TourRes {
         this.category = category;
     }
 
-    public BigDecimal getPriceAdult() {
-        return priceAdult;
+    public BigDecimal getPrice() {
+        return price;
     }
 
-    public void setPriceAdult(BigDecimal priceAdult) {
-        this.priceAdult = priceAdult;
-    }
-
-    public BigDecimal getPriceChild() {
-        return priceChild;
-    }
-
-    public void setPriceChild(BigDecimal priceChild) {
-        this.priceChild = priceChild;
+    public void setPrice(BigDecimal price) {
+        this.price = price;
     }
 
     public Integer getDefaultMaxParticipants() {
@@ -176,12 +166,12 @@ public class TourRes {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TourRes tourRes = (TourRes) o;
-        return isMoonSensitive == tourRes.isMoonSensitive && isWindSensitive == tourRes.isWindSensitive && isCloudSensitive == tourRes.isCloudSensitive && Objects.equals(id, tourRes.id) && Objects.equals(nameTranslations, tourRes.nameTranslations) && Objects.equals(descriptionTranslations, tourRes.descriptionTranslations) && Objects.equals(category, tourRes.category) && Objects.equals(priceAdult, tourRes.priceAdult) && Objects.equals(priceChild, tourRes.priceChild) && Objects.equals(defaultMaxParticipants, tourRes.defaultMaxParticipants) && Objects.equals(durationHours, tourRes.durationHours) && Objects.equals(status, tourRes.status) && Objects.equals(images, tourRes.images) && Objects.equals(createdAt, tourRes.createdAt) && Objects.equals(updatedAt, tourRes.updatedAt);
+        return isMoonSensitive == tourRes.isMoonSensitive && isWindSensitive == tourRes.isWindSensitive && isCloudSensitive == tourRes.isCloudSensitive && Objects.equals(id, tourRes.id) && Objects.equals(nameTranslations, tourRes.nameTranslations) && Objects.equals(descriptionTranslations, tourRes.descriptionTranslations) && Objects.equals(category, tourRes.category) && Objects.equals(price, tourRes.price) && Objects.equals(defaultMaxParticipants, tourRes.defaultMaxParticipants) && Objects.equals(durationHours, tourRes.durationHours) && Objects.equals(status, tourRes.status) && Objects.equals(images, tourRes.images) && Objects.equals(createdAt, tourRes.createdAt) && Objects.equals(updatedAt, tourRes.updatedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, nameTranslations, descriptionTranslations, category, priceAdult, priceChild, defaultMaxParticipants, durationHours, status, images, isMoonSensitive, isWindSensitive, isCloudSensitive, createdAt, updatedAt);
+        return Objects.hash(id, nameTranslations, descriptionTranslations, category, price, defaultMaxParticipants, durationHours, status, images, isMoonSensitive, isWindSensitive, isCloudSensitive, createdAt, updatedAt);
     }
 
     @Override
@@ -191,8 +181,7 @@ public class TourRes {
                 ", nameTranslations=" + nameTranslations +
                 ", descriptionTranslations=" + descriptionTranslations +
                 ", category='" + category + '\'' +
-                ", priceAdult=" + priceAdult +
-                ", priceChild=" + priceChild +
+                ", price=" + price +
                 ", defaultMaxParticipants=" + defaultMaxParticipants +
                 ", durationHours=" + durationHours +
                 ", status='" + status + '\'' +

@@ -18,8 +18,7 @@ public class TourCreateReq {
   @JsonProperty("isCloudSensitive")
   private Boolean isCloudSensitive; // NUEVO
   private String category;
-  private BigDecimal priceAdult;
-  private BigDecimal priceChild;
+  private BigDecimal price;
   private Integer defaultMaxParticipants;
   private Integer durationHours;
   private String status; // <-- AÑADIR ESTA LÍNEA
@@ -27,7 +26,7 @@ public class TourCreateReq {
   public TourCreateReq() {
   }
 
-  public TourCreateReq(Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<String> imageUrls, Boolean isWindSensitive, Boolean isMoonSensitive, Boolean isCloudSensitive, String category, BigDecimal priceAdult, BigDecimal priceChild,
+  public TourCreateReq(Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<String> imageUrls, Boolean isWindSensitive, Boolean isMoonSensitive, Boolean isCloudSensitive, String category, BigDecimal price,
       Integer defaultMaxParticipants, Integer durationHours, String status) {
     this.nameTranslations = nameTranslations;
     this.descriptionTranslations = descriptionTranslations;
@@ -36,8 +35,7 @@ public class TourCreateReq {
     this.isMoonSensitive = isMoonSensitive;
     this.isCloudSensitive = isCloudSensitive;
     this.category = category;
-    this.priceAdult = priceAdult;
-    this.priceChild = priceChild;
+    this.price = price;
     this.defaultMaxParticipants = defaultMaxParticipants;
     this.durationHours = durationHours;
     this.status = status;
@@ -99,20 +97,12 @@ public class TourCreateReq {
     this.category = category;
   }
 
-  public BigDecimal getPriceAdult() {
-    return priceAdult;
+  public BigDecimal getPrice() {
+    return price;
   }
 
-  public void setPriceAdult(BigDecimal priceAdult) {
-    this.priceAdult = priceAdult;
-  }
-
-  public BigDecimal getPriceChild() {
-    return priceChild;
-  }
-
-  public void setPriceChild(BigDecimal priceChild) {
-    this.priceChild = priceChild;
+  public void setPrice(BigDecimal price) {
+    this.price = price;
   }
 
   public Integer getDefaultMaxParticipants() {
@@ -145,12 +135,12 @@ public class TourCreateReq {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     TourCreateReq that = (TourCreateReq) o;
-    return Objects.equals(nameTranslations, that.nameTranslations) && Objects.equals(descriptionTranslations, that.descriptionTranslations) && Objects.equals(imageUrls, that.imageUrls) && Objects.equals(isWindSensitive, that.isWindSensitive) && Objects.equals(isMoonSensitive, that.isMoonSensitive) && Objects.equals(isCloudSensitive, that.isCloudSensitive) && Objects.equals(category, that.category) && Objects.equals(priceAdult, that.priceAdult) && Objects.equals(priceChild, that.priceChild) && Objects.equals(defaultMaxParticipants, that.defaultMaxParticipants) && Objects.equals(durationHours, that.durationHours) && Objects.equals(status, that.status);
+    return Objects.equals(nameTranslations, that.nameTranslations) && Objects.equals(descriptionTranslations, that.descriptionTranslations) && Objects.equals(imageUrls, that.imageUrls) && Objects.equals(isWindSensitive, that.isWindSensitive) && Objects.equals(isMoonSensitive, that.isMoonSensitive) && Objects.equals(isCloudSensitive, that.isCloudSensitive) && Objects.equals(category, that.category) && Objects.equals(price, that.price) && Objects.equals(defaultMaxParticipants, that.defaultMaxParticipants) && Objects.equals(durationHours, that.durationHours) && Objects.equals(status, that.status);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(nameTranslations, descriptionTranslations, imageUrls, isWindSensitive, isMoonSensitive, isCloudSensitive, category, priceAdult, priceChild, defaultMaxParticipants, durationHours, status);
+    return Objects.hash(nameTranslations, descriptionTranslations, imageUrls, isWindSensitive, isMoonSensitive, isCloudSensitive, category, price, defaultMaxParticipants, durationHours, status);
   }
 
   @Override
@@ -163,8 +153,7 @@ public class TourCreateReq {
             ", isMoonSensitive=" + isMoonSensitive +
             ", isCloudSensitive=" + isCloudSensitive +
             ", category='" + category + '\'' +
-            ", priceAdult=" + priceAdult +
-            ", priceChild=" + priceChild +
+            ", price=" + price +
             ", defaultMaxParticipants=" + defaultMaxParticipants +
             ", durationHours=" + durationHours +
             ", status='" + status + '\'' +

@@ -50,10 +50,7 @@ public class Tour {
     private String category;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal priceAdult;
-
-    @Column(precision = 10, scale = 2)
-    private BigDecimal priceChild;
+    private BigDecimal price;
 
     @Column(nullable = false)
     private Integer defaultMaxParticipants;
@@ -81,7 +78,7 @@ public class Tour {
     public Tour() {
     }
 
-    public Tour(UUID id, User owner, Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<TourImage> images, boolean windSensitive, boolean moonSensitive, boolean cloudSensitive, String contentKey, String category, BigDecimal priceAdult, BigDecimal priceChild, Integer defaultMaxParticipants, Integer durationHours, LocalTime defaultStartTime, Boolean recurring, String recurrenceRule, String status, Instant createdAt, Instant updatedAt) {
+    public Tour(UUID id, User owner, Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<TourImage> images, boolean windSensitive, boolean moonSensitive, boolean cloudSensitive, String contentKey, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, LocalTime defaultStartTime, Boolean recurring, String recurrenceRule, String status, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.owner = owner;
         this.nameTranslations = nameTranslations;
@@ -92,8 +89,7 @@ public class Tour {
         this.cloudSensitive = cloudSensitive;
         this.contentKey = contentKey;
         this.category = category;
-        this.priceAdult = priceAdult;
-        this.priceChild = priceChild;
+        this.price = price;
         this.defaultMaxParticipants = defaultMaxParticipants;
         this.durationHours = durationHours;
         this.defaultStartTime = defaultStartTime;
@@ -184,20 +180,12 @@ public class Tour {
         this.category = category;
     }
 
-    public BigDecimal getPriceAdult() {
-        return priceAdult;
+    public BigDecimal getPrice() {
+        return price;
     }
 
-    public void setPriceAdult(BigDecimal priceAdult) {
-        this.priceAdult = priceAdult;
-    }
-
-    public BigDecimal getPriceChild() {
-        return priceChild;
-    }
-
-    public void setPriceChild(BigDecimal priceChild) {
-        this.priceChild = priceChild;
+    public void setPrice(BigDecimal price) {
+        this.price = price;
     }
 
     public Integer getDefaultMaxParticipants() {
@@ -269,12 +257,12 @@ public class Tour {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Tour tour = (Tour) o;
-        return windSensitive == tour.windSensitive && moonSensitive == tour.moonSensitive && cloudSensitive == tour.cloudSensitive && Objects.equals(id, tour.id) && Objects.equals(owner, tour.owner) && Objects.equals(nameTranslations, tour.nameTranslations) && Objects.equals(descriptionTranslations, tour.descriptionTranslations) && Objects.equals(images, tour.images) && Objects.equals(contentKey, tour.contentKey) && Objects.equals(category, tour.category) && Objects.equals(priceAdult, tour.priceAdult) && Objects.equals(priceChild, tour.priceChild) && Objects.equals(defaultMaxParticipants, tour.defaultMaxParticipants) && Objects.equals(durationHours, tour.durationHours) && Objects.equals(defaultStartTime, tour.defaultStartTime) && Objects.equals(recurring, tour.recurring) && Objects.equals(recurrenceRule, tour.recurrenceRule) && Objects.equals(status, tour.status) && Objects.equals(createdAt, tour.createdAt) && Objects.equals(updatedAt, tour.updatedAt);
+        return windSensitive == tour.windSensitive && moonSensitive == tour.moonSensitive && cloudSensitive == tour.cloudSensitive && Objects.equals(id, tour.id) && Objects.equals(owner, tour.owner) && Objects.equals(nameTranslations, tour.nameTranslations) && Objects.equals(descriptionTranslations, tour.descriptionTranslations) && Objects.equals(images, tour.images) && Objects.equals(contentKey, tour.contentKey) && Objects.equals(category, tour.category) && Objects.equals(price, tour.price) && Objects.equals(defaultMaxParticipants, tour.defaultMaxParticipants) && Objects.equals(durationHours, tour.durationHours) && Objects.equals(defaultStartTime, tour.defaultStartTime) && Objects.equals(recurring, tour.recurring) && Objects.equals(recurrenceRule, tour.recurrenceRule) && Objects.equals(status, tour.status) && Objects.equals(createdAt, tour.createdAt) && Objects.equals(updatedAt, tour.updatedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, owner, nameTranslations, descriptionTranslations, images, windSensitive, moonSensitive, cloudSensitive, contentKey, category, priceAdult, priceChild, defaultMaxParticipants, durationHours, defaultStartTime, recurring, recurrenceRule, status, createdAt, updatedAt);
+        return Objects.hash(id, owner, nameTranslations, descriptionTranslations, images, windSensitive, moonSensitive, cloudSensitive, contentKey, category, price, defaultMaxParticipants, durationHours, defaultStartTime, recurring, recurrenceRule, status, createdAt, updatedAt);
     }
 
     @Override
@@ -290,8 +278,7 @@ public class Tour {
                 ", cloudSensitive=" + cloudSensitive +
                 ", contentKey='" + contentKey + '\'' +
                 ", category='" + category +
-                ", priceAdult=" + priceAdult +
-                ", priceChild=" + priceChild +
+                ", price=" + price +
                 ", defaultMaxParticipants=" + defaultMaxParticipants +
                 ", durationHours=" + durationHours +
                 ", defaultStartTime=" + defaultStartTime +

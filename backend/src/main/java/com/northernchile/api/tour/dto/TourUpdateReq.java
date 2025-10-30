@@ -18,8 +18,7 @@ public class TourUpdateReq {
     @JsonProperty("isCloudSensitive")
     private Boolean isCloudSensitive; // Nuevo
     private String category;
-    private BigDecimal priceAdult;
-    private BigDecimal priceChild;
+    private BigDecimal price;
     private Integer defaultMaxParticipants;
     private Integer durationHours;
     private String status;
@@ -27,7 +26,7 @@ public class TourUpdateReq {
     public TourUpdateReq() {
     }
 
-    public TourUpdateReq(Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<String> imageUrls, Boolean isMoonSensitive, Boolean isWindSensitive, Boolean isCloudSensitive, String category, BigDecimal priceAdult, BigDecimal priceChild, Integer defaultMaxParticipants, Integer durationHours, String status) {
+    public TourUpdateReq(Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<String> imageUrls, Boolean isMoonSensitive, Boolean isWindSensitive, Boolean isCloudSensitive, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, String status) {
         this.nameTranslations = nameTranslations;
         this.descriptionTranslations = descriptionTranslations;
         this.imageUrls = imageUrls;
@@ -35,8 +34,7 @@ public class TourUpdateReq {
         this.isWindSensitive = isWindSensitive;
         this.isCloudSensitive = isCloudSensitive;
         this.category = category;
-        this.priceAdult = priceAdult;
-        this.priceChild = priceChild;
+        this.price = price;
         this.defaultMaxParticipants = defaultMaxParticipants;
         this.durationHours = durationHours;
         this.status = status;
@@ -98,20 +96,12 @@ public class TourUpdateReq {
         this.category = category;
     }
 
-    public BigDecimal getPriceAdult() {
-        return priceAdult;
+    public BigDecimal getPrice() {
+        return price;
     }
 
-    public void setPriceAdult(BigDecimal priceAdult) {
-        this.priceAdult = priceAdult;
-    }
-
-    public BigDecimal getPriceChild() {
-        return priceChild;
-    }
-
-    public void setPriceChild(BigDecimal priceChild) {
-        this.priceChild = priceChild;
+    public void setPrice(BigDecimal price) {
+        this.price = price;
     }
 
     public Integer getDefaultMaxParticipants() {
@@ -148,7 +138,7 @@ public class TourUpdateReq {
 
             TourUpdateReq that = (TourUpdateReq) o;
 
-            return Objects.equals(nameTranslations, that.nameTranslations) && Objects.equals(descriptionTranslations, that.descriptionTranslations) && Objects.equals(imageUrls, that.imageUrls) && Objects.equals(isMoonSensitive, that.isMoonSensitive) && Objects.equals(isWindSensitive, that.isWindSensitive) && Objects.equals(isCloudSensitive, that.isCloudSensitive) && Objects.equals(category, that.category) && Objects.equals(priceAdult, that.priceAdult) && Objects.equals(priceChild, that.priceChild) && Objects.equals(defaultMaxParticipants, that.defaultMaxParticipants) && Objects.equals(durationHours, that.durationHours) && Objects.equals(status, that.status);
+            return Objects.equals(nameTranslations, that.nameTranslations) && Objects.equals(descriptionTranslations, that.descriptionTranslations) && Objects.equals(imageUrls, that.imageUrls) && Objects.equals(isMoonSensitive, that.isMoonSensitive) && Objects.equals(isWindSensitive, that.isWindSensitive) && Objects.equals(isCloudSensitive, that.isCloudSensitive) && Objects.equals(category, that.category) && Objects.equals(price, that.price) && Objects.equals(defaultMaxParticipants, that.defaultMaxParticipants) && Objects.equals(durationHours, that.durationHours) && Objects.equals(status, that.status);
 
         }
 
@@ -158,7 +148,7 @@ public class TourUpdateReq {
 
         public int hashCode() {
 
-            return Objects.hash(nameTranslations, descriptionTranslations, imageUrls, isMoonSensitive, isWindSensitive, isCloudSensitive, category, priceAdult, priceChild, defaultMaxParticipants, durationHours, status);
+            return Objects.hash(nameTranslations, descriptionTranslations, imageUrls, isMoonSensitive, isWindSensitive, isCloudSensitive, category, price, defaultMaxParticipants, durationHours, status);
 
         }
 
@@ -184,9 +174,7 @@ public class TourUpdateReq {
 
                     + ", category='" + category + "'"
 
-                    + ", priceAdult=" + priceAdult
-
-                    + ", priceChild=" + priceChild
+                    + ", price=" + price
 
                     + ", defaultMaxParticipants=" + defaultMaxParticipants
 

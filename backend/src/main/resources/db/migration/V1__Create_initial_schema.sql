@@ -29,7 +29,7 @@ CREATE TABLE tours (
     
     -- CAMPOS ESTÁNDAR (sin cambios)
     content_key VARCHAR(100) UNIQUE,
-    category VARCHAR(50) NOT NULL, price_adult DECIMAL(10,2) NOT NULL, price_child DECIMAL(10,2),
+    category VARCHAR(50) NOT NULL, price DECIMAL(10,2) NOT NULL,
     default_max_participants INTEGER NOT NULL, duration_hours INTEGER NOT NULL,
     default_start_time TIME DEFAULT '20:00:00', -- Horario por defecto para generar schedules
     is_recurring BOOLEAN DEFAULT FALSE,
