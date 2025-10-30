@@ -40,34 +40,39 @@ public class TourController {
     
     @GetMapping("/admin/tours") // <-- NUEVO Endpoint de Admin
     public ResponseEntity<List<TourRes>> getAllToursForAdmin() {
-        List<TourRes> tours = tourService.getAllTours();
+        User currentUser = getCurrentUser();
+        List<TourRes> tours = tourService.getAllTours(currentUser);
         return new ResponseEntity<>(tours, HttpStatus.OK);
     }
 
-    @GetMapping("/tours/{id}")
+    @GetMapping("/admin/tours/{id}")
+    public ResponseEntity<TourRes> getTourByIdAdmin(@PathVariable UUID id) {
+        User currentUser = getCurrentUser();
+        TourRes tour = tourService.getTourById(id, currentUser);
+        return new ResponseEntity<>(tour, HttpStatus.OK);
+    }
+
+    @GetMapping("/tours/{id}") // Public endpoint - no ownership check needed
     public ResponseEntity<TourRes> getTourById(@PathVariable UUID id) {
-        TourRes tour = tourService.getTourById(id);
-        if (tour != null) {
-            return new ResponseEntity<>(tour, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        // For public endpoint, we create a temporary "public" user context
+        // This endpoint should only show PUBLISHED tours
+        User publicUser = new User();
+        publicUser.setRole("ROLE_PUBLIC");
+        TourRes tour = tourService.getTourById(id, publicUser);
+        return new ResponseEntity<>(tour, HttpStatus.OK);
     }
 
     @PutMapping("/admin/tours/{id}")
     public ResponseEntity<TourRes> updateTour(@PathVariable UUID id, @RequestBody TourUpdateReq tourUpdateReq) {
         User currentUser = getCurrentUser();
         TourRes updatedTour = tourService.updateTour(id, tourUpdateReq, currentUser);
-        if (updatedTour != null) {
-            return new ResponseEntity<>(updatedTour, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(updatedTour, HttpStatus.OK);
     }
 
     @DeleteMapping("/admin/tours/{id}")
     public ResponseEntity<Void> deleteTour(@PathVariable UUID id) {
-        tourService.deleteTour(id);
+        User currentUser = getCurrentUser();
+        tourService.deleteTour(id, currentUser);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

@@ -1,5 +1,6 @@
 package com.northernchile.api.tour;
 
+import com.northernchile.api.audit.AuditLogService;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourImage;
 import com.northernchile.api.model.User;
@@ -7,11 +8,13 @@ import com.northernchile.api.tour.dto.TourCreateReq;
 import com.northernchile.api.tour.dto.TourRes;
 import com.northernchile.api.tour.dto.TourUpdateReq;
 import com.northernchile.api.tour.dto.TourImageRes;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,6 +33,9 @@ public class TourService {
 
     @Autowired
     private TourImageRepository tourImageRepository;
+
+    @Autowired
+    private AuditLogService auditLogService;
 
     public TourRes createTour(TourCreateReq tourCreateReq, User currentUser) {
         Tour tour = new Tour();
@@ -63,79 +69,148 @@ public class TourService {
             savedTour.setImages(tourImages);
         }
 
+        // Audit log
+        String tourName = savedTour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        Map<String, Object> newValues = Map.of(
+            "id", savedTour.getId().toString(),
+            "name", tourName,
+            "status", savedTour.getStatus(),
+            "category", savedTour.getCategory()
+        );
+        auditLogService.logCreate(currentUser, "TOUR", savedTour.getId(), tourName, newValues);
+
         return toTourResponse(savedTour);
     }
 
     // ESTE MÉTODO ES PARA LA PÁGINA PÚBLICA. ¡DEBE FILTRAR!
     @Transactional(readOnly = true)
     public List<TourRes> getPublishedTours() {
-        return tourRepository.findByStatus("PUBLISHED").stream()
+        return tourRepository.findByStatusNotDeleted("PUBLISHED").stream()
                 .map(this::toTourResponse)
                 .collect(Collectors.toList());
     }
 
-    // ESTE MÉTODO ES PARA EL PANEL DE ADMINISTRADOR. ¡NO DEBE FILTRAR!
+    // ESTE MÉTODO ES PARA EL PANEL DE ADMINISTRADOR
+    // SUPER_ADMIN ve todos los tours, PARTNER_ADMIN solo ve los suyos
     @Transactional(readOnly = true)
-    public List<TourRes> getAllTours() {
-        // La clave es usar findAll() para obtener absolutamente todos los tours.
-        return tourRepository.findAll().stream()
-                .map(this::toTourResponse)
-                .collect(Collectors.toList());
+    public List<TourRes> getAllTours(User currentUser) {
+        if ("ROLE_SUPER_ADMIN".equals(currentUser.getRole())) {
+            // Super admin sees all non-deleted tours
+            return tourRepository.findAllNotDeleted().stream()
+                    .map(this::toTourResponse)
+                    .collect(Collectors.toList());
+        } else {
+            // Partner admin only sees their own tours
+            return tourRepository.findByOwnerIdNotDeleted(currentUser.getId()).stream()
+                    .map(this::toTourResponse)
+                    .collect(Collectors.toList());
+        }
     }
 
-    @Transactional(readOnly = true) // <-- AÑADIR AQUÍ
-    public TourRes getTourById(UUID id) {
-        return tourRepository.findById(id)
-                .map(this::toTourResponse)
-                .orElse(null); // Or throw an exception
+    @Transactional(readOnly = true)
+    public TourRes getTourById(UUID id, User currentUser) {
+        Tour tour = tourRepository.findByIdNotDeleted(id)
+                .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + id));
+
+        // Check ownership for non-super-admins
+        if (!"ROLE_SUPER_ADMIN".equals(currentUser.getRole()) &&
+            !tour.getOwner().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You do not have permission to view this tour.");
+        }
+
+        return toTourResponse(tour);
     }
 
-    @Transactional // <-- AÑADIR AQUÍ (sin readOnly porque modifica datos)
+    @Transactional
     public TourRes updateTour(UUID id, TourUpdateReq tourUpdateReq, User currentUser) {
-        return tourRepository.findById(id)
-                .map(tour -> {
-                    if (!tour.getOwner().getId().equals(currentUser.getId()) && !currentUser.getRole().equals("ROLE_SUPER_ADMIN")) {
-                        throw new AccessDeniedException("You do not have permission to edit this tour.");
-                    }
-                    tour.setNameTranslations(tourUpdateReq.getNameTranslations());
-                    tour.setDescriptionTranslations(tourUpdateReq.getDescriptionTranslations());
-                    tour.setWindSensitive(tourUpdateReq.isWindSensitive() != null && tourUpdateReq.isWindSensitive());
-                    tour.setMoonSensitive(tourUpdateReq.isMoonSensitive() != null && tourUpdateReq.isMoonSensitive());
-                    tour.setCloudSensitive(tourUpdateReq.isCloudSensitive() != null && tourUpdateReq.isCloudSensitive());
-                    tour.setCategory(tourUpdateReq.getCategory());
-                    tour.setPriceAdult(tourUpdateReq.getPriceAdult());
-                    tour.setPriceChild(tourUpdateReq.getPriceChild());
-                    tour.setDefaultMaxParticipants(tourUpdateReq.getDefaultMaxParticipants());
-                    tour.setDurationHours(tourUpdateReq.getDurationHours());
-                    tour.setStatus(tourUpdateReq.getStatus());
+        Tour tour = tourRepository.findByIdNotDeleted(id)
+                .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + id));
 
-                    // Handle images
-                    tourImageRepository.deleteByTourId(tour.getId());
-                    if (tourUpdateReq.getImageUrls() != null && !tourUpdateReq.getImageUrls().isEmpty()) {
-                        List<TourImage> tourImages = new ArrayList<>();
-                        for (int i = 0; i < tourUpdateReq.getImageUrls().size(); i++) {
-                            String imageUrl = tourUpdateReq.getImageUrls().get(i);
-                            TourImage tourImage = new TourImage();
-                            tourImage.setTour(tour);
-                            tourImage.setImageUrl(imageUrl);
-                            tourImage.setDisplayOrder(i);
-                            tourImage.setHeroImage(i == 0); // First image as hero image
-                            tourImages.add(tourImage);
-                        }
-                        tourImageRepository.saveAll(tourImages);
-                        tour.setImages(tourImages);
-                    } else {
-                        tour.setImages(Collections.emptyList());
-                    }
+        // Check ownership for non-super-admins
+        if (!"ROLE_SUPER_ADMIN".equals(currentUser.getRole()) &&
+            !tour.getOwner().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You do not have permission to edit this tour.");
+        }
 
-                    Tour updatedTour = tourRepository.save(tour);
-                    return toTourResponse(updatedTour);
-                })
-                .orElse(null); // Or throw an exception
+        // Capture old values for audit
+        String oldTourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        Map<String, Object> oldValues = Map.of(
+            "name", oldTourName,
+            "status", tour.getStatus(),
+            "category", tour.getCategory(),
+            "price", tour.getPrice().toString()
+        );
+
+        // Update tour
+        tour.setNameTranslations(tourUpdateReq.getNameTranslations());
+        tour.setDescriptionTranslations(tourUpdateReq.getDescriptionTranslations());
+        tour.setWindSensitive(tourUpdateReq.isWindSensitive() != null && tourUpdateReq.isWindSensitive());
+        tour.setMoonSensitive(tourUpdateReq.isMoonSensitive() != null && tourUpdateReq.isMoonSensitive());
+        tour.setCloudSensitive(tourUpdateReq.isCloudSensitive() != null && tourUpdateReq.isCloudSensitive());
+        tour.setCategory(tourUpdateReq.getCategory());
+        tour.setPrice(tourUpdateReq.getPrice());
+        tour.setDefaultMaxParticipants(tourUpdateReq.getDefaultMaxParticipants());
+        tour.setDurationHours(tourUpdateReq.getDurationHours());
+        tour.setStatus(tourUpdateReq.getStatus());
+
+        // Handle images
+        tourImageRepository.deleteByTourId(tour.getId());
+        if (tourUpdateReq.getImageUrls() != null && !tourUpdateReq.getImageUrls().isEmpty()) {
+            List<TourImage> tourImages = new ArrayList<>();
+            for (int i = 0; i < tourUpdateReq.getImageUrls().size(); i++) {
+                String imageUrl = tourUpdateReq.getImageUrls().get(i);
+                TourImage tourImage = new TourImage();
+                tourImage.setTour(tour);
+                tourImage.setImageUrl(imageUrl);
+                tourImage.setDisplayOrder(i);
+                tourImage.setHeroImage(i == 0); // First image as hero image
+                tourImages.add(tourImage);
+            }
+            tourImageRepository.saveAll(tourImages);
+            tour.setImages(tourImages);
+        } else {
+            tour.setImages(Collections.emptyList());
+        }
+
+        Tour updatedTour = tourRepository.save(tour);
+
+        // Audit log
+        String newTourName = updatedTour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        Map<String, Object> newValues = Map.of(
+            "name", newTourName,
+            "status", updatedTour.getStatus(),
+            "category", updatedTour.getCategory(),
+            "price", updatedTour.getPrice().toString()
+        );
+        auditLogService.logUpdate(currentUser, "TOUR", updatedTour.getId(), newTourName, oldValues, newValues);
+
+        return toTourResponse(updatedTour);
     }
 
-    public void deleteTour(UUID id) {
-        tourRepository.deleteById(id);
+    // Soft delete with audit logging
+    @Transactional
+    public void deleteTour(UUID id, User currentUser) {
+        Tour tour = tourRepository.findByIdNotDeleted(id)
+                .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + id));
+
+        // Check ownership for non-super-admins
+        if (!"ROLE_SUPER_ADMIN".equals(currentUser.getRole()) &&
+            !tour.getOwner().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You do not have permission to delete this tour.");
+        }
+
+        // Soft delete
+        tour.setDeletedAt(Instant.now());
+        tourRepository.save(tour);
+
+        // Audit log
+        String tourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        Map<String, Object> oldValues = Map.of(
+            "name", tourName,
+            "status", tour.getStatus(),
+            "deletedAt", tour.getDeletedAt().toString()
+        );
+        auditLogService.logDelete(currentUser, "TOUR", tour.getId(), tourName, oldValues);
     }
 
     private TourRes toTourResponse(Tour tour) {

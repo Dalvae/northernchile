@@ -1,11 +1,16 @@
 
 package com.northernchile.api.booking.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import java.util.Objects;
 
 public class ParticipantReq {
+    @NotBlank(message = "Full name is required")
     private String fullName;
+
+    @NotBlank(message = "Document ID is required")
     private String documentId;
+
     private String nationality;
     private Integer age;
     private String pickupAddress;
@@ -29,14 +34,6 @@ public class ParticipantReq {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getDocumentId() {
@@ -84,19 +81,18 @@ public class ParticipantReq {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ParticipantReq that = (ParticipantReq) o;
-        return Objects.equals(fullName, that.fullName) && Objects.equals(type, that.type) && Objects.equals(documentId, that.documentId) && Objects.equals(nationality, that.nationality) && Objects.equals(age, that.age) && Objects.equals(pickupAddress, that.pickupAddress) && Objects.equals(specialRequirements, that.specialRequirements);
+        return Objects.equals(fullName, that.fullName) && Objects.equals(documentId, that.documentId) && Objects.equals(nationality, that.nationality) && Objects.equals(age, that.age) && Objects.equals(pickupAddress, that.pickupAddress) && Objects.equals(specialRequirements, that.specialRequirements);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fullName, type, documentId, nationality, age, pickupAddress, specialRequirements);
+        return Objects.hash(fullName, documentId, nationality, age, pickupAddress, specialRequirements);
     }
 
     @Override
     public String toString() {
         return "ParticipantReq{" +
                 "fullName='" + fullName + '\'' +
-                ", type='" + type + '\'' +
                 ", documentId='" + documentId + '\'' +
                 ", nationality='" + nationality + '\'' +
                 ", age=" + age +

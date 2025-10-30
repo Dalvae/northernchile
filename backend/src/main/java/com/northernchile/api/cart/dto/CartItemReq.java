@@ -5,16 +5,14 @@ import java.util.UUID;
 
 public class CartItemReq {
     private UUID scheduleId;
-    private int numAdults;
-    private int numChildren;
+    private int numParticipants = 1;
 
     public CartItemReq() {
     }
 
-    public CartItemReq(UUID scheduleId, int numAdults, int numChildren) {
+    public CartItemReq(UUID scheduleId, int numParticipants) {
         this.scheduleId = scheduleId;
-        this.numAdults = numAdults;
-        this.numChildren = numChildren;
+        this.numParticipants = numParticipants;
     }
 
     public UUID getScheduleId() {
@@ -25,20 +23,12 @@ public class CartItemReq {
         this.scheduleId = scheduleId;
     }
 
-    public int getNumAdults() {
-        return numAdults;
+    public int getNumParticipants() {
+        return numParticipants;
     }
 
-    public void setNumAdults(int numAdults) {
-        this.numAdults = numAdults;
-    }
-
-    public int getNumChildren() {
-        return numChildren;
-    }
-
-    public void setNumChildren(int numChildren) {
-        this.numChildren = numChildren;
+    public void setNumParticipants(int numParticipants) {
+        this.numParticipants = numParticipants;
     }
 
     @Override
@@ -46,20 +36,19 @@ public class CartItemReq {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CartItemReq that = (CartItemReq) o;
-        return numAdults == that.numAdults && numChildren == that.numChildren && Objects.equals(scheduleId, that.scheduleId);
+        return numParticipants == that.numParticipants && Objects.equals(scheduleId, that.scheduleId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(scheduleId, numAdults, numChildren);
+        return Objects.hash(scheduleId, numParticipants);
     }
 
     @Override
     public String toString() {
         return "CartItemReq{" +
                 "scheduleId=" + scheduleId +
-                ", numAdults=" + numAdults +
-                ", numChildren=" + numChildren +
+                ", numParticipants=" + numParticipants +
                 '}';
     }
 }

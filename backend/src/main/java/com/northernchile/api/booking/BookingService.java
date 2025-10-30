@@ -1,5 +1,6 @@
 package com.northernchile.api.booking;
 
+import com.northernchile.api.audit.AuditLogService;
 import com.northernchile.api.booking.dto.BookingCreateReq;
 import com.northernchile.api.booking.dto.BookingRes;
 import com.northernchile.api.booking.dto.ParticipantRes;
@@ -11,6 +12,7 @@ import com.northernchile.api.tour.TourScheduleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -35,6 +38,9 @@ public class BookingService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private AuditLogService auditLogService;
 
     @Value("${tax.rate}")
     private BigDecimal taxRate;
@@ -53,14 +59,10 @@ public class BookingService {
         }
 
         // 2. Calculate prices and taxes
-        long adultCount = req.getParticipants().stream().filter(p -> "ADULT".equalsIgnoreCase(p.getType())).count();
-        long childCount = req.getParticipants().stream().filter(p -> "CHILD".equalsIgnoreCase(p.getType())).count();
+        int participantCount = req.getParticipants().size();
+        BigDecimal pricePerParticipant = schedule.getTour().getPrice();
 
-        BigDecimal priceAdult = schedule.getTour().getPriceAdult();
-        BigDecimal priceChild = schedule.getTour().getPriceChild() != null ? schedule.getTour().getPriceChild() : BigDecimal.ZERO;
-
-        BigDecimal totalAmount = (priceAdult.multiply(BigDecimal.valueOf(adultCount)))
-                .add(priceChild.multiply(BigDecimal.valueOf(childCount)));
+        BigDecimal totalAmount = pricePerParticipant.multiply(BigDecimal.valueOf(participantCount));
 
         BigDecimal subtotal = totalAmount.divide(BigDecimal.ONE.add(taxRate), 2, RoundingMode.HALF_UP);
         BigDecimal taxAmount = totalAmount.subtract(subtotal);
@@ -82,7 +84,6 @@ public class BookingService {
             Participant participant = new Participant();
             participant.setBooking(booking);
             participant.setFullName(participantReq.getFullName());
-            participant.setType(participantReq.getType());
             participant.setDocumentId(participantReq.getDocumentId());
             participant.setNationality(participantReq.getNationality());
             participant.setAge(participantReq.getAge());
@@ -106,15 +107,104 @@ public class BookingService {
         return toBookingRes(savedBooking);
     }
 
-    public List<BookingRes> getAllBookings() {
-        return bookingRepository.findAll().stream()
-                .map(this::toBookingRes)
-                .collect(Collectors.toList());
+    // CRITICAL: Filter bookings for PARTNER_ADMIN to only show bookings for their tours
+    public List<BookingRes> getAllBookings(User currentUser) {
+        if ("ROLE_SUPER_ADMIN".equals(currentUser.getRole())) {
+            // Super admin sees all bookings
+            return bookingRepository.findAll().stream()
+                    .map(this::toBookingRes)
+                    .collect(Collectors.toList());
+        } else if ("ROLE_PARTNER_ADMIN".equals(currentUser.getRole())) {
+            // Partner admin only sees bookings for their tours
+            return bookingRepository.findAll().stream()
+                    .filter(booking -> booking.getSchedule().getTour().getOwner().getId().equals(currentUser.getId()))
+                    .map(this::toBookingRes)
+                    .collect(Collectors.toList());
+        } else {
+            // Regular users shouldn't use this endpoint, but return empty for safety
+            return List.of();
+        }
     }
 
-    public Optional<BookingRes> getBookingById(UUID bookingId) {
-        return bookingRepository.findById(bookingId)
-                .map(this::toBookingRes);
+    public Optional<BookingRes> getBookingById(UUID bookingId, User currentUser) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
+
+        // Check access: SUPER_ADMIN, tour owner (PARTNER_ADMIN), or the booking user
+        boolean isSuperAdmin = "ROLE_SUPER_ADMIN".equals(currentUser.getRole());
+        boolean isTourOwner = booking.getSchedule().getTour().getOwner().getId().equals(currentUser.getId());
+        boolean isBookingUser = booking.getUser().getId().equals(currentUser.getId());
+
+        if (!isSuperAdmin && !isTourOwner && !isBookingUser) {
+            throw new AccessDeniedException("You do not have permission to view this booking.");
+        }
+
+        return Optional.of(toBookingRes(booking));
+    }
+
+    @Transactional
+    public BookingRes updateBookingStatus(UUID bookingId, String newStatus, User currentUser) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
+
+        // Check access: SUPER_ADMIN or tour owner (PARTNER_ADMIN)
+        boolean isSuperAdmin = "ROLE_SUPER_ADMIN".equals(currentUser.getRole());
+        boolean isTourOwner = booking.getSchedule().getTour().getOwner().getId().equals(currentUser.getId());
+
+        if (!isSuperAdmin && !isTourOwner) {
+            throw new AccessDeniedException("You do not have permission to update this booking.");
+        }
+
+        // Capture old status for audit
+        String oldStatus = booking.getStatus();
+
+        booking.setStatus(newStatus);
+        Booking updatedBooking = bookingRepository.save(booking);
+
+        // Audit log
+        String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
+        String description = tourName + " - " + booking.getUser().getFullName();
+        Map<String, Object> oldValues = Map.of("status", oldStatus);
+        Map<String, Object> newValues = Map.of("status", newStatus);
+        auditLogService.logUpdate(currentUser, "BOOKING", booking.getId(), description, oldValues, newValues);
+
+        return toBookingRes(updatedBooking);
+    }
+
+    @Transactional
+    public void cancelBooking(UUID bookingId, User currentUser) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
+
+        // Check access: SUPER_ADMIN or tour owner (PARTNER_ADMIN)
+        boolean isSuperAdmin = "ROLE_SUPER_ADMIN".equals(currentUser.getRole());
+        boolean isTourOwner = booking.getSchedule().getTour().getOwner().getId().equals(currentUser.getId());
+
+        if (!isSuperAdmin && !isTourOwner) {
+            throw new AccessDeniedException("You do not have permission to cancel this booking.");
+        }
+
+        // Capture old status for audit
+        String oldStatus = booking.getStatus();
+
+        booking.setStatus("CANCELLED");
+        bookingRepository.save(booking);
+
+        // Audit log
+        String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
+        String description = tourName + " - " + booking.getUser().getFullName();
+        Map<String, Object> oldValues = Map.of("status", oldStatus);
+        Map<String, Object> newValues = Map.of("status", "CANCELLED");
+        auditLogService.logUpdate(currentUser, "BOOKING", booking.getId(), description, oldValues, newValues);
+    }
+
+    public List<BookingRes> getBookingsByUser(UUID userId) {
+        List<Booking> bookings = bookingRepository.findAll().stream()
+                .filter(b -> b.getUser().getId().equals(userId))
+                .collect(Collectors.toList());
+        return bookings.stream()
+                .map(this::toBookingRes)
+                .collect(Collectors.toList());
     }
 
     private BookingRes toBookingRes(Booking booking) {
@@ -137,7 +227,6 @@ public class BookingService {
             ParticipantRes pRes = new ParticipantRes();
             pRes.setId(p.getId());
             pRes.setFullName(p.getFullName());
-            pRes.setType(p.getType());
             pRes.setDocumentId(p.getDocumentId());
             pRes.setNationality(p.getNationality());
             pRes.setAge(p.getAge());

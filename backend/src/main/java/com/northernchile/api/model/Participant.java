@@ -23,7 +23,7 @@ public class Participant {
     @Column(nullable = false)
     private String fullName;
 
-    @Column(name = "document_id", length = 100)
+    @Column(name = "document_id", length = 100, nullable = false)
     private String documentId;
 
     @Column(length = 100)

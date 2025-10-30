@@ -11,24 +11,20 @@ public class CartItemRes {
     private UUID scheduleId;
     private UUID tourId;
     private String tourName;
-    private int numAdults;
-    private int numChildren;
-    private BigDecimal priceAdult;
-    private BigDecimal priceChild;
+    private int numParticipants;
+    private BigDecimal pricePerParticipant;
     private BigDecimal itemTotal;
 
     public CartItemRes() {
     }
 
-    public CartItemRes(UUID itemId, UUID scheduleId, UUID tourId, String tourName, int numAdults, int numChildren, BigDecimal priceAdult, BigDecimal priceChild, BigDecimal itemTotal) {
+    public CartItemRes(UUID itemId, UUID scheduleId, UUID tourId, String tourName, int numParticipants, BigDecimal pricePerParticipant, BigDecimal itemTotal) {
         this.itemId = itemId;
         this.scheduleId = scheduleId;
         this.tourId = tourId;
         this.tourName = tourName;
-        this.numAdults = numAdults;
-        this.numChildren = numChildren;
-        this.priceAdult = priceAdult;
-        this.priceChild = priceChild;
+        this.numParticipants = numParticipants;
+        this.pricePerParticipant = pricePerParticipant;
         this.itemTotal = itemTotal;
     }
 
@@ -64,36 +60,20 @@ public class CartItemRes {
         this.tourName = tourName;
     }
 
-    public int getNumAdults() {
-        return numAdults;
+    public int getNumParticipants() {
+        return numParticipants;
     }
 
-    public void setNumAdults(int numAdults) {
-        this.numAdults = numAdults;
+    public void setNumParticipants(int numParticipants) {
+        this.numParticipants = numParticipants;
     }
 
-    public int getNumChildren() {
-        return numChildren;
+    public BigDecimal getPricePerParticipant() {
+        return pricePerParticipant;
     }
 
-    public void setNumChildren(int numChildren) {
-        this.numChildren = numChildren;
-    }
-
-    public BigDecimal getPriceAdult() {
-        return priceAdult;
-    }
-
-    public void setPriceAdult(BigDecimal priceAdult) {
-        this.priceAdult = priceAdult;
-    }
-
-    public BigDecimal getPriceChild() {
-        return priceChild;
-    }
-
-    public void setPriceChild(BigDecimal priceChild) {
-        this.priceChild = priceChild;
+    public void setPricePerParticipant(BigDecimal pricePerParticipant) {
+        this.pricePerParticipant = pricePerParticipant;
     }
 
     public BigDecimal getItemTotal() {
@@ -109,12 +89,12 @@ public class CartItemRes {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CartItemRes that = (CartItemRes) o;
-        return numAdults == that.numAdults && numChildren == that.numChildren && Objects.equals(itemId, that.itemId) && Objects.equals(scheduleId, that.scheduleId) && Objects.equals(tourId, that.tourId) && Objects.equals(tourName, that.tourName) && Objects.equals(priceAdult, that.priceAdult) && Objects.equals(priceChild, that.priceChild) && Objects.equals(itemTotal, that.itemTotal);
+        return numParticipants == that.numParticipants && Objects.equals(itemId, that.itemId) && Objects.equals(scheduleId, that.scheduleId) && Objects.equals(tourId, that.tourId) && Objects.equals(tourName, that.tourName) && Objects.equals(pricePerParticipant, that.pricePerParticipant) && Objects.equals(itemTotal, that.itemTotal);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(itemId, scheduleId, tourId, tourName, numAdults, numChildren, priceAdult, priceChild, itemTotal);
+        return Objects.hash(itemId, scheduleId, tourId, tourName, numParticipants, pricePerParticipant, itemTotal);
     }
 
     @Override
@@ -124,10 +104,8 @@ public class CartItemRes {
                 ", scheduleId=" + scheduleId +
                 ", tourId=" + tourId +
                 ", tourName='" + tourName + '\'' +
-                ", numAdults=" + numAdults +
-                ", numChildren=" + numChildren +
-                ", priceAdult=" + priceAdult +
-                ", priceChild=" + priceChild +
+                ", numParticipants=" + numParticipants +
+                ", pricePerParticipant=" + pricePerParticipant +
                 ", itemTotal=" + itemTotal +
                 '}';
     }

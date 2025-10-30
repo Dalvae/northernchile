@@ -66,8 +66,7 @@ public class CartService {
         CartItem newItem = new CartItem();
         newItem.setCart(cart);
         newItem.setSchedule(schedule);
-        newItem.setNumAdults(itemReq.getNumAdults());
-        newItem.setNumChildren(itemReq.getNumChildren());
+        newItem.setNumParticipants(itemReq.getNumParticipants());
 
         if (cart.getItems() == null) {
             cart.setItems(new ArrayList<>());
@@ -114,15 +113,13 @@ public class CartService {
             itemRes.setScheduleId(item.getSchedule().getId());
             itemRes.setTourId(item.getSchedule().getTour().getId());
             itemRes.setTourName(item.getSchedule().getTour().getNameTranslations().get("es"));
-            itemRes.setNumAdults(item.getNumAdults());
-            itemRes.setNumChildren(item.getNumChildren());
-            itemRes.setPriceAdult(item.getSchedule().getTour().getPriceAdult());
-            itemRes.setPriceChild(item.getSchedule().getTour().getPriceChild());
+            itemRes.setNumParticipants(item.getNumParticipants());
 
-            BigDecimal adultTotal = item.getSchedule().getTour().getPriceAdult().multiply(BigDecimal.valueOf(item.getNumAdults()));
-            BigDecimal childTotal = item.getSchedule().getTour().getPriceChild() != null ?
-                    item.getSchedule().getTour().getPriceChild().multiply(BigDecimal.valueOf(item.getNumChildren())) : BigDecimal.ZERO;
-            itemRes.setItemTotal(adultTotal.add(childTotal));
+            BigDecimal pricePerParticipant = item.getSchedule().getTour().getPrice();
+            itemRes.setPricePerParticipant(pricePerParticipant);
+
+            BigDecimal itemTotal = pricePerParticipant.multiply(BigDecimal.valueOf(item.getNumParticipants()));
+            itemRes.setItemTotal(itemTotal);
             return itemRes;
         }).collect(Collectors.toList());
 
