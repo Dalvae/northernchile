@@ -12,6 +12,8 @@ const emit = defineEmits<{
   "update:open": [value: boolean];
 }>();
 
+const { formatPrice: formatCurrency } = useCurrency();
+
 function handleClose() {
   emit("update:open", false);
   emit("close");
@@ -24,13 +26,6 @@ function formatDate(dateString: string): string {
     month: "long",
     day: "numeric",
   });
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-  }).format(amount || 0);
 }
 
 function getStatusBadgeColor(status: string): string {

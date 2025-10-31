@@ -99,14 +99,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    minimumFractionDigits: 0
-  }).format(price)
-}
+const { formatPrice } = useCurrency()
 
 function getCategoryColor(category: string): string {
   const colors: Record<string, string> = {

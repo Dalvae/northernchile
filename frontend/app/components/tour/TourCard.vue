@@ -5,12 +5,13 @@ import { useI18n } from 'vue-i18n'
 const props = defineProps<{ tour: TourRes }>()
 const localePath = useLocalePath()
 const { locale } = useI18n()
+const { formatPrice } = useCurrency()
 
-const translatedName = computed(() => 
+const translatedName = computed(() =>
   props.tour.nameTranslations?.[locale.value] || props.tour.nameTranslations?.['es']
 )
 
-const heroImage = computed(() => 
+const heroImage = computed(() =>
   props.tour.images?.find(img => img.isHeroImage)?.imageUrl || props.tour.images?.[0]?.imageUrl || 'https://source.unsplash.com/random/800x600?desert,stars'
 )
 </script>
@@ -40,7 +41,7 @@ const heroImage = computed(() =>
 
     <template #footer>
       <div class="flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-900/50">
-        <span class="text-2xl font-bold text-primary-400">${{ props.tour.price }}</span>
+        <span class="text-2xl font-bold text-primary-400">{{ formatPrice(props.tour.price) }}</span>
         <UButton
           :to="localePath(`/tours/${props.tour.id}`)"
           icon="i-lucide-arrow-right"
