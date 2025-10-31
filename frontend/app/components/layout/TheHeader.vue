@@ -68,11 +68,15 @@
               <UButton
                 variant="ghost"
                 color="neutral"
-                icon="i-lucide-user"
-                trailing-icon="i-lucide-chevron-down"
+                square
                 class="hidden sm:flex"
               >
-                {{ authStore.user?.fullName?.split(' ')[0] || t('nav.my_account') }}
+                <div class="flex items-center gap-1">
+                  <div class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                    <UIcon name="i-lucide-user" class="w-4 h-4 text-primary-600 dark:text-primary-400" />
+                  </div>
+                  <UIcon name="i-lucide-chevron-down" class="w-4 h-4 text-neutral-500" />
+                </div>
               </UButton>
             </UDropdownMenu>
           </template>

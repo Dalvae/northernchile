@@ -66,9 +66,24 @@ const navigationLinks = [
     to: '/admin/bookings'
   },
   {
+    label: 'Tours Privados',
+    icon: 'i-lucide-star',
+    to: '/admin/private-requests'
+  },
+  {
     label: 'Usuarios',
     icon: 'i-lucide-users',
     to: '/admin/users'
+  },
+  {
+    label: 'Reportes',
+    icon: 'i-lucide-bar-chart-3',
+    to: '/admin/reports'
+  },
+  {
+    label: 'Configuración',
+    icon: 'i-lucide-settings',
+    to: '/admin/settings'
   }
 ]
 
@@ -171,7 +186,7 @@ function formatSegment(segment: string) {
                   {{ authStore.user?.fullName }}
                 </p>
                 <p class="text-xs text-neutral-500 truncate">
-                  {{ authStore.user?.role }}
+                  {{ authStore.user?.role === 'ROLE_SUPER_ADMIN' ? 'Super Admin' : authStore.user?.role === 'ROLE_PARTNER_ADMIN' ? 'Partner Admin' : 'Usuario' }}
                 </p>
               </div>
               <UIcon name="i-lucide-chevron-up" class="w-4 h-4 text-neutral-400" />

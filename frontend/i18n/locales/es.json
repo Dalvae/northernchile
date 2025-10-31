@@ -179,7 +179,7 @@
     "forgot_password": "¿Olvidaste tu contraseña?",
     "reset_password": "Restablecer Contraseña",
     "email": "Email",
-    "email_placeholder": "tu@email.com",
+    "email_placeholder": "ejemplo: usuario{'@'}email.com",
     "email_invalid": "Email inválido",
     "password": "Contraseña",
     "password_placeholder": "••••••••",

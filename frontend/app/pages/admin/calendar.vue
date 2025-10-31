@@ -74,9 +74,22 @@
         <div class="p-6">
           <!-- Header -->
           <div class="flex justify-between items-center pb-4 border-b border-neutral-200 dark:border-neutral-700">
-            <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">
-              {{ isEditMode ? 'Editar Schedule' : 'Crear Schedule' }}
-            </h3>
+            <div class="flex items-center gap-3">
+              <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">
+                {{ isEditMode ? 'Editar Schedule' : 'Crear Schedule' }}
+              </h3>
+              <!-- Ver participantes button -->
+              <UButton
+                v-if="isEditMode && selectedSchedule"
+                color="info"
+                variant="soft"
+                size="sm"
+                icon="i-lucide-users"
+                :to="`/admin/schedules/${selectedSchedule.id}/participants`"
+              >
+                Ver Participantes
+              </UButton>
+            </div>
             <UButton
               icon="i-lucide-x"
               color="neutral"
@@ -223,8 +236,7 @@ import type { CalendarOptions, EventClickArg, DateClickArg } from '@fullcalendar
 import esLocale from '@fullcalendar/core/locales/es'
 
 definePageMeta({
-  layout: 'admin',
-  middleware: ['auth']
+  layout: 'admin'
 })
 
 const config = useRuntimeConfig()
@@ -634,19 +646,19 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
 <style>
 /* Estilos para FullCalendar */
 .fc {
-  --fc-border-color: theme('colors.gray.200');
-  --fc-button-bg-color: theme('colors.primary.500');
-  --fc-button-border-color: theme('colors.primary.500');
-  --fc-button-hover-bg-color: theme('colors.primary.600');
-  --fc-button-hover-border-color: theme('colors.primary.600');
-  --fc-button-active-bg-color: theme('colors.primary.700');
-  --fc-button-active-border-color: theme('colors.primary.700');
-  --fc-today-bg-color: theme('colors.primary.50');
+  --fc-border-color: #e4e4e7;
+  --fc-button-bg-color: #10b981;
+  --fc-button-border-color: #10b981;
+  --fc-button-hover-bg-color: #059669;
+  --fc-button-hover-border-color: #059669;
+  --fc-button-active-bg-color: #047857;
+  --fc-button-active-border-color: #047857;
+  --fc-today-bg-color: #ecfdf5;
 }
 
 .dark .fc {
-  --fc-border-color: theme('colors.gray.700');
-  --fc-today-bg-color: theme('colors.primary.900/20');
+  --fc-border-color: #3f3f46;
+  --fc-today-bg-color: rgba(6, 78, 59, 0.2);
 }
 
 .fc-daygrid-day {
