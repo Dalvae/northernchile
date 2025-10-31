@@ -36,13 +36,13 @@ public class Booking {
     @Column(length = 30)
     private String status = "PENDING";
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal subtotal;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal taxAmount;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal totalAmount;
 
     @Column(nullable = false, length = 5)
