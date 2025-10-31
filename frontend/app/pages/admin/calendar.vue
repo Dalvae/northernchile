@@ -69,22 +69,145 @@
     </div>
 
     <!-- Modal de schedule (crear/editar) -->
-    <UModal v-model:open="showScheduleModal" :title="selectedSchedule ? 'Editar Schedule' : 'Crear Schedule'">
+    <UModal v-model:open="showScheduleModal">
       <template #content>
-        <div class="p-6 space-y-4">
-          <p class="text-sm text-neutral-600 dark:text-neutral-400">
-            Funcionalidad de crear/editar schedules pendiente de implementación
-          </p>
-          <!-- TODO: Formulario de schedule -->
-        </div>
+        <div class="p-6">
+          <!-- Header -->
+          <div class="flex justify-between items-center pb-4 border-b border-neutral-200 dark:border-neutral-700">
+            <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">
+              {{ isEditMode ? 'Editar Schedule' : 'Crear Schedule' }}
+            </h3>
+            <UButton
+              icon="i-lucide-x"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              @click="closeScheduleModal"
+            />
+          </div>
 
-        <div class="flex justify-end gap-2 px-6 pb-6 pt-4 border-t border-neutral-200 dark:border-neutral-700">
-          <UButton color="neutral" variant="ghost" @click="showScheduleModal = false">
-            Cancelar
-          </UButton>
-          <UButton color="primary">
-            Guardar
-          </UButton>
+          <!-- Form -->
+          <form @submit.prevent="saveSchedule" class="space-y-4 py-4">
+            <!-- Tour Selection -->
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                Tour <span class="text-error">*</span>
+              </label>
+              <USelect
+                v-model="scheduleForm.tourId"
+                :items="tourOptions"
+                option-attribute="label"
+                value-attribute="value"
+                placeholder="Selecciona un tour"
+                size="lg"
+                :disabled="isEditMode"
+                class="w-full"
+              />
+              <p v-if="formErrors.tourId" class="mt-1 text-sm text-error">
+                {{ formErrors.tourId }}
+              </p>
+            </div>
+
+            <!-- Date and Time -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Fecha <span class="text-error">*</span>
+                </label>
+                <UInput
+                  v-model="scheduleForm.date"
+                  type="date"
+                  size="lg"
+                  class="w-full"
+                />
+                <p v-if="formErrors.date" class="mt-1 text-sm text-error">
+                  {{ formErrors.date }}
+                </p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Hora <span class="text-error">*</span>
+                </label>
+                <UInput
+                  v-model="scheduleForm.time"
+                  type="time"
+                  size="lg"
+                  class="w-full"
+                />
+                <p v-if="formErrors.time" class="mt-1 text-sm text-error">
+                  {{ formErrors.time }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Max Participants -->
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                Cupos Máximos <span class="text-error">*</span>
+              </label>
+              <UInput
+                v-model.number="scheduleForm.maxParticipants"
+                type="number"
+                min="1"
+                max="100"
+                size="lg"
+                placeholder="Ej: 15"
+                class="w-full"
+              />
+              <p v-if="formErrors.maxParticipants" class="mt-1 text-sm text-error">
+                {{ formErrors.maxParticipants }}
+              </p>
+            </div>
+
+            <!-- Guide Selection (Optional) -->
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                Guía Asignado (Opcional)
+              </label>
+              <USelect
+                v-model="scheduleForm.assignedGuideId"
+                :items="guideOptions"
+                option-attribute="label"
+                value-attribute="value"
+                placeholder="Sin guía asignado"
+                size="lg"
+                class="w-full"
+              />
+            </div>
+
+            <!-- Status (only in edit mode) -->
+            <div v-if="isEditMode">
+              <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                Estado
+              </label>
+              <USelect
+                v-model="scheduleForm.status"
+                :items="statusOptions"
+                option-attribute="label"
+                value-attribute="value"
+                size="lg"
+                class="w-full"
+              />
+            </div>
+          </form>
+
+          <!-- Footer -->
+          <div class="flex justify-end gap-2 pt-4 border-t border-neutral-200 dark:border-neutral-700">
+            <UButton
+              color="neutral"
+              variant="outline"
+              @click="closeScheduleModal"
+            >
+              Cancelar
+            </UButton>
+            <UButton
+              color="primary"
+              :loading="savingSchedule"
+              @click="saveSchedule"
+            >
+              {{ isEditMode ? 'Actualizar' : 'Crear' }}
+            </UButton>
+          </div>
         </div>
       </template>
     </UModal>
@@ -114,12 +237,57 @@ const {
   getWeatherIcon
 } = useCalendarData()
 
+const { fetchAdminTours } = useAdminData()
+
 // Estado
 const calendarData = ref<any>(null)
 const showScheduleModal = ref(false)
 const selectedSchedule = ref<any>(null)
 const generating = ref(false)
+const savingSchedule = ref(false)
 const pendingAlerts = ref(0)
+
+// Form state
+const scheduleForm = ref({
+  tourId: '',
+  date: '',
+  time: '',
+  maxParticipants: 10,
+  assignedGuideId: null as string | null,
+  status: 'ACTIVE'
+})
+
+const formErrors = ref<Record<string, string>>({})
+
+// Tours and guides data
+const { data: toursData } = await useAsyncData('admin-tours-for-schedule', () => fetchAdminTours(), {
+  server: false,
+  lazy: true
+})
+
+// Computed options for selects
+const tourOptions = computed(() => {
+  if (!toursData.value?.data) return []
+  return toursData.value.data
+    .filter((tour: any) => tour.status === 'PUBLISHED')
+    .map((tour: any) => ({
+      value: tour.id,
+      label: tour.nameTranslations[locale.value] || tour.nameTranslations.es || tour.name
+    }))
+})
+
+const guideOptions = computed(() => [
+  { value: null, label: 'Sin guía asignado' },
+  // TODO: Fetch actual guides from API
+])
+
+const statusOptions = [
+  { value: 'ACTIVE', label: 'Activo' },
+  { value: 'CANCELLED', label: 'Cancelado' },
+  { value: 'CLOSED', label: 'Cerrado' }
+]
+
+const isEditMode = computed(() => !!selectedSchedule.value)
 
 // Rango de fechas del calendario
 const startDate = ref('')
@@ -184,15 +352,138 @@ const generateSchedules = async () => {
 
 // Click en evento (schedule)
 const handleEventClick = (info: EventClickArg) => {
-  selectedSchedule.value = info.event.extendedProps.schedule
+  const schedule = info.event.extendedProps.schedule
+  selectedSchedule.value = schedule
+
+  // Fill form with schedule data
+  const scheduleDate = new Date(schedule.startDatetime)
+  scheduleForm.value = {
+    tourId: schedule.tour.id,
+    date: scheduleDate.toISOString().split('T')[0],
+    time: scheduleDate.toTimeString().slice(0, 5),
+    maxParticipants: schedule.maxParticipants,
+    assignedGuideId: schedule.assignedGuideId || null,
+    status: schedule.status
+  }
+
   showScheduleModal.value = true
 }
 
 // Click en día vacío
 const handleDateClick = (info: DateClickArg) => {
   selectedSchedule.value = null
+
+  // Pre-fill with clicked date
+  const clickedDate = info.dateStr
+  scheduleForm.value = {
+    tourId: '',
+    date: clickedDate,
+    time: '20:00', // Default time for astronomical tours
+    maxParticipants: 10,
+    assignedGuideId: null,
+    status: 'ACTIVE'
+  }
+
   showScheduleModal.value = true
-  // TODO: Pre-rellenar con la fecha clickeada
+}
+
+// Close modal and reset form
+const closeScheduleModal = () => {
+  showScheduleModal.value = false
+  selectedSchedule.value = null
+  formErrors.value = {}
+  scheduleForm.value = {
+    tourId: '',
+    date: '',
+    time: '',
+    maxParticipants: 10,
+    assignedGuideId: null,
+    status: 'ACTIVE'
+  }
+}
+
+// Validate form
+const validateForm = (): boolean => {
+  formErrors.value = {}
+
+  if (!scheduleForm.value.tourId) {
+    formErrors.value.tourId = 'Debes seleccionar un tour'
+  }
+
+  if (!scheduleForm.value.date) {
+    formErrors.value.date = 'La fecha es requerida'
+  }
+
+  if (!scheduleForm.value.time) {
+    formErrors.value.time = 'La hora es requerida'
+  }
+
+  if (!scheduleForm.value.maxParticipants || scheduleForm.value.maxParticipants < 1) {
+    formErrors.value.maxParticipants = 'Debe ser al menos 1'
+  }
+
+  return Object.keys(formErrors.value).length === 0
+}
+
+// Save schedule (create or update)
+const saveSchedule = async () => {
+  if (!validateForm()) return
+
+  savingSchedule.value = true
+
+  try {
+    // Combine date and time into ISO datetime
+    const datetime = new Date(`${scheduleForm.value.date}T${scheduleForm.value.time}:00`)
+    const isoDatetime = datetime.toISOString()
+
+    const payload = {
+      tourId: scheduleForm.value.tourId,
+      startDatetime: isoDatetime,
+      maxParticipants: scheduleForm.value.maxParticipants,
+      assignedGuideId: scheduleForm.value.assignedGuideId || null
+    }
+
+    if (isEditMode.value) {
+      // Update existing schedule
+      await $fetch(`${config.public.apiBaseUrl}/admin/schedules/${selectedSchedule.value.id}`, {
+        method: 'PATCH',
+        body: payload,
+        credentials: 'include'
+      })
+
+      toast.add({
+        title: 'Schedule actualizado',
+        description: 'Los cambios se han guardado correctamente',
+        color: 'success'
+      })
+    } else {
+      // Create new schedule
+      await $fetch(`${config.public.apiBaseUrl}/admin/schedules`, {
+        method: 'POST',
+        body: payload,
+        credentials: 'include'
+      })
+
+      toast.add({
+        title: 'Schedule creado',
+        description: 'El schedule se ha creado correctamente',
+        color: 'success'
+      })
+    }
+
+    // Reload calendar data
+    await loadCalendarData()
+    closeScheduleModal()
+  } catch (error: any) {
+    console.error('Error saving schedule:', error)
+    toast.add({
+      title: 'Error',
+      description: error.data?.message || 'No se pudo guardar el schedule',
+      color: 'error'
+    })
+  } finally {
+    savingSchedule.value = false
+  }
 }
 
 // Configuración de FullCalendar

@@ -7,6 +7,7 @@ definePageMeta({
 });
 
 const { fetchAdminTours, deleteAdminTour } = useAdminData();
+const { formatPrice } = useCurrency();
 
 const {
   data: tours,
@@ -183,12 +184,7 @@ async function handleDelete(tour: TourRes) {
 
           <template #price-data="{ row }">
             <span class="font-semibold">
-              {{
-                new Intl.NumberFormat("es-CL", {
-                  style: "currency",
-                  currency: "CLP",
-                }).format(row.getValue("price") || 0)
-              }}
+              {{ formatPrice(row.getValue("price") || 0) }}
             </span>
           </template>
 

@@ -7,6 +7,7 @@ definePageMeta({
 });
 
 const { fetchAdminBookings, updateAdminBooking, deleteAdminBooking } = useAdminData();
+const { formatPrice: formatCurrency } = useCurrency();
 
 const {
   data: bookings,
@@ -162,13 +163,6 @@ function formatDate(dateString: string): string {
     month: "short",
     day: "numeric",
   });
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-  }).format(amount || 0);
 }
 </script>
 
