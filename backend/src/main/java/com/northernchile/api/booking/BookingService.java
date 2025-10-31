@@ -207,6 +207,36 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public BookingRes confirmBookingAfterMockPayment(UUID bookingId, User currentUser) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
+
+        // Verify that the current user is the owner of the booking
+        if (!booking.getUser().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You do not have permission to confirm this booking.");
+        }
+
+        // Verify that the booking is in PENDING state
+        if (!"PENDING".equals(booking.getStatus())) {
+            throw new IllegalStateException("Only PENDING bookings can be confirmed. Current status: " + booking.getStatus());
+        }
+
+        // Update status to CONFIRMED
+        String oldStatus = booking.getStatus();
+        booking.setStatus("CONFIRMED");
+        Booking confirmedBooking = bookingRepository.save(booking);
+
+        // Audit log
+        String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
+        String description = "Mock payment confirmation - " + tourName + " - " + booking.getUser().getFullName();
+        Map<String, Object> oldValues = Map.of("status", oldStatus);
+        Map<String, Object> newValues = Map.of("status", "CONFIRMED");
+        auditLogService.logUpdate(currentUser, "BOOKING", booking.getId(), description, oldValues, newValues);
+
+        return toBookingRes(confirmedBooking);
+    }
+
     private BookingRes toBookingRes(Booking booking) {
         BookingRes res = new BookingRes();
         res.setId(booking.getId());

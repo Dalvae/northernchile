@@ -46,11 +46,10 @@ public class TourService {
         tour.setMoonSensitive(tourCreateReq.isMoonSensitive() != null && tourCreateReq.isMoonSensitive());
         tour.setCloudSensitive(tourCreateReq.isCloudSensitive() != null && tourCreateReq.isCloudSensitive());
         tour.setCategory(tourCreateReq.getCategory());
-        tour.setPriceAdult(tourCreateReq.getPriceAdult());
-        tour.setPriceChild(tourCreateReq.getPriceChild());
+        tour.setPrice(tourCreateReq.getPrice());
         tour.setDefaultMaxParticipants(tourCreateReq.getDefaultMaxParticipants());
         tour.setDurationHours(tourCreateReq.getDurationHours());
-        tour.setStatus(tourCreateReq.getStatus()); // <-- ¡CORREGIDO!
+        tour.setStatus(tourCreateReq.getStatus());
 
         Tour savedTour = tourRepository.save(tour);
 
@@ -223,8 +222,7 @@ public class TourService {
         tourRes.setWindSensitive(tour.isWindSensitive());
         tourRes.setCloudSensitive(tour.isCloudSensitive());
         tourRes.setCategory(tour.getCategory());
-        tourRes.setPriceAdult(tour.getPriceAdult());
-        tourRes.setPriceChild(tour.getPriceChild());
+        tourRes.setPrice(tour.getPrice());
         tourRes.setDefaultMaxParticipants(tour.getDefaultMaxParticipants());
         tourRes.setDurationHours(tour.getDurationHours());
         tourRes.setStatus(tour.getStatus());

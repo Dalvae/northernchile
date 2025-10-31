@@ -1,6 +1,8 @@
 package com.northernchile.api.audit;
 
 import com.northernchile.api.model.AuditLog;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,4 +26,18 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
 
     @Query("SELECT a FROM AuditLog a ORDER BY a.createdAt DESC")
     List<AuditLog> findAllOrderByCreatedAtDesc();
+
+    // Paginated queries for audit log controller
+    Page<AuditLog> findByAction(String action, Pageable pageable);
+
+    Page<AuditLog> findByEntityType(String entityType, Pageable pageable);
+
+    Page<AuditLog> findByUserEmail(String userEmail, Pageable pageable);
+
+    Page<AuditLog> findByActionAndEntityType(String action, String entityType, Pageable pageable);
+
+    Page<AuditLog> findByActionAndEntityTypeAndUserEmail(String action, String entityType, String userEmail, Pageable pageable);
+
+    // Count queries for stats
+    long countByAction(String action);
 }
