@@ -3,6 +3,7 @@ import { useAuthStore } from '~/stores/auth'
 
 const authStore = useAuthStore()
 const route = useRoute()
+const config = useRuntimeConfig()
 
 // Sidebar state (mobile)
 const sidebarOpen = ref(false)
@@ -10,6 +11,36 @@ const sidebarOpen = ref(false)
 // Close sidebar on route change (mobile)
 watch(() => route.path, () => {
   sidebarOpen.value = false
+})
+
+// Fetch pending alerts count
+const { data: alertsCount, refresh: refreshAlertsCount } = await useAsyncData(
+  'pending-alerts-count',
+  async () => {
+    try {
+      const response = await $fetch<{ pending: number }>(`${config.public.apiBaseUrl}/admin/alerts/count`, {
+        credentials: 'include'
+      })
+      return response.pending || 0
+    } catch (error) {
+      console.error('Error fetching alerts count:', error)
+      return 0
+    }
+  },
+  {
+    server: false,
+    lazy: true
+  }
+)
+
+// Refresh alerts count every 5 minutes
+const alertsRefreshInterval = setInterval(() => {
+  refreshAlertsCount()
+}, 5 * 60 * 1000)
+
+// Cleanup interval on unmount
+onUnmounted(() => {
+  clearInterval(alertsRefreshInterval)
 })
 
 // Navigation links
@@ -175,8 +206,18 @@ function formatSegment(segment: string) {
 
         <!-- Actions -->
         <div class="flex items-center gap-2">
-          <!-- Color mode toggle -->
-          <UColorModeButton />
+          <!-- Alerts Badge -->
+          <NuxtLink to="/admin/alerts" class="relative">
+            <UButton
+              icon="i-lucide-alert-triangle"
+              :color="alertsCount && alertsCount > 0 ? 'warning' : 'neutral'"
+              :variant="alertsCount && alertsCount > 0 ? 'soft' : 'ghost'"
+            >
+              <span v-if="alertsCount && alertsCount > 0" class="ml-1">
+                {{ alertsCount }}
+              </span>
+            </UButton>
+          </NuxtLink>
 
           <!-- Notifications (futuro) -->
           <UButton

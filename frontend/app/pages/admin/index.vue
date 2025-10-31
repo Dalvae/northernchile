@@ -7,6 +7,7 @@ definePageMeta({
 })
 
 const { fetchAdminBookings, fetchAdminTours } = useAdminData()
+const { formatPrice: formatCurrency } = useCurrency()
 
 const { data: bookingsData, pending: pendingBookings } = await useAsyncData(
   'bookings',
@@ -76,14 +77,6 @@ const bookingColumns = [
   { key: 'createdAt', id: 'createdAt', label: 'Fecha Creación' },
   { key: 'actions', id: 'actions', label: 'Acciones' }
 ]
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    minimumFractionDigits: 0
-  }).format(amount)
-}
 
 function getStatusColor(status: string) {
   const colors: Record<string, string> = {
