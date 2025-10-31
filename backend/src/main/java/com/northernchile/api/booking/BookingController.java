@@ -53,6 +53,13 @@ public class BookingController {
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
+    @PostMapping("/bookings/{bookingId}/confirm-mock")
+    public ResponseEntity<BookingRes> confirmMockPayment(@PathVariable UUID bookingId) {
+        User currentUser = getCurrentUser();
+        BookingRes confirmedBooking = bookingService.confirmBookingAfterMockPayment(bookingId, currentUser);
+        return new ResponseEntity<>(confirmedBooking, HttpStatus.OK);
+    }
+
     // ============== ADMIN ENDPOINTS ==============
 
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'PARTNER_ADMIN')")

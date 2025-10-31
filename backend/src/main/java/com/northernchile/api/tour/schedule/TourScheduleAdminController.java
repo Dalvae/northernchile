@@ -1,13 +1,18 @@
 package com.northernchile.api.tour.schedule;
 
 import com.northernchile.api.model.TourSchedule;
+import com.northernchile.api.model.User;
 import com.northernchile.api.tour.TourScheduleGeneratorService;
 import com.northernchile.api.tour.TourScheduleRepository;
+import com.northernchile.api.tour.TourScheduleService;
 import com.northernchile.api.tour.dto.TourScheduleCreateReq;
 import com.northernchile.api.tour.dto.TourScheduleRes;
+import com.northernchile.api.user.UserRepository;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -27,14 +32,24 @@ public class TourScheduleAdminController {
     private final TourScheduleRepository tourScheduleRepository;
     private final TourScheduleService tourScheduleService;
     private final TourScheduleGeneratorService generatorService;
+    private final UserRepository userRepository;
 
     public TourScheduleAdminController(
             TourScheduleRepository tourScheduleRepository,
             TourScheduleService tourScheduleService,
-            TourScheduleGeneratorService generatorService) {
+            TourScheduleGeneratorService generatorService,
+            UserRepository userRepository) {
         this.tourScheduleRepository = tourScheduleRepository;
         this.tourScheduleService = tourScheduleService;
         this.generatorService = generatorService;
+        this.userRepository = userRepository;
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+        return userRepository.findByEmail(currentPrincipalName)
+                .orElseThrow(() -> new RuntimeException("User not found: " + currentPrincipalName));
     }
 
     /**
@@ -71,8 +86,9 @@ public class TourScheduleAdminController {
      */
     @PostMapping
     public ResponseEntity<TourScheduleRes> createSchedule(@RequestBody TourScheduleCreateReq request) {
-        TourSchedule created = tourScheduleService.createSchedule(request);
-        return ResponseEntity.ok(mapToResponse(created));
+        User currentUser = getCurrentUser();
+        TourScheduleRes created = tourScheduleService.createScheduledTour(request, currentUser);
+        return ResponseEntity.ok(created);
     }
 
     /**
