@@ -6,7 +6,7 @@ import com.northernchile.api.external.dto.DailyForecast;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.WeatherAlert;
-import com.northernchile.api.tour.schedule.TourScheduleRepository;
+import com.northernchile.api.tour.TourScheduleRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -75,7 +75,7 @@ public class WeatherAlertService {
         ZonedDateTime endDateTime = endDate.atStartOfDay(ZONE_ID);
 
         List<TourSchedule> upcomingSchedules = scheduleRepository
-                .findByStartDatetimeBetween(startDateTime.toInstant(), endDateTime.toInstant())
+                .findByStartDatetimeBetween(startDateTime, endDateTime)
                 .stream()
                 .filter(schedule -> !"CANCELLED".equals(schedule.getStatus()))
                 .toList();

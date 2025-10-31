@@ -49,7 +49,7 @@ public class Tour {
     @Column(nullable = false, length = 50)
     private String category;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal price;
 
     @Column(nullable = false)

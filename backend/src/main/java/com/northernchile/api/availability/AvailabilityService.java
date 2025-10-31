@@ -68,17 +68,17 @@ public class AvailabilityService {
 
         // Check for full moon on astronomical tours
         if ("ASTRONOMICAL".equalsIgnoreCase(schedule.getTour().getCategory()) && lunarService.isFullMoon(date)) {
-            return new DayAvailability("UNAVAILABLE_MOON", 0, lunarService.getMoonIllumination(date));
+            return new DayAvailability("UNAVAILABLE_MOON", Integer.valueOf(0), Double.valueOf(lunarService.getMoonIllumination(date)));
         }
 
         // Check for strong wind on sensitive tours
         if (schedule.getTour().isWindSensitive() && weatherService.isWindAboveThreshold(date, 25)) {
-            return new DayAvailability("UNAVAILABLE_WIND", 0, lunarService.getMoonIllumination(date));
+            return new DayAvailability("UNAVAILABLE_WIND", Integer.valueOf(0), Double.valueOf(lunarService.getMoonIllumination(date)));
         }
 
         // Calculate available slots
         Integer bookedParticipants = bookingRepository.countParticipantsByScheduleId(schedule.getId());
-        int availableSlots = schedule.getMaxParticipants() - bookedParticipants;
+        Integer availableSlots = Integer.valueOf(schedule.getMaxParticipants() - bookedParticipants);
 
         String status = "AVAILABLE";
         if (availableSlots <= 0) {
@@ -87,6 +87,6 @@ public class AvailabilityService {
             status = "FEW_SLOTS_LEFT";
         }
 
-        return new DayAvailability(status, availableSlots, lunarService.getMoonIllumination(date));
+        return new DayAvailability(status, availableSlots, Double.valueOf(lunarService.getMoonIllumination(date)));
     }
 }

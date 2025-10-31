@@ -1,4 +1,4 @@
-package com.northernchile.api.tour.schedule;
+package com.northernchile.api.tour;
 
 import com.cronutils.model.Cron;
 import com.cronutils.model.definition.CronDefinitionBuilder;
