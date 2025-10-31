@@ -15,32 +15,6 @@
           </p>
         </div>
 
-        <!-- OAuth Providers -->
-        <div class="space-y-3">
-          <UButton
-            icon="i-simple-icons-google"
-            color="neutral"
-            variant="outline"
-            block
-            size="lg"
-            @click="handleGoogleAuth"
-          >
-            {{ t('auth.continue_with_google') }}
-          </UButton>
-        </div>
-
-        <!-- Divider -->
-        <div class="relative">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-neutral-200 dark:border-neutral-800"></div>
-          </div>
-          <div class="relative flex justify-center text-sm">
-            <span class="px-2 bg-white dark:bg-neutral-800 text-neutral-500">
-              {{ t('auth.or_continue_with') }}
-            </span>
-          </div>
-        </div>
-
         <!-- Form -->
         <UForm :state="state" :schema="schema" @submit="handleSubmit">
           <div class="space-y-4">
@@ -53,6 +27,7 @@
                   :placeholder="t('auth.email_placeholder')"
                   size="lg"
                   icon="i-lucide-mail"
+                  class="w-full"
                 />
               </UFormField>
 
@@ -63,6 +38,7 @@
                   :placeholder="t('auth.password_placeholder')"
                   size="lg"
                   icon="i-lucide-lock"
+                  class="w-full"
                 />
               </UFormField>
             </template>
@@ -75,6 +51,7 @@
                   :placeholder="t('auth.full_name_placeholder')"
                   size="lg"
                   icon="i-lucide-user"
+                  class="w-full"
                 />
               </UFormField>
 
@@ -85,6 +62,7 @@
                   :placeholder="t('auth.email_placeholder')"
                   size="lg"
                   icon="i-lucide-mail"
+                  class="w-full"
                 />
               </UFormField>
 
@@ -95,6 +73,7 @@
                     :placeholder="t('booking.nationality_placeholder')"
                     size="lg"
                     icon="i-lucide-globe"
+                    class="w-full"
                   />
                 </UFormField>
 
@@ -105,6 +84,7 @@
                     :placeholder="t('booking.phone_placeholder')"
                     size="lg"
                     icon="i-lucide-phone"
+                    class="w-full"
                   />
                 </UFormField>
               </div>
@@ -115,6 +95,7 @@
                   type="date"
                   size="lg"
                   icon="i-lucide-calendar"
+                  class="w-full"
                 />
               </UFormField>
 
@@ -125,6 +106,7 @@
                   :placeholder="t('auth.password_placeholder')"
                   size="lg"
                   icon="i-lucide-lock"
+                  class="w-full"
                 />
               </UFormField>
 
@@ -135,6 +117,7 @@
                   :placeholder="t('auth.confirm_password_placeholder')"
                   size="lg"
                   icon="i-lucide-lock"
+                  class="w-full"
                 />
               </UFormField>
             </template>
@@ -236,16 +219,6 @@ function toggleForm() {
   // Reset form
   Object.keys(state).forEach(key => {
     state[key as keyof typeof state] = ''
-  })
-}
-
-// Google OAuth
-function handleGoogleAuth() {
-  // TODO: Implementar Google OAuth
-  toast.add({
-    title: 'Próximamente',
-    description: 'La autenticación con Google estará disponible pronto',
-    color: 'info'
   })
 }
 

@@ -41,8 +41,4 @@ export default defineAppConfig({
       container: "!bg-transparent",
     },
   },
-  // Forzar tema oscuro
-  colorMode: {
-    preference: "dark",
-  },
 });
