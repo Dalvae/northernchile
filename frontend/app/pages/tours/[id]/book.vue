@@ -136,11 +136,41 @@
           <!-- Step 4: Payment -->
           <div v-else-if="currentStep === 3" class="space-y-6">
             <h2 class="text-xl font-semibold text-neutral-900 dark:text-white">
-              {{ t('booking.payment') }}
+              {{ t('booking.mock_payment_title') }}
             </h2>
-            <p class="text-neutral-600 dark:text-neutral-400">
-              Payment integration coming soon...
-            </p>
+
+            <UAlert
+              color="info"
+              icon="i-lucide-info"
+              :title="t('booking.mock_payment_title')"
+              :description="t('booking.mock_payment_description')"
+            />
+
+            <!-- Price Summary -->
+            <UCard v-if="tour">
+              <div class="space-y-3">
+                <div class="flex justify-between text-neutral-700 dark:text-neutral-300">
+                  <span>{{ bookingState.totalParticipants }} x {{ t('booking.participant') }}</span>
+                  <span>${{ formatPrice(tour.price * bookingState.totalParticipants) }}</span>
+                </div>
+                <UDivider />
+                <div class="flex justify-between text-lg font-semibold text-neutral-900 dark:text-white">
+                  <span>{{ t('common.total') }}</span>
+                  <span>${{ calculateTotal() }}</span>
+                </div>
+              </div>
+            </UCard>
+
+            <UButton
+              color="primary"
+              size="xl"
+              block
+              :loading="isProcessingPayment"
+              :disabled="isProcessingPayment"
+              @click="handleMockPayment"
+            >
+              {{ isProcessingPayment ? t('booking.mock_payment_processing') : t('booking.mock_payment_button') }}
+            </UButton>
           </div>
 
           <!-- Step 5: Confirmation -->
@@ -152,8 +182,35 @@
               {{ t('booking.confirmation') }}
             </h2>
             <p class="text-neutral-600 dark:text-neutral-400">
-              Your booking has been confirmed!
+              {{ t('booking.confirmation_message') }}
             </p>
+            <div v-if="confirmedBooking" class="mt-6 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
+              <div class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">
+                {{ t('booking.booking_reference') }}
+              </div>
+              <div class="text-lg font-mono font-semibold text-neutral-900 dark:text-white">
+                {{ confirmedBooking.id }}
+              </div>
+            </div>
+            <div class="flex gap-4 justify-center mt-8">
+              <UButton
+                color="primary"
+                size="lg"
+                icon="i-lucide-calendar-check"
+                to="/profile/bookings"
+              >
+                {{ t('booking.view_booking') }}
+              </UButton>
+              <UButton
+                variant="outline"
+                color="neutral"
+                size="lg"
+                icon="i-lucide-arrow-left"
+                to="/tours"
+              >
+                {{ t('booking.book_another') }}
+              </UButton>
+            </div>
           </div>
         </template>
       </UCard>
@@ -161,7 +218,7 @@
       <!-- Navigation Buttons -->
       <div class="flex justify-between max-w-4xl mx-auto mt-8">
         <UButton
-          v-if="currentStep > 0"
+          v-if="currentStep > 0 && currentStep < 4"
           variant="outline"
           color="neutral"
           size="lg"
@@ -173,7 +230,7 @@
         <div v-else></div>
 
         <UButton
-          v-if="currentStep < steps.length - 1"
+          v-if="currentStep < steps.length - 1 && currentStep !== 3"
           color="primary"
           size="lg"
           :disabled="!canProceed"
@@ -192,6 +249,7 @@ const route = useRoute()
 const { t, locale } = useI18n()
 const authStore = useAuthStore()
 const toast = useToast()
+const { formatPrice: formatCurrency } = useCurrency()
 
 // Tour ID from route
 const tourId = computed(() => route.params.id as string)
@@ -213,6 +271,10 @@ const steps = computed(() => [
 
 // Current step
 const currentStep = ref(0)
+
+// Payment processing state
+const isProcessingPayment = ref(false)
+const confirmedBooking = ref<any>(null)
 
 // Booking state
 const bookingState = reactive({
@@ -300,14 +362,10 @@ function formatScheduleDate(datetime: string): string {
   })
 }
 
-function formatPrice(price: number): string {
-  return price.toLocaleString('es-CL', { minimumFractionDigits: 0 })
-}
-
 function calculateTotal(): string {
-  if (!tour.value) return '0'
+  if (!tour.value) return formatCurrency(0)
   const total = tour.value.price * bookingState.totalParticipants
-  return formatPrice(total)
+  return formatCurrency(total)
 }
 
 // Validation
@@ -337,6 +395,80 @@ function nextStep() {
 function previousStep() {
   if (currentStep.value > 0) {
     currentStep.value--
+  }
+}
+
+async function handleMockPayment() {
+  if (!tour.value || !bookingState.scheduleId) {
+    toast.add({
+      title: t('common.error'),
+      description: 'Missing tour or schedule information',
+      color: 'error'
+    })
+    return
+  }
+
+  isProcessingPayment.value = true
+
+  try {
+    // Step 1: Create the booking with PENDING status
+    const bookingPayload = {
+      scheduleId: bookingState.scheduleId,
+      participants: bookingState.participants.map(p => ({
+        fullName: p.fullName,
+        documentId: p.documentId,
+        nationality: p.nationality,
+        age: p.age,
+        pickupAddress: p.pickupAddress,
+        specialRequirements: p.specialRequirements
+      })),
+      languageCode: locale.value,
+      specialRequests: ''
+    }
+
+    const { data: createdBooking, error: createError } = await $fetch('/api/bookings', {
+      method: 'POST',
+      body: bookingPayload
+    }).catch(err => ({ data: null, error: err }))
+
+    if (createError || !createdBooking) {
+      throw new Error(createError?.message || 'Failed to create booking')
+    }
+
+    toast.add({
+      title: t('common.success'),
+      description: t('booking.booking_created_success'),
+      color: 'success'
+    })
+
+    // Step 2: Confirm the booking with mock payment
+    const { data: confirmed, error: confirmError } = await $fetch(`/api/bookings/${createdBooking.id}/confirm-mock`, {
+      method: 'POST'
+    }).catch(err => ({ data: null, error: err }))
+
+    if (confirmError || !confirmed) {
+      throw new Error(confirmError?.message || 'Failed to confirm booking')
+    }
+
+    confirmedBooking.value = confirmed
+
+    toast.add({
+      title: t('booking.payment_success'),
+      description: t('booking.booking_confirmed_success'),
+      color: 'success'
+    })
+
+    // Step 3: Move to confirmation step
+    currentStep.value = 4
+  } catch (error: any) {
+    console.error('Payment error:', error)
+    toast.add({
+      title: t('booking.payment_error'),
+      description: error.message || 'An unexpected error occurred',
+      color: 'error'
+    })
+  } finally {
+    isProcessingPayment.value = false
   }
 }
 
