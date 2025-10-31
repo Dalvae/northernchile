@@ -1,53 +1,90 @@
-# Lista TODO Robusta para la Aplicación Northern Chile
+# Lista de Tareas Priorizada - Northern Chile
 
-**I. Frontend UI/UX & Características (Prioridad Alta)**
+Este documento organiza las tareas pendientes en fases, desde lo más crítico para el lanzamiento hasta las mejoras finales.
 
-1.  **Completar Funcionalidad del Calendario (`frontend/app/pages/admin/calendar.vue`):**
-    *   [ ] Implementar el formulario dentro del modal para crear/editar schedules. Esto implica:
-        *   [ ] Crear DTOs `TourScheduleCreateReq` y `TourScheduleRes` (si no están ya en frontend).
-        *   [ ] Conectar el formulario a los endpoints de la API de backend (`POST /api/admin/schedules`, `PATCH /api/admin/schedules/{id}`).
-        *   [ ] Implementar validación para los campos del formulario.
-    *   [ ] Implementar funcionalidad de arrastrar y soltar (drag & drop) para schedules en FullCalendar.
-    *   [ ] Asegurar que todos los indicadores visuales (fases lunares, alertas climáticas) estén completamente integrados y se muestren correctamente.
+---
 
-2.  **Implementar Frontend para Alertas Climáticas:**
-    *   [ ] **Dashboard de Alertas** (`frontend/app/pages/admin/alerts.vue`):
-        *   [ ] Crear la página para mostrar una lista de alertas pendientes/resueltas.
-        *   [ ] Implementar filtrado por tipo, severidad y fecha.
-        *   [ ] Desarrollar un modal para resolver alertas (CANCELLED, KEPT, RESCHEDULED).
-    *   [ ] **Widget de Alertas** (Componente global):
-        *   [ ] Crear un badge en la barra de navegación mostrando el conteo de alertas pendientes.
-        *   [ ] Implementar un menú desplegable (dropdown) mostrando las últimas 5 alertas.
-        *   [ ] Añadir un enlace al dashboard completo de alertas.
+## Fase 1: Flujo Crítico del Cliente (Prioridad Máxima) 🚀
+**Objetivo: Permitir que un usuario complete una reserva de principio a fin con un pago simulado.**
 
-3.  **Implementar Calendario Lunar Público (`frontend/app/pages/moon-calendar.vue`):**
-    *   [ ] Crear una nueva página para mostrar una vista de mes completo con fases lunares, iluminación y nombres de fase.
-    *   [ ] Integrar con la API de backend `LunarController` (`GET /api/lunar/calendar`).
+- [x] **Finalizar el Flujo de Reserva (`frontend/app/pages/tours/[id]/book.vue`):**
+    - [x] Implementar la lógica `handleMockPayment` en el paso de pago.
+    - [x] Realizar la llamada a `POST /api/bookings` para crear la reserva con estado `PENDING`.
+    - [x] Inmediatamente después, llamar al nuevo endpoint de confirmación simulada.
+    - [x] Al tener éxito, redirigir al usuario al paso final de confirmación.
 
-4.  **Completar Traducciones Faltantes:**
-    *   [ ] Revisar todos los componentes y páginas de frontend para asegurar que todo el texto visible para el usuario esté correctamente internacionalizado usando `useI18n`.
-    *   [ ] Añadir cualquier clave/valor faltante a `frontend/locales/en.json`, `es.json`, `pt.json`.
+- [x] **Crear el Endpoint de Simulación de Pago (Backend):**
+    - [x] **Controller:** Añadir `POST /api/bookings/{bookingId}/confirm-mock` en `BookingController.java`.
+    - [x] **Service:** Crear el método `confirmBookingAfterMockPayment` en `BookingService.java`.
+    - [x] **Lógica de Servicio:**
+        - [x] Verificar que el usuario que confirma es el dueño de la reserva.
+        - [x] Cambiar el estado de la reserva de `PENDING` a `CONFIRMED`.
+        - [x] Registrar la acción en el `AuditLog`.
 
-5.  **Corregir Problema de Gestión de Temas/Modo Claro y Oscuro:**
-    *   [ ] Investigar la configuración actual de temas y Nuxt UI para resolver el problema del modo claro/oscuro.
+---
 
-**II. Backend Mejoras & Verificación (Prioridad Media)**
+## Fase 2: Experiencia Post-Reserva y Carrito (Prioridad Alta) 🛒
+**Objetivo: Ofrecer funcionalidades estándar de e-commerce como un carrito persistente y un portal de usuario.**
 
-1.  **Verificar Métodos de `TourScheduleAdminController`:**
-    *   [ ] Confirmar que los métodos `create`, `update` y `delete` en `TourScheduleAdminController` (y su lógica de capa de servicio correspondiente) estén completamente implementados y funcionales.
-2.  **Crear DTOs de `TourSchedule`:**
-    *   [ ] Asegurar que los DTOs `TourScheduleCreateReq` y `TourScheduleRes` estén correctamente definidos y se utilicen para las interacciones de la API.
-3.  **Implementar Filtro `owner_id` para `PARTNER_ADMIN`:**
-    *   [ ] Asegurar que todos los endpoints de la API relevantes filtren correctamente los datos por `owner_id` cuando sean accedidos por un `PARTNER_ADMIN` para aplicar la segregación de datos.
-4.  **Añadir Contador de Bookings a `TourScheduleRes`:**
-    *   [ ] Modificar `TourScheduleRes` para incluir un conteo de las reservas actuales para un schedule dado.
+- [x] **Conectar el Carrito de Compras al Backend (`frontend/app/stores/cart.ts`):**
+    - [x] Reescribir el store de Pinia para que utilice `$fetch` y se comunique con la API del backend (`/api/cart`).
+    - [x] Dejar de usar un array local y basar el estado del carrito en la respuesta de la API.
+    - [x] Asegurar que el estado persista entre recargas de página gracias a la cookie `cartId` gestionada por el backend.
 
-**III. Integraciones (Prioridad Baja)**
+- [x] **Construir el "Portal del Viajero" (Frontend):**
+    - [x] Crear la página `pages/profile/bookings.vue` para listar las reservas del usuario.
+    - [x] Crear la página `pages/profile/index.vue` para que los usuarios puedan ver y editar su información personal.
 
-1.  **Integrar Proveedores de Pago:**
-    *   [ ] Transbank (Webpay Plus/REST) para el mercado chileno.
-    *   [ ] Mercado Pago (API v2 con PIX) para el mercado brasileño.
-    *   [ ] Stripe para pagos internacionales.
-2.  **Integrar Servicios de Correo:**
-    *   [ ] Implementar correos electrónicos automatizados para confirmación de reserva, recordatorios y notas de agradecimiento.
-    *   [ ] Asegurar soporte multilingüe para los correos electrónicos.
+---
+
+## Fase 3: Empoderamiento del Administrador (Prioridad Media) 🛠️
+**Objetivo: Dar a los administradores las herramientas para gestionar sus operaciones diarias.**
+
+- [x] **Completar la Gestión de Horarios en el Calendario (`frontend/app/pages/admin/calendar.vue`):**
+    - [x] Implementar el formulario dentro del `UModal` para la creación y edición de `TourSchedules`.
+    - [x] Conectar el formulario a los endpoints `POST` y `PUT` de `/api/admin/schedules`.
+    - [x] Añadir validación para los campos del formulario.
+
+- [x] **Crear la Interfaz de Alertas Climáticas (Frontend):**
+    - [x] Crear la página `frontend/app/pages/admin/alerts.vue` para listar y gestionar las alertas.
+    - [x] Implementar un modal para que el admin pueda "Resolver" una alerta (marcar como `KEPT`, `CANCELLED`, `RESCHEDULED`).
+    - [x] Añadir un widget/badge en el `layouts/admin.vue` que muestre el conteo de alertas pendientes obtenido de `GET /api/admin/alerts/count`.
+
+---
+
+## Fase 4: Completitud y Pulido (Prioridad Baja) ✨
+**Objetivo: Finalizar funcionalidades secundarias y refinar la experiencia general.**
+
+- [x] **Implementar Visor de Auditoría (Frontend):**
+    - [x] Crear la página `frontend/app/pages/admin/audit-logs.vue` para que el `SUPER_ADMIN` pueda consultar el historial de cambios.
+    - [x] Implementar filtros por acción, tipo de entidad y email de usuario.
+    - [x] Añadir paginación con navegación completa.
+    - [x] Mostrar estadísticas de acciones (CREATE, UPDATE, DELETE).
+    - [x] Visualización detallada de valores antiguos y nuevos.
+
+- [x] **Crear Páginas Informativas Públicas (Frontend):**
+    - [x] Construir la página del calendario lunar (`/moon-calendar`) consumiendo la API `GET /api/lunar/calendar`.
+    - [x] Mostrar próximas lunas llenas.
+    - [x] Navegación por meses con diseño de calendario.
+    - [x] Leyenda de fases lunares con emojis.
+
+- [x] **Refinamiento General y Corrección de Bugs:**
+    - [x] Completar todas las traducciones del calendario lunar en ES/EN/PT.
+    - [x] Consolidar archivos de traducción en `i18n/locales/`.
+    - [x] Desactivar toggle de dark mode y fijar tema único en light mode.
+    - [x] Remover UColorModeButton del layout de admin.
+    - [ ] Añadir paginación en las tablas de administración que puedan tener muchos datos (Reservas, Usuarios) - OPCIONAL.
+
+---
+
+## Mejoras Técnicas Completadas ✅
+
+- [x] **Manejo Robusto de Precios:**
+    - [x] Migración de base de datos: Todos los campos monetarios ahora usan `NUMERIC(19,4)`.
+    - [x] Backend: Entidades actualizadas con `BigDecimal` y precisión correcta.
+    - [x] Backend: Configuración de Jackson para serialización de BigDecimal como plain strings.
+    - [x] Frontend: Composable `useCurrency` implementado con `Intl.NumberFormat`.
+    - [x] Frontend: Todos los componentes actualizados para usar el composable centralizado.
+
+- [x] **Funcionalidad de Cancelación de Reservas:**
+    - [x] Temporalmente deshabilitada hasta integración de pasarelas de pago.
