@@ -1,37 +1,140 @@
 import { defineStore } from 'pinia'
-import type { TourRes } from '~/lib/api-client' // Tipos del cliente generado
-import type { TourScheduleRes } from '~/lib/api-client' // Necesitarás este tipo también
 
 interface CartItem {
-  schedule: TourScheduleRes;
-  date: string;
-  participants: number;
+  itemId: string
+  scheduleId: string
+  tourId: string
+  tourName: string
+  numParticipants: number
+  pricePerParticipant: number
+  itemTotal: number
+}
+
+interface Cart {
+  cartId: string | null
+  items: CartItem[]
+  cartTotal: number
 }
 
 export const useCartStore = defineStore('cart', () => {
-  const items = ref<CartItem[]>([])
-
-  const totalItems = computed(() => items.value.reduce((sum, item) => sum + item.participants, 0))
-
-  const totalPrice = computed(() => {
-    return items.value.reduce((total, item) => {
-      const price = item.schedule.tour.price || 0
-      return total + (item.participants * price)
-    }, 0)
+  const cart = ref<Cart>({
+    cartId: null,
+    items: [],
+    cartTotal: 0
   })
 
-  function addItem(item: CartItem) {
-    const existingItem = items.value.find(i => i.schedule.id === item.schedule.id)
-    if (existingItem) {
-      existingItem.participants += item.participants
-    } else {
-      items.value.push(item)
+  const isLoading = ref(false)
+  const toast = useToast()
+
+  // Computed properties
+  const totalItems = computed(() =>
+    cart.value.items.reduce((sum, item) => sum + item.numParticipants, 0)
+  )
+
+  const totalPrice = computed(() => cart.value.cartTotal)
+
+  // Fetch cart from backend
+  async function fetchCart() {
+    isLoading.value = true
+    try {
+      const response = await $fetch<Cart>('/api/cart', {
+        credentials: 'include'
+      })
+      cart.value = response
+    } catch (error: any) {
+      console.error('Error fetching cart:', error)
+      // Initialize empty cart on error
+      cart.value = {
+        cartId: null,
+        items: [],
+        cartTotal: 0
+      }
+    } finally {
+      isLoading.value = false
     }
   }
 
-  function removeItem(scheduleId: string) {
-    items.value = items.value.filter(i => i.schedule.id !== scheduleId)
+  // Add item to cart
+  async function addItem(scheduleId: string, numParticipants: number = 1) {
+    isLoading.value = true
+    try {
+      const response = await $fetch<Cart>('/api/cart/items', {
+        method: 'POST',
+        credentials: 'include',
+        body: {
+          scheduleId,
+          numParticipants
+        }
+      })
+      cart.value = response
+
+      toast.add({
+        title: 'Success',
+        description: 'Item added to cart',
+        color: 'success'
+      })
+
+      return true
+    } catch (error: any) {
+      console.error('Error adding item to cart:', error)
+      toast.add({
+        title: 'Error',
+        description: error.data?.message || 'Failed to add item to cart',
+        color: 'error'
+      })
+      return false
+    } finally {
+      isLoading.value = false
+    }
   }
 
-  return { items, totalItems, totalPrice, addItem, removeItem }
+  // Remove item from cart
+  async function removeItem(itemId: string) {
+    isLoading.value = true
+    try {
+      const response = await $fetch<Cart>(`/api/cart/items/${itemId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      cart.value = response
+
+      toast.add({
+        title: 'Success',
+        description: 'Item removed from cart',
+        color: 'success'
+      })
+
+      return true
+    } catch (error: any) {
+      console.error('Error removing item from cart:', error)
+      toast.add({
+        title: 'Error',
+        description: error.data?.message || 'Failed to remove item from cart',
+        color: 'error'
+      })
+      return false
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Clear cart (useful after successful checkout)
+  function clearCart() {
+    cart.value = {
+      cartId: null,
+      items: [],
+      cartTotal: 0
+    }
+  }
+
+  return {
+    cart,
+    isLoading,
+    totalItems,
+    totalPrice,
+    fetchCart,
+    addItem,
+    removeItem,
+    clearCart
+  }
 })
