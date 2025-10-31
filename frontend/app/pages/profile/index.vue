@@ -85,6 +85,7 @@
                     :disabled="!isEditing"
                     size="lg"
                     icon="i-lucide-user"
+                    class="w-full"
                   />
                 </UFormField>
 
@@ -99,6 +100,7 @@
                     disabled
                     size="lg"
                     icon="i-lucide-mail"
+                    class="w-full"
                   />
                   <template #help>
                     <span class="text-sm text-neutral-500">
@@ -117,6 +119,7 @@
                     size="lg"
                     icon="i-lucide-globe"
                     :placeholder="t('booking.nationality_placeholder')"
+                    class="w-full"
                   />
                 </UFormField>
 
@@ -130,6 +133,7 @@
                     :disabled="!isEditing"
                     size="lg"
                     icon="i-lucide-calendar"
+                    class="w-full"
                   />
                 </UFormField>
 
@@ -143,6 +147,7 @@
                     size="lg"
                     icon="i-lucide-phone"
                     :placeholder="t('booking.phone_placeholder')"
+                    class="w-full"
                   />
                 </UFormField>
 
@@ -157,6 +162,7 @@
                     option-attribute="label"
                     value-attribute="value"
                     size="lg"
+                    class="w-full"
                   />
                 </UFormField>
 
@@ -204,6 +210,7 @@
                     type="password"
                     size="lg"
                     icon="i-lucide-lock"
+                    class="w-full"
                   />
                 </UFormField>
 
@@ -217,6 +224,7 @@
                     type="password"
                     size="lg"
                     icon="i-lucide-lock"
+                    class="w-full"
                   />
                   <template #help>
                     <span class="text-sm text-neutral-500">
@@ -235,6 +243,7 @@
                     type="password"
                     size="lg"
                     icon="i-lucide-lock"
+                    class="w-full"
                   />
                 </UFormField>
 
@@ -264,7 +273,6 @@ const toast = useToast()
 
 definePageMeta({
   layout: 'default',
-  middleware: 'auth'
 })
 
 // State

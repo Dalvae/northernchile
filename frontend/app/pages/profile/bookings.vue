@@ -157,7 +157,6 @@ const { formatPrice } = useCurrency()
 
 definePageMeta({
   layout: 'default',
-  middleware: 'auth'
 })
 
 // Fetch bookings
