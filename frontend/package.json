@@ -28,12 +28,20 @@
     "pinia": "^3.0.3"
   },
   "devDependencies": {
+    "@iconify-json/heroicons": "^1.2.3",
     "@nuxt/eslint": "^1.9.0",
     "@openapitools/openapi-generator-cli": "^2.25.0",
     "eslint": "^9.38.0",
     "typescript": "^5.9.3",
     "vite-tsconfig-paths": "^5.1.4",
     "vue-tsc": "^3.1.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "@vue/devtools-applet": "^8.0.3",
+      "@vue/devtools-core": "^8.0.3",
+      "@vue/devtools-kit": "^8.0.3"
+    }
   },
   "resolutions": {
     "unimport": "4.1.1"
