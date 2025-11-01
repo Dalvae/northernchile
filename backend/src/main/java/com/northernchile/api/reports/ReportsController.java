@@ -170,10 +170,11 @@ public class ReportsController {
 
         // Agrupar por tour
         Map<String, List<Booking>> bookingsByTour = bookings.stream()
-                .filter(b -> b.getTourSchedule() != null && b.getTourSchedule().getTour() != null)
-                .collect(Collectors.groupingBy(b ->
-                        b.getTourSchedule().getTour().getName()
-                ));
+                .filter(b -> b.getSchedule() != null && b.getSchedule().getTour() != null)
+                .collect(Collectors.groupingBy(b -> {
+                    String tourName = b.getSchedule().getTour().getNameTranslations().get("es");
+                    return tourName != null ? tourName : "Sin nombre";
+                }));
 
         List<Map<String, Object>> result = bookingsByTour.entrySet().stream()
                 .map(entry -> {

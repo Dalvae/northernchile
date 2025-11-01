@@ -145,7 +145,7 @@ public class TourScheduleAdminController {
                 .orElseThrow(() -> new RuntimeException("Schedule not found: " + id));
 
         // Buscar todas las reservas confirmadas para este schedule
-        List<Booking> bookings = bookingRepository.findByTourScheduleId(UUID.fromString(id));
+        List<Booking> bookings = bookingRepository.findByScheduleId(UUID.fromString(id));
 
         // Extraer todos los participantes
         List<Map<String, Object>> participantsList = new ArrayList<>();
@@ -157,11 +157,9 @@ public class TourScheduleAdminController {
                 participantData.put("documentId", participant.getDocumentId());
                 participantData.put("nationality", participant.getNationality());
                 participantData.put("age", participant.getAge());
-                participantData.put("type", participant.getType());
                 participantData.put("bookingId", booking.getId());
                 participantData.put("bookingStatus", booking.getStatus());
-                participantData.put("bookingReference", booking.getBookingReference());
-                participantData.put("pickupAddress", booking.getPickupAddress());
+                participantData.put("pickupAddress", participant.getPickupAddress());
                 participantsList.add(participantData);
             }
         }
@@ -169,7 +167,9 @@ public class TourScheduleAdminController {
         Map<String, Object> response = new HashMap<>();
         response.put("scheduleId", schedule.getId());
         response.put("startDatetime", schedule.getStartDatetime());
-        response.put("tourName", schedule.getTour() != null ? schedule.getTour().getName() : null);
+        response.put("tourName", schedule.getTour() != null && schedule.getTour().getNameTranslations() != null
+            ? schedule.getTour().getNameTranslations().get("es")
+            : null);
         response.put("status", schedule.getStatus());
         response.put("totalBookings", bookings.size());
         response.put("totalParticipants", participantsList.size());

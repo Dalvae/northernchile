@@ -14,7 +14,7 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     @Query("SELECT COUNT(p) FROM Participant p WHERE p.booking.schedule.id = :scheduleId")
     Integer countParticipantsByScheduleId(UUID scheduleId);
 
-    List<Booking> findByTourScheduleId(UUID scheduleId);
+    List<Booking> findByScheduleId(UUID scheduleId);
 
     List<Booking> findByCreatedAtBetween(Instant start, Instant end);
 }
