@@ -5,7 +5,7 @@ definePageMeta({
 
 const config = useRuntimeConfig()
 const toast = useToast()
-const { formatCurrency } = useCurrency()
+const { formatPrice } = useCurrency()
 
 // Date range filter
 const today = new Date()
@@ -202,7 +202,7 @@ const formatDate = (date: string) => {
         />
         <AdminDashboardStat
           label="Ingresos Totales"
-          :value="formatCurrency(overview.totalRevenue)"
+          :value="formatPrice(overview.totalRevenue)"
           icon="i-lucide-dollar-sign"
           icon-color="bg-tertiary/10"
           icon-text-color="text-tertiary"
@@ -220,14 +220,14 @@ const formatDate = (date: string) => {
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <AdminDashboardStat
           label="Valor Promedio Reserva"
-          :value="formatCurrency(overview.averageBookingValue)"
+          :value="formatPrice(overview.averageBookingValue)"
           icon="i-lucide-trending-up"
           icon-color="bg-secondary/10"
           icon-text-color="text-secondary"
         />
         <AdminDashboardStat
           label="Tasa de Conversión"
-          :value="`${overview.conversionRate.toFixed(1)}%`"
+          :value="`${(overview.conversionRate || 0).toFixed(1)}%`"
           icon="i-lucide-percent"
           icon-color="bg-warning/10"
           icon-text-color="text-warning"
@@ -306,7 +306,7 @@ const formatDate = (date: string) => {
                   {{ day.count }}
                 </td>
                 <td class="px-4 py-2 text-sm text-right text-neutral-900 dark:text-white">
-                  {{ formatCurrency(day.revenue) }}
+                  {{ formatPrice(day.revenue) }}
                 </td>
               </tr>
             </tbody>
@@ -365,7 +365,7 @@ const formatDate = (date: string) => {
                   {{ tour.participants }}
                 </td>
                 <td class="px-4 py-2 text-sm text-right text-neutral-900 dark:text-white font-medium">
-                  {{ formatCurrency(tour.revenue) }}
+                  {{ formatPrice(tour.revenue) }}
                 </td>
               </tr>
             </tbody>

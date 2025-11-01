@@ -42,8 +42,10 @@ const { data: settings, pending, error, refresh } = await useAsyncData(
           taxRate: number
           depositPercentage: number
         }
-      }>(`${config.public.apiBaseUrl}/admin/settings`, {
-        credentials: 'include'
+      }>(`${config.public.apiBase}/api/admin/settings`, {
+        headers: process.client && localStorage.getItem('auth_token') ? {
+          Authorization: `Bearer ${localStorage.getItem('auth_token')}`
+        } : {}
       })
       return response
     } catch (err) {
@@ -62,8 +64,39 @@ const { data: settings, pending, error, refresh } = await useAsyncData(
   }
 )
 
-// Form state
-const settingsForm = ref<any>({})
+// Form state - debe coincidir con la estructura del API
+const settingsForm = ref<any>({
+  weatherAlerts: {
+    windThreshold: 25,
+    cloudCoverThreshold: 80,
+    rainProbabilityThreshold: 50,
+    checkFrequency: 3
+  },
+  bookingSettings: {
+    cancellationWindowHours: 24,
+    maxAdvanceBookingDays: 90,
+    minAdvanceBookingHours: 2,
+    autoConfirmBookings: false
+  },
+  astronomicalTours: {
+    moonIlluminationThreshold: 90,
+    autoBlockFullMoon: true,
+    scheduleGenerationDaysAhead: 90
+  },
+  notifications: {
+    emailEnabled: true,
+    smsEnabled: false,
+    sendBookingConfirmation: true,
+    sendCancellationNotice: true,
+    sendWeatherAlerts: true
+  },
+  payments: {
+    mockPaymentMode: false,
+    currency: 'CLP',
+    taxRate: 19,
+    depositPercentage: 0
+  }
+})
 
 // Initialize form when settings load
 watch(settings, (newSettings) => {
@@ -78,10 +111,13 @@ const saveSettings = async () => {
   try {
     saving.value = true
 
-    await $fetch(`${config.public.apiBaseUrl}/admin/settings`, {
+    const token = process.client ? localStorage.getItem('auth_token') : null
+    await $fetch(`${config.public.apiBase}/api/admin/settings`, {
       method: 'PUT',
       body: settingsForm.value,
-      credentials: 'include'
+      headers: token ? {
+        Authorization: `Bearer ${token}`
+      } : {}
     })
 
     toast.add({

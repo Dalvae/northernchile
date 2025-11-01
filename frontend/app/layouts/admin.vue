@@ -18,8 +18,11 @@ const { data: alertsCount, refresh: refreshAlertsCount } = await useAsyncData(
   'pending-alerts-count',
   async () => {
     try {
-      const response = await $fetch<{ pending: number }>(`${config.public.apiBaseUrl}/admin/alerts/count`, {
-        credentials: 'include'
+      const token = process.client ? localStorage.getItem('auth_token') : null
+      const response = await $fetch<{ pending: number }>(`${config.public.apiBase}/api/admin/alerts/count`, {
+        headers: token ? {
+          Authorization: `Bearer ${token}`
+        } : {}
       })
       return response.pending || 0
     } catch (error) {
@@ -186,7 +189,7 @@ function formatSegment(segment: string) {
                   {{ authStore.user?.fullName }}
                 </p>
                 <p class="text-xs text-neutral-500 truncate">
-                  {{ authStore.user?.role === 'ROLE_SUPER_ADMIN' ? 'Super Admin' : authStore.user?.role === 'ROLE_PARTNER_ADMIN' ? 'Partner Admin' : 'Usuario' }}
+                  {{ authStore.user?.role?.includes('ROLE_SUPER_ADMIN') ? 'Super Admin' : authStore.user?.role?.includes('ROLE_PARTNER_ADMIN') ? 'Partner Admin' : 'Usuario' }}
                 </p>
               </div>
               <UIcon name="i-lucide-chevron-up" class="w-4 h-4 text-neutral-400" />

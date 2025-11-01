@@ -38,10 +38,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/tours/**").permitAll()
                         // Permitir GET a disponibilidad para todo el mundo
                         .requestMatchers(HttpMethod.GET, "/api/availability/**").permitAll()
+                        // Permitir acceso público a datos del calendario (fases lunares + weather)
+                        .requestMatchers(HttpMethod.GET, "/api/calendar/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/lunar/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/weather/**").permitAll()
+                        // Proteger operaciones de storage (solo admins)
+                        .requestMatchers("/api/storage/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_PARTNER_ADMIN")
                         // Proteger las operaciones de escritura en tours
-                        .requestMatchers(HttpMethod.POST, "/api/tours/**").hasAnyRole("SUPER_ADMIN", "PARTNER_ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/tours/**").hasAnyRole("SUPER_ADMIN", "PARTNER_ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/tours/**").hasAnyRole("SUPER_ADMIN", "PARTNER_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/tours/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_PARTNER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/tours/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_PARTNER_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/tours/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_PARTNER_ADMIN")
                         // Permitir rutas de autenticación y documentación
                         .requestMatchers(
                                 "/api/auth/**",
@@ -52,7 +58,7 @@ public class SecurityConfig {
                                 "/error"
                         ).permitAll()
                         // Proteger todas las rutas de administración
-                        .requestMatchers("/api/admin/**").hasAnyRole("SUPER_ADMIN", "PARTNER_ADMIN")
+                        .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_PARTNER_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

@@ -24,8 +24,10 @@ const { data: requests, pending, error, refresh } = await useAsyncData(
         status: string
         quotedPrice: number
         createdAt: string
-      }>>(`${config.public.apiBaseUrl}/admin/private-tours/requests`, {
-        credentials: 'include'
+      }>>(`${config.public.apiBase}/api/admin/private-tours/requests`, {
+        headers: process.client && localStorage.getItem('auth_token') ? {
+          Authorization: `Bearer ${localStorage.getItem('auth_token')}`
+        } : {}
       })
       return response
     } catch (err) {
@@ -49,7 +51,7 @@ const searchQuery = ref('')
 const filterByStatus = ref('')
 
 const filteredRequests = computed(() => {
-  if (!requests.value) return []
+  if (!requests.value || !Array.isArray(requests.value)) return []
 
   let filtered = requests.value
 
@@ -73,7 +75,9 @@ const filteredRequests = computed(() => {
 
 // Stats
 const stats = computed(() => {
-  if (!requests.value) return { total: 0, pending: 0, quoted: 0, confirmed: 0, cancelled: 0 }
+  if (!requests.value || !Array.isArray(requests.value)) {
+    return { total: 0, pending: 0, quoted: 0, confirmed: 0, cancelled: 0 }
+  }
 
   return {
     total: requests.value.length,
@@ -93,9 +97,8 @@ const statusForm = ref({
   quotedPrice: ''
 })
 
-// Status options
+// Status options - sin valor vacío porque USelect no lo permite
 const statusOptions = [
-  { label: 'Todos los estados', value: '' },
   { label: 'Pendiente', value: 'PENDING' },
   { label: 'Cotizado', value: 'QUOTED' },
   { label: 'Confirmado', value: 'CONFIRMED' },
@@ -268,6 +271,7 @@ const { formatCurrency } = useCurrency()
             value-attribute="value"
             placeholder="Filtrar por estado"
             size="lg"
+            clearable
           />
         </div>
       </div>

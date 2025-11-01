@@ -15,11 +15,8 @@ function decodeJwtPayload(token: string): any | null {
     const decodedJson = atob(
       payloadBase64.replace(/-/g, "+").replace(/_/g, "/"),
     );
-    const payload = JSON.parse(decodedJson);
-    console.log('JWT Payload:', payload);
-    return payload;
+    return JSON.parse(decodedJson);
   } catch (error) {
-    console.error("Failed to decode JWT:", error);
     return null;
   }
 }
@@ -155,10 +152,36 @@ export const useAuthStore = defineStore("auth", {
       if (process.client) {
         const token = localStorage.getItem("auth_token");
         const user = localStorage.getItem("user");
+
         if (token && user) {
-          this.isAuthenticated = true;
-          this.token = token;
-          this.user = JSON.parse(user);
+          // Decodificar y verificar si el token está expirado
+          const payload = decodeJwtPayload(token);
+
+          if (payload && payload.exp) {
+            const currentTime = Math.floor(Date.now() / 1000);
+            const isExpired = payload.exp < currentTime;
+
+            if (isExpired) {
+              // Token expirado, limpiar y desautenticar
+              localStorage.removeItem("auth_token");
+              localStorage.removeItem("user");
+              this.isAuthenticated = false;
+              this.user = null;
+              this.token = null;
+            } else {
+              // Token válido
+              this.isAuthenticated = true;
+              this.token = token;
+              this.user = JSON.parse(user);
+            }
+          } else {
+            // Token inválido o sin exp, limpiar
+            localStorage.removeItem("auth_token");
+            localStorage.removeItem("user");
+            this.isAuthenticated = false;
+            this.user = null;
+            this.token = null;
+          }
         } else {
           this.isAuthenticated = false;
           this.user = null;

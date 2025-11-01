@@ -8,6 +8,7 @@ definePageMeta({
 
 const { fetchAdminBookings, fetchAdminTours } = useAdminData()
 const { formatPrice: formatCurrency } = useCurrency()
+const config = useRuntimeConfig()
 
 const { data: bookingsData, pending: pendingBookings } = await useAsyncData(
   'bookings',
@@ -17,36 +18,71 @@ const { data: tours, pending: pendingTours } = await useAsyncData('tours', () =>
   fetchAdminTours()
 )
 
+// Fetch alerts count
+const { data: alertsCount } = await useAsyncData(
+  'dashboard-alerts-count',
+  async () => {
+    try {
+      const token = process.client ? localStorage.getItem('auth_token') : null
+      const response = await $fetch<{ pending: number }>(`${config.public.apiBase}/api/admin/alerts/count`, {
+        headers: token ? {
+          Authorization: `Bearer ${token}`
+        } : {}
+      })
+      return response.pending || 0
+    } catch (error) {
+      return 0
+    }
+  },
+  {
+    server: false,
+    lazy: true
+  }
+)
+
 const latestBookings = computed(() =>
   Array.isArray(bookingsData.value?.data)
     ? bookingsData.value.data.slice(0, 5)
     : []
 )
 
-// Stats con loading state y cambio porcentual simulado
+// Stats calculados con datos reales
 const stats = computed(() => {
   const allTours = Array.isArray(tours.value?.data) ? tours.value.data : []
-  const totalBookings = bookingsData.value?.data.length || 0
+  const allBookings = Array.isArray(bookingsData.value?.data) ? bookingsData.value.data : []
+  const totalBookings = allBookings.length
   const activeTours = allTours.filter((t) => t.status === 'PUBLISHED').length || 0
+
+  // Calcular ingresos del mes actual
+  const now = new Date()
+  const currentMonth = now.getMonth()
+  const currentYear = now.getFullYear()
+
+  const monthlyRevenue = allBookings
+    .filter(b => {
+      const bookingDate = new Date(b.createdAt)
+      return bookingDate.getMonth() === currentMonth &&
+             bookingDate.getFullYear() === currentYear &&
+             (b.status === 'CONFIRMED' || b.status === 'COMPLETED')
+    })
+    .reduce((sum, b) => sum + (b.totalAmount || 0), 0)
 
   return [
     {
       label: 'Total Reservas',
       value: totalBookings,
       icon: 'i-lucide-book-marked',
-      change: 12.5,
       iconColor: 'bg-primary/10',
       iconTextColor: 'text-primary',
-      loading: pendingBookings
+      loading: pendingBookings.value
     },
     {
       label: 'Ingresos del Mes',
-      value: '$12,345',
+      value: formatCurrency(monthlyRevenue),
       icon: 'i-lucide-dollar-sign',
-      change: 8.2,
       iconColor: 'bg-success/10',
       iconTextColor: 'text-success',
-      loading: pendingBookings
+      loading: pendingBookings.value
     },
     {
       label: 'Tours Activos',
@@ -54,13 +90,12 @@ const stats = computed(() => {
       icon: 'i-lucide-map',
       iconColor: 'bg-info/10',
       iconTextColor: 'text-info',
-      loading: pendingTours
+      loading: pendingTours.value
     },
     {
       label: 'Alertas Pendientes',
-      value: '3',
+      value: alertsCount.value || 0,
       icon: 'i-lucide-alert-triangle',
-      change: -25,
       iconColor: 'bg-warning/10',
       iconTextColor: 'text-warning',
       loading: false

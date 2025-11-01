@@ -281,7 +281,7 @@ function formatDate(dateString: string): string {
                 @click="openDetailsModal(row.original)"
               />
 
-              <UDropdown
+              <UDropdownMenu
                 :items="[
                   [
                     {
@@ -314,7 +314,7 @@ function formatDate(dateString: string): string {
                   size="sm"
                   aria-label="Más opciones"
                 />
-              </UDropdown>
+              </UDropdownMenu>
             </div>
           </template>
         </UTable>
