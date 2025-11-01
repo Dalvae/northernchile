@@ -1,27 +1,30 @@
 export default defineAppConfig({
   ui: {
-    // Colores Semánticos - Cambia estos colores para actualizar todo el tema
+    // Tema Astronómico - Inspirado en los cielos del desierto de Atacama
     colors: {
       // Primary: Acciones principales, navegación activa, elementos de marca
-      primary: "green",
+      // Morado profundo como el cielo nocturno
+      primary: "purple",
 
       // Secondary: Botones secundarios, acciones alternativas
-      secondary: "blue",
+      // Índigo para complementar el morado
+      secondary: "indigo",
 
       // Tertiary: Color astronómico profundo para acentos especiales
+      // Color personalizado definido en cosmic.css
       tertiary: "deep-space",
 
       // Success: Mensajes de éxito, confirmaciones positivas
-      success: "green",
+      success: "emerald",
 
       // Info: Alertas informativas, tooltips, notificaciones neutrales
-      info: "blue",
+      info: "sky",
 
       // Warning: Advertencias, estados pendientes, atención requerida
-      warning: "yellow",
+      warning: "amber",
 
       // Error: Mensajes de error, validaciones, acciones destructivas
-      error: "red",
+      error: "rose",
 
       // Neutral: Textos, bordes, fondos, estados deshabilitados
       neutral: "slate",

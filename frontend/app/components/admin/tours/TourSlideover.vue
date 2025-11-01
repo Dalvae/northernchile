@@ -68,8 +68,19 @@ const initialState: Schema = {
 const state = reactive<Schema>({ ...initialState });
 const form = ref();
 
-// Para manejar imageUrls como string temporal
-const imageUrlsString = ref("");
+// Funciones para manejar imágenes
+const handleImageUploaded = (data: { key: string; url: string }) => {
+  if (!state.imageUrls) {
+    state.imageUrls = [];
+  }
+  state.imageUrls.push(data.url);
+};
+
+const removeImage = (index: number) => {
+  if (state.imageUrls) {
+    state.imageUrls.splice(index, 1);
+  }
+};
 
 // Configurar estado basado en props.tour
 watch(
@@ -87,7 +98,6 @@ watch(
         pt: "",
       };
       state.imageUrls = tour.images?.map((img) => img.imageUrl) || [];
-      imageUrlsString.value = state.imageUrls.join(", ");
       state.isMoonSensitive = tour.isMoonSensitive || false;
       state.isWindSensitive = tour.isWindSensitive || false;
       state.isCloudSensitive = tour.isCloudSensitive || false;
@@ -99,23 +109,10 @@ watch(
     } else {
       // Resetear a valores por defecto
       Object.assign(state, initialState);
-      imageUrlsString.value = "";
     }
   },
   { immediate: true, deep: true },
 );
-
-// Watch para convertir string de imageUrls a array
-watch(imageUrlsString, (newValue) => {
-  if (newValue.trim()) {
-    state.imageUrls = newValue
-      .split(",")
-      .map((url) => url.trim())
-      .filter((url) => url.length > 0);
-  } else {
-    state.imageUrls = [];
-  }
-});
 
 const { createAdminTour, updateAdminTour } = useAdminData();
 const toast = useToast();
@@ -227,6 +224,41 @@ const statusOptions = [
               v-model="state.category"
               :options="['ASTRONOMICAL', 'REGULAR', 'SPECIAL', 'PRIVATE']"
             />
+          </UFormGroup>
+
+          <UFormGroup label="Imágenes del Tour" name="imageUrls">
+            <div class="space-y-4">
+              <!-- Mostrar imágenes actuales -->
+              <div v-if="state.imageUrls && state.imageUrls.length > 0" class="grid grid-cols-2 gap-4">
+                <div
+                  v-for="(url, index) in state.imageUrls"
+                  :key="index"
+                  class="relative group"
+                >
+                  <img
+                    :src="url"
+                    :alt="`Tour image ${index + 1}`"
+                    class="w-full h-32 object-cover rounded-lg border border-neutral-700"
+                  >
+                  <UButton
+                    icon="i-heroicons-x-mark"
+                    color="error"
+                    size="xs"
+                    class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    @click="removeImage(index)"
+                  />
+                </div>
+              </div>
+
+              <!-- Uploader de nueva imagen -->
+              <CommonImageUploader
+                folder="tours"
+                @uploaded="handleImageUploaded"
+              />
+            </div>
+            <template #help>
+              Sube imágenes del tour. Máximo 5MB por imagen.
+            </template>
           </UFormGroup>
 
           <div class="grid grid-cols-2 gap-4">
