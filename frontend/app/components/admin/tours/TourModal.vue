@@ -71,10 +71,23 @@ const initialState: Schema = {
 
 const state = reactive<Schema>({ ...initialState });
 const form = ref();
-const imageUrlsString = ref("");
 
 // Variable para guardar los errores de validación
 const formErrors = ref<FormError[]>([]);
+
+// Funciones para manejar imágenes
+const handleImageUploaded = (data: { key: string; url: string }) => {
+  if (!state.imageUrls) {
+    state.imageUrls = [];
+  }
+  state.imageUrls.push(data.url);
+};
+
+const removeImage = (index: number) => {
+  if (state.imageUrls) {
+    state.imageUrls.splice(index, 1);
+  }
+};
 
 watch(
   () => props.tour,
@@ -95,23 +108,12 @@ watch(
         durationHours: tour.durationHours,
         status: tour.status,
       });
-      imageUrlsString.value = state.imageUrls.join(", ");
     } else {
       Object.assign(state, initialState);
-      imageUrlsString.value = "";
     }
   },
   { immediate: true, deep: true },
 );
-
-watch(imageUrlsString, (newValue) => {
-  state.imageUrls = newValue.trim()
-    ? newValue
-        .split(",")
-        .map((url) => url.trim())
-        .filter(Boolean)
-    : [];
-});
 
 const { createAdminTour, updateAdminTour } = useAdminData();
 const toast = useToast();
@@ -332,20 +334,42 @@ const statusOptions = [
                     </template>
                   </UTabs>
                   <UFormField
-                    label="URLs de Imágenes (separadas por comas)"
+                    label="Imágenes del Tour"
                     name="imageUrls"
-                    required
                     :error="findError('imageUrls')"
                   >
-                    <UTextarea
-                      v-model="imageUrlsString"
-                      placeholder="https://example.com/image1.jpg, https://example.com/image2.png"
-                      :rows="3"
-                      class="w-full"
-                    />
+                    <div class="space-y-4">
+                      <!-- Mostrar imágenes actuales -->
+                      <div v-if="state.imageUrls && state.imageUrls.length > 0" class="grid grid-cols-2 gap-4">
+                        <div
+                          v-for="(url, index) in state.imageUrls"
+                          :key="index"
+                          class="relative group"
+                        >
+                          <img
+                            :src="url"
+                            :alt="`Tour image ${index + 1}`"
+                            class="w-full h-32 object-cover rounded-lg border border-neutral-700"
+                          >
+                          <UButton
+                            icon="i-heroicons-x-mark"
+                            color="error"
+                            size="xs"
+                            class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            @click="removeImage(index)"
+                          />
+                        </div>
+                      </div>
+
+                      <!-- Uploader de nueva imagen -->
+                      <CommonImageUploader
+                        folder="tours"
+                        @uploaded="handleImageUploaded"
+                      />
+                    </div>
                     <template #help>
                       <p class="text-xs text-neutral-500 mt-1">
-                        Separe las URLs con comas.
+                        Sube imágenes del tour. Máximo 5MB por imagen.
                       </p>
                     </template>
                   </UFormField>

@@ -118,6 +118,12 @@
       			<artifactId>hibernate-types-60</artifactId>
       			<version>2.21.1</version>
       		</dependency>
+      		<!-- AWS SDK for S3 -->
+      		<dependency>
+      			<groupId>software.amazon.awssdk</groupId>
+      			<artifactId>s3</artifactId>
+      			<version>2.29.44</version>
+      		</dependency>
       	</dependencies>
 	<build>
 		<plugins>
