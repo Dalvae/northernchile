@@ -77,7 +77,7 @@ export const useCalendarData = () => {
    */
   const fetchMoonPhases = async (startDate: string, endDate: string): Promise<MoonPhase[]> => {
     try {
-      const response = await $fetch<MoonPhase[]>(`${config.public.apiBaseUrl}/lunar/calendar`, {
+      const response = await $fetch<MoonPhase[]>(`${config.public.apiBase}/api/lunar/calendar`, {
         params: { startDate, endDate }
       })
       return response
@@ -92,7 +92,7 @@ export const useCalendarData = () => {
    */
   const fetchWeatherForecast = async (): Promise<Map<string, DailyWeather>> => {
     try {
-      const response = await $fetch<any>(`${config.public.apiBaseUrl}/weather/forecast`)
+      const response = await $fetch<any>(`${config.public.apiBase}/api/weather/forecast`)
 
       // Convertir a Map por fecha
       const weatherMap = new Map<string, DailyWeather>()
@@ -124,10 +124,14 @@ export const useCalendarData = () => {
    */
   const fetchSchedules = async (startDate: string, endDate: string): Promise<TourSchedule[]> => {
     try {
+      const token = process.client ? localStorage.getItem('auth_token') : null
       const response = await $fetch<TourSchedule[]>(
-        `${config.public.apiBaseUrl}/admin/schedules`,
+        `${config.public.apiBase}/api/admin/schedules`,
         {
-          params: { start: startDate, end: endDate }
+          params: { start: startDate, end: endDate },
+          headers: token ? {
+            Authorization: `Bearer ${token}`
+          } : {}
         }
       )
       return response
@@ -142,7 +146,12 @@ export const useCalendarData = () => {
    */
   const fetchAlerts = async (): Promise<WeatherAlert[]> => {
     try {
-      const response = await $fetch<WeatherAlert[]>(`${config.public.apiBaseUrl}/admin/alerts`)
+      const token = process.client ? localStorage.getItem('auth_token') : null
+      const response = await $fetch<WeatherAlert[]>(`${config.public.apiBase}/api/admin/alerts`, {
+        headers: token ? {
+          Authorization: `Bearer ${token}`
+        } : {}
+      })
       return response
     } catch (error) {
       console.error('Error fetching alerts:', error)
@@ -152,34 +161,78 @@ export const useCalendarData = () => {
 
   /**
    * Obtiene todos los datos necesarios para el calendario
+   * Usa el endpoint combinado que devuelve luna + weather en una sola llamada
    */
   const fetchCalendarData = async (startDate: string, endDate: string) => {
-    const [moonPhases, weather, schedules, alerts] = await Promise.all([
-      fetchMoonPhases(startDate, endDate),
-      fetchWeatherForecast(),
-      fetchSchedules(startDate, endDate),
-      fetchAlerts()
-    ])
+    try {
+      // Obtener token si existe
+      const token = process.client ? localStorage.getItem('auth_token') : null
 
-    // Crear mapa de fases lunares por fecha
-    const moonMap = new Map<string, MoonPhase>()
-    moonPhases.forEach(moon => moonMap.set(moon.date, moon))
+      // Llamada combinada al backend: fases lunares + pronóstico meteorológico
+      const calendarResponse = await $fetch<any>(`${config.public.apiBase}/api/calendar/data`, {
+        params: { startDate, endDate },
+        headers: token ? {
+          Authorization: `Bearer ${token}`
+        } : {}
+      })
 
-    // Crear mapa de alertas por schedule ID
-    const alertMap = new Map<string, WeatherAlert[]>()
-    alerts.forEach(alert => {
-      if (!alertMap.has(alert.scheduleId)) {
-        alertMap.set(alert.scheduleId, [])
+      // Obtener schedules y alertas (datos que cambian frecuentemente)
+      const [schedules, alerts] = await Promise.all([
+        fetchSchedules(startDate, endDate),
+        fetchAlerts()
+      ])
+
+      // Crear mapa de fases lunares por fecha
+      const moonMap = new Map<string, MoonPhase>()
+      if (calendarResponse.moonPhases && Array.isArray(calendarResponse.moonPhases)) {
+        calendarResponse.moonPhases.forEach((moon: any) => moonMap.set(moon.date, moon))
       }
-      alertMap.get(alert.scheduleId)!.push(alert)
-    })
 
-    return {
-      moonPhases: moonMap,
-      weather,
-      schedules,
-      alerts: alertMap,
-      allAlerts: alerts
+      // Convertir weather response a Map
+      const weatherMap = new Map<string, DailyWeather>()
+      if (calendarResponse.weather?.daily) {
+        for (const day of calendarResponse.weather.daily) {
+          const date = new Date(day.dt * 1000).toISOString().split('T')[0]
+          weatherMap.set(date, {
+            date,
+            temp: day.temp,
+            windSpeed: day.windSpeed,
+            windGust: day.windGust,
+            clouds: day.clouds,
+            pop: day.pop,
+            weather: day.weather
+          })
+        }
+      }
+
+      // Crear mapa de alertas por schedule ID
+      const alertMap = new Map<string, WeatherAlert[]>()
+      if (Array.isArray(alerts)) {
+        alerts.forEach(alert => {
+          if (!alertMap.has(alert.scheduleId)) {
+            alertMap.set(alert.scheduleId, [])
+          }
+          alertMap.get(alert.scheduleId)!.push(alert)
+        })
+      }
+
+      return {
+        moonPhases: moonMap,
+        weather: weatherMap,
+        schedules: schedules || [],
+        alerts: alertMap,
+        allAlerts: alerts || []
+      }
+    } catch (error) {
+      console.error('Error loading calendar data:', error)
+      // Retornar datos vacíos en caso de error
+      return {
+        moonPhases: new Map(),
+        weather: new Map(),
+        schedules: [],
+        alerts: new Map(),
+        allAlerts: []
+      }
     }
   }
 
@@ -238,7 +291,7 @@ export const useCalendarData = () => {
    * Obtiene color de severidad para alertas
    */
   const getAlertColor = (severity: string): string => {
-    return severity === 'CRITICAL' ? 'red' : 'yellow'
+    return severity === 'CRITICAL' ? 'error' : 'warning'
   }
 
   /**

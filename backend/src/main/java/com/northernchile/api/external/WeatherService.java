@@ -1,7 +1,7 @@
 package com.northernchile.api.external;
 
 import com.northernchile.api.external.dto.DailyForecast;
-import com.northernchile.api.external.dto.OpenWeatherResponse;
+import com.northernchile.api.external.dto.FiveDayForecastResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -10,10 +10,13 @@ import org.springframework.web.client.RestTemplate;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Servicio para obtener datos del clima de OpenWeatherMap
- * https://openweathermap.org/api/one-call-3
+ * Usa la API gratuita de pronóstico de 5 días
+ * https://openweathermap.org/forecast5
  */
 @Service
 public class WeatherService {
@@ -23,9 +26,6 @@ public class WeatherService {
     @Value("${weather.api.key:dummy}")
     private String apiKey;
 
-    @Value("${weather.api.baseurl:https://api.openweathermap.org/data/3.0/onecall}")
-    private String baseUrl;
-
     // San Pedro de Atacama coordinates
     @Value("${weather.api.lat:-22.9083}")
     private String latitude;
@@ -34,28 +34,141 @@ public class WeatherService {
     private String longitude;
 
     /**
-     * Obtiene pronóstico de OpenWeatherMap One Call API 3.0
-     * Caché de 24 horas para evitar llamadas excesivas
-     * @return Respuesta del API con 8 días de pronóstico + datos astronómicos
+     * Obtiene pronóstico de 5 días con datos cada 3 horas (API gratuita)
+     * Caché de 3 horas para evitar llamadas excesivas
+     * @return Datos agrupados por día con temperaturas, viento, nubes, etc.
      */
-    @Cacheable(value = "weatherForecast", key = "'onecall'")
-    public OpenWeatherResponse getForecast() {
+    @Cacheable(value = "weatherForecast", key = "'fiveday'")
+    public Map<String, Object> getForecast() {
         if ("dummy".equals(apiKey)) {
-            return null;
+            System.out.println("WeatherService: API key is 'dummy', skipping weather fetch");
+            return createEmptyForecast();
         }
 
-        // One Call API 3.0: daily forecast hasta 8 días
-        // Excluimos minutely, hourly para ahorrar datos
-        String url = String.format("%s?lat=%s&lon=%s&exclude=minutely,hourly&units=metric&appid=%s",
-                baseUrl, latitude, longitude, apiKey);
+        // Free 5 Day / 3 Hour Forecast API
+        String url = String.format("https://api.openweathermap.org/data/2.5/forecast?lat=%s&lon=%s&units=metric&appid=%s",
+                latitude, longitude, apiKey);
+
+        System.out.println("WeatherService: Fetching weather from: " + url.replace(apiKey, "***"));
 
         try {
             RestTemplate restTemplate = new RestTemplate();
-            return restTemplate.getForObject(url, OpenWeatherResponse.class);
+            FiveDayForecastResponse response = restTemplate.getForObject(url, FiveDayForecastResponse.class);
+
+            if (response == null) {
+                System.err.println("WeatherService: Response is null");
+                return createEmptyForecast();
+            }
+
+            if (response.list == null) {
+                System.err.println("WeatherService: Response.list is null");
+                return createEmptyForecast();
+            }
+
+            System.out.println("WeatherService: Received " + response.list.size() + " forecast items");
+
+            // Agrupar por día y procesar
+            Map<String, Object> result = processForecastData(response);
+            System.out.println("WeatherService: Processed into " +
+                ((List<?>) result.get("daily")).size() + " daily forecasts");
+            return result;
         } catch (Exception e) {
             System.err.println("Error fetching OpenWeather forecast: " + e.getMessage());
-            return null;
+            e.printStackTrace();
+            return createEmptyForecast();
         }
+    }
+
+    /**
+     * Procesa los datos de 3 horas y los agrupa por día
+     */
+    private Map<String, Object> processForecastData(FiveDayForecastResponse response) {
+        // Agrupar items por fecha
+        Map<LocalDate, List<FiveDayForecastResponse.ForecastItem>> byDay = response.list.stream()
+                .collect(Collectors.groupingBy(item ->
+                    Instant.ofEpochSecond(item.dt).atZone(ZONE_ID).toLocalDate()
+                ));
+
+        // Convertir a formato que espera el frontend
+        List<Map<String, Object>> dailyForecasts = byDay.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> {
+                    LocalDate date = entry.getKey();
+                    List<FiveDayForecastResponse.ForecastItem> items = entry.getValue();
+
+                    // Calcular máximos y mínimos del día
+                    double tempMax = items.stream().mapToDouble(i -> i.main.tempMax).max().orElse(0);
+                    double tempMin = items.stream().mapToDouble(i -> i.main.tempMin).min().orElse(0);
+                    double tempDay = items.stream().mapToDouble(i -> i.main.temp).average().orElse(0);
+
+                    // Viento máximo del día
+                    double windSpeed = items.stream().mapToDouble(i -> i.wind.speed).max().orElse(0);
+                    double windGust = items.stream().mapToDouble(i -> i.wind.gust).max().orElse(0);
+
+                    // Promedio de nubes
+                    double clouds = items.stream().mapToDouble(i -> i.clouds.all).average().orElse(0);
+
+                    // Probabilidad máxima de precipitación
+                    double pop = items.stream().mapToDouble(i -> i.pop).max().orElse(0);
+
+                    // Condición climática más frecuente
+                    Map.Entry<String, Long> mostFrequentWeather = items.stream()
+                            .flatMap(i -> i.weather.stream())
+                            .collect(Collectors.groupingBy(w -> w.main, Collectors.counting()))
+                            .entrySet().stream()
+                            .max(Map.Entry.comparingByValue())
+                            .orElse(null);
+
+                    FiveDayForecastResponse.Weather representativeWeather = items.get(0).weather.get(0);
+                    if (mostFrequentWeather != null) {
+                        representativeWeather = items.stream()
+                                .flatMap(i -> i.weather.stream())
+                                .filter(w -> w.main.equals(mostFrequentWeather.getKey()))
+                                .findFirst()
+                                .orElse(representativeWeather);
+                    }
+
+                    // Timestamp del mediodía (para dt)
+                    long dt = items.stream()
+                            .filter(i -> {
+                                int hour = Instant.ofEpochSecond(i.dt).atZone(ZONE_ID).getHour();
+                                return hour >= 12 && hour <= 15;
+                            })
+                            .findFirst()
+                            .map(i -> i.dt)
+                            .orElse(items.get(0).dt);
+
+                    Map<String, Object> dayForecast = new HashMap<>();
+                    dayForecast.put("dt", dt);
+                    dayForecast.put("temp", Map.of(
+                            "max", tempMax,
+                            "min", tempMin,
+                            "day", tempDay
+                    ));
+                    dayForecast.put("windSpeed", windSpeed);
+                    dayForecast.put("windGust", windGust);
+                    dayForecast.put("clouds", (int) clouds);
+                    dayForecast.put("pop", pop);
+                    dayForecast.put("weather", List.of(Map.of(
+                            "id", representativeWeather.id,
+                            "main", representativeWeather.main,
+                            "description", representativeWeather.description,
+                            "icon", representativeWeather.icon
+                    )));
+
+                    return dayForecast;
+                })
+                .collect(Collectors.toList());
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("daily", dailyForecasts);
+        return result;
+    }
+
+    private Map<String, Object> createEmptyForecast() {
+        Map<String, Object> result = new HashMap<>();
+        result.put("daily", new ArrayList<>());
+        return result;
     }
 
     /**
@@ -69,25 +182,27 @@ public class WeatherService {
         // 1 nudo = 0.514444 m/s
         double thresholdMs = thresholdKnots * 0.514444;
 
-        OpenWeatherResponse forecast = getForecast();
-        if (forecast == null || forecast.daily == null) {
+        Map<String, Object> forecast = getForecast();
+        if (forecast == null || !forecast.containsKey("daily")) {
             return false; // Sin datos, asumir OK
         }
 
-        return forecast.daily.stream()
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> daily = (List<Map<String, Object>>) forecast.get("daily");
+
+        return daily.stream()
                 .filter(day -> {
-                    LocalDate forecastDate = Instant.ofEpochSecond(day.dt)
+                    long dt = ((Number) day.get("dt")).longValue();
+                    LocalDate forecastDate = Instant.ofEpochSecond(dt)
                             .atZone(ZONE_ID)
                             .toLocalDate();
                     return forecastDate.equals(date);
                 })
                 .findFirst()
                 .map(day -> {
-                    // Verificar wind_speed o wind_gust
-                    double maxWind = day.windSpeed;
-                    if (day.windGust != null && day.windGust > maxWind) {
-                        maxWind = day.windGust;
-                    }
+                    double windSpeed = ((Number) day.get("windSpeed")).doubleValue();
+                    double windGust = ((Number) day.get("windGust")).doubleValue();
+                    double maxWind = Math.max(windSpeed, windGust);
                     return maxWind > thresholdMs;
                 })
                 .orElse(false);
@@ -99,20 +214,27 @@ public class WeatherService {
      * @return true si está muy nublado
      */
     public boolean isCloudyDay(LocalDate date) {
-        OpenWeatherResponse forecast = getForecast();
-        if (forecast == null || forecast.daily == null) {
+        Map<String, Object> forecast = getForecast();
+        if (forecast == null || !forecast.containsKey("daily")) {
             return false;
         }
 
-        return forecast.daily.stream()
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> daily = (List<Map<String, Object>>) forecast.get("daily");
+
+        return daily.stream()
                 .filter(day -> {
-                    LocalDate forecastDate = Instant.ofEpochSecond(day.dt)
+                    long dt = ((Number) day.get("dt")).longValue();
+                    LocalDate forecastDate = Instant.ofEpochSecond(dt)
                             .atZone(ZONE_ID)
                             .toLocalDate();
                     return forecastDate.equals(date);
                 })
                 .findFirst()
-                .map(day -> day.clouds > 80) // Más de 80% nublado
+                .map(day -> {
+                    int clouds = ((Number) day.get("clouds")).intValue();
+                    return clouds > 80;
+                })
                 .orElse(false);
     }
 
@@ -120,19 +242,36 @@ public class WeatherService {
      * Obtiene el pronóstico diario para una fecha específica
      */
     public DailyForecast getDailyForecast(LocalDate date) {
-        OpenWeatherResponse forecast = getForecast();
-        if (forecast == null || forecast.daily == null) {
+        Map<String, Object> forecast = getForecast();
+        if (forecast == null || !forecast.containsKey("daily")) {
             return null;
         }
 
-        return forecast.daily.stream()
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> daily = (List<Map<String, Object>>) forecast.get("daily");
+
+        Map<String, Object> dayData = daily.stream()
                 .filter(day -> {
-                    LocalDate forecastDate = Instant.ofEpochSecond(day.dt)
+                    long dt = ((Number) day.get("dt")).longValue();
+                    LocalDate forecastDate = Instant.ofEpochSecond(dt)
                             .atZone(ZONE_ID)
                             .toLocalDate();
                     return forecastDate.equals(date);
                 })
                 .findFirst()
                 .orElse(null);
+
+        if (dayData == null) {
+            return null;
+        }
+
+        // Convertir Map a DailyForecast
+        DailyForecast dailyForecast = new DailyForecast();
+        dailyForecast.dt = ((Number) dayData.get("dt")).longValue();
+        dailyForecast.windSpeed = ((Number) dayData.get("windSpeed")).doubleValue();
+        dailyForecast.windGust = ((Number) dayData.get("windGust")).doubleValue();
+        dailyForecast.clouds = ((Number) dayData.get("clouds")).intValue();
+
+        return dailyForecast;
     }
 }

@@ -53,10 +53,6 @@
           <UBadge color="info" variant="soft" size="xs">🌧️ Lluvia</UBadge>
           <span class="text-neutral-700 dark:text-neutral-300">Probabilidad &gt;50%</span>
         </div>
-        <div class="flex items-center gap-2">
-          <UBadge color="tertiary" variant="soft" size="xs">🌕</UBadge>
-          <span class="text-neutral-700 dark:text-neutral-300">Luna llena</span>
-        </div>
       </div>
     </div>
 
@@ -323,13 +319,15 @@ const loadCalendarData = async () => {
   try {
     const data = await fetchCalendarData(startDate.value, endDate.value)
     calendarData.value = data
-    pendingAlerts.value = data.allAlerts.filter((a: any) => a.status === 'PENDING').length
+    pendingAlerts.value = Array.isArray(data.allAlerts)
+      ? data.allAlerts.filter((a: any) => a.status === 'PENDING').length
+      : 0
   } catch (error) {
     console.error('Error loading calendar data:', error)
     toast.add({
       title: 'Error',
       description: 'No se pudieron cargar los datos del calendario',
-      color: 'red'
+      color: 'error'
     })
   }
 }
@@ -345,7 +343,7 @@ const generateSchedules = async () => {
     toast.add({
       title: 'Schedules generados',
       description: 'Los schedules se han generado correctamente',
-      color: 'green'
+      color: 'success'
     })
 
     // Recargar datos
@@ -523,7 +521,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
     dateClick: handleDateClick,
 
     // Eventos (schedules)
-    events: schedules.map((schedule: any) => {
+    events: Array.isArray(schedules) ? schedules.map((schedule: any) => {
       const start = new Date(schedule.startDatetime)
       const end = new Date(start)
       end.setHours(start.getHours() + schedule.tour.durationHours)
@@ -555,7 +553,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
           alerts: scheduleAlerts
         }
       }
-    }),
+    }) : [],
 
     // Contenido de cada día
     dayCellContent: (arg) => {
@@ -566,27 +564,27 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
 
       // Crear HTML personalizado para el día
       const container = document.createElement('div')
-      container.className = 'flex flex-col h-full'
+      container.className = 'flex flex-col h-full p-1'
 
       // Número del día
       const dayNumber = document.createElement('div')
-      dayNumber.className = 'text-right pr-2 pt-1'
+      dayNumber.className = 'text-right font-semibold text-neutral-900 dark:text-white mb-1'
       dayNumber.textContent = arg.dayNumberText
       container.appendChild(dayNumber)
 
-      // Información meteorológica
-      const weatherInfo = document.createElement('div')
-      weatherInfo.className = 'flex-1 p-1 text-xs space-y-1'
+      // Información meteorológica y lunar
+      const infoContainer = document.createElement('div')
+      infoContainer.className = 'flex-1 space-y-1'
 
-      // Luna
+      // Luna - SIEMPRE mostrar si hay datos
       if (moonPhase) {
         const moonDiv = document.createElement('div')
         moonDiv.className = 'flex items-center gap-1'
         moonDiv.innerHTML = `
-          <span class="text-base">${moonPhase.icon}</span>
-          <span class="text-neutral-500">${moonPhase.illumination}%</span>
+          <span class="text-lg">${moonPhase.icon}</span>
+          <span class="text-xs text-neutral-600 dark:text-neutral-400">${moonPhase.illumination}%</span>
         `
-        weatherInfo.appendChild(moonDiv)
+        infoContainer.appendChild(moonDiv)
       }
 
       // Clima
@@ -594,12 +592,12 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
         const tempDiv = document.createElement('div')
         tempDiv.className = 'flex items-center gap-1'
         tempDiv.innerHTML = `
-          <span>${getWeatherIcon(dayWeather.weather[0]?.main)}</span>
-          <span class="text-neutral-700 dark:text-neutral-300">
-            ${Math.round(dayWeather.temp.max)}° / ${Math.round(dayWeather.temp.min)}°
+          <span class="text-base">${getWeatherIcon(dayWeather.weather[0]?.main)}</span>
+          <span class="text-xs text-neutral-700 dark:text-neutral-300">
+            ${Math.round(dayWeather.temp.max)}°/${Math.round(dayWeather.temp.min)}°
           </span>
         `
-        weatherInfo.appendChild(tempDiv)
+        infoContainer.appendChild(tempDiv)
       }
 
       // Badges de condiciones adversas
@@ -608,34 +606,29 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
 
       if (conditions.hasWind) {
         const badge = document.createElement('span')
-        badge.className = 'px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full text-xs'
+        badge.className = 'inline-block px-1 text-xs'
         badge.textContent = '💨'
         badgesDiv.appendChild(badge)
       }
 
       if (conditions.hasClouds) {
         const badge = document.createElement('span')
-        badge.className = 'px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs'
+        badge.className = 'inline-block px-1 text-xs'
         badge.textContent = '☁️'
         badgesDiv.appendChild(badge)
       }
 
       if (conditions.hasRain) {
         const badge = document.createElement('span')
-        badge.className = 'px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs'
+        badge.className = 'inline-block px-1 text-xs'
         badge.textContent = '🌧️'
         badgesDiv.appendChild(badge)
       }
 
-      if (conditions.hasFullMoon) {
-        const badge = document.createElement('span')
-        badge.className = 'px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs'
-        badge.textContent = '🌕'
-        badgesDiv.appendChild(badge)
-      }
+      // No mostrar badge de luna llena porque ya se muestra la fase lunar arriba
 
-      weatherInfo.appendChild(badgesDiv)
-      container.appendChild(weatherInfo)
+      infoContainer.appendChild(badgesDiv)
+      container.appendChild(infoContainer)
 
       return { domNodes: [container] }
     }
@@ -661,8 +654,20 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
   --fc-today-bg-color: rgba(6, 78, 59, 0.2);
 }
 
+/* Header de días más oscuro */
+.fc-col-header-cell {
+  background-color: #f4f4f5 !important;
+  font-weight: 600 !important;
+  color: #18181b !important;
+}
+
+.dark .fc-col-header-cell {
+  background-color: #27272a !important;
+  color: #fafafa !important;
+}
+
 .fc-daygrid-day {
-  min-height: 120px !important;
+  min-height: 140px !important;
 }
 
 .fc-event {
@@ -673,5 +678,10 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
 
 .fc-event:hover {
   opacity: 0.8;
+}
+
+/* Estilos para el contenido personalizado de cada día */
+.fc-daygrid-day-frame {
+  position: relative;
 }
 </style>
