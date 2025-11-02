@@ -56,16 +56,6 @@ jobs:
         run: ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Deploy to VPS
-        env:
-          # Define variables para pasarlas al script remoto
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          GHCR_PAT: ${{ secrets.GHCR_PAT }}
-          DOCKER_USERNAME: ${{ github.repository_owner }}
-          IMAGE_FULL_NAME: ${{ steps.image_name.outputs.NAME }}
-          SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
-          ADMIN_USERS_CONFIG: ${{ secrets.ADMIN_USERS_CONFIG }}
-          # ... Añade aquí el resto de tus secretos (AWS, WEATHER, etc.) ...
         run: |
           # Crear el script de despliegue localmente
           cat << 'EOF' > deploy_script.sh
@@ -76,12 +66,8 @@ jobs:
             cd $APP_DIR
 
             echo "Creating .env file..."
-            cat > .env <<ENV_EOF
-            SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
-            ADMIN_USERS_CONFIG=${ADMIN_USERS_CONFIG}
-            # ... Añade aquí las variables de entorno para los otros secretos ...
-            ENV_EOF
-
+            # El contenido del .env se pasa a través de la tubería (pipe) más abajo
+            
             echo "Creating docker-compose.prod.yml..."
             cat > docker-compose.prod.yml <<COMPOSE_EOF
             version: '3.8'
@@ -108,12 +94,22 @@ jobs:
             echo "Deployment on VPS finished!"
           EOF
 
-          # Transferir el script al VPS usando scp
-          scp deploy_script.sh ${VPS_USER}@${VPS_HOST}:/tmp/deploy_script.sh
+          # Transferir el script al VPS
+          scp deploy_script.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/deploy_script.sh
 
-          # Ejecutar el script en el VPS usando ssh
-          # Pasamos las variables de entorno necesarias para que el script las use
-          ssh ${VPS_USER}@${VPS_HOST} "export SPRING_DATASOURCE_URL='${SPRING_DATASOURCE_URL}'; export ADMIN_USERS_CONFIG='${ADMIN_USERS_CONFIG}'; export GHCR_PAT='${GHCR_PAT}'; export DOCKER_USERNAME='${DOCKER_USERNAME}'; export IMAGE_FULL_NAME='${IMAGE_FULL_NAME}'; bash /tmp/deploy_script.sh"
+          # Ejecutar el script en el VPS, pasando todas las variables de entorno necesarias
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+          "SPRING_DATASOURCE_URL='${{ secrets.SPRING_DATASOURCE_URL }}' \
+           ADMIN_USERS_CONFIG='${{ secrets.ADMIN_USERS_CONFIG }}' \
+           AWS_ACCESS_KEY_ID='${{ secrets.AWS_ACCESS_KEY_ID }}' \
+           AWS_SECRET_ACCESS_KEY='${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
+           AWS_REGION='${{ secrets.AWS_REGION }}' \
+           AWS_S3_BUCKET_NAME='${{ secrets.AWS_S3_BUCKET_NAME }}' \
+           WEATHER_API_KEY='${{ secrets.WEATHER_API_KEY }}' \
+           GHCR_PAT='${{ secrets.GHCR_PAT }}' \
+           DOCKER_USERNAME='${{ github.repository_owner }}' \
+           IMAGE_FULL_NAME='${{ steps.image_name.outputs.NAME }}' \
+           bash /tmp/deploy_script.sh"
 
       - name: Verify Deployment
         if: success()
