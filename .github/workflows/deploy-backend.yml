@@ -10,6 +10,8 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: northernchile-backend
+  VPS_HOST: ${{ secrets.VPS_HOST }}
+  VPS_USER: ${{ secrets.VPS_USER }}
 
 jobs:
   build-and-deploy:
@@ -78,28 +80,33 @@ jobs:
           ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           SSHKEY
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${VPS_HOST} >> ~/.ssh/known_hosts
+
+      - name: Debug - Test SSH variables
+        run: |
+          echo "Testing VPS_HOST: ${VPS_HOST}"
+          echo "Testing VPS_USER: ${VPS_USER}"
 
       - name: Create app directory on VPS
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p /app/northernchile"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "mkdir -p /app/northernchile"
 
       - name: Copy files to VPS
         run: |
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/app/northernchile/.env
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no docker-compose.prod.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/app/northernchile/docker-compose.prod.yml
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no .env ${VPS_USER}@${VPS_HOST}:/app/northernchile/.env
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no docker-compose.prod.yml ${VPS_USER}@${VPS_HOST}:/app/northernchile/docker-compose.prod.yml
 
       - name: Deploy on VPS
         env:
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
           DOCKER_USERNAME: ${{ github.repository_owner }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd /app/northernchile && echo '${GHCR_PAT}' | docker login ghcr.io -u '${DOCKER_USERNAME}' --password-stdin && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d --remove-orphans && docker image prune -f && echo '✅ Deployment completed!'"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "cd /app/northernchile && echo '${GHCR_PAT}' | docker login ghcr.io -u '${DOCKER_USERNAME}' --password-stdin && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d --remove-orphans && docker image prune -f && echo '✅ Deployment completed!'"
 
       - name: Verify Deployment
         if: success()
         run: |
           echo "Waiting for application to start..."
           sleep 20
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "curl -f http://localhost:8080/actuator/health"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "curl -f http://localhost:8080/actuator/health"
           echo "✅ Health check passed!"
