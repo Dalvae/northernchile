@@ -53,6 +53,8 @@ jobs:
         run: |
           cat > .env << 'EOF'
           SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
+          SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
           ADMIN_USERS_CONFIG=${{ secrets.ADMIN_USERS_CONFIG }}
           AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -69,4 +71,52 @@ jobs:
               restart: always
               ports:
                 - '127.0.0.1:8080:8080'
-              env_file
+              env_file:
+                - .env
+          EOF
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          cat > ~/.ssh/deploy_key << 'SSHKEY'
+          ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSHKEY
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${VPS_HOST} >> ~/.ssh/known_hosts
+
+      - name: Create app directory on VPS
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "mkdir -p /app/northernchile"
+
+      - name: Copy files to VPS
+        run: |
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no .env ${VPS_USER}@${VPS_HOST}:/app/northernchile/.env
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no docker-compose.prod.yml ${VPS_USER}@${VPS_HOST}:/app/northernchile/docker-compose.prod.yml
+
+      - name: Deploy on VPS
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "cd /app/northernchile && echo '${{ secrets.GHCR_PAT }}' | docker login ghcr.io -u '${{ github.repository_owner }}' --password-stdin && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d --remove-orphans && docker image prune -f"
+
+      - name: Wait and verify deployment
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} << 'ENDSSH'
+            echo "Waiting for Spring Boot to start..."
+            for i in {1..30}; do
+              echo "Health check attempt $i/30..."
+              if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1; then
+                echo "✅ Application is healthy!"
+                curl http://localhost:8080/actuator/health
+                exit 0
+              fi
+              sleep 5
+            done
+            echo "❌ Application failed to start in 150 seconds"
+            echo "Container logs:"
+            docker logs northernchile-backend-1 --tail 100
+            exit 1
+          ENDSSH
+
+      - name: Show container status
+        if: always()
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "docker ps -a && echo '---LOGS---' && docker logs northernchile-backend-1 --tail 50"

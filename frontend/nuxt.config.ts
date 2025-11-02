@@ -71,7 +71,7 @@ export default defineNuxtConfig({
     exclude: ["/admin/*"],
   },
 
-  devtools: true,
+  devtools: { enabled: false },
 
   css: ["~/assets/css/main.css"],
 
