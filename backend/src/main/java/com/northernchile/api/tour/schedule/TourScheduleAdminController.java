@@ -13,6 +13,7 @@ import com.northernchile.api.tour.TourScheduleService;
 import com.northernchile.api.tour.dto.TourScheduleCreateReq;
 import com.northernchile.api.tour.dto.TourScheduleRes;
 import com.northernchile.api.user.UserRepository;
+import com.northernchile.api.util.DateTimeUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,8 +23,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,8 +34,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/admin/schedules")
 @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'PARTNER_ADMIN')")
 public class TourScheduleAdminController {
-
-    private static final ZoneId ZONE_ID = ZoneId.of("America/Santiago");
 
     private final TourScheduleRepository tourScheduleRepository;
     private final TourScheduleService tourScheduleService;
@@ -73,17 +70,26 @@ public class TourScheduleAdminController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
 
-        ZonedDateTime startDateTime = start.atStartOfDay(ZONE_ID);
-        ZonedDateTime endDateTime = end.plusDays(1).atStartOfDay(ZONE_ID);
+        // Convert LocalDate to Instant using Chile timezone utilities
+        // This automatically handles DST transitions
+        Instant startInstant = DateTimeUtils.toInstantStartOfDay(start);
+        Instant endInstant = DateTimeUtils.toInstantEndOfDay(end);
 
-        Instant startInstant = startDateTime.toInstant();
-        Instant endInstant = endDateTime.toInstant();
-
-        List<TourSchedule> schedules = tourScheduleRepository.findByTourIdAndStartDatetimeBetween(
-                null, // TODO: Filter by owner for PARTNER_ADMIN
+        // Use JOIN FETCH to eagerly load Tour and Owner to avoid LazyInitializationException
+        List<TourSchedule> schedules = tourScheduleRepository.findByStartDatetimeBetweenWithTour(
                 startInstant,
                 endInstant
         );
+
+        // TODO: Filter by owner for PARTNER_ADMIN
+        User currentUser = getCurrentUser();
+        if (currentUser.getRole().equals("ROLE_PARTNER_ADMIN")) {
+            schedules = schedules.stream()
+                    .filter(schedule -> schedule.getTour() != null
+                            && schedule.getTour().getOwner() != null
+                            && schedule.getTour().getOwner().getId().equals(currentUser.getId()))
+                    .collect(Collectors.toList());
+        }
 
         List<TourScheduleRes> response = schedules.stream()
                 .map(this::mapToResponse)
@@ -184,8 +190,24 @@ public class TourScheduleAdminController {
         res.setStartDatetime(schedule.getStartDatetime());
         res.setMaxParticipants(schedule.getMaxParticipants());
         res.setStatus(schedule.getStatus());
+        res.setCreatedAt(schedule.getCreatedAt());
 
-        // TODO: Map tour info, assigned guide, booking count, etc.
+        // Map tour information
+        if (schedule.getTour() != null) {
+            res.setTourId(schedule.getTour().getId());
+            res.setTourDurationHours(schedule.getTour().getDurationHours());
+            // Get tour name in Spanish (default language)
+            if (schedule.getTour().getNameTranslations() != null) {
+                res.setTourName(schedule.getTour().getNameTranslations().get("es"));
+                res.setTourNameTranslations(schedule.getTour().getNameTranslations());
+            }
+        }
+
+        // Map assigned guide information (if exists)
+        if (schedule.getAssignedGuide() != null) {
+            res.setAssignedGuideId(schedule.getAssignedGuide().getId());
+            res.setAssignedGuideName(schedule.getAssignedGuide().getFullName());
+        }
 
         return res;
     }

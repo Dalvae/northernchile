@@ -74,8 +74,12 @@ public class WeatherAlertService {
         ZonedDateTime startDateTime = today.atStartOfDay(ZONE_ID);
         ZonedDateTime endDateTime = endDate.atStartOfDay(ZONE_ID);
 
+        // Convertir a Instant para el repositorio
+        Instant startInstant = startDateTime.toInstant();
+        Instant endInstant = endDateTime.toInstant();
+
         List<TourSchedule> upcomingSchedules = scheduleRepository
-                .findByStartDatetimeBetween(startDateTime, endDateTime)
+                .findByStartDatetimeBetween(startInstant, endInstant)
                 .stream()
                 .filter(schedule -> !"CANCELLED".equals(schedule.getStatus()))
                 .toList();
