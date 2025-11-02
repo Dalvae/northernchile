@@ -40,19 +40,15 @@ export interface TourSchedule {
   id: string
   tourId: string
   tourName: string
+  tourNameTranslations: Record<string, string>
+  tourDurationHours: number
   startDatetime: string
   maxParticipants: number
-  currentBookings: number
+  currentBookings?: number
   status: 'OPEN' | 'CLOSED' | 'CANCELLED'
-  tour: {
-    id: string
-    nameTranslations: Record<string, string>
-    category: string
-    durationHours: number
-    windSensitive: boolean
-    moonSensitive: boolean
-    cloudSensitive: boolean
-  }
+  assignedGuideId?: string | null
+  assignedGuideName?: string | null
+  createdAt: string
 }
 
 export interface WeatherAlert {

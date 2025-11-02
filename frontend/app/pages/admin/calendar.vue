@@ -368,7 +368,7 @@ const handleEventClick = (info: EventClickArg) => {
   // Fill form with schedule data
   const scheduleDate = new Date(schedule.startDatetime)
   scheduleForm.value = {
-    tourId: schedule.tour.id,
+    tourId: schedule.tourId,
     date: scheduleDate.toISOString().split('T')[0],
     time: scheduleDate.toTimeString().slice(0, 5),
     maxParticipants: schedule.maxParticipants,
@@ -524,7 +524,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
     events: Array.isArray(schedules) ? schedules.map((schedule: any) => {
       const start = new Date(schedule.startDatetime)
       const end = new Date(start)
-      end.setHours(start.getHours() + schedule.tour.durationHours)
+      end.setHours(start.getHours() + (schedule.tourDurationHours || 2))
 
       // Color según status
       let backgroundColor = '#10b981' // green
@@ -543,7 +543,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
 
       return {
         id: schedule.id,
-        title: schedule.tour.nameTranslations[locale.value] || schedule.tour.nameTranslations.es,
+        title: schedule.tourNameTranslations?.[locale.value] || schedule.tourNameTranslations?.es || schedule.tourName,
         start: start.toISOString(),
         end: end.toISOString(),
         backgroundColor,

@@ -27,10 +27,19 @@ export default defineNuxtConfig({
     },
   },
 
+  nitro: {
+    devProxy: {
+      "/api": {
+        target: "http://localhost:8080/api",
+        changeOrigin: true,
+      },
+    },
+  },
+
   colorMode: {
-    preference: "light",
-    fallback: "light",
-    dataValue: "light",
+    preference: "dark", // Forzar dark mode - tema astronómico
+    fallback: "dark",
+    dataValue: "dark",
     classSuffix: "",
     storageKey: "nuxt-color-mode",
   },

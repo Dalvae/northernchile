@@ -299,3 +299,4 @@ See `TODO.md` for current pending tasks:
 - Missing translations
 - Theme configuration (light/dark mode)
 - Adult/child price differentiation in some flows
+- Always use the migration v1 edited, we will wipe the db and start again since we are on development right now

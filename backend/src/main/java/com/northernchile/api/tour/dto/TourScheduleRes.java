@@ -2,6 +2,7 @@
 package com.northernchile.api.tour.dto;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -9,6 +10,8 @@ public class TourScheduleRes {
     private UUID id;
     private UUID tourId;
     private String tourName;
+    private Map<String, String> tourNameTranslations;  // Para el calendario
+    private Integer tourDurationHours;  // Para calcular el end time en el calendario
     private Instant startDatetime;
     private Integer maxParticipants;
     private String status;
@@ -53,6 +56,22 @@ public class TourScheduleRes {
 
     public void setTourName(String tourName) {
         this.tourName = tourName;
+    }
+
+    public Map<String, String> getTourNameTranslations() {
+        return tourNameTranslations;
+    }
+
+    public void setTourNameTranslations(Map<String, String> tourNameTranslations) {
+        this.tourNameTranslations = tourNameTranslations;
+    }
+
+    public Integer getTourDurationHours() {
+        return tourDurationHours;
+    }
+
+    public void setTourDurationHours(Integer tourDurationHours) {
+        this.tourDurationHours = tourDurationHours;
     }
 
     public Instant getStartDatetime() {
