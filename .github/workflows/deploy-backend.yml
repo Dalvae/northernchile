@@ -47,46 +47,23 @@ jobs:
           cache-from: type=registry,ref=${{ steps.image_name.outputs.NAME }}:buildcache
           cache-to: type=registry,ref=${{ steps.image_name.outputs.NAME }}:buildcache,mode=max
 
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-
-      - name: Add VPS to known hosts
-        run: ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
-
-      - name: Deploy to VPS
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          IMAGE_FULL_NAME: ${{ steps.image_name.outputs.NAME }}
-          DOCKER_USERNAME: ${{ github.repository_owner }}
-          GHCR_PAT: ${{ secrets.GHCR_PAT }}
-          SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
-          ADMIN_USERS_CONFIG: ${{ secrets.ADMIN_USERS_CONFIG }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
-          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+      - name: Create deployment files
         run: |
-          # Crear el archivo .env directamente con las variables expandidas
-          cat > .env.production << EOF
-          SPRING_DATASOURCE_URL=$SPRING_DATASOURCE_URL
-          ADMIN_USERS_CONFIG=$ADMIN_USERS_CONFIG
-          AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-          AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-          AWS_REGION=$AWS_REGION
-          AWS_S3_BUCKET_NAME=$AWS_S3_BUCKET_NAME
-          WEATHER_API_KEY=$WEATHER_API_KEY
+          cat > .env << 'EOF'
+          SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
+          ADMIN_USERS_CONFIG=${{ secrets.ADMIN_USERS_CONFIG }}
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION=${{ secrets.AWS_REGION }}
+          AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}
+          WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY }}
           EOF
 
-          # Crear docker-compose.prod.yml directamente con las variables expandidas
-          cat > docker-compose.prod.yml << EOF
+          cat > docker-compose.prod.yml << 'EOF'
           version: '3.8'
           services:
             backend:
-              image: $IMAGE_FULL_NAME:latest
+              image: ${{ steps.image_name.outputs.NAME }}:latest
               restart: always
               ports:
                 - '127.0.0.1:8080:8080'
@@ -94,32 +71,38 @@ jobs:
                 - .env
           EOF
 
-          # Crear directorio en el VPS
-          ssh $VPS_USER@$VPS_HOST "mkdir -p /app/northernchile"
+      - name: Copy files to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          source: ".env,docker-compose.prod.yml"
+          target: "/app/northernchile"
+          overwrite: true
 
-          # Transferir archivos al VPS
-          scp .env.production $VPS_USER@$VPS_HOST:/app/northernchile/.env
-          scp docker-compose.prod.yml $VPS_USER@$VPS_HOST:/app/northernchile/docker-compose.prod.yml
-
-          # Ejecutar el despliegue en el VPS
-          ssh $VPS_USER@$VPS_HOST \
-            "export GHCR_PAT='$GHCR_PAT' && \
-             export DOCKER_USERNAME='$DOCKER_USERNAME' && \
-             cd /app/northernchile && \
-             echo 'Logging into GHCR...' && \
-             echo \"\$GHCR_PAT\" | docker login ghcr.io -u \"\$DOCKER_USERNAME\" --password-stdin && \
-             echo 'Pulling latest image...' && \
-             docker compose -f docker-compose.prod.yml pull backend && \
-             echo 'Restarting service...' && \
-             docker compose -f docker-compose.prod.yml up -d --remove-orphans && \
-             echo 'Cleaning up old images...' && \
-             docker image prune -f && \
-             echo 'Deployment completed!'"
+      - name: Deploy on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          script: |
+            cd /app/northernchile
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker image prune -f
+            echo "✅ Deployment completed!"
 
       - name: Verify Deployment
-        if: success()
-        run: |
-          echo "Waiting for application to start..."
-          sleep 20
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "curl -f http://localhost:8080/actuator/health || exit 1"
-          echo "✅ Deployment verified successfully!"
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          script: |
+            echo "Waiting for application to start..."
+            sleep 20
+            curl -f http://localhost:8080/actuator/health || exit 1
+            echo "✅ Health check passed!"
