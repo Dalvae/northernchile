@@ -5,10 +5,11 @@ on:
     branches: [main]
     paths:
       - "backend/**"
+      - ".github/workflows/deploy-backend.yml" # Importante: para que se actualice a sí mismo
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: backend
+  IMAGE_NAME: northernchile-backend # Un nombre simple para la imagen
 
 jobs:
   build-and-deploy:
@@ -37,68 +38,60 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ steps.image_name.outputs.NAME }}
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.image_name.outputs.NAME }}:latest,${{ steps.image_name.outputs.NAME }}:${{ github.sha }}
           cache-from: type=registry,ref=${{ steps.image_name.outputs.NAME }}:buildcache
           cache-to: type=registry,ref=${{ steps.image_name.outputs.NAME }}:buildcache,mode=max
 
-      - name: Deploy to VPS using Manual SSH
+      - name: Deploy to VPS using Manual SSH Commands
         env:
-          # Pasamos todos los secretos necesarios al script
           VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
+          DOCKER_USERNAME: ${{ github.repository_owner }}
+          IMAGE_FULL_NAME: ${{ steps.image_name.outputs.NAME }}
           SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
           ADMIN_USERS_CONFIG: ${{ secrets.ADMIN_USERS_CONFIG }}
-          # ... (añade aquí cualquier otro secreto que necesites) ...
+          # ... (aquí irían los demás secretos de AWS, etc.) ...
         run: |
-          # 1. Preparar la conexión SSH
+          # 1. Preparar la conexión SSH (ESTA ES LA PARTE NUEVA)
           echo "Setting up SSH connection..."
           mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+          echo "$VPS_SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
 
-          # 2. Crear el script de despliegue que se ejecutará en el VPS
+          # 2. Crear el script de despliegue
           echo "Creating deployment script..."
           cat << 'EOF' > deploy_script.sh
             export APP_DIR=/app/northernchile
             mkdir -p $APP_DIR
             cd $APP_DIR
 
-            # Crear el archivo .env
+            # Crear .env file
             echo "Creating .env file..."
             echo "SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}" > .env
             echo "ADMIN_USERS_CONFIG=${ADMIN_USERS_CONFIG}" >> .env
-            # ... (añade aquí las otras variables de entorno que necesites) ...
+            # ... (y los otros secretos) ...
             
-            # Crear el docker-compose.prod.yml
+            # Crear docker-compose.prod.yml
             echo "Creating docker-compose.prod.yml..."
             echo "version: '3.8'" > docker-compose.prod.yml
             echo "services:" >> docker-compose.prod.yml
             echo "  backend:" >> docker-compose.prod.yml
-            echo "    image: ${{ steps.image_name.outputs.NAME }}:latest" >> docker-compose.prod.yml
+            echo "    image: ${IMAGE_FULL_NAME}:latest" >> docker-compose.prod.yml
             echo "    restart: always" >> docker-compose.prod.yml
-            echo "    ports:" >> docker-compose.prod.yml
-            echo "      - '127.0.0.1:8080:8080'" >> docker-compose.prod.yml
-            echo "    env_file:" >> docker-compose.prod.yml
-            echo "      - ./.env" >> docker-compose.prod.yml
+            echo "    ports: ['127.0.0.1:8080:8080']" >> docker-compose.prod.yml
+            echo "    env_file: [./.env]" >> docker-compose.prod.yml
 
-            # Autenticar, descargar y desplegar
+            # Desplegar
             echo "Logging into GHCR..."
-            echo "${GHCR_PAT}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+            echo "${GHCR_PAT}" | docker login ghcr.io -u ${DOCKER_USERNAME} --password-stdin
             
             echo "Pulling the latest image..."
             docker compose -f docker-compose.prod.yml pull backend
@@ -108,25 +101,18 @@ jobs:
             
             echo "Cleaning up old images..."
             docker image prune -f
-            
-            echo "Deployment script finished!"
           EOF
 
           # 3. Transferir el script al VPS
           echo "Copying script to VPS..."
-          scp -o StrictHostKeyChecking=no deploy_script.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/deploy_script.sh
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy_script.sh $VPS_USER@$VPS_HOST:/tmp/deploy_script.sh
 
           # 4. Ejecutar el script en el VPS
           echo "Executing script on VPS..."
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "bash /tmp/deploy_script.sh"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "bash /tmp/deploy_script.sh"
 
-      - name: Verify Deployment
-        uses: appleboy/ssh-action@v1.0.3 # Usamos esta acción solo para un comando simple de verificación
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          script: |
-            sleep 15 # Esperar 15 segundos para que Spring Boot inicie
-            curl -f http://localhost:8080/actuator/health || exit 1
-            echo "✅ Backend deployed and healthy!"
+      - name: Verify Deployment (Post-Script)
+        if: success()
+        run: |
+          sleep 20 # Esperar a que Spring Boot inicie
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "curl -f http://localhost:8080/actuator/health"
