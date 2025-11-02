@@ -1,0 +1,23 @@
+# docker-compose.override.yml
+# Configuración específica para DESARROLLO
+# Este archivo se carga automáticamente junto con docker-compose.yml en desarrollo
+
+services:
+  # Base de datos accesible desde localhost para desarrollo
+  database:
+    ports:
+      - "5432:5432"
+
+  # Backend en modo desarrollo con hot-reload
+  backend:
+    image: maven:3.9-eclipse-temurin-21-alpine
+    ports:
+      - "8080:8080"
+      - "5005:5005"  # Puerto de depuración
+    environment:
+      - SPRING_DEVTOOLS_REMOTE_SECRET=tu-secreto-aqui
+    volumes:
+      - ./backend:/app  # Montaje del código fuente para live-reload
+      - maven_cache:/root/.m2
+    working_dir: /app
+    command: mvn spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"

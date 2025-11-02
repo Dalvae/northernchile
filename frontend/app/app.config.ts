@@ -3,15 +3,15 @@ export default defineAppConfig({
     // Tema Astronómico - Inspirado en los cielos del desierto de Atacama
     colors: {
       // Primary: Acciones principales, navegación activa, elementos de marca
-      // Morado profundo como el cielo nocturno
-      primary: "purple",
+      // Nebula - Azul profundo espacial
+      primary: "nebula",
 
       // Secondary: Botones secundarios, acciones alternativas
-      // Índigo para complementar el morado
-      secondary: "indigo",
+      // Celeste - Azul celeste complementario
+      secondary: "celeste",
 
       // Tertiary: Color astronómico profundo para acentos especiales
-      // Color personalizado definido en cosmic.css
+      // Deep Space - Gris espacial profundo
       tertiary: "deep-space",
 
       // Success: Mensajes de éxito, confirmaciones positivas
@@ -27,7 +27,8 @@ export default defineAppConfig({
       error: "rose",
 
       // Neutral: Textos, bordes, fondos, estados deshabilitados
-      neutral: "slate",
+      // Deep Space - para mantener el tema oscuro espacial
+      neutral: "deep-space",
     },
 
     button: {
@@ -35,8 +36,6 @@ export default defineAppConfig({
     },
     card: {
       rounded: "rounded-xl",
-      background: "bg-neutral-900/50 dark:bg-neutral-900/50",
-      ring: "ring-1 ring-neutral-800",
     },
     header: {
       base: "!bg-transparent",

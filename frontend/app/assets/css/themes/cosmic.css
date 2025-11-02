@@ -1,7 +1,10 @@
-@theme {
-  /* Paleta "Cosmic Night" en Oklch */
+/* ===================================
+   Tema Astronómico - Northern Chile
+   Colores personalizados para tema oscuro espacial
+   =================================== */
 
-  /* Azul Nebulosa (para primario) */
+@theme {
+  /* Azul Nebulosa - Color primario */
   --color-nebula-50: oklch(96% 0.03 250);
   --color-nebula-100: oklch(92% 0.06 250);
   --color-nebula-200: oklch(86% 0.1 250);
@@ -14,33 +17,7 @@
   --color-nebula-900: oklch(44% 0.1 255);
   --color-nebula-950: oklch(38% 0.07 255);
 
-  /* Magenta Starburst (para acento) */
-  --color-starburst-50: oklch(96% 0.04 320);
-  --color-starburst-100: oklch(92% 0.08 320);
-  --color-starburst-200: oklch(87% 0.12 320);
-  --color-starburst-300: oklch(82% 0.16 320);
-  --color-starburst-400: oklch(77% 0.2 320);
-  --color-starburst-500: oklch(72% 0.24 320);
-  --color-starburst-600: oklch(67% 0.21 325);
-  --color-starburst-700: oklch(62% 0.18 325);
-  --color-starburst-800: oklch(57% 0.15 325);
-  --color-starburst-900: oklch(52% 0.12 325);
-  --color-starburst-950: oklch(47% 0.09 325);
-
-  /* Deep Space (para fondos y grises) */
-  --color-deep-space-50: oklch(95% 0.01 250);
-  --color-deep-space-100: oklch(90% 0.02 250);
-  --color-deep-space-200: oklch(80% 0.03 250);
-  --color-deep-space-300: oklch(70% 0.04 250);
-  --color-deep-space-400: oklch(60% 0.05 250);
-  --color-deep-space-500: oklch(50% 0.06 250);
-  --color-deep-space-600: oklch(40% 0.05 250);
-  --color-deep-space-700: oklch(30% 0.04 250);
-  --color-deep-space-800: oklch(20% 0.03 250);
-  --color-deep-space-900: oklch(10% 0.02 250);
-  --color-deep-space-950: oklch(5% 0.01 250);
-
-  /* Celeste (Secundario) */
+  /* Celeste - Color secundario */
   --color-celeste-50: oklch(96.9% 0.02 230);
   --color-celeste-100: oklch(94.2% 0.04 230);
   --color-celeste-200: oklch(88.6% 0.08 230);
@@ -53,52 +30,47 @@
   --color-celeste-900: oklch(37.8% 0.08 250);
   --color-celeste-950: oklch(29% 0.05 255);
 
-  /* Variables para Nuxt UI - CRUCIALES */
-  --color-primary-50: var(--color-nebula-50);
-  --color-primary-100: var(--color-nebula-100);
-  --color-primary-200: var(--color-nebula-200);
-  --color-primary-300: var(--color-nebula-300);
-  --color-primary-400: var(--color-nebula-400);
-  --color-primary-500: var(--color-nebula-500);
-  --color-primary-600: var(--color-nebula-600);
-  --color-primary-700: var(--color-nebula-700);
-  --color-primary-800: var(--color-nebula-800);
-  --color-primary-900: var(--color-nebula-900);
-  --color-primary-950: var(--color-nebula-950);
+  /* Deep Space - Color neutral con tinte azul espacial
+     50-400: Tonos claros para textos
+     600-950: Tonos oscuros para fondos y bordes */
+  --color-deep-space-50: oklch(92% 0.03 250);
+  --color-deep-space-100: oklch(88% 0.035 250);
+  --color-deep-space-200: oklch(80% 0.04 250);
+  --color-deep-space-300: oklch(68% 0.045 250);
+  --color-deep-space-400: oklch(55% 0.05 250);
+  --color-deep-space-500: oklch(45% 0.055 250);
+  --color-deep-space-600: oklch(35% 0.05 250);
+  --color-deep-space-700: oklch(28% 0.045 250);
+  --color-deep-space-800: oklch(18% 0.04 250);
+  --color-deep-space-900: oklch(10% 0.035 250);
+  --color-deep-space-950: oklch(6% 0.03 250);
 
-  --color-secondary-50: var(--color-celeste-50);
-  --color-secondary-100: var(--color-celeste-100);
-  --color-secondary-200: var(--color-celeste-200);
-  --color-secondary-300: var(--color-celeste-300);
-  --color-secondary-400: var(--color-celeste-400);
-  --color-secondary-500: var(--color-celeste-500);
-  --color-secondary-600: var(--color-celeste-600);
-  --color-secondary-700: var(--color-celeste-700);
-  --color-secondary-800: var(--color-celeste-800);
-  --color-secondary-900: var(--color-celeste-900);
-  --color-secondary-950: var(--color-celeste-950);
+  /* Magenta Starburst - Color terciario (opcional) */
+  --color-starburst-50: oklch(96% 0.04 320);
+  --color-starburst-100: oklch(92% 0.08 320);
+  --color-starburst-200: oklch(87% 0.12 320);
+  --color-starburst-300: oklch(82% 0.16 320);
+  --color-starburst-400: oklch(77% 0.2 320);
+  --color-starburst-500: oklch(72% 0.24 320);
+  --color-starburst-600: oklch(67% 0.21 325);
+  --color-starburst-700: oklch(62% 0.18 325);
+  --color-starburst-800: oklch(57% 0.15 325);
+  --color-starburst-900: oklch(52% 0.12 325);
+  --color-starburst-950: oklch(47% 0.09 325);
+}
 
-  --color-accent-50: var(--color-starburst-50);
-  --color-accent-100: var(--color-starburst-100);
-  --color-accent-200: var(--color-starburst-200);
-  --color-accent-300: var(--color-starburst-300);
-  --color-accent-400: var(--color-starburst-400);
-  --color-accent-500: var(--color-starburst-500);
-  --color-accent-600: var(--color-starburst-600);
-  --color-accent-700: var(--color-starburst-700);
-  --color-accent-800: var(--color-starburst-800);
-  --color-accent-900: var(--color-starburst-900);
-  --color-accent-950: var(--color-starburst-950);
+/* Tema oscuro permanente - sin variantes dark: */
+@layer base {
+  * {
+    border-color: theme('colors.deep-space.700');
+  }
 
-  --color-gray-50: var(--color-deep-space-50);
-  --color-gray-100: var(--color-deep-space-100);
-  --color-gray-200: var(--color-deep-space-200);
-  --color-gray-300: var(--color-deep-space-300);
-  --color-gray-400: var(--color-deep-space-400);
-  --color-gray-500: var(--color-deep-space-500);
-  --color-gray-600: var(--color-deep-space-600);
-  --color-gray-700: var(--color-deep-space-700);
-  --color-gray-800: var(--color-deep-space-800);
-  --color-gray-900: var(--color-deep-space-900);
-  --color-gray-950: var(--color-deep-space-950);
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: theme('colors.deep-space.950');
+    color: theme('colors.deep-space.50');
+  }
 }

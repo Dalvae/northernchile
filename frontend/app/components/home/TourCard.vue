@@ -4,15 +4,15 @@
       body: { padding: 'p-0' },
       rounded: 'rounded-xl',
       shadow: 'shadow-lg hover:shadow-xl',
-      ring: 'ring-1 ring-neutral-200 dark:ring-neutral-800'
+      ring: 'ring-1 ring-neutral-700'
     }"
     class="overflow-hidden transition-all duration-300 hover:-translate-y-1"
   >
     <!-- Imagen -->
     <div class="relative h-48 overflow-hidden">
       <img
-        :src="tour.imageUrl || '/images/tour-placeholder.jpg'"
-        :alt="tour.name"
+        :src="tour.images?.[0] || '/images/tour-placeholder.jpg'"
+        :alt="getTourName()"
         class="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
       />
 
@@ -46,16 +46,16 @@
     <div class="p-5 space-y-4">
       <!-- Título -->
       <div>
-        <h3 class="text-lg font-semibold text-neutral-900 dark:text-white line-clamp-2">
-          {{ tour.name }}
+        <h3 class="text-lg font-semibold text-neutral-50 line-clamp-2">
+          {{ getTourName() }}
         </h3>
-        <p class="mt-1 text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2">
-          {{ tour.description }}
+        <p class="mt-1 text-sm text-neutral-300 line-clamp-2">
+          {{ getTourDescription() }}
         </p>
       </div>
 
       <!-- Info rápida -->
-      <div class="flex items-center gap-4 text-sm text-neutral-600 dark:text-neutral-400">
+      <div class="flex items-center gap-4 text-sm text-neutral-300">
         <div class="flex items-center gap-1">
           <UIcon name="i-lucide-clock" class="w-4 h-4" />
           <span>{{ t('tours.duration_hours', { hours: tour.durationHours }) }}</span>
@@ -71,10 +71,10 @@
       </div>
 
       <!-- Precio y CTA -->
-      <div class="flex items-center justify-between pt-4 border-t border-neutral-200 dark:border-neutral-800">
+      <div class="flex items-center justify-between pt-4 border-t border-neutral-700">
         <div>
-          <p class="text-xs text-neutral-500">{{ t('tours.price_from') }}</p>
-          <p class="text-2xl font-bold text-neutral-900 dark:text-white">
+          <p class="text-xs text-neutral-400">{{ t('tours.price_from') }}</p>
+          <p class="text-2xl font-bold text-neutral-50">
             {{ formatPrice(tour.price) }}
           </p>
         </div>
@@ -98,8 +98,16 @@ const props = defineProps<{
   tour: TourRes
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { formatPrice } = useCurrency()
+
+function getTourName(): string {
+  return props.tour.nameTranslations?.[locale.value] || props.tour.nameTranslations?.['es'] || 'Tour'
+}
+
+function getTourDescription(): string {
+  return props.tour.descriptionTranslations?.[locale.value] || props.tour.descriptionTranslations?.['es'] || ''
+}
 
 function getCategoryColor(category: string): string {
   const colors: Record<string, string> = {

@@ -37,18 +37,13 @@ export default defineNuxtConfig({
   },
 
   colorMode: {
-    preference: "dark", // Forzar dark mode - tema astronómico
-    fallback: "dark",
-    dataValue: "dark",
-    classSuffix: "",
-    storageKey: "nuxt-color-mode",
+    preference: 'dark',
+    fallback: 'dark',
+    storageKey: 'nuxt-color-mode',
+    classSuffix: '',
   },
 
   ui: {
-    colors: {
-      primary: "green",
-      neutral: "zinc",
-    },
     theme: {
       colors: [
         "primary",

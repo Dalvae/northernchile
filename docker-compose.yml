@@ -1,7 +1,10 @@
-# docker-compose.yml para servicios de Backend
+# docker-compose.yml (Configuración BASE)
+# Define la estructura común para desarrollo y producción
+# En desarrollo: se combina automáticamente con docker-compose.override.yml
+# En producción: se usa con docker-compose.prod.yml (generado por CI/CD)
 
 services:
-  # 1. Base de Datos
+  # 1. Base de Datos PostgreSQL
   database:
     image: postgres:15-alpine
     restart: always
@@ -9,41 +12,39 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: northernchile_db
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    # Nota: El puerto 5432 NO se expone por defecto (seguridad en producción)
+    # Se expone en docker-compose.override.yml para desarrollo
 
-  # 2. Backend en MODO DESARROLLO
+  # 2. Backend Spring Boot
   backend:
-    image: maven:3.9-eclipse-temurin-21-alpine
-    restart: on-failure
+    restart: always
     depends_on:
       - database
-    ports:
-      - "8080:8080"
-      - "5005:5005"
     environment:
+      # Variables de entorno comunes a todos los entornos
       - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
-      - SPRING_DEVTOOLS_REMOTE_SECRET=tu-secreto-aqui
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_FULL_NAME=${ADMIN_FULL_NAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ADMIN_USERS_CONFIG=${ADMIN_USERS_CONFIG}
-      - SEED_DATA=${SEED_DATA}
+      - SEED_DATA=${SEED_DATA:-false}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION}
       - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}
       - WEATHER_API_KEY=${WEATHER_API_KEY}
-    volumes:
-      - ./backend:/app
-      - maven_cache:/root/.m2
-    working_dir: /app
-    command: mvn spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    # Nota: image, ports, volumes y command se definen en:
+    # - docker-compose.override.yml (desarrollo)
+    # - docker-compose.prod.yml (producción)
 
 volumes:
   postgres_data:
   maven_cache:
+
+networks:
+  default:
+    name: northernchile_network
