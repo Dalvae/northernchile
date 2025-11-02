@@ -1,146 +1,240 @@
+<script setup lang="ts">
+const { locale } = useI18n()
+const router = useRouter()
+
+// Load bookings from localStorage
+const bookings = ref<any[]>([])
+const loading = ref(true)
+
+onMounted(() => {
+  if (process.client) {
+    const stored = localStorage.getItem('local_bookings')
+    if (stored) {
+      try {
+        bookings.value = JSON.parse(stored)
+      } catch (e) {
+        console.error('Failed to parse bookings:', e)
+      }
+    }
+  }
+  loading.value = false
+})
+
+// Format currency
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP'
+  }).format(amount)
+}
+
+// Format date
+function formatDate(dateString: string) {
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date)
+}
+
+function formatShortDate(dateString: string) {
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  }).format(date)
+}
+
+// Status colors
+function getStatusColor(status: string) {
+  const colors: Record<string, string> = {
+    'CONFIRMED': 'success',
+    'PENDING': 'warning',
+    'CANCELLED': 'error',
+    'COMPLETED': 'info'
+  }
+  return colors[status] || 'neutral'
+}
+
+// Status labels
+function getStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    'CONFIRMED': 'Confirmada',
+    'PENDING': 'Pendiente',
+    'CANCELLED': 'Cancelada',
+    'COMPLETED': 'Completada'
+  }
+  return labels[status] || status
+}
+</script>
+
 <template>
-  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-900 py-12">
+  <div class="min-h-screen bg-white dark:bg-neutral-900 py-12">
     <UContainer>
       <!-- Header -->
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
-          {{ t('user.my_bookings') }}
+          Mis Reservas
         </h1>
         <p class="text-neutral-600 dark:text-neutral-400">
-          {{ t('profile.bookings_description') }}
+          Revisa y administra tus reservas
         </p>
       </div>
 
       <!-- Loading State -->
-      <div v-if="pending" class="flex justify-center py-12">
+      <div v-if="loading" class="flex justify-center py-12">
         <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
       </div>
 
-      <!-- Error State -->
-      <UAlert
-        v-else-if="error"
-        color="error"
-        icon="i-lucide-alert-circle"
-        :title="t('common.error')"
-        :description="error.message"
-      />
-
       <!-- Empty State -->
       <div v-else-if="!bookings || bookings.length === 0" class="text-center py-12">
-        <UIcon name="i-lucide-calendar-x" class="w-16 h-16 mx-auto text-neutral-400 mb-4" />
+        <div class="w-20 h-20 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-4">
+          <UIcon name="i-lucide-calendar-x" class="w-12 h-12 text-neutral-400" />
+        </div>
         <h3 class="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-          {{ t('profile.no_bookings') }}
+          No tienes reservas
         </h3>
         <p class="text-neutral-600 dark:text-neutral-400 mb-6">
-          {{ t('profile.no_bookings_description') }}
+          Aún no has realizado ninguna reserva. Explora nuestros tours y comienza tu aventura.
         </p>
         <UButton
           color="primary"
           size="lg"
-          icon="i-lucide-search"
+          icon="i-lucide-telescope"
           to="/tours"
         >
-          {{ t('profile.browse_tours') }}
+          Explorar Tours
         </UButton>
       </div>
 
       <!-- Bookings List -->
-      <div v-else class="grid gap-6">
+      <div v-else class="space-y-6">
         <UCard
           v-for="booking in bookings"
           :key="booking.id"
-          class="hover:shadow-lg transition-shadow"
         >
-          <template #content>
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <!-- Booking Info -->
-              <div class="flex-1">
-                <div class="flex items-center gap-3 mb-2">
-                  <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
-                    {{ booking.tourName }}
-                  </h3>
-                  <UBadge
-                    :color="getStatusColor(booking.status)"
-                    :label="t(`booking.status.${booking.status}`)"
-                  />
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-                  <div class="flex items-center gap-2">
-                    <UIcon name="i-lucide-calendar" class="w-4 h-4" />
-                    <span>{{ formatDate(booking.tourDate) }}</span>
-                  </div>
-
-                  <div class="flex items-center gap-2">
-                    <UIcon name="i-lucide-users" class="w-4 h-4" />
-                    <span>{{ booking.participants.length }} {{ t('booking.participants') }}</span>
-                  </div>
-
-                  <div class="flex items-center gap-2">
-                    <UIcon name="i-lucide-receipt" class="w-4 h-4" />
-                    <span>${{ formatPrice(booking.totalAmount) }}</span>
-                  </div>
-
-                  <div class="flex items-center gap-2">
-                    <UIcon name="i-lucide-clock" class="w-4 h-4" />
-                    <span>{{ t('profile.booked_on') }} {{ formatDate(booking.createdAt) }}</span>
-                  </div>
-                </div>
+          <template #header>
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-sm text-neutral-500 dark:text-neutral-400">
+                  Reserva #{{ booking.id }}
+                </p>
+                <p class="text-lg font-semibold text-neutral-900 dark:text-white mt-1">
+                  {{ formatShortDate(booking.bookingDate) }}
+                </p>
               </div>
+              <UBadge :color="getStatusColor(booking.status)" size="lg">
+                {{ getStatusLabel(booking.status) }}
+              </UBadge>
+            </div>
+          </template>
 
-              <!-- Actions -->
-              <div class="flex flex-col gap-2">
-                <UButton
-                  color="primary"
-                  variant="outline"
-                  size="sm"
-                  icon="i-lucide-eye"
-                  @click="viewBookingDetails(booking.id)"
-                >
-                  {{ t('common.view') }}
-                </UButton>
-
-                <!-- Booking cancellation feature temporarily disabled -->
-                <!-- Will be implemented after payment gateway integration -->
+          <div class="space-y-4">
+            <!-- Items -->
+            <div class="space-y-3">
+              <div
+                v-for="item in booking.items"
+                :key="item.itemId"
+                class="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg"
+              >
+                <div class="flex justify-between items-start">
+                  <div class="flex-1">
+                    <p class="font-medium text-neutral-900 dark:text-white">
+                      {{ item.tourName }}
+                    </p>
+                    <div class="mt-2 space-y-1 text-sm text-neutral-600 dark:text-neutral-400">
+                      <p v-if="item.startDatetime" class="flex items-center gap-2">
+                        <UIcon name="i-lucide-calendar" class="w-4 h-4" />
+                        {{ formatDate(item.startDatetime) }}
+                      </p>
+                      <p class="flex items-center gap-2">
+                        <UIcon name="i-lucide-users" class="w-4 h-4" />
+                        {{ item.numParticipants }} {{ item.numParticipants === 1 ? 'persona' : 'personas' }}
+                      </p>
+                      <p v-if="item.durationHours" class="flex items-center gap-2">
+                        <UIcon name="i-lucide-clock" class="w-4 h-4" />
+                        {{ item.durationHours }} horas
+                      </p>
+                    </div>
+                  </div>
+                  <div class="text-right ml-4">
+                    <p class="text-lg font-bold text-neutral-900 dark:text-white">
+                      {{ formatCurrency(item.itemTotal) }}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <!-- Expandable Details -->
-            <UDivider v-if="expandedBooking === booking.id" class="my-4" />
-
-            <div v-if="expandedBooking === booking.id" class="mt-4">
-              <h4 class="font-semibold text-neutral-900 dark:text-white mb-3">
-                {{ t('booking.participant_details') }}
+            <!-- Contact Info -->
+            <UDivider />
+            <div>
+              <h4 class="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                Información de Contacto
               </h4>
-
-              <div class="grid gap-3">
-                <div
-                  v-for="(participant, index) in booking.participants"
-                  :key="participant.id"
-                  class="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-lg"
-                >
-                  <div class="font-medium text-neutral-900 dark:text-white mb-1">
-                    {{ index + 1 }}. {{ participant.fullName }}
-                  </div>
-                  <div class="text-sm text-neutral-600 dark:text-neutral-400 space-y-1">
-                    <div>{{ t('booking.document_id') }}: {{ participant.documentId }}</div>
-                    <div>{{ t('booking.nationality') }}: {{ participant.nationality }}</div>
-                    <div>{{ t('booking.age') }}: {{ participant.age }}</div>
-                    <div>{{ t('booking.pickup_address') }}: {{ participant.pickupAddress }}</div>
-                    <div v-if="participant.specialRequirements">
-                      {{ t('booking.special_requirements') }}: {{ participant.specialRequirements }}
-                    </div>
-                  </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div class="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
+                  <UIcon name="i-lucide-user" class="w-4 h-4" />
+                  {{ booking.contact.fullName }}
+                </div>
+                <div class="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
+                  <UIcon name="i-lucide-mail" class="w-4 h-4" />
+                  {{ booking.contact.email }}
+                </div>
+                <div class="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
+                  <UIcon name="i-lucide-phone" class="w-4 h-4" />
+                  {{ booking.contact.countryCode }} {{ booking.contact.phone }}
                 </div>
               </div>
+            </div>
 
-              <div v-if="booking.specialRequests" class="mt-4">
-                <h4 class="font-semibold text-neutral-900 dark:text-white mb-2">
-                  {{ t('booking.special_requirements') }}
-                </h4>
-                <p class="text-sm text-neutral-600 dark:text-neutral-400">
-                  {{ booking.specialRequests }}
-                </p>
+            <!-- Total -->
+            <UDivider />
+            <div class="space-y-2">
+              <div class="flex justify-between text-sm text-neutral-600 dark:text-neutral-400">
+                <span>Subtotal</span>
+                <span>{{ formatCurrency(booking.subtotal) }}</span>
+              </div>
+              <div class="flex justify-between text-sm text-neutral-600 dark:text-neutral-400">
+                <span>IVA (19%)</span>
+                <span>{{ formatCurrency(booking.tax) }}</span>
+              </div>
+              <div class="flex justify-between text-lg font-bold text-neutral-900 dark:text-white pt-2 border-t border-neutral-200 dark:border-neutral-700">
+                <span>Total</span>
+                <span>{{ formatCurrency(booking.total) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <template #footer>
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                <UIcon name="i-lucide-info" class="w-4 h-4" />
+                <span>Cancelación gratuita hasta 24h antes</span>
+              </div>
+              <div class="flex gap-2">
+                <UButton
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  icon="i-lucide-download"
+                >
+                  Descargar
+                </UButton>
+                <UButton
+                  v-if="booking.status === 'CONFIRMED'"
+                  color="error"
+                  variant="soft"
+                  size="sm"
+                  icon="i-lucide-x"
+                >
+                  Cancelar
+                </UButton>
               </div>
             </div>
           </template>
@@ -149,85 +243,3 @@
     </UContainer>
   </div>
 </template>
-
-<script setup lang="ts">
-const { t, locale } = useI18n()
-const toast = useToast()
-const { formatPrice } = useCurrency()
-
-definePageMeta({
-  layout: 'default',
-})
-
-// Fetch bookings
-const { data: bookings, pending, error, refresh } = await useFetch('/api/bookings', {
-  credentials: 'include'
-})
-
-// State
-const expandedBooking = ref<string | null>(null)
-
-// View booking details (toggle expand)
-function viewBookingDetails(bookingId: string) {
-  expandedBooking.value = expandedBooking.value === bookingId ? null : bookingId
-}
-
-// Cancel booking
-async function cancelBooking(bookingId: string) {
-  const confirmed = confirm(t('profile.cancel_booking_confirm'))
-  if (!confirmed) return
-
-  try {
-    await $fetch(`/api/bookings/${bookingId}/cancel`, {
-      method: 'PUT',
-      credentials: 'include'
-    })
-
-    toast.add({
-      title: t('common.success'),
-      description: t('profile.booking_cancelled_success'),
-      color: 'success'
-    })
-
-    refresh()
-  } catch (error: any) {
-    toast.add({
-      title: t('common.error'),
-      description: error.data?.message || t('profile.booking_cancel_error'),
-      color: 'error'
-    })
-  }
-}
-
-// Check if booking can be cancelled (24h before tour)
-function canCancelBooking(booking: any): boolean {
-  if (booking.status !== 'CONFIRMED') return false
-
-  const tourDate = new Date(booking.tourDate)
-  const now = new Date()
-  const hoursUntilTour = (tourDate.getTime() - now.getTime()) / (1000 * 60 * 60)
-
-  return hoursUntilTour > 24
-}
-
-// Get status badge color
-function getStatusColor(status: string): string {
-  const colors: Record<string, string> = {
-    PENDING: 'warning',
-    CONFIRMED: 'success',
-    CANCELLED: 'error',
-    COMPLETED: 'info'
-  }
-  return colors[status] || 'neutral'
-}
-
-// Format date
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  return date.toLocaleDateString(locale.value, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
-</script>

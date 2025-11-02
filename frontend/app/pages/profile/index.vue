@@ -377,7 +377,7 @@ async function changePassword() {
   isChangingPassword.value = true
 
   try {
-    await $fetch('/api/users/me/password', {
+    await $fetch('/api/profile/me/password', {
       method: 'PUT',
       credentials: 'include',
       body: {
