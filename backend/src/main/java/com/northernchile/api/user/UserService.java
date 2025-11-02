@@ -142,6 +142,58 @@ public class UserService {
         auditLogService.logDelete(currentUser, "USER", user.getId(), user.getEmail(), oldValues);
     }
 
+    @Transactional
+    public void changeUserPassword(User user, String currentPassword, String newPassword) {
+        // 1. Verify that the current password is correct
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new IllegalStateException("La contraseña actual es incorrecta.");
+        }
+
+        // 2. Encode and save the new password
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        // 3. Log in the audit
+        auditLogService.logAction(
+                user,
+                "PASSWORD_CHANGE",
+                "USER",
+                user.getId(),
+                user.getEmail(),
+                Map.of("action", "User changed their own password"),
+                null
+        );
+    }
+
+    @Transactional
+    public void adminResetUserPassword(User adminUser, UUID targetUserId, String newPassword) {
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario a modificar no encontrado con id: " + targetUserId));
+
+        if (targetUser.getDeletedAt() != null) {
+            throw new IllegalStateException("Cannot reset password for a deleted user");
+        }
+
+        targetUser.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(targetUser);
+
+        // CRITICAL audit log: record who made the change and for whom
+        String auditDescription = String.format(
+                "Admin '%s' restableció la contraseña para el usuario '%s'",
+                adminUser.getEmail(),
+                targetUser.getEmail()
+        );
+        auditLogService.logAction(
+                adminUser,
+                "ADMIN_PASSWORD_RESET",
+                "USER",
+                targetUser.getId(),
+                auditDescription,
+                null,
+                null
+        );
+    }
+
     private UserRes toUserRes(User user) {
         UserRes res = new UserRes();
         res.setId(user.getId());

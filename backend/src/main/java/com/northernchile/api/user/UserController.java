@@ -1,9 +1,11 @@
 package com.northernchile.api.user;
 
 import com.northernchile.api.model.User;
+import com.northernchile.api.user.dto.AdminPasswordChangeReq;
 import com.northernchile.api.user.dto.UserCreateReq;
 import com.northernchile.api.user.dto.UserRes;
 import com.northernchile.api.user.dto.UserUpdateReq;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -64,6 +67,20 @@ public class UserController {
         User currentUser = getCurrentUser();
         userService.deleteUser(userId, currentUser);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PutMapping("/{userId}/password")
+    public ResponseEntity<Map<String, String>> adminChangePassword(
+            @PathVariable UUID userId,
+            @Valid @RequestBody AdminPasswordChangeReq req) {
+        User currentUser = getCurrentUser();
+        try {
+            userService.adminResetUserPassword(currentUser, userId, req.getNewPassword());
+            return ResponseEntity.ok(Map.of("message", "Contraseña del usuario actualizada correctamente."));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        }
     }
 
     private User getCurrentUser() {

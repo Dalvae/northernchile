@@ -14,7 +14,7 @@ const emit = defineEmits<{
   "update:open": [value: boolean];
 }>();
 
-const { createAdminUser, updateAdminUser } = useAdminData();
+const { createAdminUser, updateAdminUser, resetAdminUserPassword } = useAdminData();
 const toast = useToast();
 
 // Role options for select
@@ -79,6 +79,47 @@ watch(
 );
 
 const isSubmitting = ref(false);
+const isResettingPassword = ref(false);
+const showPasswordReset = ref(false);
+const newPassword = ref("");
+
+async function handlePasswordReset() {
+  if (!newPassword.value || newPassword.value.length < 8) {
+    toast.add({
+      title: "Error",
+      description: "La contraseña debe tener al menos 8 caracteres",
+      color: "error",
+      icon: "i-lucide-x-circle",
+    });
+    return;
+  }
+
+  if (!confirm("¿Estás seguro de que quieres restablecer la contraseña de este usuario?")) {
+    return;
+  }
+
+  isResettingPassword.value = true;
+  try {
+    await resetAdminUserPassword(props.user!.id, newPassword.value);
+    toast.add({
+      title: "Contraseña restablecida",
+      description: "La contraseña del usuario ha sido actualizada correctamente",
+      color: "success",
+      icon: "i-lucide-check-circle",
+    });
+    newPassword.value = "";
+    showPasswordReset.value = false;
+  } catch (e: any) {
+    toast.add({
+      title: "Error al restablecer contraseña",
+      description: e.message || "Error desconocido",
+      color: "error",
+      icon: "i-lucide-x-circle",
+    });
+  } finally {
+    isResettingPassword.value = false;
+  }
+}
 
 async function handleSubmit() {
   isSubmitting.value = true;
@@ -245,6 +286,60 @@ function handleClose() {
               icon="i-lucide-phone"
             />
           </UFormField>
+
+          <!-- Password Reset Section (only in edit mode) -->
+          <div v-if="isEditMode" class="pt-4 border-t border-neutral-200 dark:border-neutral-700">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h4 class="font-medium text-neutral-900 dark:text-white">Restablecer Contraseña</h4>
+                <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                  Establece una nueva contraseña para este usuario
+                </p>
+              </div>
+              <UButton
+                v-if="!showPasswordReset"
+                icon="i-lucide-key"
+                color="warning"
+                variant="outline"
+                size="sm"
+                @click="showPasswordReset = true"
+              >
+                Cambiar Contraseña
+              </UButton>
+            </div>
+
+            <div v-if="showPasswordReset" class="space-y-3 p-4 bg-warning-50 dark:bg-warning-950 rounded-lg border border-warning-200 dark:border-warning-800">
+              <UFormField
+                label="Nueva Contraseña"
+                help="Mínimo 8 caracteres"
+              >
+                <UInput
+                  v-model="newPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  icon="i-lucide-lock"
+                />
+              </UFormField>
+              <div class="flex gap-2">
+                <UButton
+                  color="warning"
+                  :loading="isResettingPassword"
+                  @click="handlePasswordReset"
+                  icon="i-lucide-key"
+                >
+                  Restablecer Contraseña
+                </UButton>
+                <UButton
+                  color="neutral"
+                  variant="outline"
+                  @click="showPasswordReset = false; newPassword = ''"
+                  :disabled="isResettingPassword"
+                >
+                  Cancelar
+                </UButton>
+              </div>
+            </div>
+          </div>
         </UForm>
 
         <!-- Footer -->

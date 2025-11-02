@@ -93,5 +93,11 @@ export const useAdminData = () => {
         method: "DELETE",
         headers: headers.value,
       }),
+    resetAdminUserPassword: (id: string, newPassword: string) =>
+      $fetch(`/api/admin/users/${id}/password`, {
+        method: "PUT",
+        body: { newPassword },
+        headers: headers.value,
+      }),
   };
 };
