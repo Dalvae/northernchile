@@ -74,7 +74,9 @@ jobs:
       - name: Setup SSH Key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/deploy_key
+          cat > ~/.ssh/deploy_key << 'SSHKEY'
+          ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSHKEY
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
@@ -89,7 +91,7 @@ jobs:
 
       - name: Deploy on VPS
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} bash << 'ENDSSH'
             cd /app/northernchile
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
             docker compose -f docker-compose.prod.yml pull
@@ -99,6 +101,7 @@ jobs:
           ENDSSH
 
       - name: Verify Deployment
+        if: success()
         run: |
           echo "Waiting for application to start..."
           sleep 20
