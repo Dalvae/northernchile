@@ -12,6 +12,7 @@ import java.util.UUID;
 
 public class TourRes {
     private UUID id;
+    private String slug;
     private Map<String, String> nameTranslations;
     private Map<String, String> descriptionTranslations;
     private String category;
@@ -55,6 +56,14 @@ public class TourRes {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
     }
 
     public Map<String, String> getNameTranslations() {

@@ -52,6 +52,12 @@ public class TourController {
         return new ResponseEntity<>(tour, HttpStatus.OK);
     }
 
+    @GetMapping("/tours/slug/{slug}") // Public endpoint for slug-based URLs - MUST come before /tours/{id}
+    public ResponseEntity<TourRes> getTourBySlug(@PathVariable String slug) {
+        TourRes tour = tourService.getTourBySlug(slug);
+        return new ResponseEntity<>(tour, HttpStatus.OK);
+    }
+
     @GetMapping("/tours/{id}") // Public endpoint - no ownership check needed
     public ResponseEntity<TourRes> getTourById(@PathVariable UUID id) {
         // For public endpoint, we create a temporary "public" user context

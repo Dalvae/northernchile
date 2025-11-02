@@ -46,6 +46,9 @@ public class Tour {
     @Column(unique = true, length = 100)
     private String contentKey;
 
+    @Column(unique = true, length = 255)
+    private String slug;
+
     @Column(nullable = false, length = 50)
     private String category;
 
@@ -173,6 +176,14 @@ public class Tour {
 
     public void setContentKey(String contentKey) {
         this.contentKey = contentKey;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
     }
 
     public String getCategory() {

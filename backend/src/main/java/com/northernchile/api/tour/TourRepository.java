@@ -32,4 +32,13 @@ public interface TourRepository extends JpaRepository<Tour, UUID> {
 
     @Query("SELECT t FROM Tour t WHERE t.id = :id AND t.owner.id = :ownerId AND t.deletedAt IS NULL")
     Optional<Tour> findByIdAndOwnerIdNotDeleted(@Param("id") UUID id, @Param("ownerId") UUID ownerId);
+
+    // Slug-based queries
+    @Query("SELECT t FROM Tour t WHERE t.slug = :slug AND t.deletedAt IS NULL")
+    Optional<Tour> findBySlugNotDeleted(@Param("slug") String slug);
+
+    @Query("SELECT t FROM Tour t WHERE t.slug = :slug AND t.status = 'PUBLISHED' AND t.deletedAt IS NULL")
+    Optional<Tour> findBySlugPublished(@Param("slug") String slug);
+
+    Optional<Tour> findBySlug(String slug);
 }

@@ -79,7 +79,7 @@
           </p>
         </div>
         <UButton
-          :to="`/tours/${tour.id}`"
+          :to="`/tours/${tour.slug || tour.id}`"
           color="primary"
           icon="i-lucide-arrow-right"
           trailing

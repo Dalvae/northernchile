@@ -8,6 +8,7 @@ import com.northernchile.api.tour.dto.TourCreateReq;
 import com.northernchile.api.tour.dto.TourRes;
 import com.northernchile.api.tour.dto.TourUpdateReq;
 import com.northernchile.api.tour.dto.TourImageRes;
+import com.northernchile.api.util.SlugGenerator;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -37,6 +38,9 @@ public class TourService {
     @Autowired
     private AuditLogService auditLogService;
 
+    @Autowired
+    private SlugGenerator slugGenerator;
+
     public TourRes createTour(TourCreateReq tourCreateReq, User currentUser) {
         Tour tour = new Tour();
         tour.setOwner(currentUser);
@@ -50,6 +54,10 @@ public class TourService {
         tour.setDefaultMaxParticipants(tourCreateReq.getDefaultMaxParticipants());
         tour.setDurationHours(tourCreateReq.getDurationHours());
         tour.setStatus(tourCreateReq.getStatus());
+
+        // Generate slug from Spanish name (default language)
+        String baseName = tourCreateReq.getNameTranslations().getOrDefault("es", "tour");
+        tour.setSlug(generateUniqueSlug(baseName));
 
         Tour savedTour = tourRepository.save(tour);
 
@@ -152,6 +160,14 @@ public class TourService {
         tour.setDurationHours(tourUpdateReq.getDurationHours());
         tour.setStatus(tourUpdateReq.getStatus());
 
+        // Regenerate slug if name changed
+        String newBaseName = tourUpdateReq.getNameTranslations().getOrDefault("es", "tour");
+        String currentSlug = tour.getSlug();
+        String expectedSlug = slugGenerator.generateSlug(newBaseName);
+        if (currentSlug == null || !currentSlug.startsWith(expectedSlug)) {
+            tour.setSlug(generateUniqueSlug(newBaseName, tour.getId()));
+        }
+
         // Handle images
         tourImageRepository.deleteByTourId(tour.getId());
         if (tourUpdateReq.getImageUrls() != null && !tourUpdateReq.getImageUrls().isEmpty()) {
@@ -215,6 +231,7 @@ public class TourService {
     private TourRes toTourResponse(Tour tour) {
         TourRes tourRes = new TourRes();
         tourRes.setId(tour.getId());
+        tourRes.setSlug(tour.getSlug());
         tourRes.setNameTranslations(tour.getNameTranslations());
         tourRes.setDescriptionTranslations(tour.getDescriptionTranslations());
         tourRes.setImages(tour.getImages().stream().map(this::toTourImageRes).collect(Collectors.toList()));
@@ -239,5 +256,47 @@ public class TourService {
         tourImageRes.setHeroImage(tourImage.isHeroImage());
         tourImageRes.setDisplayOrder(tourImage.getDisplayOrder());
         return tourImageRes;
+    }
+
+    /**
+     * Get a published tour by its slug (for public tour pages)
+     */
+    @Transactional(readOnly = true)
+    public TourRes getTourBySlug(String slug) {
+        Tour tour = tourRepository.findBySlugPublished(slug)
+                .orElseThrow(() -> new EntityNotFoundException("Tour not found with slug: " + slug));
+
+        return toTourResponse(tour);
+    }
+
+    /**
+     * Generate a unique slug from a base name
+     */
+    private String generateUniqueSlug(String baseName) {
+        return generateUniqueSlug(baseName, null);
+    }
+
+    /**
+     * Generate a unique slug from a base name, optionally excluding a specific tour ID
+     */
+    private String generateUniqueSlug(String baseName, UUID excludeId) {
+        String baseSlug = slugGenerator.generateSlug(baseName);
+        String slug = baseSlug;
+        int counter = 1;
+
+        // Keep trying with incrementing suffix until we find a unique slug
+        while (true) {
+            final String candidateSlug = slug;
+            boolean exists = tourRepository.findBySlug(candidateSlug)
+                    .filter(t -> excludeId == null || !t.getId().equals(excludeId))
+                    .isPresent();
+
+            if (!exists) {
+                return candidateSlug;
+            }
+
+            slug = baseSlug + "-" + counter;
+            counter++;
+        }
     }
 }
