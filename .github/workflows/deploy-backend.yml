@@ -90,15 +90,11 @@ jobs:
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no docker-compose.prod.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/app/northernchile/docker-compose.prod.yml
 
       - name: Deploy on VPS
+        env:
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+          DOCKER_USERNAME: ${{ github.repository_owner }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} bash << 'ENDSSH'
-            cd /app/northernchile
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
-            docker image prune -f
-            echo "✅ Deployment completed!"
-          ENDSSH
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd /app/northernchile && echo '${GHCR_PAT}' | docker login ghcr.io -u '${DOCKER_USERNAME}' --password-stdin && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d --remove-orphans && docker image prune -f && echo '✅ Deployment completed!'"
 
       - name: Verify Deployment
         if: success()
