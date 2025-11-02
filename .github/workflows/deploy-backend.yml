@@ -5,11 +5,11 @@ on:
     branches: [main]
     paths:
       - "backend/**"
-      - ".github/workflows/deploy-backend.yml" # Importante: para que se actualice a sí mismo
+      - ".github/workflows/deploy-backend.yml"
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: northernchile-backend # Un nombre simple para la imagen
+  IMAGE_NAME: northernchile-backend
 
 jobs:
   build-and-deploy:
@@ -47,49 +47,52 @@ jobs:
           cache-from: type=registry,ref=${{ steps.image_name.outputs.NAME }}:buildcache
           cache-to: type=registry,ref=${{ steps.image_name.outputs.NAME }}:buildcache,mode=max
 
-      - name: Deploy to VPS using Manual SSH Commands
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+
+      - name: Add VPS to known hosts
+        run: ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
         env:
-          VPS_SSH_PRIVATE_KEY: "${{ secrets.VPS_SSH_PRIVATE_KEY }}"
-          VPS_HOST: ${{ secrets.VPS_HOST }}
+          # Define variables para pasarlas al script remoto
           VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
           DOCKER_USERNAME: ${{ github.repository_owner }}
           IMAGE_FULL_NAME: ${{ steps.image_name.outputs.NAME }}
           SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
           ADMIN_USERS_CONFIG: ${{ secrets.ADMIN_USERS_CONFIG }}
-          # ... (aquí irían los demás secretos de AWS, etc.) ...
+          # ... Añade aquí el resto de tus secretos (AWS, WEATHER, etc.) ...
         run: |
-          # 1. Preparar la conexión SSH (ESTA ES LA PARTE NUEVA)
-          echo "Setting up SSH connection..."
-          mkdir -p ~/.ssh
-          echo "$VPS_SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
-
-          # 2. Crear el script de despliegue
-          echo "Creating deployment script..."
+          # Crear el script de despliegue localmente
           cat << 'EOF' > deploy_script.sh
+            # --- Este script se ejecutará en el VPS ---
+            
             export APP_DIR=/app/northernchile
             mkdir -p $APP_DIR
             cd $APP_DIR
 
-            # Crear .env file
             echo "Creating .env file..."
-            echo "SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}" > .env
-            echo "ADMIN_USERS_CONFIG=${ADMIN_USERS_CONFIG}" >> .env
-            # ... (y los otros secretos) ...
-            
-            # Crear docker-compose.prod.yml
-            echo "Creating docker-compose.prod.yml..."
-            echo "version: '3.8'" > docker-compose.prod.yml
-            echo "services:" >> docker-compose.prod.yml
-            echo "  backend:" >> docker-compose.prod.yml
-            echo "    image: ${IMAGE_FULL_NAME}:latest" >> docker-compose.prod.yml
-            echo "    restart: always" >> docker-compose.prod.yml
-            echo "    ports: ['127.0.0.1:8080:8080']" >> docker-compose.prod.yml
-            echo "    env_file: [./.env]" >> docker-compose.prod.yml
+            cat > .env <<ENV_EOF
+            SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+            ADMIN_USERS_CONFIG=${ADMIN_USERS_CONFIG}
+            # ... Añade aquí las variables de entorno para los otros secretos ...
+            ENV_EOF
 
-            # Desplegar
+            echo "Creating docker-compose.prod.yml..."
+            cat > docker-compose.prod.yml <<COMPOSE_EOF
+            version: '3.8'
+            services:
+              backend:
+                image: ${IMAGE_FULL_NAME}:latest
+                restart: always
+                ports: ['127.0.0.1:8080:8080']
+                env_file: [./.env]
+            COMPOSE_EOF
+
             echo "Logging into GHCR..."
             echo "${GHCR_PAT}" | docker login ghcr.io -u ${DOCKER_USERNAME} --password-stdin
             
@@ -101,18 +104,19 @@ jobs:
             
             echo "Cleaning up old images..."
             docker image prune -f
+            
+            echo "Deployment on VPS finished!"
           EOF
 
-          # 3. Transferir el script al VPS
-          echo "Copying script to VPS..."
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy_script.sh $VPS_USER@$VPS_HOST:/tmp/deploy_script.sh
+          # Transferir el script al VPS usando scp
+          scp deploy_script.sh ${VPS_USER}@${VPS_HOST}:/tmp/deploy_script.sh
 
-          # 4. Ejecutar el script en el VPS
-          echo "Executing script on VPS..."
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "bash /tmp/deploy_script.sh"
+          # Ejecutar el script en el VPS usando ssh
+          # Pasamos las variables de entorno necesarias para que el script las use
+          ssh ${VPS_USER}@${VPS_HOST} "export SPRING_DATASOURCE_URL='${SPRING_DATASOURCE_URL}'; export ADMIN_USERS_CONFIG='${ADMIN_USERS_CONFIG}'; export GHCR_PAT='${GHCR_PAT}'; export DOCKER_USERNAME='${DOCKER_USERNAME}'; export IMAGE_FULL_NAME='${IMAGE_FULL_NAME}'; bash /tmp/deploy_script.sh"
 
-      - name: Verify Deployment (Post-Script)
+      - name: Verify Deployment
         if: success()
         run: |
-          sleep 20 # Esperar a que Spring Boot inicie
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "curl -f http://localhost:8080/actuator/health"
+          sleep 20 # Dar tiempo a Spring Boot para que inicie
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "curl -f http://localhost:8080/actuator/health"
