@@ -1,15 +1,14 @@
-name: Deploy Backend to Digital Ocean
+name: Deploy Backend to VPS
 
 on:
   push:
     branches: [main]
     paths:
-      - 'backend/**'
-      - 'docker-compose.yml'
-      - '.github/workflows/deploy-backend.yml'
+      - "backend/**"
 
 env:
   REGISTRY: ghcr.io
+  IMAGE_NAME: backend
 
 jobs:
   build-and-deploy:
@@ -22,11 +21,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Generate lowercase image name
+      - name: Generate full image name in lowercase
         id: image_name
         run: |
           REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          echo "NAME=${{ env.REGISTRY }}/$REPO_LOWER/backend" >> $GITHUB_OUTPUT
+          echo "NAME=${{ env.REGISTRY }}/$REPO_LOWER/${{ env.IMAGE_NAME }}" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -43,9 +42,6 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ steps.image_name.outputs.NAME }}
-          tags: |
-            type=raw,value=latest
-            type=sha,prefix={{branch}}-
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -57,90 +53,80 @@ jobs:
           cache-from: type=registry,ref=${{ steps.image_name.outputs.NAME }}:buildcache
           cache-to: type=registry,ref=${{ steps.image_name.outputs.NAME }}:buildcache,mode=max
 
-      - name: Deploy to Digital Ocean VPS
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          script: |
-            # Directorio de la aplicación
+      - name: Deploy to VPS using Manual SSH
+        env:
+          # Pasamos todos los secretos necesarios al script
+          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+          SPRING_DATASOURCE_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+          ADMIN_USERS_CONFIG: ${{ secrets.ADMIN_USERS_CONFIG }}
+          # ... (añade aquí cualquier otro secreto que necesites) ...
+        run: |
+          # 1. Preparar la conexión SSH
+          echo "Setting up SSH connection..."
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+
+          # 2. Crear el script de despliegue que se ejecutará en el VPS
+          echo "Creating deployment script..."
+          cat << 'EOF' > deploy_script.sh
             export APP_DIR=/app/northernchile
             mkdir -p $APP_DIR
             cd $APP_DIR
 
-            # Crear archivo .env con las variables de entorno
-            cat > .env <<EOF
-            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/northernchile_db
-            ADMIN_USERS_CONFIG=${{ secrets.ADMIN_EMAIL }}:${{ secrets.ADMIN_PASSWORD }}:ROLE_SUPER_ADMIN
-            SEED_DATA=false
-            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            AWS_REGION=${{ secrets.AWS_REGION }}
-            AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}
-            WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY }}
-            EOF
+            # Crear el archivo .env
+            echo "Creating .env file..."
+            echo "SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}" > .env
+            echo "ADMIN_USERS_CONFIG=${ADMIN_USERS_CONFIG}" >> .env
+            # ... (añade aquí las otras variables de entorno que necesites) ...
+            
+            # Crear el docker-compose.prod.yml
+            echo "Creating docker-compose.prod.yml..."
+            echo "version: '3.8'" > docker-compose.prod.yml
+            echo "services:" >> docker-compose.prod.yml
+            echo "  backend:" >> docker-compose.prod.yml
+            echo "    image: ${{ steps.image_name.outputs.NAME }}:latest" >> docker-compose.prod.yml
+            echo "    restart: always" >> docker-compose.prod.yml
+            echo "    ports:" >> docker-compose.prod.yml
+            echo "      - '127.0.0.1:8080:8080'" >> docker-compose.prod.yml
+            echo "    env_file:" >> docker-compose.prod.yml
+            echo "      - ./.env" >> docker-compose.prod.yml
 
-            # Crear docker-compose.prod.yml para producción
-            cat > docker-compose.prod.yml <<COMPOSE_EOF
-            services:
-              database:
-                image: postgres:15-alpine
-                restart: always
-                environment:
-                  POSTGRES_USER: \${POSTGRES_USER}
-                  POSTGRES_PASSWORD: \${POSTGRES_PASSWORD}
-                  POSTGRES_DB: northernchile_db
-                volumes:
-                  - postgres_data:/var/lib/postgresql/data
-                networks:
-                  - northernchile_network
-
-              backend:
-                image: ${{ steps.image_name.outputs.NAME }}:latest
-                restart: always
-                depends_on:
-                  - database
-                ports:
-                  - "127.0.0.1:8080:8080"
-                env_file:
-                  - .env
-                networks:
-                  - northernchile_network
-
-            volumes:
-              postgres_data:
-
-            networks:
-              northernchile_network:
-                name: northernchile_network
-            COMPOSE_EOF
-
-            # Login a GitHub Container Registry
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
-
-            # Pull de la nueva imagen
+            # Autenticar, descargar y desplegar
+            echo "Logging into GHCR..."
+            echo "${GHCR_PAT}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+            
+            echo "Pulling the latest image..."
             docker compose -f docker-compose.prod.yml pull backend
-
-            # Desplegar con zero-downtime
+            
+            echo "Restarting the service..."
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
-
-            # Limpiar imágenes antiguas
+            
+            echo "Cleaning up old images..."
             docker image prune -f
+            
+            echo "Deployment script finished!"
+          EOF
 
-            # Verificar que el backend esté corriendo
-            sleep 10
-            docker compose -f docker-compose.prod.yml ps
+          # 3. Transferir el script al VPS
+          echo "Copying script to VPS..."
+          scp -o StrictHostKeyChecking=no deploy_script.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/deploy_script.sh
 
-      - name: Verify deployment
-        uses: appleboy/ssh-action@v1.2.0
+          # 4. Ejecutar el script en el VPS
+          echo "Executing script on VPS..."
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "bash /tmp/deploy_script.sh"
+
+      - name: Verify Deployment
+        uses: appleboy/ssh-action@v1.0.3 # Usamos esta acción solo para un comando simple de verificación
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           script: |
-            # Verificar health del backend
+            sleep 15 # Esperar 15 segundos para que Spring Boot inicie
             curl -f http://localhost:8080/actuator/health || exit 1
-            echo "✅ Backend deployed successfully!"
+            echo "✅ Backend deployed and healthy!"
