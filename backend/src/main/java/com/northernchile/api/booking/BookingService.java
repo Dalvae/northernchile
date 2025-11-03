@@ -13,6 +13,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +43,9 @@ public class BookingService {
     @Autowired
     private AuditLogService auditLogService;
 
+    @Autowired
+    private BookingMapper bookingMapper;
+
     @Value("${tax.rate}")
     private BigDecimal taxRate;
 
@@ -50,7 +54,6 @@ public class BookingService {
         var schedule = tourScheduleRepository.findById(req.getScheduleId())
                 .orElseThrow(() -> new EntityNotFoundException("TourSchedule not found with id: " + req.getScheduleId()));
 
-        // 1. Validate available slots
         Integer bookedParticipants = bookingRepository.countParticipantsByScheduleId(req.getScheduleId());
         if (bookedParticipants == null) bookedParticipants = 0;
         int requestedSlots = req.getParticipants().size();
@@ -58,7 +61,6 @@ public class BookingService {
             throw new IllegalStateException("Not enough available slots for this tour schedule.");
         }
 
-        // 2. Calculate prices and taxes
         int participantCount = req.getParticipants().size();
         BigDecimal pricePerParticipant = schedule.getTour().getPrice();
 
@@ -67,12 +69,11 @@ public class BookingService {
         BigDecimal subtotal = totalAmount.divide(BigDecimal.ONE.add(taxRate), 2, RoundingMode.HALF_UP);
         BigDecimal taxAmount = totalAmount.subtract(subtotal);
 
-        // 3. Create and save Booking and Participants
         Booking booking = new Booking();
         booking.setUser(currentUser);
         booking.setSchedule(schedule);
         booking.setTourDate(LocalDate.ofInstant(schedule.getStartDatetime(), ZoneOffset.UTC));
-        booking.setStatus("PENDING"); // Status is pending until payment is confirmed
+        booking.setStatus("PENDING");
         booking.setSubtotal(subtotal);
         booking.setTaxAmount(taxAmount);
         booking.setTotalAmount(totalAmount);
@@ -95,7 +96,6 @@ public class BookingService {
 
         Booking savedBooking = bookingRepository.save(booking);
 
-        // 4. Send confirmation emails
         emailService.sendBookingConfirmationEmail(
                 savedBooking.getLanguageCode(),
                 savedBooking.getId().toString(),
@@ -104,93 +104,63 @@ public class BookingService {
         );
         emailService.sendNewBookingNotificationToAdmin(savedBooking.getId().toString());
 
-        return toBookingRes(savedBooking);
+        return bookingMapper.toBookingRes(savedBooking);
     }
 
-    // CRITICAL: Filter bookings for PARTNER_ADMIN to only show bookings for their tours
     public List<BookingRes> getAllBookings(User currentUser) {
         if ("ROLE_SUPER_ADMIN".equals(currentUser.getRole())) {
-            // Super admin sees all bookings
             return bookingRepository.findAll().stream()
-                    .map(this::toBookingRes)
+                    .map(bookingMapper::toBookingRes)
                     .collect(Collectors.toList());
         } else if ("ROLE_PARTNER_ADMIN".equals(currentUser.getRole())) {
-            // Partner admin only sees bookings for their tours
             return bookingRepository.findAll().stream()
                     .filter(booking -> booking.getSchedule().getTour().getOwner().getId().equals(currentUser.getId()))
-                    .map(this::toBookingRes)
+                    .map(bookingMapper::toBookingRes)
                     .collect(Collectors.toList());
         } else {
-            // Regular users shouldn't use this endpoint, but return empty for safety
             return List.of();
         }
     }
 
+    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId) or @bookingSecurityService.isBookingUser(authentication, #bookingId)")
     public Optional<BookingRes> getBookingById(UUID bookingId, User currentUser) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
 
-        // Check access: SUPER_ADMIN, tour owner (PARTNER_ADMIN), or the booking user
-        boolean isSuperAdmin = "ROLE_SUPER_ADMIN".equals(currentUser.getRole());
-        boolean isTourOwner = booking.getSchedule().getTour().getOwner().getId().equals(currentUser.getId());
-        boolean isBookingUser = booking.getUser().getId().equals(currentUser.getId());
-
-        if (!isSuperAdmin && !isTourOwner && !isBookingUser) {
-            throw new AccessDeniedException("You do not have permission to view this booking.");
-        }
-
-        return Optional.of(toBookingRes(booking));
+        return Optional.of(bookingMapper.toBookingRes(booking));
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId)")
     public BookingRes updateBookingStatus(UUID bookingId, String newStatus, User currentUser) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
 
-        // Check access: SUPER_ADMIN or tour owner (PARTNER_ADMIN)
-        boolean isSuperAdmin = "ROLE_SUPER_ADMIN".equals(currentUser.getRole());
-        boolean isTourOwner = booking.getSchedule().getTour().getOwner().getId().equals(currentUser.getId());
-
-        if (!isSuperAdmin && !isTourOwner) {
-            throw new AccessDeniedException("You do not have permission to update this booking.");
-        }
-
-        // Capture old status for audit
         String oldStatus = booking.getStatus();
 
         booking.setStatus(newStatus);
         Booking updatedBooking = bookingRepository.save(booking);
 
-        // Audit log
         String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
         String description = tourName + " - " + booking.getUser().getFullName();
         Map<String, Object> oldValues = Map.of("status", oldStatus);
         Map<String, Object> newValues = Map.of("status", newStatus);
         auditLogService.logUpdate(currentUser, "BOOKING", booking.getId(), description, oldValues, newValues);
 
-        return toBookingRes(updatedBooking);
+        return bookingMapper.toBookingRes(updatedBooking);
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId)")
     public void cancelBooking(UUID bookingId, User currentUser) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
 
-        // Check access: SUPER_ADMIN or tour owner (PARTNER_ADMIN)
-        boolean isSuperAdmin = "ROLE_SUPER_ADMIN".equals(currentUser.getRole());
-        boolean isTourOwner = booking.getSchedule().getTour().getOwner().getId().equals(currentUser.getId());
-
-        if (!isSuperAdmin && !isTourOwner) {
-            throw new AccessDeniedException("You do not have permission to cancel this booking.");
-        }
-
-        // Capture old status for audit
         String oldStatus = booking.getStatus();
 
         booking.setStatus("CANCELLED");
         bookingRepository.save(booking);
 
-        // Audit log
         String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
         String description = tourName + " - " + booking.getUser().getFullName();
         Map<String, Object> oldValues = Map.of("status", oldStatus);
@@ -203,68 +173,30 @@ public class BookingService {
                 .filter(b -> b.getUser().getId().equals(userId))
                 .collect(Collectors.toList());
         return bookings.stream()
-                .map(this::toBookingRes)
+                .map(bookingMapper::toBookingRes)
                 .collect(Collectors.toList());
     }
 
     @Transactional
+    @PreAuthorize("@bookingSecurityService.isBookingUser(authentication, #bookingId)")
     public BookingRes confirmBookingAfterMockPayment(UUID bookingId, User currentUser) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
 
-        // Verify that the current user is the owner of the booking
-        if (!booking.getUser().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("You do not have permission to confirm this booking.");
-        }
-
-        // Verify that the booking is in PENDING state
         if (!"PENDING".equals(booking.getStatus())) {
             throw new IllegalStateException("Only PENDING bookings can be confirmed. Current status: " + booking.getStatus());
         }
 
-        // Update status to CONFIRMED
         String oldStatus = booking.getStatus();
         booking.setStatus("CONFIRMED");
         Booking confirmedBooking = bookingRepository.save(booking);
 
-        // Audit log
         String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
         String description = "Mock payment confirmation - " + tourName + " - " + booking.getUser().getFullName();
         Map<String, Object> oldValues = Map.of("status", oldStatus);
         Map<String, Object> newValues = Map.of("status", "CONFIRMED");
         auditLogService.logUpdate(currentUser, "BOOKING", booking.getId(), description, oldValues, newValues);
 
-        return toBookingRes(confirmedBooking);
-    }
-
-    private BookingRes toBookingRes(Booking booking) {
-        BookingRes res = new BookingRes();
-        res.setId(booking.getId());
-        res.setUserId(booking.getUser().getId());
-        res.setUserFullName(booking.getUser().getFullName());
-        res.setScheduleId(booking.getSchedule().getId());
-        res.setTourName(booking.getSchedule().getTour().getNameTranslations().get(booking.getLanguageCode()));
-        res.setTourDate(booking.getTourDate());
-        res.setStatus(booking.getStatus());
-        res.setSubtotal(booking.getSubtotal());
-        res.setTaxAmount(booking.getTaxAmount());
-        res.setTotalAmount(booking.getTotalAmount());
-        res.setLanguageCode(booking.getLanguageCode());
-        res.setSpecialRequests(booking.getSpecialRequests());
-        res.setCreatedAt(booking.getCreatedAt());
-
-        res.setParticipants(booking.getParticipants().stream().map(p -> {
-            ParticipantRes pRes = new ParticipantRes();
-            pRes.setId(p.getId());
-            pRes.setFullName(p.getFullName());
-            pRes.setDocumentId(p.getDocumentId());
-            pRes.setNationality(p.getNationality());
-            pRes.setAge(p.getAge());
-            pRes.setPickupAddress(p.getPickupAddress());
-            pRes.setSpecialRequirements(p.getSpecialRequirements());
-            return pRes;
-        }).collect(Collectors.toList()));
-
-        return res;
+        return bookingMapper.toBookingRes(confirmedBooking);
     }
 }

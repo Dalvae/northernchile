@@ -1,5 +1,6 @@
 package com.northernchile.api.user;
 
+import com.northernchile.api.config.security.annotation.CurrentUser;
 import com.northernchile.api.model.User;
 import com.northernchile.api.user.dto.AdminPasswordChangeReq;
 import com.northernchile.api.user.dto.UserCreateReq;
@@ -11,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -55,16 +54,16 @@ public class UserController {
     @PutMapping("/{userId}")
     public ResponseEntity<UserRes> updateUser(
             @PathVariable UUID userId,
-            @Valid @RequestBody UserUpdateReq req) {
-        User currentUser = getCurrentUser();
+            @Valid @RequestBody UserUpdateReq req,
+            @CurrentUser User currentUser) {
         UserRes updatedUser = userService.updateUser(userId, req, currentUser);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
-        User currentUser = getCurrentUser();
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId,
+                                           @CurrentUser User currentUser) {
         userService.deleteUser(userId, currentUser);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -73,20 +72,13 @@ public class UserController {
     @PutMapping("/{userId}/password")
     public ResponseEntity<Map<String, String>> adminChangePassword(
             @PathVariable UUID userId,
-            @Valid @RequestBody AdminPasswordChangeReq req) {
-        User currentUser = getCurrentUser();
+            @Valid @RequestBody AdminPasswordChangeReq req,
+            @CurrentUser User currentUser) {
         try {
             userService.adminResetUserPassword(currentUser, userId, req.getNewPassword());
             return ResponseEntity.ok(Map.of("message", "Contraseña del usuario actualizada correctamente."));
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
-    }
-
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentPrincipalName = authentication.getName();
-        return userRepository.findByEmail(currentPrincipalName)
-                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

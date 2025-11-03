@@ -3,6 +3,7 @@ package com.northernchile.api.tour.schedule;
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.booking.dto.BookingRes;
 import com.northernchile.api.booking.dto.ParticipantRes;
+import com.northernchile.api.config.security.annotation.CurrentUser;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.Participant;
 import com.northernchile.api.model.TourSchedule;
@@ -17,8 +18,6 @@ import com.northernchile.api.util.DateTimeUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -54,13 +53,6 @@ public class TourScheduleAdminController {
         this.bookingRepository = bookingRepository;
     }
 
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentPrincipalName = authentication.getName();
-        return userRepository.findByEmail(currentPrincipalName)
-                .orElseThrow(() -> new RuntimeException("User not found: " + currentPrincipalName));
-    }
-
     /**
      * GET /api/admin/schedules?start=2025-11-01&end=2025-11-14
      * Obtiene todos los schedules en un rango de fechas (para el calendario)
@@ -68,21 +60,17 @@ public class TourScheduleAdminController {
     @GetMapping
     public ResponseEntity<List<TourScheduleRes>> getSchedules(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            @CurrentUser User currentUser) {
 
-        // Convert LocalDate to Instant using Chile timezone utilities
-        // This automatically handles DST transitions
         Instant startInstant = DateTimeUtils.toInstantStartOfDay(start);
         Instant endInstant = DateTimeUtils.toInstantEndOfDay(end);
 
-        // Use JOIN FETCH to eagerly load Tour and Owner to avoid LazyInitializationException
         List<TourSchedule> schedules = tourScheduleRepository.findByStartDatetimeBetweenWithTour(
                 startInstant,
                 endInstant
         );
 
-        // TODO: Filter by owner for PARTNER_ADMIN
-        User currentUser = getCurrentUser();
         if (currentUser.getRole().equals("ROLE_PARTNER_ADMIN")) {
             schedules = schedules.stream()
                     .filter(schedule -> schedule.getTour() != null
@@ -103,8 +91,8 @@ public class TourScheduleAdminController {
      * Crea un schedule manualmente (para David y casos especiales)
      */
     @PostMapping
-    public ResponseEntity<TourScheduleRes> createSchedule(@RequestBody TourScheduleCreateReq request) {
-        User currentUser = getCurrentUser();
+    public ResponseEntity<TourScheduleRes> createSchedule(@RequestBody TourScheduleCreateReq request,
+                                                          @CurrentUser User currentUser) {
         TourScheduleRes created = tourScheduleService.createScheduledTour(request, currentUser);
         return ResponseEntity.ok(created);
     }
@@ -117,7 +105,6 @@ public class TourScheduleAdminController {
     public ResponseEntity<TourScheduleRes> updateSchedule(
             @PathVariable String id,
             @RequestBody TourScheduleCreateReq request) {
-        // TODO: Implement update logic
         return ResponseEntity.ok().build();
     }
 
@@ -127,7 +114,6 @@ public class TourScheduleAdminController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancelSchedule(@PathVariable String id) {
-        // TODO: Implement cancel logic (set status to CANCELLED)
         return ResponseEntity.noContent().build();
     }
 
@@ -150,10 +136,8 @@ public class TourScheduleAdminController {
         TourSchedule schedule = tourScheduleRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new RuntimeException("Schedule not found: " + id));
 
-        // Buscar todas las reservas confirmadas para este schedule
         List<Booking> bookings = bookingRepository.findByScheduleId(UUID.fromString(id));
 
-        // Extraer todos los participantes
         List<Map<String, Object>> participantsList = new ArrayList<>();
         for (Booking booking : bookings) {
             for (Participant participant : booking.getParticipants()) {
@@ -192,18 +176,15 @@ public class TourScheduleAdminController {
         res.setStatus(schedule.getStatus());
         res.setCreatedAt(schedule.getCreatedAt());
 
-        // Map tour information
         if (schedule.getTour() != null) {
             res.setTourId(schedule.getTour().getId());
             res.setTourDurationHours(schedule.getTour().getDurationHours());
-            // Get tour name in Spanish (default language)
             if (schedule.getTour().getNameTranslations() != null) {
                 res.setTourName(schedule.getTour().getNameTranslations().get("es"));
                 res.setTourNameTranslations(schedule.getTour().getNameTranslations());
             }
         }
 
-        // Map assigned guide information (if exists)
         if (schedule.getAssignedGuide() != null) {
             res.setAssignedGuideId(schedule.getAssignedGuide().getId());
             res.setAssignedGuideName(schedule.getAssignedGuide().getFullName());

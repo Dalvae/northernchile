@@ -1,5 +1,6 @@
 package com.northernchile.api.tour;
 
+import com.northernchile.api.config.security.annotation.CurrentUser;
 import com.northernchile.api.model.User;
 import com.northernchile.api.tour.dto.TourScheduleCreateReq;
 import com.northernchile.api.tour.dto.TourScheduleRes;
@@ -7,8 +8,6 @@ import com.northernchile.api.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,15 +24,15 @@ public class TourScheduleController {
     private UserRepository userRepository;
 
     @PostMapping
-    public ResponseEntity<TourScheduleRes> createScheduledTour(@RequestBody TourScheduleCreateReq req) {
-        User currentUser = getCurrentUser();
+    public ResponseEntity<TourScheduleRes> createScheduledTour(@RequestBody TourScheduleCreateReq req,
+                                                               @CurrentUser User currentUser) {
         TourScheduleRes createdSchedule = tourScheduleService.createScheduledTour(req, currentUser);
         return new ResponseEntity<>(createdSchedule, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<TourScheduleRes> cancelScheduledTour(@PathVariable UUID id) {
-        User currentUser = getCurrentUser();
+    public ResponseEntity<TourScheduleRes> cancelScheduledTour(@PathVariable UUID id,
+                                                               @CurrentUser User currentUser) {
         TourScheduleRes cancelledSchedule = tourScheduleService.cancelScheduledTour(id, currentUser);
         return ResponseEntity.ok(cancelledSchedule);
     }
@@ -54,16 +53,9 @@ public class TourScheduleController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTourSchedule(@PathVariable UUID id) {
-        User currentUser = getCurrentUser();
+    public ResponseEntity<Void> deleteTourSchedule(@PathVariable UUID id,
+                                           @CurrentUser User currentUser) {
         tourScheduleService.deleteTourSchedule(id, currentUser);
         return ResponseEntity.noContent().build();
-    }
-
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentPrincipalName = authentication.getName();
-        return userRepository.findByEmail(currentPrincipalName)
-                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

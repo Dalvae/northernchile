@@ -1,5 +1,6 @@
 package com.northernchile.api.tour;
 
+import com.northernchile.api.config.security.annotation.CurrentUser;
 import com.northernchile.api.model.User;
 import com.northernchile.api.tour.dto.TourCreateReq;
 import com.northernchile.api.tour.dto.TourRes;
@@ -8,15 +9,13 @@ import com.northernchile.api.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api") // Cambiar a /api para poder añadir /admin
+@RequestMapping("/api")
 public class TourController {
 
     @Autowired
@@ -26,42 +25,39 @@ public class TourController {
     private UserRepository userRepository;
 
     @PostMapping("/admin/tours")
-    public ResponseEntity<TourRes> createTour(@RequestBody TourCreateReq tourCreateReq) {
-        User currentUser = getCurrentUser();
+    public ResponseEntity<TourRes> createTour(@RequestBody TourCreateReq tourCreateReq,
+                                              @CurrentUser User currentUser) {
         TourRes createdTour = tourService.createTour(tourCreateReq, currentUser);
         return new ResponseEntity<>(createdTour, HttpStatus.CREATED);
     }
 
-    @GetMapping("/tours") // <-- Endpoint Público
+    @GetMapping("/tours")
     public ResponseEntity<List<TourRes>> getPublishedTours() {
         List<TourRes> tours = tourService.getPublishedTours();
         return new ResponseEntity<>(tours, HttpStatus.OK);
     }
     
-    @GetMapping("/admin/tours") // <-- NUEVO Endpoint de Admin
-    public ResponseEntity<List<TourRes>> getAllToursForAdmin() {
-        User currentUser = getCurrentUser();
+    @GetMapping("/admin/tours")
+    public ResponseEntity<List<TourRes>> getAllToursForAdmin(@CurrentUser User currentUser) {
         List<TourRes> tours = tourService.getAllTours(currentUser);
         return new ResponseEntity<>(tours, HttpStatus.OK);
     }
 
     @GetMapping("/admin/tours/{id}")
-    public ResponseEntity<TourRes> getTourByIdAdmin(@PathVariable UUID id) {
-        User currentUser = getCurrentUser();
+    public ResponseEntity<TourRes> getTourByIdAdmin(@PathVariable UUID id,
+                                                  @CurrentUser User currentUser) {
         TourRes tour = tourService.getTourById(id, currentUser);
         return new ResponseEntity<>(tour, HttpStatus.OK);
     }
 
-    @GetMapping("/tours/slug/{slug}") // Public endpoint for slug-based URLs - MUST come before /tours/{id}
+    @GetMapping("/tours/slug/{slug}")
     public ResponseEntity<TourRes> getTourBySlug(@PathVariable String slug) {
         TourRes tour = tourService.getTourBySlug(slug);
         return new ResponseEntity<>(tour, HttpStatus.OK);
     }
 
-    @GetMapping("/tours/{id}") // Public endpoint - no ownership check needed
+    @GetMapping("/tours/{id}")
     public ResponseEntity<TourRes> getTourById(@PathVariable UUID id) {
-        // For public endpoint, we create a temporary "public" user context
-        // This endpoint should only show PUBLISHED tours
         User publicUser = new User();
         publicUser.setRole("ROLE_PUBLIC");
         TourRes tour = tourService.getTourById(id, publicUser);
@@ -69,22 +65,16 @@ public class TourController {
     }
 
     @PutMapping("/admin/tours/{id}")
-    public ResponseEntity<TourRes> updateTour(@PathVariable UUID id, @RequestBody TourUpdateReq tourUpdateReq) {
-        User currentUser = getCurrentUser();
+    public ResponseEntity<TourRes> updateTour(@PathVariable UUID id, @RequestBody TourUpdateReq tourUpdateReq,
+                                              @CurrentUser User currentUser) {
         TourRes updatedTour = tourService.updateTour(id, tourUpdateReq, currentUser);
         return new ResponseEntity<>(updatedTour, HttpStatus.OK);
     }
 
     @DeleteMapping("/admin/tours/{id}")
-    public ResponseEntity<Void> deleteTour(@PathVariable UUID id) {
-        User currentUser = getCurrentUser();
+    public ResponseEntity<Void> deleteTour(@PathVariable UUID id,
+                                           @CurrentUser User currentUser) {
         tourService.deleteTour(id, currentUser);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentPrincipalName = authentication.getName();
-        return userRepository.findByEmail(currentPrincipalName).orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

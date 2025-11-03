@@ -8,6 +8,7 @@ import com.northernchile.api.user.dto.UserRes;
 import com.northernchile.api.user.dto.UserUpdateReq;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,22 +32,24 @@ public class UserService {
     @Autowired
     private AuditLogService auditLogService;
 
+    @Autowired
+    private UserMapper userMapper;
+
     public List<UserRes> getAllUsers() {
         return userRepository.findAll().stream()
-                .filter(user -> user.getDeletedAt() == null) // Exclude soft-deleted users
-                .map(this::toUserRes)
+                .filter(user -> user.getDeletedAt() == null)
+                .map(userMapper::toUserRes)
                 .collect(Collectors.toList());
     }
 
     public Optional<UserRes> getUserById(UUID userId) {
         return userRepository.findById(userId)
-                .filter(user -> user.getDeletedAt() == null) // Exclude soft-deleted users
-                .map(this::toUserRes);
+                .filter(user -> user.getDeletedAt() == null)
+                .map(userMapper::toUserRes);
     }
 
     @Transactional
     public UserRes createUser(UserCreateReq req) {
-        // Check if email already exists
         if (userRepository.findByEmail(req.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already exists: " + req.getEmail());
         }
@@ -62,7 +65,6 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
 
-        // Audit log - only SUPER_ADMIN can create users, so we use savedUser as currentUser
         Map<String, Object> newValues = Map.of(
             "id", savedUser.getId().toString(),
             "email", savedUser.getEmail(),
@@ -71,10 +73,11 @@ public class UserService {
         );
         auditLogService.logCreate(savedUser, "USER", savedUser.getId(), savedUser.getEmail(), newValues);
 
-        return toUserRes(savedUser);
+        return userMapper.toUserRes(savedUser);
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or #userId.equals(currentUser.id)")
     public UserRes updateUser(UUID userId, UserUpdateReq req, User currentUser) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
@@ -83,7 +86,6 @@ public class UserService {
             throw new IllegalStateException("Cannot update a deleted user");
         }
 
-        // Capture old values for audit
         Map<String, Object> oldValues = Map.of(
             "fullName", user.getFullName() != null ? user.getFullName() : "",
             "role", user.getRole() != null ? user.getRole() : "",
@@ -108,7 +110,6 @@ public class UserService {
 
         User updatedUser = userRepository.save(user);
 
-        // Audit log
         Map<String, Object> newValues = Map.of(
             "fullName", updatedUser.getFullName() != null ? updatedUser.getFullName() : "",
             "role", updatedUser.getRole() != null ? updatedUser.getRole() : "",
@@ -116,10 +117,11 @@ public class UserService {
         );
         auditLogService.logUpdate(currentUser, "USER", updatedUser.getId(), updatedUser.getEmail(), oldValues, newValues);
 
-        return toUserRes(updatedUser);
+        return userMapper.toUserRes(updatedUser);
     }
 
     @Transactional
+    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or #userId.equals(currentUser.id)")
     public void deleteUser(UUID userId, User currentUser) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
@@ -128,11 +130,9 @@ public class UserService {
             throw new IllegalStateException("User is already deleted");
         }
 
-        // Soft delete
         user.setDeletedAt(Instant.now());
         userRepository.save(user);
 
-        // Audit log
         Map<String, Object> oldValues = Map.of(
             "email", user.getEmail(),
             "fullName", user.getFullName(),
@@ -144,16 +144,13 @@ public class UserService {
 
     @Transactional
     public void changeUserPassword(User user, String currentPassword, String newPassword) {
-        // 1. Verify that the current password is correct
         if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
             throw new IllegalStateException("La contraseña actual es incorrecta.");
         }
 
-        // 2. Encode and save the new password
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
-        // 3. Log in the audit
         auditLogService.logAction(
                 user,
                 "PASSWORD_CHANGE",
@@ -177,7 +174,6 @@ public class UserService {
         targetUser.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(targetUser);
 
-        // CRITICAL audit log: record who made the change and for whom
         String auditDescription = String.format(
                 "Admin '%s' restableció la contraseña para el usuario '%s'",
                 adminUser.getEmail(),
@@ -192,19 +188,5 @@ public class UserService {
                 null,
                 null
         );
-    }
-
-    private UserRes toUserRes(User user) {
-        UserRes res = new UserRes();
-        res.setId(user.getId());
-        res.setEmail(user.getEmail());
-        res.setFullName(user.getFullName());
-        res.setRole(user.getRole());
-        res.setNationality(user.getNationality());
-        res.setPhoneNumber(user.getPhoneNumber());
-        res.setDateOfBirth(user.getDateOfBirth());
-        res.setAuthProvider(user.getAuthProvider());
-        res.setCreatedAt(user.getCreatedAt());
-        return res;
     }
 }
