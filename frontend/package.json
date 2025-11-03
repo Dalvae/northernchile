@@ -38,10 +38,9 @@
   },
   "pnpm": {
     "overrides": {
-      "pinia>@vue/devtools-api": "^8.0.3",
-      "pinia>@vue/devtools-kit": "^8.0.3",
-      "@nuxt/devtools>@vue/devtools-api": "^8.0.3",
-      "@nuxt/devtools>@vue/devtools-kit": "^8.0.3"
+      "@vue/devtools-api": "^8.0.3",
+      "@vue/devtools-kit": "^8.0.3",
+      "perfect-debounce": "^2.0.0"
     }
   },
   "packageManager": "pnpm@10.18.3"
