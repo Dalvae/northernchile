@@ -18,25 +18,25 @@
         >
           <span class="flex items-center gap-2">
             <UIcon name="i-lucide-sparkles" class="w-4 h-4" />
-            Tours astronómicos en el desierto más claro del mundo
+            {{ t('hero.badge') }}
           </span>
         </UBadge>
 
         <!-- Título principal -->
         <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
-          <span class="block">Descubre las Estrellas</span>
-          <span class="block text-primary mt-2">del Desierto de Atacama</span>
+          <span class="block">{{ t('hero.title1') }}</span>
+          <span class="block text-primary mt-2">{{ t('hero.title2') }}</span>
         </h1>
 
         <!-- Subtítulo -->
         <p class="text-lg sm:text-xl md:text-2xl text-neutral-200 mb-8 max-w-3xl mx-auto">
-          Vive una experiencia única observando el universo en uno de los cielos más claros del planeta
+          {{ t('hero.subtitle') }}
         </p>
 
         <!-- CTAs -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <UButton
-            label="Explorar Tours"
+            :label="t('hero.buttonExplore')"
             to="/tours"
             color="primary"
             size="xl"
@@ -44,7 +44,7 @@
             class="w-full sm:w-auto"
           />
           <UButton
-            label="Contactar"
+            :label="t('hero.buttonContact')"
             to="/contact"
             color="neutral"
             variant="outline"
@@ -77,7 +77,7 @@
         class="flex flex-col items-center gap-2 text-white/80 hover:text-white transition-colors"
         @click="scrollToContent"
       >
-        <span class="text-sm">Descubre más</span>
+        <span class="text-sm">{{ t('hero.discoverMore') }}</span>
         <UIcon
           name="i-lucide-chevron-down"
           class="w-6 h-6 animate-bounce"
@@ -88,24 +88,14 @@
 </template>
 
 <script setup lang="ts">
-const quickFeatures = [
-  {
-    icon: 'i-lucide-telescope',
-    label: 'Telescopios Pro'
-  },
-  {
-    icon: 'i-lucide-users',
-    label: 'Guías Expertos'
-  },
-  {
-    icon: 'i-lucide-star',
-    label: 'Cielos Claros'
-  },
-  {
-    icon: 'i-lucide-shield-check',
-    label: 'Cancelación Gratis'
-  }
-]
+const { t } = useI18n()
+
+const quickFeatures = computed(() => [
+  { icon: 'i-lucide-telescope', label: t('hero.features.proTelescopes') },
+  { icon: 'i-lucide-users', label: t('hero.features.expertGuides') },
+  { icon: 'i-lucide-star', label: t('hero.features.clearSkies') },
+  { icon: 'i-lucide-shield-check', label: t('hero.features.freeCancellation') }
+])
 
 function scrollToContent() {
   window.scrollTo({

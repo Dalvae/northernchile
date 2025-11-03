@@ -34,7 +34,7 @@ async function fetchTour() {
     const response = await $fetch(`/api/tours/slug/${tourSlug}`)
     tour.value = response as TourRes
   } catch (e: any) {
-    error.value = 'Error al cargar el tour'
+    error.value = t('schedule.error_loading_tour')
     console.error('Failed to fetch tour', e)
   }
 }
@@ -134,8 +134,8 @@ async function addToCart() {
   if (success) {
     toast.add({
       color: 'success',
-      title: 'Agregado al carrito',
-      description: `${participantCount.value} ${participantCount.value === 1 ? 'persona' : 'personas'} para ${translatedName.value}`
+      title: t('schedule.cart.added_title'),
+      description: t('schedule.cart.added_description', { count: participantCount.value, tourName: translatedName.value })
     })
 
     showParticipantModal.value = false
@@ -184,11 +184,11 @@ onMounted(async () => {
           icon="i-lucide-arrow-left"
           class="mb-4"
         >
-          Volver al tour
+          {{ t('schedule.back_to_tour') }}
         </UButton>
 
         <h1 class="text-4xl font-bold text-neutral-900 dark:text-white mb-2">
-          Selecciona una fecha
+          {{ t('schedule.select_date_title') }}
         </h1>
         <p class="text-lg text-neutral-600 dark:text-neutral-400">
           {{ translatedName }}
@@ -197,7 +197,7 @@ onMounted(async () => {
 
       <div v-if="loading" class="text-center py-12">
         <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary mx-auto" />
-        <p class="mt-4 text-neutral-600 dark:text-neutral-400">Cargando horarios disponibles...</p>
+        <p class="mt-4 text-neutral-600 dark:text-neutral-400">{{ t('schedule.loading_schedules') }}</p>
       </div>
 
       <div v-else-if="error" class="text-center py-12">
@@ -210,14 +210,14 @@ onMounted(async () => {
           <UCard>
             <template #header>
               <h2 class="text-xl font-semibold text-neutral-900 dark:text-white">
-                Calendario de Disponibilidad
+                {{ t('schedule.calendar_availability_title') }}
               </h2>
             </template>
 
             <!-- Simple calendar (we'll enhance this) -->
             <div class="space-y-4">
               <div class="grid grid-cols-7 gap-2">
-                <div v-for="day in ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']" :key="day" class="text-center text-sm font-medium text-neutral-500 dark:text-neutral-400">
+                <div v-for="day in [t('common.days.sunday_short'), t('common.days.monday_short'), t('common.days.tuesday_short'), t('common.days.wednesday_short'), t('common.days.thursday_short'), t('common.days.friday_short'), t('common.days.saturday_short')]" :key="day" class="text-center text-sm font-medium text-neutral-500 dark:text-neutral-400">
                   {{ day }}
                 </div>
               </div>
@@ -240,7 +240,7 @@ onMounted(async () => {
                       {{ formatDate(new Date(dateStr)) }}
                     </span>
                     <UBadge color="primary" variant="subtle">
-                      {{ dateSchedules.length }} {{ dateSchedules.length === 1 ? 'horario' : 'horarios' }}
+                      {{ dateSchedules.length }} {{ t('schedule.schedules_count', { count: dateSchedules.length }) }}
                     </UBadge>
                   </div>
                 </div>
@@ -249,7 +249,7 @@ onMounted(async () => {
               <div v-if="availableDates.length === 0" class="text-center py-8">
                 <UIcon name="i-lucide-calendar-x" class="w-12 h-12 text-neutral-400 mx-auto mb-4" />
                 <p class="text-neutral-600 dark:text-neutral-400">
-                  No hay horarios disponibles en este momento
+                  {{ t('schedule.no_schedules_available') }}
                 </p>
               </div>
             </div>
@@ -262,7 +262,7 @@ onMounted(async () => {
             <UCard v-if="selectedDate">
               <template #header>
                 <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
-                  Horarios Disponibles
+                  {{ t('schedule.available_schedules_title') }}
                 </h3>
                 <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
                   {{ formatDate(selectedDate) }}
@@ -293,7 +293,7 @@ onMounted(async () => {
 
                   <div class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
                     <UIcon name="i-lucide-users" class="w-4 h-4" />
-                    <span>{{ schedule.maxParticipants }} cupos disponibles</span>
+                    <span>{{ t('schedule.available_spots', { count: schedule.maxParticipants }) }}</span>
                   </div>
                 </div>
               </div>
@@ -303,7 +303,7 @@ onMounted(async () => {
               <div class="text-center py-8">
                 <UIcon name="i-lucide-calendar" class="w-12 h-12 text-neutral-400 mx-auto mb-4" />
                 <p class="text-neutral-600 dark:text-neutral-400">
-                  Selecciona una fecha para ver los horarios disponibles
+                  {{ t('schedule.select_date_prompt') }}
                 </p>
               </div>
             </UCard>
@@ -317,7 +317,7 @@ onMounted(async () => {
           <div class="p-6">
             <div class="flex justify-between items-center mb-6">
               <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">
-                ¿Cuántas personas?
+                {{ t('schedule.participant_modal.title') }}
               </h3>
               <UButton
                 icon="i-lucide-x"
@@ -330,7 +330,7 @@ onMounted(async () => {
             <div class="space-y-6">
               <div>
                 <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Número de participantes
+                  {{ t('schedule.participant_modal.participant_count_label') }}
                 </label>
                 <div class="flex items-center gap-4">
                   <UButton
@@ -353,11 +353,11 @@ onMounted(async () => {
 
               <div class="p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
                 <div class="flex justify-between items-center mb-2">
-                  <span class="text-neutral-600 dark:text-neutral-400">Precio por persona</span>
+                  <span class="text-neutral-600 dark:text-neutral-400">{{ t('schedule.participant_modal.price_per_person') }}</span>
                   <span class="font-medium text-neutral-900 dark:text-white">${{ tour?.price }}</span>
                 </div>
                 <div class="flex justify-between items-center text-lg font-bold border-t border-neutral-200 dark:border-neutral-700 pt-2 mt-2">
-                  <span class="text-neutral-900 dark:text-white">Total</span>
+                  <span class="text-neutral-900 dark:text-white">{{ t('common.total') }}</span>
                   <span class="text-primary">${{ (tour?.price || 0) * participantCount }}</span>
                 </div>
               </div>
@@ -369,7 +369,7 @@ onMounted(async () => {
                 icon="i-lucide-shopping-cart"
                 @click="addToCart"
               >
-                Agregar al Carrito
+                {{ t('schedule.participant_modal.add_to_cart_button') }}
               </UButton>
             </div>
           </div>

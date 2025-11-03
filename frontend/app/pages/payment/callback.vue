@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
@@ -28,10 +29,10 @@ function goToHome() {
               <UIcon name="i-lucide-check-circle" class="w-12 h-12 text-success" />
             </div>
             <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
-              ¡Pago Exitoso!
+              {{ t('payment.success.title') }}
             </h1>
             <p class="text-lg text-neutral-600 dark:text-neutral-400">
-              Tu reserva ha sido confirmada
+              {{ t('payment.success.subtitle') }}
             </p>
           </div>
 
@@ -39,7 +40,7 @@ function goToHome() {
             <div class="space-y-4">
               <div class="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
                 <p class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">
-                  Número de Reserva
+                  {{ t('payment.callback.booking_number') }}
                 </p>
                 <p class="text-2xl font-bold text-neutral-900 dark:text-white font-mono">
                   {{ bookingId }}
@@ -49,15 +50,15 @@ function goToHome() {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                   <p class="text-neutral-500 dark:text-neutral-400 mb-1">
-                    Estado
+                    {{ t('common.status') }}
                   </p>
                   <UBadge color="success" size="lg">
-                    Confirmada
+                    {{ t('payment.callback.status_confirmed') }}
                   </UBadge>
                 </div>
                 <div>
                   <p class="text-neutral-500 dark:text-neutral-400 mb-1">
-                    Fecha de Reserva
+                    {{ t('payment.callback.booking_date') }}
                   </p>
                   <p class="font-medium text-neutral-900 dark:text-white">
                     {{ new Date().toLocaleDateString('es-CL', {
@@ -76,10 +77,10 @@ function goToHome() {
                   <UIcon name="i-lucide-mail" class="w-5 h-5 text-primary mt-0.5" />
                   <div>
                     <p class="font-medium text-neutral-900 dark:text-white">
-                      Confirmación enviada
+                      {{ t('payment.callback.confirmation_sent_title') }}
                     </p>
                     <p class="text-neutral-600 dark:text-neutral-400">
-                      Hemos enviado los detalles de tu reserva a tu correo electrónico
+                      {{ t('payment.callback.confirmation_sent_description') }}
                     </p>
                   </div>
                 </div>
@@ -88,10 +89,10 @@ function goToHome() {
                   <UIcon name="i-lucide-calendar" class="w-5 h-5 text-primary mt-0.5" />
                   <div>
                     <p class="font-medium text-neutral-900 dark:text-white">
-                      Recordatorios automáticos
+                      {{ t('payment.callback.automatic_reminders_title') }}
                     </p>
                     <p class="text-neutral-600 dark:text-neutral-400">
-                      Te enviaremos recordatorios 24 horas antes de cada tour
+                      {{ t('payment.callback.automatic_reminders_description') }}
                     </p>
                   </div>
                 </div>
@@ -100,10 +101,10 @@ function goToHome() {
                   <UIcon name="i-lucide-info" class="w-5 h-5 text-primary mt-0.5" />
                   <div>
                     <p class="font-medium text-neutral-900 dark:text-white">
-                      Política de cancelación
+                      {{ t('payment.callback.cancellation_policy_title') }}
                     </p>
                     <p class="text-neutral-600 dark:text-neutral-400">
-                      Cancelación gratuita hasta 24 horas antes del tour
+                      {{ t('payment.callback.cancellation_policy_description') }}
                     </p>
                   </div>
                 </div>
@@ -112,26 +113,25 @@ function goToHome() {
 
             <template #footer>
               <div class="flex flex-col sm:flex-row gap-3">
-                <UButton
-                  color="primary"
-                  size="lg"
-                  block
-                  icon="i-lucide-list"
-                  @click="goToBookings"
-                >
-                  Ver Mis Reservas
-                </UButton>
-                <UButton
-                  color="neutral"
-                  variant="outline"
-                  size="lg"
-                  block
-                  icon="i-lucide-home"
-                  @click="goToHome"
-                >
-                  Volver al Inicio
-                </UButton>
-              </div>
+                                  <UButton
+                                    color="primary"
+                                    size="lg"
+                                    block
+                                    icon="i-lucide-list"
+                                    @click="goToBookings"
+                                  >
+                                    {{ t('payment.callback.view_bookings_button') }}
+                                  </UButton>
+                                <UButton
+                                  color="neutral"
+                                  variant="outline"
+                                  size="lg"
+                                  block
+                                  icon="i-lucide-home"
+                                  @click="goToHome"
+                                >
+                                  {{ t('payment.callback.back_to_home_button') }}
+                                </UButton>              </div>
             </template>
           </UCard>
         </div>
@@ -143,39 +143,39 @@ function goToHome() {
               <UIcon name="i-lucide-x-circle" class="w-12 h-12 text-error" />
             </div>
             <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
-              Pago Rechazado
+              {{ t('payment.error.title') }}
             </h1>
             <p class="text-lg text-neutral-600 dark:text-neutral-400">
-              No se pudo procesar tu pago
+              {{ t('payment.error.subtitle') }}
             </p>
           </div>
 
           <UCard class="text-left">
             <div class="space-y-4">
               <p class="text-neutral-600 dark:text-neutral-400">
-                El procesamiento de tu pago no fue exitoso. Por favor intenta nuevamente o contacta a tu banco para más información.
+                {{ t('payment.callback.error_message') }}
               </p>
 
               <div class="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
                 <h3 class="font-medium text-neutral-900 dark:text-white mb-2">
-                  Posibles razones:
+                  {{ t('payment.callback.possible_reasons_title') }}:
                 </h3>
                 <ul class="space-y-1 text-sm text-neutral-600 dark:text-neutral-400">
                   <li class="flex items-center gap-2">
                     <UIcon name="i-lucide-dot" class="w-4 h-4" />
-                    Fondos insuficientes
+                    {{ t('payment.callback.reason_insufficient_funds') }}
                   </li>
                   <li class="flex items-center gap-2">
                     <UIcon name="i-lucide-dot" class="w-4 h-4" />
-                    Tarjeta vencida o bloqueada
+                    {{ t('payment.callback.reason_expired_card') }}
                   </li>
                   <li class="flex items-center gap-2">
                     <UIcon name="i-lucide-dot" class="w-4 h-4" />
-                    Datos incorrectos
+                    {{ t('payment.callback.reason_incorrect_data') }}
                   </li>
                   <li class="flex items-center gap-2">
                     <UIcon name="i-lucide-dot" class="w-4 h-4" />
-                    Límite de transacciones excedido
+                    {{ t('payment.callback.reason_transaction_limit') }}
                   </li>
                 </ul>
               </div>
@@ -183,26 +183,25 @@ function goToHome() {
 
             <template #footer>
               <div class="flex flex-col sm:flex-row gap-3">
-                <UButton
-                  color="primary"
-                  size="lg"
-                  block
-                  icon="i-lucide-rotate-ccw"
-                  to="/checkout"
-                >
-                  Intentar Nuevamente
-                </UButton>
-                <UButton
-                  color="neutral"
-                  variant="outline"
-                  size="lg"
-                  block
-                  icon="i-lucide-shopping-cart"
-                  to="/cart"
-                >
-                  Volver al Carrito
-                </UButton>
-              </div>
+                                  <UButton
+                                    color="primary"
+                                    size="lg"
+                                    block
+                                    icon="i-lucide-rotate-ccw"
+                                    to="/checkout"
+                                  >
+                                    {{ t('payment.callback.try_again_button') }}
+                                  </UButton>
+                                <UButton
+                                  color="neutral"
+                                  variant="outline"
+                                  size="lg"
+                                  block
+                                  icon="i-lucide-shopping-cart"
+                                  to="/cart"
+                                >
+                                  {{ t('payment.callback.back_to_cart_button') }}
+                                </UButton>              </div>
             </template>
           </UCard>
         </div>

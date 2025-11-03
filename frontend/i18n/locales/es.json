@@ -39,7 +39,22 @@
     "subtotal": "Subtotal",
     "tax": "IVA",
     "discount": "Descuento",
-    "and": "y"
+    "and": "y",
+    "status": "Estado",
+    "created_at": "Creada",
+    "tour": "Tour",
+    "validation_error": "Error de validación",
+    "validation_error_description": "Por favor, corrige los campos marcados.",
+    "save_error": "Error al guardar",
+    "days": {
+      "sunday_short": "Dom",
+      "monday_short": "Lun",
+      "tuesday_short": "Mar",
+      "wednesday_short": "Mié",
+      "thursday_short": "Jue",
+      "friday_short": "Vie",
+      "saturday_short": "Sáb"
+    }
   },
   "tours": {
     "all": "Todos los Tours",
@@ -128,8 +143,17 @@
       "PENDING": "Pendiente",
       "CONFIRMED": "Confirmada",
       "CANCELLED": "Cancelada",
-      "COMPLETED": "Completada"
-    }
+      "COMPLETED": "Completada",
+      "label": "Estado"
+    },
+    "details": "Detalle de Reserva",
+    "tour_date": "Fecha del Tour",
+    "client": "Cliente",
+    "participants": "Participantes ({count})",
+    "document": "Documento",
+    "years_old": "años",
+    "address": "Dirección",
+    "special_requests": "Solicitudes Especiales"
   },
   "cart": {
     "title": "Carrito de Compras",
@@ -221,5 +245,209 @@
       "last_quarter": "Cuarto Menguante",
       "waning_crescent": "Luna Menguante"
     }
+  },
+  "hero": {
+    "badge": "Tours astronómicos en el desierto más claro del mundo",
+    "title1": "Descubre las Estrellas",
+    "title2": "del Desierto de Atacama",
+    "subtitle": "Vive una experiencia única observando el universo en uno de los cielos más claros del planeta",
+    "buttonExplore": "Explorar Tours",
+    "buttonContact": "Contactar",
+    "discoverMore": "Descubre más",
+    "features": {
+      "proTelescopes": "Telescopios Pro",
+      "expertGuides": "Guías Expertos",
+      "clearSkies": "Cielos Claros",
+      "freeCancellation": "Cancelación Gratis"
+    }
+  },
+  "about": {
+    "seo": {
+      "title": "Sobre Nosotros - Northern Chile",
+      "description": "Conoce la historia y el equipo detrás de Northern Chile, tu guía experta en tours astronómicos en San Pedro de Atacama.",
+      "og_title": "Sobre Nosotros - Northern Chile",
+      "og_description": "Conoce la historia y el equipo detrás de Northern Chile"
+    },
+    "title": "Sobre Northern Chile",
+    "subtitle": "Conectando personas con el universo desde el desierto más claro del mundo",
+    "historyTitle": "Nuestra Historia",
+    "historyP1": "Northern Chile nace de 15 años de pasión por el turismo astronómico en el desierto de Atacama y Bolivia. No vendemos simplemente un tour, vendemos una experiencia de conocimiento, un verdadero show bajo las estrellas.",
+    "historyP2": "Creamos un \"Auditorio a Cielo Abierto\" donde nuestros visitantes se recuestan a los pies del desierto para conectar el cielo con el suelo. Es una experiencia natural que implica caminar por las dunas, equipados con telescopios profesionales (Celestron 8se, Skywatcher ecuatorial, Celestron 114 LSM, Seestar S50zvw) y cámaras para capturar la magia del momento.",
+    "historyP3": "Fuimos galardonados con el \"premio al mejor tour de Atacama\" el año pasado, y nuestra agencia fue seleccionada entre las 9 mejores de San Pedro por emisarios turísticos. Nuestro fundador participó como voz en off del tour astronómico en la feria VIVA Antofagasta y colaboró con el Museo del Meteorito.",
+    "historyP4": "Los cielos de Atacama son totalmente diferentes cada 6 meses, ofreciendo experiencias únicas según la época del año. Te invitamos a descubrir por qué el desierto de Atacama es considerado uno de los mejores lugares del mundo para la observación astronómica.",
+    "valuesTitle": "Nuestros Valores",
+    "values": {
+      "experience_title": "Experiencia de Conocimiento",
+      "experience_description": "No vendemos tours, vendemos un show educativo bajo las estrellas del desierto",
+      "equipment_title": "Equipamiento Profesional",
+      "equipment_description": "4 telescopios de alta gama y cámaras profesionales para una experiencia inolvidable",
+      "quality_title": "Calidad Reconocida",
+      "quality_description": "Premiados como el mejor tour de Atacama y seleccionados entre los 9 mejores de San Pedro",
+      "auditorium_title": "Auditorio Natural",
+      "auditorium_description": "Creamos un auditorio a cielo abierto donde conectas el cielo con el suelo del desierto"
+    },
+    "teamTitle": "Nuestro Equipo",
+    "team": {
+      "alex": {
+        "role": "Fundador y Guía Astronómico",
+        "bio": "15 años de trayectoria en turismo astronómico en Bolivia y San Pedro de Atacama. Premio al mejor tour de Atacama.",
+        "credentials": {
+          "award": "Ganador del premio al mejor tour de Atacama",
+          "voice_over": "Voz en off del tour astronómico en feria VIVA Antofagasta",
+          "collaborator": "Colaborador del Museo del Meteorito"
+        }
+      },
+      "david": {
+        "role": "Fotógrafo y Profesor de Arte",
+        "bio": "Especialista en fotografía astronómica y nocturna. Captura la magia del cielo atacameño combinando técnica profesional y visión artística.",
+        "credentials": {
+          "photographer": "Fotógrafo profesional especializado en astrofotografía",
+          "art_teacher": "Profesor de arte con enfoque en fotografía nocturna",
+          "tour_guide": "Guía en tours especializados de fin de semana"
+        }
+      }
+    },
+    "cta": {
+      "title": "¿Listo para explorar el universo?",
+      "subtitle": "Únete a nosotros en una aventura astronómica inolvidable",
+      "button": "Ver Nuestros Tours"
+    }
+  },
+  "privateTours": {
+    "seo": {
+      "title": "Tours Privados - Northern Chile",
+      "description": "Diseña tu experiencia astronómica personalizada. Tours privados a medida con guías expertos en San Pedro de Atacama.",
+      "og_title": "Tours Privados - Northern Chile",
+      "og_description": "Experiencias astronómicas personalizadas a medida"
+    },
+    "title": "Tours Privados Personalizados",
+    "subtitle": "Diseña tu experiencia astronómica ideal. Tours exclusivos adaptados a tus intereses y necesidades.",
+    "benefits": {
+      "title": "¿Por qué elegir un tour privado?",
+      "exclusive_experience_title": "Experiencia Exclusiva",
+      "exclusive_experience_description": "Tour diseñado específicamente para ti y tu grupo",
+      "flexible_hours_title": "Horarios Flexibles",
+      "flexible_hours_description": "Elige el horario que mejor se adapte a tu itinerario",
+      "custom_itinerary_title": "Itinerario Personalizado",
+      "custom_itinerary_description": "Visita los lugares que más te interesan",
+      "exclusive_guide_title": "Guía Exclusivo",
+      "exclusive_guide_description": "Atención personalizada de nuestros expertos",
+      "professional_photography_title": "Fotografía Profesional",
+      "professional_photography_description": "Sesión fotográfica incluida en tours nocturnos",
+      "unique_experiences_title": "Experiencias Únicas",
+      "unique_experiences_description": "Acceso a lugares y momentos especiales"
+    },
+    "form": {
+      "title": "Solicita tu Tour Privado",
+      "subtitle": "Completa el formulario y nos pondremos en contacto para diseñar tu experiencia perfecta",
+      "full_name_label": "Nombre completo",
+      "full_name_placeholder": "Juan Pérez",
+      "email_label": "Email",
+      "phone_label": "Teléfono",
+      "phone_placeholder": "+56 9 1234 5678",
+      "number_of_people_label": "Número de personas",
+      "number_of_people_placeholder": "2",
+      "preferred_date_label": "Fecha preferida",
+      "preferred_time_label": "Horario preferido",
+      "tour_type_label": "Tipo de tour",
+      "budget_label": "Presupuesto estimado (opcional)",
+      "budget_placeholder": "$100.000 - $200.000 CLP",
+      "special_requests_label": "Solicitudes especiales",
+      "special_requests_placeholder": "Cuéntanos sobre intereses específicos, necesidades especiales, objetivos fotográficos, etc.",
+      "sending_request": "Enviando solicitud...",
+      "send_request": "Enviar solicitud",
+      "contact_info": "Completa el formulario y nos pondremos en contacto contigo a la brevedad para diseñar tu experiencia perfecta",
+      "toast": {
+        "success_title": "Solicitud enviada",
+        "success_description": "Te contactaremos pronto para diseñar tu experiencia personalizada",
+        "error_title": "Error",
+        "error_description": "No se pudo enviar la solicitud. Intenta nuevamente."
+      },
+      "time_options": {
+        "morning": "Mañana (8:00 - 12:00)",
+        "afternoon": "Tarde (14:00 - 18:00)",
+        "evening": "Noche (20:00 - 00:00)",
+        "flexible": "Flexible"
+      },
+      "tour_type": {
+        "astronomical": "Tour Astronómico",
+        "cultural": "Tour Cultural",
+        "adventure": "Tour de Aventura",
+        "photography": "Tour Fotográfico",
+        "combined": "Combinado"
+      }
+    },
+    "popular_tours": {
+      "title": "Tours Privados Populares",
+      "astrophotography": {
+        "title": "Astrofotografía Avanzada",
+        "description": "Sesión nocturna dedicada a capturar el cielo del Atacama con equipo profesional",
+        "price": "Desde $250.000"
+      },
+      "romantic_experience": {
+        "title": "Experiencia Romántica",
+        "description": "Cena bajo las estrellas con observación privada y fotografía de pareja",
+        "price": "Desde $300.000"
+      },
+      "family_tour": {
+        "title": "Tour Familiar",
+        "description": "Experiencia educativa y divertida diseñada para niños y adultos",
+        "price": "Desde $200.000"
+      }
+    }
+  },
+  "payment": {
+    "success": {
+      "title": "¡Pago Exitoso!",
+      "subtitle": "Tu reserva ha sido confirmada"
+    },
+    "error": {
+      "title": "Pago Rechazado",
+      "subtitle": "No se pudo procesar tu pago"
+    },
+    "callback": {
+      "booking_number": "Número de Reserva",
+      "status_confirmed": "Confirmada",
+      "booking_date": "Fecha de Reserva",
+      "confirmation_sent_title": "Confirmación enviada",
+      "confirmation_sent_description": "Hemos enviado los detalles de tu reserva a tu correo electrónico",
+      "automatic_reminders_title": "Recordatorios automáticos",
+      "automatic_reminders_description": "Te enviaremos recordatorios 24 horas antes de cada tour",
+      "cancellation_policy_title": "Política de cancelación",
+      "cancellation_policy_description": "Cancelación gratuita hasta 24 horas antes del tour",
+      "view_bookings_button": "Ver Mis Reservas",
+      "back_to_home_button": "Volver al Inicio",
+      "error_message": "El procesamiento de tu pago no fue exitoso. Por favor intenta nuevamente o contacta a tu banco para más información.",
+      "possible_reasons_title": "Posibles razones",
+      "reason_insufficient_funds": "Fondos insuficientes",
+      "reason_expired_card": "Tarjeta vencida o bloqueada",
+      "reason_incorrect_data": "Datos incorrectos",
+      "reason_transaction_limit": "Límite de transacciones excedido",
+      "try_again_button": "Intentar Nuevamente",
+      "back_to_cart_button": "Volver al Carrito"
+    }
+  },
+  "schedule": {
+    "error_loading_tour": "Error al cargar el tour",
+    "cart": {
+      "added_title": "Agregado al carrito",
+      "added_description": "{count} persona | {count} personas para {tourName}"
+    },
+    "back_to_tour": "Volver al tour",
+    "select_date_title": "Selecciona una fecha",
+    "loading_schedules": "Cargando horarios disponibles...",
+    "calendar_availability_title": "Calendario de Disponibilidad",
+          "schedules_count": "{count} horario | {count} horarios",
+    "no_schedules_available": "No hay horarios disponibles en este momento",
+    "available_schedules_title": "Horarios Disponibles",
+    "available_spots": "{count} cupos disponibles",
+    "select_date_prompt": "Selecciona una fecha para ver los horarios disponibles",
+    "participant_modal": {
+      "title": "¿Cuántas personas?",
+      "participant_count_label": "Número de participantes",
+      "price_per_person": "Precio por persona",
+      "add_to_cart_button": "Agregar al Carrito"
+    }
   }
 }
+

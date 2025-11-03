@@ -39,7 +39,22 @@
     "subtotal": "Subtotal",
     "tax": "Tax",
     "discount": "Discount",
-    "and": "and"
+    "and": "and",
+    "status": "Status",
+    "created_at": "Created At",
+    "tour": "Tour",
+    "validation_error": "Validation Error",
+    "validation_error_description": "Please correct the marked fields.",
+    "save_error": "Save Error",
+    "days": {
+      "sunday_short": "Sun",
+      "monday_short": "Mon",
+      "tuesday_short": "Tue",
+      "wednesday_short": "Wed",
+      "thursday_short": "Thu",
+      "friday_short": "Fri",
+      "saturday_short": "Sat"
+    }
   },
   "tours": {
     "all": "All Tours",
@@ -128,8 +143,17 @@
       "PENDING": "Pending",
       "CONFIRMED": "Confirmed",
       "CANCELLED": "Cancelled",
-      "COMPLETED": "Completed"
-    }
+      "COMPLETED": "Completed",
+      "label": "Status"
+    },
+    "details": "Booking Details",
+    "tour_date": "Tour Date",
+    "client": "Client",
+    "participants": "Participants ({count})",
+    "document": "Document",
+    "years_old": "years old",
+    "address": "Address",
+    "special_requests": "Special Requests"
   },
   "cart": {
     "title": "Shopping Cart",
@@ -220,6 +244,209 @@
       "waning_gibbous": "Waning Gibbous",
       "last_quarter": "Last Quarter",
       "waning_crescent": "Waning Crescent"
+    }
+  },
+  "hero": {
+    "badge": "Astronomical tours in the clearest desert in the world",
+    "title1": "Discover the Stars",
+    "title2": "of the Atacama Desert",
+    "subtitle": "Live a unique experience observing the universe in one of the clearest skies on the planet",
+    "buttonExplore": "Explore Tours",
+    "buttonContact": "Contact",
+    "discoverMore": "Discover more",
+    "features": {
+      "proTelescopes": "Pro Telescopes",
+      "expertGuides": "Expert Guides",
+      "clearSkies": "Clear Skies",
+      "freeCancellation": "Free Cancellation"
+    }
+  },
+  "about": {
+    "seo": {
+      "title": "About Us - Northern Chile",
+      "description": "Learn about the history and team behind Northern Chile, your expert guide for astronomical tours in San Pedro de Atacama.",
+      "og_title": "About Us - Northern Chile",
+      "og_description": "Learn about the history and team behind Northern Chile"
+    },
+    "title": "About Northern Chile",
+    "subtitle": "Connecting people with the universe from the clearest desert in the world",
+    "historyTitle": "Our History",
+    "historyP1": "Northern Chile was born from 15 years of passion for astronomical tourism in the Atacama Desert and Bolivia. We don't just sell a tour, we sell a knowledge experience, a true show under the stars.",
+    "historyP2": "We created an \"Open-Air Auditorium\" where our visitors lie down at the foot of the desert to connect the sky with the ground. It is a natural experience that involves walking through the dunes, equipped with professional telescopes (Celestron 8se, equatorial Skywatcher, Celestron 114 LSM, Seestar S50zvw) and cameras to capture the magic of the moment.",
+    "historyP3": "We were awarded the best Atacama tour award last year, and our agency was selected among the 9 best in San Pedro by tourism emissaries. Our founder participated as a voice-over for the astronomical tour at the VIVA Antofagasta fair and collaborated with the Meteorite Museum.",
+    "historyP4": "The Atacama skies are completely different every 6 months, offering unique experiences depending on the time of year. We invite you to discover why the Atacama Desert is considered one of the best places in the world for astronomical observation.",
+    "valuesTitle": "Our Values",
+    "values": {
+      "experience_title": "Knowledge Experience",
+      "experience_description": "We don't sell tours, we sell an educational show under the desert stars",
+      "equipment_title": "Professional Equipment",
+      "equipment_description": "4 high-end telescopes and professional cameras for an unforgettable experience",
+      "quality_title": "Recognized Quality",
+      "quality_description": "Awarded as the best Atacama tour and selected among the 9 best in San Pedro",
+      "auditorium_title": "Natural Auditorium",
+      "auditorium_description": "We create an open-air auditorium where you connect the sky with the desert ground"
+    },
+    "teamTitle": "Our Team",
+    "team": {
+      "alex": {
+        "role": "Founder and Astronomical Guide",
+        "bio": "15 years of experience in astronomical tourism in Bolivia and San Pedro de Atacama. Award for the best tour in Atacama.",
+        "credentials": {
+          "award": "Winner of the best Atacama tour award",
+          "voice_over": "Voice-over for the astronomical tour at the VIVA Antofagasta fair",
+          "collaborator": "Collaborator of the Meteorite Museum"
+        }
+      },
+      "david": {
+        "role": "Photographer and Art Teacher",
+        "bio": "Specialist in astronomical and night photography. Captures the magic of the Atacama sky combining professional technique and artistic vision.",
+        "credentials": {
+          "photographer": "Professional photographer specializing in astrophotography",
+          "art_teacher": "Art teacher with a focus on night photography",
+          "tour_guide": "Guide on specialized weekend tours"
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready to explore the universe?",
+      "subtitle": "Join us on an unforgettable astronomical adventure",
+      "button": "View Our Tours"
+    }
+  },
+  "privateTours": {
+    "seo": {
+      "title": "Private Tours - Northern Chile",
+      "description": "Design your personalized astronomical experience. Tailor-made private tours with expert guides in San Pedro de Atacama.",
+      "og_title": "Private Tours - Northern Chile",
+      "og_description": "Customized astronomical experiences"
+    },
+    "title": "Personalized Private Tours",
+    "subtitle": "Design your ideal astronomical experience. Exclusive tours tailored to your interests and needs.",
+    "benefits": {
+      "title": "Why choose a private tour?",
+      "exclusive_experience_title": "Exclusive Experience",
+      "exclusive_experience_description": "Tour designed specifically for you and your group",
+      "flexible_hours_title": "Flexible Hours",
+      "flexible_hours_description": "Choose the schedule that best suits your itinerary",
+      "custom_itinerary_title": "Custom Itinerary",
+      "custom_itinerary_description": "Visit the places that interest you most",
+      "exclusive_guide_title": "Exclusive Guide",
+      "exclusive_guide_description": "Personalized attention from our experts",
+      "professional_photography_title": "Professional Photography",
+      "professional_photography_description": "Photo session included in night tours",
+      "unique_experiences_title": "Unique Experiences",
+      "unique_experiences_description": "Access to special places and moments"
+    },
+    "form": {
+      "title": "Request your Private Tour",
+      "subtitle": "Fill out the form and we will contact you to design your perfect experience",
+      "full_name_label": "Full Name",
+      "full_name_placeholder": "John Doe",
+      "email_label": "Email",
+      "phone_label": "Phone",
+      "phone_placeholder": "+1 555 1234 5678",
+      "number_of_people_label": "Number of people",
+      "number_of_people_placeholder": "2",
+      "preferred_date_label": "Preferred Date",
+      "preferred_time_label": "Preferred Time",
+      "tour_type_label": "Tour Type",
+      "budget_label": "Estimated budget (optional)",
+      "budget_placeholder": "$1,000 - $2,000 USD",
+      "special_requests_label": "Special requests",
+      "special_requests_placeholder": "Tell us about specific interests, special needs, photographic goals, etc.",
+      "sending_request": "Sending request...",
+      "send_request": "Send request",
+      "contact_info": "Fill out the form and we will contact you shortly to design your perfect experience",
+      "toast": {
+        "success_title": "Request sent",
+        "success_description": "We will contact you soon to design your personalized experience",
+        "error_title": "Error",
+        "error_description": "Could not send request. Please try again."
+      },
+      "time_options": {
+        "morning": "Morning (8:00 - 12:00)",
+        "afternoon": "Afternoon (14:00 - 18:00)",
+        "evening": "Night (20:00 - 00:00)",
+        "flexible": "Flexible"
+      },
+      "tour_type": {
+        "astronomical": "Astronomical Tour",
+        "cultural": "Cultural Tour",
+        "adventure": "Adventure Tour",
+        "photography": "Photography Tour",
+        "combined": "Combined"
+      }
+    },
+    "popular_tours": {
+      "title": "Popular Private Tours",
+      "astrophotography": {
+        "title": "Advanced Astrophotography",
+        "description": "Night session dedicated to capturing the Atacama sky with professional equipment",
+        "price": "From $250,000"
+      },
+      "romantic_experience": {
+        "title": "Romantic Experience",
+        "description": "Dinner under the stars with private observation and couple photography",
+        "price": "From $300,000"
+      },
+      "family_tour": {
+        "title": "Family Tour",
+        "description": "Educational and fun experience designed for children and adults",
+        "price": "From $200,000"
+      }
+    }
+  },
+  "payment": {
+    "success": {
+      "title": "Payment Successful!",
+      "subtitle": "Your booking has been confirmed"
+    },
+    "error": {
+      "title": "Payment Rejected",
+      "subtitle": "Your payment could not be processed"
+    },
+    "callback": {
+      "booking_number": "Booking Number",
+      "status_confirmed": "Confirmed",
+      "booking_date": "Booking Date",
+      "confirmation_sent_title": "Confirmation sent",
+      "confirmation_sent_description": "We have sent your booking details to your email address",
+      "automatic_reminders_title": "Automatic reminders",
+      "automatic_reminders_description": "We will send you reminders 24 hours before each tour",
+      "cancellation_policy_title": "Cancellation policy",
+      "cancellation_policy_description": "Free cancellation up to 24 hours before the tour",
+      "view_bookings_button": "View My Bookings",
+      "back_to_home_button": "Back to Home",
+      "error_message": "Your payment could not be processed. Please try again or contact your bank for more information.",
+      "possible_reasons_title": "Possible reasons",
+      "reason_insufficient_funds": "Insufficient funds",
+      "reason_expired_card": "Expired or blocked card",
+      "reason_incorrect_data": "Incorrect data",
+      "reason_transaction_limit": "Transaction limit exceeded",
+      "try_again_button": "Try Again",
+      "back_to_cart_button": "Back to Cart"
+    }
+  },
+  "schedule": {
+    "error_loading_tour": "Error loading tour",
+    "cart": {
+      "added_title": "Added to cart",
+      "added_description": "{count} person | {count} people for {tourName}"
+    },
+    "back_to_tour": "Back to tour",
+    "select_date_title": "Select a date",
+    "loading_schedules": "Loading available schedules...",
+    "calendar_availability_title": "Availability Calendar",
+    "schedules_count": "{count} schedule | {count} schedules",
+    "no_schedules_available": "No schedules available at this time",
+    "available_schedules_title": "Available Schedules",
+    "available_spots": "{count} spots available",
+    "select_date_prompt": "Select a date to see available schedules",
+    "participant_modal": {
+      "title": "How many people?",
+      "participant_count_label": "Number of participants",
+      "price_per_person": "Price per person",
+      "add_to_cart_button": "Add to Cart"
     }
   }
 }

@@ -2,34 +2,34 @@
 const { t } = useI18n()
 
 useSeoMeta({
-  title: 'Sobre Nosotros - Northern Chile',
-  description: 'Conoce la historia y el equipo detrás de Northern Chile, tu guía experta en tours astronómicos en San Pedro de Atacama.',
-  ogTitle: 'Sobre Nosotros - Northern Chile',
-  ogDescription: 'Conoce la historia y el equipo detrás de Northern Chile',
+  title: t('about.seo.title'),
+  description: t('about.seo.description'),
+  ogTitle: t('about.seo.og_title'),
+  ogDescription: t('about.seo.og_description'),
   twitterCard: 'summary_large_image'
 })
 
 const teamMembers = [
   {
     name: 'Alex',
-    role: 'Fundador y Guía Astronómico',
-    bio: '15 años de trayectoria en turismo astronómico en Bolivia y San Pedro de Atacama. Premio al mejor tour de Atacama.',
+    role: t('about.team.alex.role'),
+    bio: t('about.team.alex.bio'),
     image: 'https://ui-avatars.com/api/?name=Alex&background=10b981&color=fff',
     credentials: [
-      { icon: 'i-lucide-award', text: 'Ganador del premio al mejor tour de Atacama' },
-      { icon: 'i-lucide-mic', text: 'Voz en off del tour astronómico en feria VIVA Antofagasta' },
-      { icon: 'i-lucide-building', text: 'Colaborador del Museo del Meteorito' }
+      { icon: 'i-lucide-award', text: t('about.team.alex.credentials.award') },
+      { icon: 'i-lucide-mic', text: t('about.team.alex.credentials.voice_over') },
+      { icon: 'i-lucide-building', text: t('about.team.alex.credentials.collaborator') }
     ]
   },
   {
     name: 'David Gallardo',
-    role: 'Fotógrafo y Profesor de Arte',
-    bio: 'Especialista en fotografía astronómica y nocturna. Captura la magia del cielo atacameño combinando técnica profesional y visión artística.',
+    role: t('about.team.david.role'),
+    bio: t('about.team.david.bio'),
     image: 'https://ui-avatars.com/api/?name=David+Gallardo&background=10b981&color=fff',
     credentials: [
-      { icon: 'i-lucide-camera', text: 'Fotógrafo profesional especializado en astrofotografía' },
-      { icon: 'i-lucide-palette', text: 'Profesor de arte con enfoque en fotografía nocturna' },
-      { icon: 'i-lucide-star', text: 'Guía en tours especializados de fin de semana' }
+      { icon: 'i-lucide-camera', text: t('about.team.david.credentials.photographer') },
+      { icon: 'i-lucide-palette', text: t('about.team.david.credentials.art_teacher') },
+      { icon: 'i-lucide-star', text: t('about.team.david.credentials.tour_guide') }
     ]
   }
 ]
@@ -37,23 +37,23 @@ const teamMembers = [
 const values = [
   {
     icon: 'i-lucide-sparkles',
-    title: 'Experiencia de Conocimiento',
-    description: 'No vendemos tours, vendemos un show educativo bajo las estrellas del desierto'
+    title: t('about.values.experience_title'),
+    description: t('about.values.experience_description')
   },
   {
     icon: 'i-lucide-telescope',
-    title: 'Equipamiento Profesional',
-    description: '4 telescopios de alta gama y cámaras profesionales para una experiencia inolvidable'
+    title: t('about.values.equipment_title'),
+    description: t('about.values.equipment_description')
   },
   {
     icon: 'i-lucide-award',
-    title: 'Calidad Reconocida',
-    description: 'Premiados como el mejor tour de Atacama y seleccionados entre los 9 mejores de San Pedro'
+    title: t('about.values.quality_title'),
+    description: t('about.values.quality_description')
   },
   {
     icon: 'i-lucide-mountain',
-    title: 'Auditorio Natural',
-    description: 'Creamos un auditorio a cielo abierto donde conectas el cielo con el suelo del desierto'
+    title: t('about.values.auditorium_title'),
+    description: t('about.values.auditorium_description')
   }
 ]
 </script>
@@ -65,10 +65,10 @@ const values = [
       <UContainer>
         <div class="max-w-3xl mx-auto text-center">
           <h1 class="text-4xl md:text-5xl font-bold mb-6">
-            Sobre Northern Chile
+            {{ t('about.title') }}
           </h1>
           <p class="text-xl text-neutral-300">
-            Conectando personas con el universo desde el desierto más claro del mundo
+            {{ t('about.subtitle') }}
           </p>
         </div>
       </UContainer>
@@ -79,28 +79,20 @@ const values = [
       <UContainer>
         <div class="max-w-4xl mx-auto">
           <h2 class="text-3xl font-bold text-neutral-900 dark:text-white mb-8 text-center">
-            Nuestra Historia
+            {{ t('about.historyTitle') }}
           </h2>
           <div class="prose prose-lg dark:prose-invert max-w-none">
             <p class="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6">
-              Northern Chile nace de 15 años de pasión por el turismo astronómico en el desierto de Atacama y Bolivia.
-              No vendemos simplemente un tour, vendemos una experiencia de conocimiento, un verdadero show bajo las estrellas.
+              {{ t('about.historyP1') }}
             </p>
             <p class="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6">
-              Creamos un <strong>"Auditorio a Cielo Abierto"</strong> donde nuestros visitantes se recuestan a los pies del desierto
-              para conectar el cielo con el suelo. Es una experiencia natural que implica caminar por las dunas,
-              equipados con telescopios profesionales (Celestron 8se, Skywatcher ecuatorial, Celestron 114 LSM, Seestar S50zvw)
-              y cámaras para capturar la magia del momento.
+              <span v-html="t('about.historyP2')" />
             </p>
             <p class="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6">
-              Fuimos galardonados con el <strong>premio al mejor tour de Atacama</strong> el año pasado, y nuestra agencia fue
-              seleccionada entre las 9 mejores de San Pedro por emisarios turísticos. Nuestro fundador participó como voz en off
-              del tour astronómico en la feria VIVA Antofagasta y colaboró con el Museo del Meteorito.
+              {{ t('about.historyP3') }}
             </p>
             <p class="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              Los cielos de Atacama son totalmente diferentes cada 6 meses, ofreciendo experiencias únicas según la época del año.
-              Te invitamos a descubrir por qué el desierto de Atacama es considerado uno de los mejores lugares del mundo
-              para la observación astronómica.
+              {{ t('about.historyP4') }}
             </p>
           </div>
         </div>
@@ -111,7 +103,7 @@ const values = [
     <section class="py-16 bg-neutral-50 dark:bg-neutral-800/50">
       <UContainer>
         <h2 class="text-3xl font-bold text-neutral-900 dark:text-white mb-12 text-center">
-          Nuestros Valores
+          {{ t('about.valuesTitle') }}
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div v-for="value in values" :key="value.title" class="text-center">
@@ -133,7 +125,7 @@ const values = [
     <section class="py-16 bg-white dark:bg-neutral-900">
       <UContainer>
         <h2 class="text-3xl font-bold text-neutral-900 dark:text-white mb-12 text-center">
-          Nuestro Equipo
+          {{ t('about.teamTitle') }}
         </h2>
         <div class="max-w-5xl mx-auto space-y-12">
           <div v-for="member in teamMembers" :key="member.name" class="flex flex-col md:flex-row items-center gap-8">
@@ -169,10 +161,10 @@ const values = [
       <UContainer>
         <div class="max-w-3xl mx-auto text-center">
           <h2 class="text-3xl font-bold mb-4">
-            ¿Listo para explorar el universo?
+            {{ t('about.cta.title') }}
           </h2>
           <p class="text-xl mb-8 text-primary-100">
-            Únete a nosotros en una aventura astronómica inolvidable
+            {{ t('about.cta.subtitle') }}
           </p>
           <UButton
             to="/tours"
@@ -180,7 +172,7 @@ const values = [
             color="white"
             icon="i-lucide-telescope"
           >
-            Ver Nuestros Tours
+            {{ t('about.cta.button') }}
           </UButton>
         </div>
       </UContainer>
