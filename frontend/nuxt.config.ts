@@ -34,9 +34,6 @@ export default defineNuxtConfig({
         changeOrigin: true,
       },
     },
-    externals: {
-      external: ["@vue/devtools-kit", "@vue/devtools-api"],
-    },
   },
 
   colorMode: {
@@ -74,9 +71,8 @@ export default defineNuxtConfig({
     exclude: ["/admin/*"],
   },
 
-  devtools: {
-    enabled: process.env.NODE_ENV !== "production",
-  },
+  // ✅ CAMBIO CRÍTICO: Deshabilitar COMPLETAMENTE
+  devtools: { enabled: false },
 
   css: ["~/assets/css/main.css"],
 
@@ -89,9 +85,9 @@ export default defineNuxtConfig({
 
   compatibilityDate: "2025-01-15",
 
+  // ✅ CAMBIO CRÍTICO: Transpilar MÁS dependencias
   build: {
-    transpile:
-      process.env.NODE_ENV === "production" ? ["@vue/devtools-kit"] : [],
+    transpile: ["@vue/devtools-kit", "@vue/devtools-api", "perfect-debounce"],
   },
 
   eslint: {
@@ -105,10 +101,5 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [viteTsconfigPaths()],
-    build: {
-      rollupOptions: {
-        external: ["@vue/devtools-kit"],
-      },
-    },
   },
 });
