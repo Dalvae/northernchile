@@ -37,10 +37,10 @@ export default defineNuxtConfig({
   },
 
   colorMode: {
-    preference: 'dark',
-    fallback: 'dark',
-    storageKey: 'nuxt-color-mode',
-    classSuffix: '',
+    preference: "dark",
+    fallback: "dark",
+    storageKey: "nuxt-color-mode",
+    classSuffix: "",
   },
 
   ui: {
@@ -71,7 +71,9 @@ export default defineNuxtConfig({
     exclude: ["/admin/*"],
   },
 
-  devtools: { enabled: false },
+  devtools: {
+    enabled: process.env.NODE_ENV !== "production",
+  },
 
   css: ["~/assets/css/main.css"],
 
@@ -84,6 +86,11 @@ export default defineNuxtConfig({
 
   compatibilityDate: "2025-01-15",
 
+  build: {
+    transpile:
+      process.env.NODE_ENV === "production" ? ["@vue/devtools-kit"] : [],
+  },
+
   eslint: {
     config: {
       stylistic: {
@@ -95,5 +102,10 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [viteTsconfigPaths()],
+    build: {
+      rollupOptions: {
+        external: ["@vue/devtools-kit"],
+      },
+    },
   },
 });
