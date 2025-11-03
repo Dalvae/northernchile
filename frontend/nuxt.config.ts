@@ -71,8 +71,10 @@ export default defineNuxtConfig({
     exclude: ["/admin/*"],
   },
 
-  // ✅ CAMBIO CRÍTICO: Deshabilitar COMPLETAMENTE
-  devtools: { enabled: false },
+  // DevTools condicional como originalmente
+  devtools: {
+    enabled: process.env.NODE_ENV !== "production",
+  },
 
   css: ["~/assets/css/main.css"],
 
@@ -85,10 +87,8 @@ export default defineNuxtConfig({
 
   compatibilityDate: "2025-01-15",
 
-  // ✅ CAMBIO CRÍTICO: Transpilar MÁS dependencias
-  build: {
-    transpile: ["@vue/devtools-kit", "@vue/devtools-api", "perfect-debounce"],
-  },
+  // Eliminada la transpilación forzada
+  build: {},
 
   eslint: {
     config: {
