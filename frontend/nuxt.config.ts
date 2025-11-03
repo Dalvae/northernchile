@@ -34,6 +34,9 @@ export default defineNuxtConfig({
         changeOrigin: true,
       },
     },
+    externals: {
+      external: ["@vue/devtools-kit", "@vue/devtools-api"],
+    },
   },
 
   colorMode: {
