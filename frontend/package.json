@@ -12,6 +12,9 @@
         "@vue/devtools-api",
         "@vue/devtools-kit"
       ]
+    },
+    "hooks": {
+      "readPackage": "import('./pnpm-hooks.mjs').then(hooks => hooks.readPackage)"
     }
   },
   "scripts": {
