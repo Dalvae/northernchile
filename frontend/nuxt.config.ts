@@ -106,13 +106,5 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [viteTsconfigPaths()],
-    build: {
-      rollupOptions: {
-        external:
-          process.env.NODE_ENV === 'production'
-            ? ['@vue/devtools-kit', 'perfect-debounce']
-            : [],
-      },
-    },
   },
 });
