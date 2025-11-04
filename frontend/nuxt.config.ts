@@ -80,6 +80,7 @@ export default defineNuxtConfig({
   routeRules: {
     "/": { prerender: true },
     "/auth": { ssr: false },
+    "/cart": { ssr: false },
     "/admin/**": { ssr: false },
     "/profile/**": { ssr: false },
     "/bookings/**": { ssr: false },
