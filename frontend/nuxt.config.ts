@@ -105,5 +105,14 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [viteTsconfigPaths()],
+    resolve: {
+      alias:
+        process.env.NODE_ENV === 'production'
+          ? {
+              '@vue/devtools-kit': './vue-devtools-kit-stub.js', // Alias a un módulo vacío
+              'perfect-debounce': './perfect-debounce-stub.js', // Alias a un módulo vacío
+            }
+          : {},
+    },
   },
 });
