@@ -47,6 +47,7 @@ const schema = z.object({
     .min(1, "Debe ser al menos 1 participante"),
   durationHours: z.number().int().min(1, "Debe ser al menos 1 hora"),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+  contentKey: z.string().min(1, "La clave de contenido es requerida"),
 });
 type Schema = z.output<typeof schema>;
 
@@ -63,6 +64,7 @@ const initialState: Schema = {
   defaultMaxParticipants: 10,
   durationHours: 2,
   status: "DRAFT",
+  contentKey: "",
 };
 
 const state = reactive<Schema>({ ...initialState });
@@ -106,6 +108,7 @@ watch(
       state.defaultMaxParticipants = tour.defaultMaxParticipants;
       state.durationHours = tour.durationHours;
       state.status = tour.status;
+      state.contentKey = tour.contentKey || "";
     } else {
       // Resetear a valores por defecto
       Object.assign(state, initialState);
@@ -204,18 +207,25 @@ const statusOptions = [
           class="space-y-4"
           @submit="onSubmit"
         >
-          <UFormGroup label="Nombre del Tour" name="name">
+          <UFormGroup label="Nombre del Tour" name="nameTranslations.es">
             <UInput
-              v-model="state.name"
+              v-model="state.nameTranslations.es"
               placeholder="Ej: Tour Astronómico Premium"
             />
           </UFormGroup>
 
-          <UFormGroup label="Descripción" name="description">
+          <UFormGroup label="Descripción" name="descriptionTranslations.es">
             <UTextarea
-              v-model="state.description"
+              v-model="state.descriptionTranslations.es"
               autoresize
               placeholder="Describe la experiencia del tour..."
+            />
+          </UFormGroup>
+
+          <UFormGroup label="Clave de Contenido" name="contentKey">
+            <UInput
+              v-model="state.contentKey"
+              placeholder="Ej: tour-astronomico-premium"
             />
           </UFormGroup>
 

@@ -34,6 +34,12 @@ export default defineNuxtConfig({
         changeOrigin: true,
       },
     },
+    externals: {
+      inline: [
+        '@vue/devtools-kit',
+        'perfect-debounce',
+      ],
+    },
   },
 
   colorMode: {
