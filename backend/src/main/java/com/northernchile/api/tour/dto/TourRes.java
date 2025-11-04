@@ -29,12 +29,15 @@ public class TourRes {
     private boolean isCloudSensitive; // NUEVO
     private Instant createdAt;
     private Instant updatedAt;
+    private String contentKey;
+
 
     public TourRes() {
     }
 
-    public TourRes(UUID id, Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, String status, List<TourImageRes> images, boolean isMoonSensitive, boolean isWindSensitive, boolean isCloudSensitive, Instant createdAt, Instant updatedAt) {
+    public TourRes(UUID id, String slug, Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, String status, List<TourImageRes> images, boolean isMoonSensitive, boolean isWindSensitive, boolean isCloudSensitive, Instant createdAt, Instant updatedAt, String contentKey) {
         this.id = id;
+        this.slug = slug;
         this.nameTranslations = nameTranslations;
         this.descriptionTranslations = descriptionTranslations;
         this.category = category;
@@ -48,6 +51,7 @@ public class TourRes {
         this.isCloudSensitive = isCloudSensitive;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.contentKey = contentKey;
     }
 
     public UUID getId() {
@@ -170,23 +174,32 @@ public class TourRes {
         this.updatedAt = updatedAt;
     }
 
+    public String getContentKey() {
+        return contentKey;
+    }
+
+    public void setContentKey(String contentKey) {
+        this.contentKey = contentKey;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TourRes tourRes = (TourRes) o;
-        return isMoonSensitive == tourRes.isMoonSensitive && isWindSensitive == tourRes.isWindSensitive && isCloudSensitive == tourRes.isCloudSensitive && Objects.equals(id, tourRes.id) && Objects.equals(nameTranslations, tourRes.nameTranslations) && Objects.equals(descriptionTranslations, tourRes.descriptionTranslations) && Objects.equals(category, tourRes.category) && Objects.equals(price, tourRes.price) && Objects.equals(defaultMaxParticipants, tourRes.defaultMaxParticipants) && Objects.equals(durationHours, tourRes.durationHours) && Objects.equals(status, tourRes.status) && Objects.equals(images, tourRes.images) && Objects.equals(createdAt, tourRes.createdAt) && Objects.equals(updatedAt, tourRes.updatedAt);
+        return isMoonSensitive == tourRes.isMoonSensitive && isWindSensitive == tourRes.isWindSensitive && isCloudSensitive == tourRes.isCloudSensitive && Objects.equals(id, tourRes.id) && Objects.equals(slug, tourRes.slug) && Objects.equals(nameTranslations, tourRes.nameTranslations) && Objects.equals(descriptionTranslations, tourRes.descriptionTranslations) && Objects.equals(category, tourRes.category) && Objects.equals(price, tourRes.price) && Objects.equals(defaultMaxParticipants, tourRes.defaultMaxParticipants) && Objects.equals(durationHours, tourRes.durationHours) && Objects.equals(status, tourRes.status) && Objects.equals(images, tourRes.images) && Objects.equals(createdAt, tourRes.createdAt) && Objects.equals(updatedAt, tourRes.updatedAt) && Objects.equals(contentKey, tourRes.contentKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, nameTranslations, descriptionTranslations, category, price, defaultMaxParticipants, durationHours, status, images, isMoonSensitive, isWindSensitive, isCloudSensitive, createdAt, updatedAt);
+        return Objects.hash(id, slug, nameTranslations, descriptionTranslations, category, price, defaultMaxParticipants, durationHours, status, images, isMoonSensitive, isWindSensitive, isCloudSensitive, createdAt, updatedAt, contentKey);
     }
 
     @Override
     public String toString() {
         return "TourRes{" +
                 "id=" + id +
+                ", slug='" + slug + '\'' +
                 ", nameTranslations=" + nameTranslations +
                 ", descriptionTranslations=" + descriptionTranslations +
                 ", category='" + category + '\'' +
@@ -200,6 +213,7 @@ public class TourRes {
                 ", isCloudSensitive=" + isCloudSensitive +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
+                ", contentKey='" + contentKey + '\'' +
                 '}';
     }
 }

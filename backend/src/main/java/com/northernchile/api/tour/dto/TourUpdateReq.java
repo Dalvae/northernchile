@@ -22,11 +22,12 @@ public class TourUpdateReq {
     private Integer defaultMaxParticipants;
     private Integer durationHours;
     private String status;
+    private String contentKey;
 
     public TourUpdateReq() {
     }
 
-    public TourUpdateReq(Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<String> imageUrls, Boolean isMoonSensitive, Boolean isWindSensitive, Boolean isCloudSensitive, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, String status) {
+    public TourUpdateReq(Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<String> imageUrls, Boolean isMoonSensitive, Boolean isWindSensitive, Boolean isCloudSensitive, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, String status, String contentKey) {
         this.nameTranslations = nameTranslations;
         this.descriptionTranslations = descriptionTranslations;
         this.imageUrls = imageUrls;
@@ -38,6 +39,7 @@ public class TourUpdateReq {
         this.defaultMaxParticipants = defaultMaxParticipants;
         this.durationHours = durationHours;
         this.status = status;
+        this.contentKey = contentKey;
     }
 
     public Map<String, String> getNameTranslations() {
@@ -128,7 +130,15 @@ public class TourUpdateReq {
         this.status = status;
     }
 
-        @Override
+    public String getContentKey() {
+        return contentKey;
+    }
+
+    public void setContentKey(String contentKey) {
+        this.contentKey = contentKey;
+    }
+
+    @Override
 
         public boolean equals(Object o) {
 
@@ -138,7 +148,7 @@ public class TourUpdateReq {
 
             TourUpdateReq that = (TourUpdateReq) o;
 
-            return Objects.equals(nameTranslations, that.nameTranslations) && Objects.equals(descriptionTranslations, that.descriptionTranslations) && Objects.equals(imageUrls, that.imageUrls) && Objects.equals(isMoonSensitive, that.isMoonSensitive) && Objects.equals(isWindSensitive, that.isWindSensitive) && Objects.equals(isCloudSensitive, that.isCloudSensitive) && Objects.equals(category, that.category) && Objects.equals(price, that.price) && Objects.equals(defaultMaxParticipants, that.defaultMaxParticipants) && Objects.equals(durationHours, that.durationHours) && Objects.equals(status, that.status);
+            return Objects.equals(nameTranslations, that.nameTranslations) && Objects.equals(descriptionTranslations, that.descriptionTranslations) && Objects.equals(imageUrls, that.imageUrls) && Objects.equals(isMoonSensitive, that.isMoonSensitive) && Objects.equals(isWindSensitive, that.isWindSensitive) && Objects.equals(isCloudSensitive, that.isCloudSensitive) && Objects.equals(category, that.category) && Objects.equals(price, that.price) && Objects.equals(defaultMaxParticipants, that.defaultMaxParticipants) && Objects.equals(durationHours, that.durationHours) && Objects.equals(status, that.status) && Objects.equals(contentKey, that.contentKey);
 
         }
 
@@ -148,7 +158,7 @@ public class TourUpdateReq {
 
         public int hashCode() {
 
-            return Objects.hash(nameTranslations, descriptionTranslations, imageUrls, isMoonSensitive, isWindSensitive, isCloudSensitive, category, price, defaultMaxParticipants, durationHours, status);
+            return Objects.hash(nameTranslations, descriptionTranslations, imageUrls, isMoonSensitive, isWindSensitive, isCloudSensitive, category, price, defaultMaxParticipants, durationHours, status, contentKey);
 
         }
 
@@ -181,6 +191,8 @@ public class TourUpdateReq {
                     + ", durationHours=" + durationHours
 
                     + ", status='" + status + "'"
+
+                    + ", contentKey='" + contentKey + "'"
 
                     + '}';
 

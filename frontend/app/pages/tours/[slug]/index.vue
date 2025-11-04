@@ -1,41 +1,48 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
+import { ref, computed, watch } from 'vue'
 import type { TourRes } from '~/lib/api-client'
 
 const route = useRoute()
 const { locale } = useI18n()
 const tourSlug = route.params.slug as string
 
-const tour = ref<TourRes | null>(null)
-const loading = ref(true)
-const error = ref<string | null>(null)
+const { data: tour, pending: tourPending, error: tourError } = await useFetch<TourRes>(`/api/tours/slug/${tourSlug}`)
 
-const translatedName = computed(() =>
-  tour.value?.nameTranslations?.[locale.value] || tour.value?.nameTranslations?.['es'] || ''
-)
+// Ref para el contenido enriquecido
+const tourContent = ref<any>(null)
 
-const translatedDescription = computed(() =>
-  tour.value?.descriptionTranslations?.[locale.value] || tour.value?.descriptionTranslations?.['es'] || ''
-)
-
-const heroImage = computed(() =>
-  tour.value?.images?.find(img => img.isHeroImage)?.imageUrl || tour.value?.images?.[0]?.imageUrl || 'https://source.unsplash.com/random/1200x800?desert,stars'
-)
-
-async function fetchTour() {
+// Función para cargar dinámicamente el contenido
+async function fetchContent(contentKey: string | undefined) {
+  if (!contentKey) {
+    tourContent.value = null
+    return
+  }
   try {
-    loading.value = true
-    const response = await $fetch(`/api/tours/slug/${tourSlug}`)
-    tour.value = response as TourRes
-  } catch (e: any) {
-    error.value = e.message || 'Error fetching tour ' + tourSlug
-    console.error('Failed to fetch tour', tourSlug, e)
-  } finally {
-    loading.value = false
+    // Importación dinámica basada en la clave
+    const contentModule = await import(`~/app/content/tours/${contentKey}.ts`)
+    tourContent.value = contentModule.default
+  } catch (e) {
+    console.error("No se encontró contenido enriquecido para la clave:", contentKey)
+    tourContent.value = null
   }
 }
+
+// Carga el contenido cuando los datos del tour estén disponibles
+watch(tour, (newTour) => {
+  if (newTour?.contentKey) {
+    fetchContent(newTour.contentKey)
+  }
+}, { immediate: true })
+
+// Propiedades computadas para usar en el template
+const translatedContent = computed(() => {
+  if (!tourContent.value) return null
+  return tourContent.value[locale.value] || tourContent.value.es
+})
+
+const translatedName = computed(() => tour.value?.nameTranslations?.[locale.value] || tour.value?.nameTranslations?.es || '')
+const translatedDescription = computed(() => tour.value?.descriptionTranslations?.[locale.value] || tour.value?.descriptionTranslations?.es || '')
+const heroImage = computed(() => tour.value?.images?.[0]?.imageUrl || 'default-image.jpg')
 
 async function goToSchedule() {
   console.log('Navigating to schedule page for:', tourSlug)
@@ -43,16 +50,14 @@ async function goToSchedule() {
   console.log('Schedule path:', schedulePath)
   await navigateTo(schedulePath)
 }
-
-onMounted(fetchTour)
 </script>
 
 <template>
   <div class="min-h-screen bg-white dark:bg-neutral-900">
     <UContainer class="py-8">
-      <div v-if="loading" class="text-center text-neutral-600 dark:text-neutral-400">Cargando tour...</div>
-      <div v-else-if="error" class="text-center">
-        <UAlert color="error" :title="error" />
+      <div v-if="tourPending" class="text-center text-neutral-600 dark:text-neutral-400">Cargando tour...</div>
+      <div v-else-if="tourError" class="text-center">
+        <UAlert color="error" :title="tourError.message" />
       </div>
       <div v-else-if="tour" class="space-y-8">
         <!-- Hero Section -->
@@ -64,6 +69,52 @@ onMounted(fetchTour)
         <!-- Description -->
         <div class="prose dark:prose-invert max-w-none">
           <p class="text-lg text-neutral-600 dark:text-neutral-400">{{ translatedDescription }}</p>
+        </div>
+
+        <!-- Renderizar el contenido ENRIQUECIDO si existe -->
+        <div v-if="translatedContent" class="space-y-8 mt-8">
+    
+          <!-- Sección del Guía -->
+          <UCard>
+            <template #header>
+              <h2 class="text-2xl font-bold">Tu Guía: {{ translatedContent.guide.name }}</h2>
+            </template>
+            <p>{{ translatedContent.guide.bio }}</p>
+            <ul class="mt-4 space-y-1 list-disc list-inside">
+              <li v-for="cred in translatedContent.guide.credentials" :key="cred">{{ cred }}</li>
+            </ul>
+          </UCard>
+          
+          <!-- Sección del Itinerario -->
+          <UCard>
+            <template #header>
+              <h2 class="text-2xl font-bold">Itinerario de tu Noche Cósmica</h2>
+            </template>
+            <div v-for="item in translatedContent.itinerary" :key="item.time" class="flex gap-4 py-2 border-b border-neutral-200 dark:border-neutral-700 last:border-b-0">
+              <span class="font-bold w-20 text-primary">{{ item.time }}</span>
+              <p>{{ item.description }}</p>
+            </div>
+          </UCard>
+          
+          <!-- Sección de Equipamiento -->
+          <UCard>
+            <template #header>
+              <h2 class="text-2xl font-bold">Nuestro Equipo Técnico</h2>
+            </template>
+            <ul class="list-disc list-inside">
+              <li v-for="item in translatedContent.equipment" :key="item">{{ item }}</li>
+            </ul>
+          </UCard>
+
+           <!-- Sección de Incluye -->
+          <UCard>
+            <template #header>
+              <h2 class="text-2xl font-bold">Incluye</h2>
+            </template>
+            <ul class="list-disc list-inside">
+              <li v-for="item in translatedContent.includes" :key="item">{{ item }}</li>
+            </ul>
+          </UCard>
         </div>
 
         <!-- Gallery -->

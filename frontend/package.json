@@ -2,6 +2,12 @@
   "name": "frontend-app",
   "private": true,
   "type": "module",
+  "pnpm": {
+    "overrides": {
+      "@vue/devtools-api": "^8.0.3",
+      "@vue/devtools-kit": "^8.0.3"
+    }
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",

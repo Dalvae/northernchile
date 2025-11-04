@@ -22,12 +22,13 @@ public class TourCreateReq {
   private Integer defaultMaxParticipants;
   private Integer durationHours;
   private String status; // <-- AÑADIR ESTA LÍNEA
+  private String contentKey;
 
   public TourCreateReq() {
   }
 
   public TourCreateReq(Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<String> imageUrls, Boolean isWindSensitive, Boolean isMoonSensitive, Boolean isCloudSensitive, String category, BigDecimal price,
-      Integer defaultMaxParticipants, Integer durationHours, String status) {
+      Integer defaultMaxParticipants, Integer durationHours, String status, String contentKey) {
     this.nameTranslations = nameTranslations;
     this.descriptionTranslations = descriptionTranslations;
     this.imageUrls = imageUrls;
@@ -39,6 +40,7 @@ public class TourCreateReq {
     this.defaultMaxParticipants = defaultMaxParticipants;
     this.durationHours = durationHours;
     this.status = status;
+    this.contentKey = contentKey;
   }
 
   public Map<String, String> getNameTranslations() {
@@ -130,17 +132,25 @@ public class TourCreateReq {
     this.status = status;
   }
 
+  public String getContentKey() {
+    return contentKey;
+  }
+
+  public void setContentKey(String contentKey) {
+    this.contentKey = contentKey;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     TourCreateReq that = (TourCreateReq) o;
-    return Objects.equals(nameTranslations, that.nameTranslations) && Objects.equals(descriptionTranslations, that.descriptionTranslations) && Objects.equals(imageUrls, that.imageUrls) && Objects.equals(isWindSensitive, that.isWindSensitive) && Objects.equals(isMoonSensitive, that.isMoonSensitive) && Objects.equals(isCloudSensitive, that.isCloudSensitive) && Objects.equals(category, that.category) && Objects.equals(price, that.price) && Objects.equals(defaultMaxParticipants, that.defaultMaxParticipants) && Objects.equals(durationHours, that.durationHours) && Objects.equals(status, that.status);
+    return Objects.equals(nameTranslations, that.nameTranslations) && Objects.equals(descriptionTranslations, that.descriptionTranslations) && Objects.equals(imageUrls, that.imageUrls) && Objects.equals(isWindSensitive, that.isWindSensitive) && Objects.equals(isMoonSensitive, that.isMoonSensitive) && Objects.equals(isCloudSensitive, that.isCloudSensitive) && Objects.equals(category, that.category) && Objects.equals(price, that.price) && Objects.equals(defaultMaxParticipants, that.defaultMaxParticipants) && Objects.equals(durationHours, that.durationHours) && Objects.equals(status, that.status) && Objects.equals(contentKey, that.contentKey);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(nameTranslations, descriptionTranslations, imageUrls, isWindSensitive, isMoonSensitive, isCloudSensitive, category, price, defaultMaxParticipants, durationHours, status);
+    return Objects.hash(nameTranslations, descriptionTranslations, imageUrls, isWindSensitive, isMoonSensitive, isCloudSensitive, category, price, defaultMaxParticipants, durationHours, status, contentKey);
   }
 
   @Override
@@ -157,6 +167,7 @@ public class TourCreateReq {
             ", defaultMaxParticipants=" + defaultMaxParticipants +
             ", durationHours=" + durationHours +
             ", status='" + status + '\'' +
+            ", contentKey='" + contentKey + '\'' +
             '}';
   }
 }

@@ -41,6 +41,7 @@ export default defineNuxtConfig({
     fallback: "dark",
     storageKey: "nuxt-color-mode",
     classSuffix: "",
+    storage: "cookie",
   },
 
   ui: {
@@ -71,9 +72,9 @@ export default defineNuxtConfig({
     exclude: ["/admin/*"],
   },
 
-  // DevTools condicional como originalmente
+  // ¡DEVTOOLS ELIMINADOS POR COMPLETO!
   devtools: {
-    enabled: process.env.NODE_ENV !== "production",
+    enabled: false,
   },
 
   css: ["~/assets/css/main.css"],
@@ -86,9 +87,6 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: "2025-01-15",
-
-  // Eliminada la transpilación forzada
-  build: {},
 
   eslint: {
     config: {

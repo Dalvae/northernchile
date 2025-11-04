@@ -51,6 +51,7 @@ const schema = z.object({
     .min(1, "Debe ser al menos 1 participante"),
   durationHours: z.number().int().min(1, "Debe ser al menos 1 hora"),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+  contentKey: z.string().min(1, "La clave de contenido es requerida"),
 });
 
 type Schema = z.output<typeof schema>;
@@ -67,6 +68,7 @@ const initialState: Schema = {
   defaultMaxParticipants: 10,
   durationHours: 2,
   status: "DRAFT",
+  contentKey: "",
 };
 
 const state = reactive<Schema>({ ...initialState });
@@ -107,6 +109,7 @@ watch(
         defaultMaxParticipants: tour.defaultMaxParticipants,
         durationHours: tour.durationHours,
         status: tour.status,
+        contentKey: tour.contentKey || "",
       });
     } else {
       Object.assign(state, initialState);
@@ -333,6 +336,19 @@ const statusOptions = [
                       </div>
                     </template>
                   </UTabs>
+                  <UFormField
+                    label="Clave de Contenido"
+                    name="contentKey"
+                    required
+                    :error="findError('contentKey')"
+                  >
+                    <UInput
+                      v-model="state.contentKey"
+                      placeholder="Ej: tour-astronomico-premium"
+                      size="lg"
+                      class="w-full"
+                    />
+                  </UFormField>
                   <UFormField
                     label="Imágenes del Tour"
                     name="imageUrls"
