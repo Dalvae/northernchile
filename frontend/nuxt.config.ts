@@ -34,12 +34,6 @@ export default defineNuxtConfig({
         changeOrigin: true,
       },
     },
-    externals: {
-      inline: [
-        '@vue/devtools-kit',
-        'perfect-debounce',
-      ],
-    },
   },
 
   colorMode: {
@@ -94,6 +88,13 @@ export default defineNuxtConfig({
 
   compatibilityDate: "2025-01-15",
 
+  build: {
+    transpile:
+      process.env.NODE_ENV === 'production'
+        ? ['@vue/devtools-kit', 'perfect-debounce']
+        : [],
+  },
+
   eslint: {
     config: {
       stylistic: {
@@ -105,5 +106,13 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [viteTsconfigPaths()],
+    build: {
+      rollupOptions: {
+        external:
+          process.env.NODE_ENV === 'production'
+            ? ['@vue/devtools-kit', 'perfect-debounce']
+            : [],
+      },
+    },
   },
 });
