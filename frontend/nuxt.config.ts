@@ -71,7 +71,6 @@ export default defineNuxtConfig({
     exclude: ["/admin/*"],
   },
 
-  // ¡DEVTOOLS ELIMINADOS POR COMPLETO!
   devtools: {
     enabled: false,
   },
@@ -80,6 +79,7 @@ export default defineNuxtConfig({
 
   routeRules: {
     "/": { prerender: true },
+    "/auth": { ssr: false },
     "/admin/**": { ssr: false },
     "/profile/**": { ssr: false },
     "/bookings/**": { ssr: false },
@@ -89,8 +89,8 @@ export default defineNuxtConfig({
 
   build: {
     transpile:
-      process.env.NODE_ENV === 'production'
-        ? ['@vue/devtools-kit', 'perfect-debounce']
+      process.env.NODE_ENV === "production"
+        ? ["@vue/devtools-kit", "perfect-debounce"]
         : [],
   },
 
@@ -107,10 +107,10 @@ export default defineNuxtConfig({
     plugins: [viteTsconfigPaths()],
     resolve: {
       alias:
-        process.env.NODE_ENV === 'production'
+        process.env.NODE_ENV === "production"
           ? {
-              '@vue/devtools-kit': './vue-devtools-kit-stub.js', // Alias a un módulo vacío
-              'perfect-debounce': './perfect-debounce-stub.js', // Alias a un módulo vacío
+              "@vue/devtools-kit": "./vue-devtools-kit-stub.js", // Alias a un módulo vacío
+              "perfect-debounce": "./perfect-debounce-stub.js", // Alias a un módulo vacío
             }
           : {},
     },
