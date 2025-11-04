@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { useLocalStorage } from "@vueuse/core"; // Importa el composable
 
 interface User {
   id: string;
@@ -22,14 +23,20 @@ function decodeJwtPayload(token: string): any | null {
 }
 
 export const useAuthStore = defineStore("auth", {
+  // --- PASO 1: Refactorizar el `state` ---
+  // En lugar de usar refs normales, usamos useLocalStorage.
+  // Esto sincroniza automáticamente el estado con localStorage.
   state: () => ({
-    isAuthenticated: false,
-    user: null as User | null,
-    token: null as string | null,
-    loading: true, // Start in a loading state
+    token: useLocalStorage<string | null>('auth_token', null),
+    user: useLocalStorage<User | null>('user', null),
+    loading: true,
   }),
 
   getters: {
+    // `isAuthenticated` ahora es un getter que reacciona a los cambios en `token`.
+    isAuthenticated(state): boolean {
+      return !!state.token && !!state.user;
+    },
     isAdmin(state): boolean {
       if (!state.user?.role) return false;
       return (
@@ -54,11 +61,11 @@ export const useAuthStore = defineStore("auth", {
         });
         
         if (response && response.token) {
-          this.isAuthenticated = true;
-          this.token = response.token;
-          
-          // Decodificar el JWT para obtener user info
           const payload = decodeJwtPayload(response.token);
+          
+          // ¡MAGIA! Simplemente asigna los valores.
+          // useLocalStorage se encargará de guardarlos en localStorage.
+          this.token = response.token;
           if (payload) {
             this.user = {
               id: payload.sub,
@@ -66,11 +73,6 @@ export const useAuthStore = defineStore("auth", {
               fullName: payload.fullName,
               role: payload.roles || []
             };
-          }
-
-          if (process.client) {
-            localStorage.setItem("auth_token", response.token);
-            localStorage.setItem("user", JSON.stringify(this.user));
           }
 
           toast.add({
@@ -135,57 +137,29 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async logout() {
-      this.isAuthenticated = false;
-      this.user = null;
+      // Simplemente establece los valores a null.
+      // useLocalStorage se encargará de eliminarlos de localStorage.
       this.token = null;
-
-      if (process.client) {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("user");
-      }
+      this.user = null;
       
       await navigateTo("/auth");
     },
 
-    checkAuth() {
+    // --- PASO 5: Reemplazar `checkAuth` con una inicialización más simple ---
+    // Esta función solo necesita verificar la expiración del token al inicio.
+    initializeAuth() {
       this.loading = true;
-      if (process.client) {
-        const token = localStorage.getItem("auth_token");
-        const user = localStorage.getItem("user");
-
-        if (token && user) {
-          // Decodificar y verificar si el token está expirado
-          const payload = decodeJwtPayload(token);
-
-          if (payload && payload.exp) {
-            const currentTime = Math.floor(Date.now() / 1000);
-            const isExpired = payload.exp < currentTime;
-
-            if (isExpired) {
-              // Token expirado, limpiar y desautenticar
-              localStorage.removeItem("auth_token");
-              localStorage.removeItem("user");
-              this.isAuthenticated = false;
-              this.user = null;
-              this.token = null;
-            } else {
-              // Token válido
-              this.isAuthenticated = true;
-              this.token = token;
-              this.user = JSON.parse(user);
-            }
-          } else {
-            // Token inválido o sin exp, limpiar
-            localStorage.removeItem("auth_token");
-            localStorage.removeItem("user");
-            this.isAuthenticated = false;
-            this.user = null;
-            this.token = null;
+      if (this.token) {
+        const payload = decodeJwtPayload(this.token);
+        if (payload && payload.exp) {
+          const currentTime = Math.floor(Date.now() / 1000);
+          if (payload.exp < currentTime) {
+            // Si el token está expirado, simplemente cerramos sesión.
+            this.logout();
           }
         } else {
-          this.isAuthenticated = false;
-          this.user = null;
-          this.token = null;
+          // Si el token es inválido, cerramos sesión.
+          this.logout();
         }
       }
       this.loading = false;

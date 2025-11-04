@@ -3,7 +3,7 @@ import { useAuthStore } from '~/stores/auth';
 export default defineNuxtPlugin(nuxtApp => {
   if (process.client) {
     const authStore = useAuthStore();
-    authStore.checkAuth();
+    authStore.initializeAuth(); 
 
     // Interceptor global para manejar errores 401
     nuxtApp.hook('app:error', (error: any) => {
