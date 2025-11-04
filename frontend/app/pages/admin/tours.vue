@@ -13,18 +13,14 @@ const {
   data: tours,
   pending,
   refresh,
-} = useAsyncData(
-  "admin-tours", 
-  () => fetchAdminTours(),
-  {
-    // Importante: solo ejecutar en el cliente
-    server: false,
-    // Ejecutar solo si está autenticado
-    lazy: true,
-    // Transformar data para manejar null
-    default: () => []
-  }
-);
+} = useAsyncData("admin-tours", () => fetchAdminTours(), {
+  // Importante: solo ejecutar en el cliente
+  server: false,
+  // Ejecutar solo si está autenticado
+  lazy: true,
+  // Transformar data para manejar null
+  default: () => [],
+});
 
 // ✅ Variables para controlar los modales
 const isCreateModalOpen = ref(false);
@@ -67,7 +63,7 @@ const filteredRows = computed(() => {
   if (q.value) {
     const query = q.value.toLowerCase();
     rows = rows.filter((tour) =>
-      tour.nameTranslations?.es?.toLowerCase().includes(query),
+      tour.nameTranslations?.es?.toLowerCase().includes(query)
     );
   }
 
@@ -124,9 +120,9 @@ async function handleDelete(tour: TourRes) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-900">
+  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-800">
     <div
-      class="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900"
+      class="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-800"
     >
       <div class="px-6 py-4">
         <div class="flex items-center justify-between">
@@ -177,7 +173,9 @@ async function handleDelete(tour: TourRes) {
           </template>
 
           <template #description-data="{ row }">
-            <span class="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2">
+            <span
+              class="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2"
+            >
               {{ row.getValue("description") || "Sin descripción" }}
             </span>
           </template>

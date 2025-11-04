@@ -57,20 +57,6 @@
   --color-starburst-800: oklch(57% 0.15 325);
   --color-starburst-900: oklch(52% 0.12 325);
   --color-starburst-950: oklch(47% 0.09 325);
+
 }
 
-/* Tema oscuro permanente - sin variantes dark: */
-@layer base {
-  * {
-    border-color: theme('colors.deep-space.700');
-  }
-
-  html {
-    color-scheme: dark;
-  }
-
-  body {
-    background-color: theme('colors.deep-space.950');
-    color: theme('colors.deep-space.50');
-  }
-}

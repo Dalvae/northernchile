@@ -67,7 +67,7 @@ const benefits = [
     icon: "i-lucide-camera",
     title: t("privateTours.benefits.professional_photography_title"),
     description: t(
-      "privateTours.benefits.professional_photography_description",
+      "privateTours.benefits.professional_photography_description"
     ),
   },
   {
@@ -95,7 +95,7 @@ async function submitRequest() {
           specialRequests: state.specialRequests,
           status: "PENDING",
         },
-      },
+      }
     );
 
     toast.add({
@@ -145,7 +145,7 @@ async function submitRequest() {
     </section>
 
     <!-- Benefits -->
-    <section class="py-16 bg-white dark:bg-neutral-900">
+    <section class="py-16 bg-white dark:bg-neutral-800">
       <UContainer>
         <h2
           class="text-3xl font-bold text-neutral-900 dark:text-white mb-12 text-center"
@@ -381,7 +381,7 @@ async function submitRequest() {
     </section>
 
     <!-- Popular Private Tours -->
-    <section class="py-16 bg-white dark:bg-neutral-900">
+    <section class="py-16 bg-white dark:bg-neutral-800">
       <UContainer>
         <h2
           class="text-3xl font-bold text-neutral-900 dark:text-white mb-12 text-center"
@@ -427,7 +427,7 @@ async function submitRequest() {
               <p class="text-neutral-600 dark:text-neutral-400 text-sm mb-4">
                 {{
                   t(
-                    "privateTours.popular_tours.romantic_experience.description",
+                    "privateTours.popular_tours.romantic_experience.description"
                   )
                 }}
               </p>

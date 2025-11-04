@@ -1,117 +1,132 @@
 <script setup lang="ts">
-const route = useRoute()
-const config = useRuntimeConfig()
-const toast = useToast()
+const route = useRoute();
+const config = useRuntimeConfig();
+const toast = useToast();
 
-const scheduleId = route.params.id as string
+const scheduleId = route.params.id as string;
 
 // Fetch participants data
-const { data: participantsData, pending, error, refresh } = await useAsyncData(
-  `schedule-participants-${scheduleId}`,
-  async () => {
-    try {
-      const response = await $fetch<{
-        scheduleId: string
-        startDatetime: string
-        tourName: string
-        status: string
-        totalBookings: number
-        totalParticipants: number
-        participants: Array<{
-          participantId: string
-          fullName: string
-          documentId: string
-          nationality: string
-          age: number
-          type: string
-          bookingId: string
-          bookingStatus: string
-          bookingReference: string
-          pickupAddress: string
-        }>
-      }>(`${config.public.apiBaseUrl}/admin/schedules/${scheduleId}/participants`, {
-        credentials: 'include'
-      })
-      return response
-    } catch (err) {
-      console.error('Error fetching participants:', err)
-      toast.add({
-        color: 'error',
-        title: 'Error',
-        description: 'No se pudieron cargar los participantes'
-      })
-      throw err
-    }
+const {
+  data: participantsData,
+  pending,
+  error,
+  refresh,
+} = await useAsyncData(`schedule-participants-${scheduleId}`, async () => {
+  try {
+    const response = await $fetch<{
+      scheduleId: string;
+      startDatetime: string;
+      tourName: string;
+      status: string;
+      totalBookings: number;
+      totalParticipants: number;
+      participants: Array<{
+        participantId: string;
+        fullName: string;
+        documentId: string;
+        nationality: string;
+        age: number;
+        type: string;
+        bookingId: string;
+        bookingStatus: string;
+        bookingReference: string;
+        pickupAddress: string;
+      }>;
+    }>(
+      `${config.public.apiBaseUrl}/admin/schedules/${scheduleId}/participants`,
+      {
+        credentials: "include",
+      }
+    );
+    return response;
+  } catch (err) {
+    console.error("Error fetching participants:", err);
+    toast.add({
+      color: "error",
+      title: "Error",
+      description: "No se pudieron cargar los participantes",
+    });
+    throw err;
   }
-)
+});
 
 // Search and filter
-const searchQuery = ref('')
-const filterByStatus = ref('')
-const filterByType = ref('')
+const searchQuery = ref("");
+const filterByStatus = ref("");
+const filterByType = ref("");
 
 const filteredParticipants = computed(() => {
-  if (!participantsData.value?.participants) return []
+  if (!participantsData.value?.participants) return [];
 
-  let filtered = participantsData.value.participants
+  let filtered = participantsData.value.participants;
 
   // Filter by search query
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(p =>
-      p.fullName.toLowerCase().includes(query) ||
-      p.documentId.toLowerCase().includes(query) ||
-      p.nationality.toLowerCase().includes(query) ||
-      p.bookingReference.toLowerCase().includes(query)
-    )
+    const query = searchQuery.value.toLowerCase();
+    filtered = filtered.filter(
+      (p) =>
+        p.fullName.toLowerCase().includes(query) ||
+        p.documentId.toLowerCase().includes(query) ||
+        p.nationality.toLowerCase().includes(query) ||
+        p.bookingReference.toLowerCase().includes(query)
+    );
   }
 
   // Filter by booking status
   if (filterByStatus.value) {
-    filtered = filtered.filter(p => p.bookingStatus === filterByStatus.value)
+    filtered = filtered.filter((p) => p.bookingStatus === filterByStatus.value);
   }
 
   // Filter by participant type
   if (filterByType.value) {
-    filtered = filtered.filter(p => p.type === filterByType.value)
+    filtered = filtered.filter((p) => p.type === filterByType.value);
   }
 
-  return filtered
-})
+  return filtered;
+});
 
 // Status badge color mapping
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    'CONFIRMED': 'success',
-    'PENDING': 'warning',
-    'CANCELLED': 'error',
-    'COMPLETED': 'info'
-  }
-  return colors[status] || 'neutral'
-}
+    CONFIRMED: "success",
+    PENDING: "warning",
+    CANCELLED: "error",
+    COMPLETED: "info",
+  };
+  return colors[status] || "neutral";
+};
 
 // Type badge color mapping
 const getTypeColor = (type: string) => {
-  return type === 'ADULT' ? 'primary' : 'secondary'
-}
+  return type === "ADULT" ? "primary" : "secondary";
+};
 
 // Format datetime
 const formatDateTime = (datetime: string) => {
-  return new Date(datetime).toLocaleString('es-CL', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+  return new Date(datetime).toLocaleString("es-CL", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
 // Export to CSV
 const exportToCSV = () => {
-  if (!participantsData.value?.participants) return
+  if (!participantsData.value?.participants) return;
 
-  const headers = ['Nombre', 'Documento', 'Nacionalidad', 'Edad', 'Tipo', 'Estado Reserva', 'Referencia', 'Dirección Pickup']
-  const rows = participantsData.value.participants.map(p => [
+  const headers = [
+    "Nombre",
+    "Documento",
+    "Nacionalidad",
+    "Edad",
+    "Tipo",
+    "Estado Reserva",
+    "Referencia",
+    "Dirección Pickup",
+  ];
+  const rows = participantsData.value.participants.map((p) => [
     p.fullName,
     p.documentId,
     p.nationality,
@@ -119,40 +134,40 @@ const exportToCSV = () => {
     p.type,
     p.bookingStatus,
     p.bookingReference,
-    p.pickupAddress
-  ])
+    p.pickupAddress,
+  ]);
 
   const csvContent = [
-    headers.join(','),
-    ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-  ].join('\n')
+    headers.join(","),
+    ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+  ].join("\n");
 
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  const url = URL.createObjectURL(blob)
-  link.setAttribute('href', url)
-  link.setAttribute('download', `participantes-${scheduleId}.csv`)
-  link.style.visibility = 'hidden'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", `participantes-${scheduleId}.csv`);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 // Status filter options
 const statusOptions = [
-  { label: 'Todos los estados', value: '' },
-  { label: 'Confirmada', value: 'CONFIRMED' },
-  { label: 'Pendiente', value: 'PENDING' },
-  { label: 'Cancelada', value: 'CANCELLED' },
-  { label: 'Completada', value: 'COMPLETED' }
-]
+  { label: "Todos los estados", value: "" },
+  { label: "Confirmada", value: "CONFIRMED" },
+  { label: "Pendiente", value: "PENDING" },
+  { label: "Cancelada", value: "CANCELLED" },
+  { label: "Completada", value: "COMPLETED" },
+];
 
 // Type filter options
 const typeOptions = [
-  { label: 'Todos los tipos', value: '' },
-  { label: 'Adulto', value: 'ADULT' },
-  { label: 'Niño', value: 'CHILD' }
-]
+  { label: "Todos los tipos", value: "" },
+  { label: "Adulto", value: "ADULT" },
+  { label: "Niño", value: "CHILD" },
+];
 </script>
 
 <template>
@@ -176,11 +191,17 @@ const typeOptions = [
           <span class="font-medium">Tour:</span> {{ participantsData.tourName }}
         </p>
         <p class="text-neutral-600 dark:text-neutral-400">
-          <span class="font-medium">Fecha:</span> {{ formatDateTime(participantsData.startDatetime) }}
+          <span class="font-medium">Fecha:</span>
+          {{ formatDateTime(participantsData.startDatetime) }}
         </p>
         <p class="text-neutral-600 dark:text-neutral-400">
           <span class="font-medium">Estado:</span>
-          <UBadge :color="getStatusColor(participantsData.status)" variant="soft" size="sm" class="ml-2">
+          <UBadge
+            :color="getStatusColor(participantsData.status)"
+            variant="soft"
+            size="sm"
+            class="ml-2"
+          >
             {{ participantsData.status }}
           </UBadge>
         </p>
@@ -189,12 +210,18 @@ const typeOptions = [
 
     <!-- Loading state -->
     <div v-if="pending" class="flex justify-center items-center py-12">
-      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-8 h-8 animate-spin text-primary"
+      />
     </div>
 
     <!-- Error state -->
     <div v-else-if="error" class="text-center py-12">
-      <UIcon name="i-lucide-alert-circle" class="w-12 h-12 text-error mx-auto mb-4" />
+      <UIcon
+        name="i-lucide-alert-circle"
+        class="w-12 h-12 text-error mx-auto mb-4"
+      />
       <p class="text-neutral-600 dark:text-neutral-400">
         Error al cargar los participantes
       </p>
@@ -207,10 +234,14 @@ const typeOptions = [
     <div v-else-if="participantsData">
       <!-- Stats Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
+        <div
+          class="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700"
+        >
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-neutral-600 dark:text-neutral-400">Total Reservas</p>
+              <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                Total Reservas
+              </p>
               <p class="text-2xl font-bold text-neutral-900 dark:text-white">
                 {{ participantsData.totalBookings }}
               </p>
@@ -219,10 +250,14 @@ const typeOptions = [
           </div>
         </div>
 
-        <div class="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
+        <div
+          class="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700"
+        >
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-neutral-600 dark:text-neutral-400">Total Participantes</p>
+              <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                Total Participantes
+              </p>
               <p class="text-2xl font-bold text-neutral-900 dark:text-white">
                 {{ participantsData.totalParticipants }}
               </p>
@@ -231,10 +266,14 @@ const typeOptions = [
           </div>
         </div>
 
-        <div class="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700">
+        <div
+          class="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700"
+        >
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-neutral-600 dark:text-neutral-400">Resultados Filtrados</p>
+              <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                Resultados Filtrados
+              </p>
               <p class="text-2xl font-bold text-neutral-900 dark:text-white">
                 {{ filteredParticipants.length }}
               </p>
@@ -245,7 +284,9 @@ const typeOptions = [
       </div>
 
       <!-- Filters and Search -->
-      <div class="bg-white dark:bg-neutral-800 rounded-lg p-4 mb-6 border border-neutral-200 dark:border-neutral-700">
+      <div
+        class="bg-white dark:bg-neutral-800 rounded-lg p-4 mb-6 border border-neutral-200 dark:border-neutral-700"
+      >
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <!-- Search -->
           <div class="md:col-span-2">
@@ -295,45 +336,69 @@ const typeOptions = [
       </div>
 
       <!-- Participants Table -->
-      <div class="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+      <div
+        class="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden"
+      >
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
-            <thead class="bg-neutral-50 dark:bg-neutral-900">
+          <table
+            class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700"
+          >
+            <thead class="bg-neutral-50 dark:bg-neutral-800">
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                <th
+                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                >
                   Nombre Completo
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                <th
+                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                >
                   Documento
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                <th
+                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                >
                   Nacionalidad
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                <th
+                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                >
                   Edad
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                <th
+                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                >
                   Tipo
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                <th
+                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                >
                   Estado Reserva
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                <th
+                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                >
                   Referencia
                 </th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                <th
+                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                >
                   Pickup
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white dark:bg-neutral-800 divide-y divide-neutral-200 dark:divide-neutral-700">
+            <tbody
+              class="bg-white dark:bg-neutral-800 divide-y divide-neutral-200 dark:divide-neutral-700"
+            >
               <tr
                 v-for="participant in filteredParticipants"
                 :key="participant.participantId"
                 class="hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
               >
                 <td class="px-4 py-3 whitespace-nowrap">
-                  <div class="text-sm font-medium text-neutral-900 dark:text-white">
+                  <div
+                    class="text-sm font-medium text-neutral-900 dark:text-white"
+                  >
                     {{ participant.fullName }}
                   </div>
                 </td>
@@ -353,12 +418,20 @@ const typeOptions = [
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
-                  <UBadge :color="getTypeColor(participant.type)" variant="soft" size="sm">
+                  <UBadge
+                    :color="getTypeColor(participant.type)"
+                    variant="soft"
+                    size="sm"
+                  >
                     {{ participant.type }}
                   </UBadge>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
-                  <UBadge :color="getStatusColor(participant.bookingStatus)" variant="soft" size="sm">
+                  <UBadge
+                    :color="getStatusColor(participant.bookingStatus)"
+                    variant="soft"
+                    size="sm"
+                  >
                     {{ participant.bookingStatus }}
                   </UBadge>
                 </td>
@@ -368,7 +441,9 @@ const typeOptions = [
                   </div>
                 </td>
                 <td class="px-4 py-3">
-                  <div class="text-sm text-neutral-600 dark:text-neutral-400 max-w-xs truncate">
+                  <div
+                    class="text-sm text-neutral-600 dark:text-neutral-400 max-w-xs truncate"
+                  >
                     {{ participant.pickupAddress }}
                   </div>
                 </td>
@@ -377,12 +452,21 @@ const typeOptions = [
               <!-- Empty state -->
               <tr v-if="filteredParticipants.length === 0">
                 <td colspan="8" class="px-4 py-12 text-center">
-                  <UIcon name="i-lucide-users" class="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+                  <UIcon
+                    name="i-lucide-users"
+                    class="w-12 h-12 text-neutral-400 mx-auto mb-4"
+                  />
                   <p class="text-neutral-600 dark:text-neutral-400">
                     No se encontraron participantes
                   </p>
-                  <p class="text-sm text-neutral-500 dark:text-neutral-500 mt-2">
-                    {{ searchQuery || filterByStatus || filterByType ? 'Intenta cambiar los filtros' : 'No hay participantes registrados para este tour' }}
+                  <p
+                    class="text-sm text-neutral-500 dark:text-neutral-500 mt-2"
+                  >
+                    {{
+                      searchQuery || filterByStatus || filterByType
+                        ? "Intenta cambiar los filtros"
+                        : "No hay participantes registrados para este tour"
+                    }}
                   </p>
                 </td>
               </tr>

@@ -7,4 +7,11 @@
   --font-serif: var(--font-display);
 }
 
-/* Elimina cualquier estilo de body adicional */
+/* Forzar tema oscuro globalmente */
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-default text-default;
+}

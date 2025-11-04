@@ -1,13 +1,13 @@
 <template>
-  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-900 py-12">
+  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-800 py-12">
     <UContainer>
       <!-- Header -->
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
-          {{ t('user.profile') }}
+          {{ t("user.profile") }}
         </h1>
         <p class="text-neutral-600 dark:text-neutral-400">
-          {{ t('profile.profile_description') }}
+          {{ t("profile.profile_description") }}
         </p>
       </div>
 
@@ -24,7 +24,7 @@
                   icon="i-lucide-user"
                   @click="activeTab = 'personal'"
                 >
-                  {{ t('user.personal_info') }}
+                  {{ t("user.personal_info") }}
                 </UButton>
 
                 <UButton
@@ -34,7 +34,7 @@
                   icon="i-lucide-calendar-check"
                   to="/profile/bookings"
                 >
-                  {{ t('user.my_bookings') }}
+                  {{ t("user.my_bookings") }}
                 </UButton>
 
                 <UButton
@@ -44,7 +44,7 @@
                   icon="i-lucide-lock"
                   @click="activeTab = 'security'"
                 >
-                  {{ t('user.change_password') }}
+                  {{ t("user.change_password") }}
                 </UButton>
               </nav>
             </template>
@@ -57,8 +57,10 @@
           <UCard v-if="activeTab === 'personal'">
             <template #header>
               <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold text-neutral-900 dark:text-white">
-                  {{ t('user.personal_info') }}
+                <h2
+                  class="text-xl font-semibold text-neutral-900 dark:text-white"
+                >
+                  {{ t("user.personal_info") }}
                 </h2>
                 <UButton
                   v-if="!isEditing"
@@ -68,7 +70,7 @@
                   icon="i-lucide-pencil"
                   @click="startEditing"
                 >
-                  {{ t('common.edit') }}
+                  {{ t("common.edit") }}
                 </UButton>
               </div>
             </template>
@@ -89,11 +91,7 @@
                   />
                 </UFormField>
 
-                <UFormField
-                  :label="t('auth.email')"
-                  name="email"
-                  required
-                >
+                <UFormField :label="t('auth.email')" name="email" required>
                   <UInput
                     v-model="profileForm.email"
                     type="email"
@@ -104,7 +102,7 @@
                   />
                   <template #help>
                     <span class="text-sm text-neutral-500">
-                      {{ t('profile.email_cannot_change') }}
+                      {{ t("profile.email_cannot_change") }}
                     </span>
                   </template>
                 </UFormField>
@@ -137,10 +135,7 @@
                   />
                 </UFormField>
 
-                <UFormField
-                  :label="t('booking.phone')"
-                  name="phoneNumber"
-                >
+                <UFormField :label="t('booking.phone')" name="phoneNumber">
                   <UInput
                     v-model="profileForm.phoneNumber"
                     :disabled="!isEditing"
@@ -174,7 +169,7 @@
                     size="lg"
                     @click="cancelEditing"
                   >
-                    {{ t('common.cancel') }}
+                    {{ t("common.cancel") }}
                   </UButton>
 
                   <UButton
@@ -183,7 +178,7 @@
                     size="lg"
                     :loading="isSaving"
                   >
-                    {{ t('common.save') }}
+                    {{ t("common.save") }}
                   </UButton>
                 </div>
               </form>
@@ -193,8 +188,10 @@
           <!-- Change Password Tab -->
           <UCard v-else-if="activeTab === 'security'">
             <template #header>
-              <h2 class="text-xl font-semibold text-neutral-900 dark:text-white">
-                {{ t('user.change_password') }}
+              <h2
+                class="text-xl font-semibold text-neutral-900 dark:text-white"
+              >
+                {{ t("user.change_password") }}
               </h2>
             </template>
 
@@ -228,7 +225,7 @@
                   />
                   <template #help>
                     <span class="text-sm text-neutral-500">
-                      {{ t('auth.password_min') }}
+                      {{ t("auth.password_min") }}
                     </span>
                   </template>
                 </UFormField>
@@ -254,7 +251,7 @@
                     size="lg"
                     :loading="isChangingPassword"
                   >
-                    {{ t('profile.update_password') }}
+                    {{ t("profile.update_password") }}
                   </UButton>
                 </div>
               </form>
@@ -267,88 +264,88 @@
 </template>
 
 <script setup lang="ts">
-const { t } = useI18n()
-const authStore = useAuthStore()
-const toast = useToast()
+const { t } = useI18n();
+const authStore = useAuthStore();
+const toast = useToast();
 
 definePageMeta({
-  layout: 'default',
-})
+  layout: "default",
+});
 
 // State
-const activeTab = ref('personal')
-const isEditing = ref(false)
-const isSaving = ref(false)
-const isChangingPassword = ref(false)
+const activeTab = ref("personal");
+const isEditing = ref(false);
+const isSaving = ref(false);
+const isChangingPassword = ref(false);
 
 // Profile form
 const profileForm = reactive({
-  fullName: authStore.user?.fullName || '',
-  email: authStore.user?.email || '',
-  nationality: authStore.user?.nationality || '',
-  dateOfBirth: authStore.user?.dateOfBirth || '',
-  phoneNumber: authStore.user?.phoneNumber || '',
-  preferredLanguage: authStore.user?.preferredLanguage || 'es'
-})
+  fullName: authStore.user?.fullName || "",
+  email: authStore.user?.email || "",
+  nationality: authStore.user?.nationality || "",
+  dateOfBirth: authStore.user?.dateOfBirth || "",
+  phoneNumber: authStore.user?.phoneNumber || "",
+  preferredLanguage: authStore.user?.preferredLanguage || "es",
+});
 
 // Password form
 const passwordForm = reactive({
-  currentPassword: '',
-  newPassword: '',
-  confirmPassword: ''
-})
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+});
 
 // Language options
 const languageOptions = [
-  { label: 'Español', value: 'es' },
-  { label: 'English', value: 'en' },
-  { label: 'Português', value: 'pt' }
-]
+  { label: "Español", value: "es" },
+  { label: "English", value: "en" },
+  { label: "Português", value: "pt" },
+];
 
 // Original values for cancel
-let originalValues: any = null
+let originalValues: any = null;
 
 // Start editing
 function startEditing() {
-  originalValues = { ...profileForm }
-  isEditing.value = true
+  originalValues = { ...profileForm };
+  isEditing.value = true;
 }
 
 // Cancel editing
 function cancelEditing() {
-  Object.assign(profileForm, originalValues)
-  isEditing.value = false
+  Object.assign(profileForm, originalValues);
+  isEditing.value = false;
 }
 
 // Save profile
 async function saveProfile() {
-  isSaving.value = true
+  isSaving.value = true;
 
   try {
-    await $fetch('/api/users/me', {
-      method: 'PUT',
-      credentials: 'include',
-      body: profileForm
-    })
+    await $fetch("/api/users/me", {
+      method: "PUT",
+      credentials: "include",
+      body: profileForm,
+    });
 
     // Update auth store
-    await authStore.fetchUser()
+    await authStore.fetchUser();
 
     toast.add({
-      title: t('common.success'),
-      description: t('profile.profile_updated_success'),
-      color: 'success'
-    })
+      title: t("common.success"),
+      description: t("profile.profile_updated_success"),
+      color: "success",
+    });
 
-    isEditing.value = false
+    isEditing.value = false;
   } catch (error: any) {
     toast.add({
-      title: t('common.error'),
-      description: error.data?.message || t('profile.profile_update_error'),
-      color: 'error'
-    })
+      title: t("common.error"),
+      description: error.data?.message || t("profile.profile_update_error"),
+      color: "error",
+    });
   } finally {
-    isSaving.value = false
+    isSaving.value = false;
   }
 }
 
@@ -357,53 +354,53 @@ async function changePassword() {
   // Validate passwords match
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
     toast.add({
-      title: t('common.error'),
-      description: t('auth.passwords_dont_match'),
-      color: 'error'
-    })
-    return
+      title: t("common.error"),
+      description: t("auth.passwords_dont_match"),
+      color: "error",
+    });
+    return;
   }
 
   // Validate password length
   if (passwordForm.newPassword.length < 8) {
     toast.add({
-      title: t('common.error'),
-      description: t('auth.password_min'),
-      color: 'error'
-    })
-    return
+      title: t("common.error"),
+      description: t("auth.password_min"),
+      color: "error",
+    });
+    return;
   }
 
-  isChangingPassword.value = true
+  isChangingPassword.value = true;
 
   try {
-    await $fetch('/api/profile/me/password', {
-      method: 'PUT',
-      credentials: 'include',
+    await $fetch("/api/profile/me/password", {
+      method: "PUT",
+      credentials: "include",
       body: {
         currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword
-      }
-    })
+        newPassword: passwordForm.newPassword,
+      },
+    });
 
     toast.add({
-      title: t('common.success'),
-      description: t('profile.password_updated_success'),
-      color: 'success'
-    })
+      title: t("common.success"),
+      description: t("profile.password_updated_success"),
+      color: "success",
+    });
 
     // Reset form
-    passwordForm.currentPassword = ''
-    passwordForm.newPassword = ''
-    passwordForm.confirmPassword = ''
+    passwordForm.currentPassword = "";
+    passwordForm.newPassword = "";
+    passwordForm.confirmPassword = "";
   } catch (error: any) {
     toast.add({
-      title: t('common.error'),
-      description: error.data?.message || t('profile.password_update_error'),
-      color: 'error'
-    })
+      title: t("common.error"),
+      description: error.data?.message || t("profile.password_update_error"),
+      color: "error",
+    });
   } finally {
-    isChangingPassword.value = false
+    isChangingPassword.value = false;
   }
 }
 </script>

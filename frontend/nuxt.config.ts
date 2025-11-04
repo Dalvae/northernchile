@@ -35,13 +35,13 @@ export default defineNuxtConfig({
     },
   },
 
-  colorMode: {
+  /* colorMode: {
     preference: "dark",
     fallback: "dark",
     storageKey: "nuxt-color-mode",
     classSuffix: "",
-    storage: "cookie",
-  },
+    storage: "localStorage",
+  }, */
 
   ui: {
     theme: {

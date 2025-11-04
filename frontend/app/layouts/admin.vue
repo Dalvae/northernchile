@@ -1,145 +1,157 @@
 <script setup lang="ts">
-import { useAuthStore } from '~/stores/auth'
+import { useAuthStore } from "~/stores/auth";
 
-const authStore = useAuthStore()
-const route = useRoute()
-const config = useRuntimeConfig()
+const authStore = useAuthStore();
+const route = useRoute();
+const config = useRuntimeConfig();
 
 // Sidebar state (mobile)
-const sidebarOpen = ref(false)
+const sidebarOpen = ref(false);
 
 // Close sidebar on route change (mobile)
-watch(() => route.path, () => {
-  sidebarOpen.value = false
-})
+watch(
+  () => route.path,
+  () => {
+    sidebarOpen.value = false;
+  }
+);
 
 // Fetch pending alerts count
 const { data: alertsCount, refresh: refreshAlertsCount } = await useAsyncData(
-  'pending-alerts-count',
+  "pending-alerts-count",
   async () => {
     try {
-      const token = process.client ? localStorage.getItem('auth_token') : null
-      const response = await $fetch<{ pending: number }>(`${config.public.apiBase}/api/admin/alerts/count`, {
-        headers: token ? {
-          Authorization: `Bearer ${token}`
-        } : {}
-      })
-      return response.pending || 0
+      const token = process.client ? localStorage.getItem("auth_token") : null;
+      const response = await $fetch<{ pending: number }>(
+        `${config.public.apiBase}/api/admin/alerts/count`,
+        {
+          headers: token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : {},
+        }
+      );
+      return response.pending || 0;
     } catch (error) {
-      console.error('Error fetching alerts count:', error)
-      return 0
+      console.error("Error fetching alerts count:", error);
+      return 0;
     }
   },
   {
     server: false,
-    lazy: true
+    lazy: true,
   }
-)
+);
 
 // Refresh alerts count every 5 minutes
 const alertsRefreshInterval = setInterval(() => {
-  refreshAlertsCount()
-}, 5 * 60 * 1000)
+  refreshAlertsCount();
+}, 5 * 60 * 1000);
 
 // Cleanup interval on unmount
 onUnmounted(() => {
-  clearInterval(alertsRefreshInterval)
-})
+  clearInterval(alertsRefreshInterval);
+});
 
 // Navigation links
 const navigationLinks = [
   {
-    label: 'Dashboard',
-    icon: 'i-lucide-layout-dashboard',
-    to: '/admin'
+    label: "Dashboard",
+    icon: "i-lucide-layout-dashboard",
+    to: "/admin",
   },
   {
-    label: 'Tours',
-    icon: 'i-lucide-map',
-    to: '/admin/tours'
+    label: "Tours",
+    icon: "i-lucide-map",
+    to: "/admin/tours",
   },
   {
-    label: 'Calendario',
-    icon: 'i-lucide-calendar-days',
-    to: '/admin/calendar'
+    label: "Calendario",
+    icon: "i-lucide-calendar-days",
+    to: "/admin/calendar",
   },
   {
-    label: 'Reservas',
-    icon: 'i-lucide-book-marked',
-    to: '/admin/bookings'
+    label: "Reservas",
+    icon: "i-lucide-book-marked",
+    to: "/admin/bookings",
   },
   {
-    label: 'Tours Privados',
-    icon: 'i-lucide-star',
-    to: '/admin/private-requests'
+    label: "Tours Privados",
+    icon: "i-lucide-star",
+    to: "/admin/private-requests",
   },
   {
-    label: 'Usuarios',
-    icon: 'i-lucide-users',
-    to: '/admin/users'
+    label: "Usuarios",
+    icon: "i-lucide-users",
+    to: "/admin/users",
   },
   {
-    label: 'Reportes',
-    icon: 'i-lucide-bar-chart-3',
-    to: '/admin/reports'
+    label: "Reportes",
+    icon: "i-lucide-bar-chart-3",
+    to: "/admin/reports",
   },
   {
-    label: 'Configuración',
-    icon: 'i-lucide-settings',
-    to: '/admin/settings'
-  }
-]
+    label: "Configuración",
+    icon: "i-lucide-settings",
+    to: "/admin/settings",
+  },
+];
 
 // User menu items
 const userMenuItems = [
-  [{
-    label: 'Mi Perfil',
-    icon: 'i-lucide-user',
-    to: '/profile'
-  }],
-  [{
-    label: 'Cerrar Sesión',
-    icon: 'i-lucide-log-out',
-    click: () => authStore.logout()
-  }]
-]
+  [
+    {
+      label: "Mi Perfil",
+      icon: "i-lucide-user",
+      to: "/profile",
+    },
+  ],
+  [
+    {
+      label: "Cerrar Sesión",
+      icon: "i-lucide-log-out",
+      click: () => authStore.logout(),
+    },
+  ],
+];
 
 // Breadcrumbs dinámicos
 const breadcrumbItems = computed(() => {
-  const path = route.path
-  const segments = path.split('/').filter(Boolean)
+  const path = route.path;
+  const segments = path.split("/").filter(Boolean);
 
-  const items = [{ label: 'Inicio', to: '/admin' }]
+  const items = [{ label: "Inicio", to: "/admin" }];
 
-  let currentPath = ''
-  segments.slice(1).forEach(segment => {
-    currentPath += `/${segment}`
+  let currentPath = "";
+  segments.slice(1).forEach((segment) => {
+    currentPath += `/${segment}`;
     items.push({
       label: formatSegment(segment),
-      to: `/admin${currentPath}`
-    })
-  })
+      to: `/admin${currentPath}`,
+    });
+  });
 
-  return items
-})
+  return items;
+});
 
 function formatSegment(segment: string) {
   const labels: Record<string, string> = {
-    'tours': 'Tours',
-    'bookings': 'Reservas',
-    'users': 'Usuarios',
-    'calendar': 'Calendario',
-    'alerts': 'Alertas',
-    'private-requests': 'Tours Privados',
-    'reports': 'Reportes',
-    'settings': 'Configuración'
-  }
-  return labels[segment] || segment
+    tours: "Tours",
+    bookings: "Reservas",
+    users: "Usuarios",
+    calendar: "Calendario",
+    alerts: "Alertas",
+    "private-requests": "Tours Privados",
+    reports: "Reportes",
+    settings: "Configuración",
+  };
+  return labels[segment] || segment;
 }
 </script>
 
 <template>
-  <div class="min-h-screen flex bg-neutral-50 dark:bg-neutral-900">
+  <div class="min-h-screen flex bg-neutral-50 dark:bg-neutral-800">
     <!-- Sidebar -->
     <aside
       :class="[
@@ -147,12 +159,17 @@ function formatSegment(segment: string) {
         'bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700',
         'flex flex-col w-64',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-        'lg:translate-x-0 lg:static'
+        'lg:translate-x-0 lg:static',
       ]"
     >
       <!-- Header del sidebar -->
-      <div class="h-16 flex items-center justify-between px-4 border-b border-neutral-200 dark:border-neutral-700">
-        <NuxtLink to="/admin" class="flex items-center gap-2 font-bold text-lg text-neutral-900 dark:text-white">
+      <div
+        class="h-16 flex items-center justify-between px-4 border-b border-neutral-200 dark:border-neutral-700"
+      >
+        <NuxtLink
+          to="/admin"
+          class="flex items-center gap-2 font-bold text-lg text-neutral-900 dark:text-white"
+        >
           <UIcon name="i-lucide-shield-check" class="w-5 h-5 text-primary" />
           <span>Admin Panel</span>
         </NuxtLink>
@@ -179,20 +196,30 @@ function formatSegment(segment: string) {
       <div class="p-4 border-t border-neutral-200 dark:border-neutral-700">
         <UDropdownMenu :items="userMenuItems">
           <template #default>
-            <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer transition-colors">
-              <UAvatar
-                :alt="authStore.user?.fullName"
-                size="sm"
-              />
+            <div
+              class="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer transition-colors"
+            >
+              <UAvatar :alt="authStore.user?.fullName" size="sm" />
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium truncate text-neutral-900 dark:text-white">
+                <p
+                  class="text-sm font-medium truncate text-neutral-900 dark:text-white"
+                >
                   {{ authStore.user?.fullName }}
                 </p>
                 <p class="text-xs text-neutral-500 truncate">
-                  {{ authStore.user?.role?.includes('ROLE_SUPER_ADMIN') ? 'Super Admin' : authStore.user?.role?.includes('ROLE_PARTNER_ADMIN') ? 'Partner Admin' : 'Usuario' }}
+                  {{
+                    authStore.user?.role?.includes("ROLE_SUPER_ADMIN")
+                      ? "Super Admin"
+                      : authStore.user?.role?.includes("ROLE_PARTNER_ADMIN")
+                      ? "Partner Admin"
+                      : "Usuario"
+                  }}
                 </p>
               </div>
-              <UIcon name="i-lucide-chevron-up" class="w-4 h-4 text-neutral-400" />
+              <UIcon
+                name="i-lucide-chevron-up"
+                class="w-4 h-4 text-neutral-400"
+              />
             </div>
           </template>
         </UDropdownMenu>
@@ -202,14 +229,16 @@ function formatSegment(segment: string) {
     <!-- Overlay para mobile -->
     <div
       v-if="sidebarOpen"
-      class="fixed inset-0 bg-neutral-900/50 z-30 lg:hidden"
+      class="fixed inset-0 bg-neutral-800/50 z-30 lg:hidden"
       @click="sidebarOpen = false"
     />
 
     <!-- Main content -->
     <div class="flex-1 flex flex-col min-w-0">
       <!-- Top navbar -->
-      <header class="h-16 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 flex items-center px-4 gap-4 sticky top-0 z-20">
+      <header
+        class="h-16 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 flex items-center px-4 gap-4 sticky top-0 z-20"
+      >
         <!-- Hamburger menu mobile -->
         <UButton
           icon="i-lucide-menu"

@@ -1,34 +1,15 @@
 export default defineAppConfig({
   ui: {
-    // Tema Astronómico - Inspirado en los cielos del desierto de Atacama
     colors: {
-      // Primary: Acciones principales, navegación activa, elementos de marca
-      // Nebula - Azul profundo espacial
-      primary: "nebula",
+      primary: "nebula", // El azul profundo para acciones principales.
+      secondary: "celeste", // Un azul más claro para acentos.
+      tertiary: "starburst", // Un magenta para detalles especiales (si lo definieras).
+      neutral: "deep-space", // El gris espacial para fondos, textos y bordes.
 
-      // Secondary: Botones secundarios, acciones alternativas
-      // Celeste - Azul celeste complementario
-      secondary: "celeste",
-
-      // Tertiary: Color astronómico profundo para acentos especiales
-      // Deep Space - Gris espacial profundo
-      tertiary: "deep-space",
-
-      // Success: Mensajes de éxito, confirmaciones positivas
       success: "emerald",
-
-      // Info: Alertas informativas, tooltips, notificaciones neutrales
       info: "sky",
-
-      // Warning: Advertencias, estados pendientes, atención requerida
       warning: "amber",
-
-      // Error: Mensajes de error, validaciones, acciones destructivas
       error: "rose",
-
-      // Neutral: Textos, bordes, fondos, estados deshabilitados
-      // Deep Space - para mantener el tema oscuro espacial
-      neutral: "deep-space",
     },
 
     button: {
@@ -37,10 +18,6 @@ export default defineAppConfig({
     card: {
       rounded: "rounded-xl",
     },
-    header: {
-      base: "!bg-transparent",
-      background: "!bg-transparent",
-      container: "!bg-transparent",
-    },
   },
 });
+

@@ -6,22 +6,19 @@ definePageMeta({
   layout: "admin",
 });
 
-const { fetchAdminBookings, updateAdminBooking, deleteAdminBooking } = useAdminData();
+const { fetchAdminBookings, updateAdminBooking, deleteAdminBooking } =
+  useAdminData();
 const { formatPrice: formatCurrency } = useCurrency();
 
 const {
   data: bookings,
   pending,
   refresh,
-} = useAsyncData(
-  "admin-bookings",
-  () => fetchAdminBookings(),
-  {
-    server: false,
-    lazy: true,
-    default: () => []
-  }
-);
+} = useAsyncData("admin-bookings", () => fetchAdminBookings(), {
+  server: false,
+  lazy: true,
+  default: () => [],
+});
 
 const isDetailsModalOpen = ref(false);
 const selectedBooking = ref<BookingRes | null>(null);
@@ -84,10 +81,11 @@ const filteredRows = computed(() => {
   // Filter by search query
   if (q.value) {
     const query = q.value.toLowerCase();
-    rows = rows.filter((booking) =>
-      booking.userFullName?.toLowerCase().includes(query) ||
-      booking.tourName?.toLowerCase().includes(query) ||
-      booking.id?.toLowerCase().includes(query)
+    rows = rows.filter(
+      (booking) =>
+        booking.userFullName?.toLowerCase().includes(query) ||
+        booking.tourName?.toLowerCase().includes(query) ||
+        booking.id?.toLowerCase().includes(query)
     );
   }
 
@@ -137,7 +135,11 @@ async function handleStatusChange(booking: BookingRes, newStatus: string) {
 
 async function handleCancel(booking: BookingRes) {
   const clientName = booking.userFullName || "este cliente";
-  if (confirm(`¿Estás seguro de que quieres cancelar la reserva de "${clientName}"?`)) {
+  if (
+    confirm(
+      `¿Estás seguro de que quieres cancelar la reserva de "${clientName}"?`
+    )
+  ) {
     try {
       await deleteAdminBooking(booking.id);
       toast.add({
@@ -167,9 +169,9 @@ function formatDate(dateString: string): string {
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-900">
+  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-800">
     <div
-      class="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900"
+      class="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-800"
     >
       <div class="px-6 py-4">
         <div class="flex items-center justify-between">
@@ -214,7 +216,9 @@ function formatDate(dateString: string): string {
           }"
         >
           <template #id-data="{ row }">
-            <span class="font-mono text-xs text-neutral-600 dark:text-neutral-400">
+            <span
+              class="font-mono text-xs text-neutral-600 dark:text-neutral-400"
+            >
               {{ row.getValue("id")?.slice(0, 8) }}...
             </span>
           </template>
@@ -288,23 +292,24 @@ function formatDate(dateString: string): string {
                       label: 'Confirmar',
                       icon: 'i-lucide-check',
                       disabled: row.original.status === 'CONFIRMED',
-                      click: () => handleStatusChange(row.original, 'CONFIRMED')
+                      click: () =>
+                        handleStatusChange(row.original, 'CONFIRMED'),
                     },
                     {
                       label: 'Marcar Pendiente',
                       icon: 'i-lucide-clock',
                       disabled: row.original.status === 'PENDING',
-                      click: () => handleStatusChange(row.original, 'PENDING')
-                    }
+                      click: () => handleStatusChange(row.original, 'PENDING'),
+                    },
                   ],
                   [
                     {
                       label: 'Cancelar',
                       icon: 'i-lucide-x-circle',
                       disabled: row.original.status === 'CANCELLED',
-                      click: () => handleCancel(row.original)
-                    }
-                  ]
+                      click: () => handleCancel(row.original),
+                    },
+                  ],
                 ]"
               >
                 <UButton

@@ -1,7 +1,9 @@
 # Plan de Implementación Frontend - Northern Chile
+
 ## ⚠️ VERSIÓN FREE - Sin componentes Nuxt UI Pro
 
 ## Componentes PRO a EVITAR:
+
 - ❌ `UDashboardGroup`
 - ❌ `UDashboardSidebar`
 - ❌ `UDashboardNavbar`
@@ -17,6 +19,7 @@
 - ❌ `UPricing*` (Pro)
 
 ## Componentes FREE disponibles:
+
 - ✅ `UCard`
 - ✅ `UButton`
 - ✅ `UModal`
@@ -49,6 +52,7 @@
 ## FASE 1: ADMIN PANEL COMPLETO
 
 ### 1.1 Layout Admin - IMPLEMENTACIÓN CUSTOM ✅ PARCIAL
+
 **Estado actual:** Usa layout simple con sidebar, necesita mejoras
 
 **Nueva implementación SIN componentes Pro:**
@@ -56,7 +60,7 @@
 ```vue
 <!-- layouts/admin.vue -->
 <template>
-  <div class="min-h-screen flex bg-neutral-50 dark:bg-neutral-900">
+  <div class="min-h-screen flex bg-neutral-50 dark:bg-neutral-800">
     <!-- Sidebar -->
     <aside
       :class="[
@@ -64,11 +68,13 @@
         'bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700',
         'flex flex-col',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-        'lg:translate-x-0 lg:static lg:w-64'
+        'lg:translate-x-0 lg:static lg:w-64',
       ]"
     >
       <!-- Header del sidebar -->
-      <div class="h-16 flex items-center justify-between px-4 border-b border-neutral-200 dark:border-neutral-700">
+      <div
+        class="h-16 flex items-center justify-between px-4 border-b border-neutral-200 dark:border-neutral-700"
+      >
         <NuxtLink to="/admin" class="flex items-center gap-2 font-bold text-lg">
           <UIcon name="i-lucide-shield-check" class="w-5 h-5 text-primary" />
           <span>Admin Panel</span>
@@ -96,11 +102,10 @@
       <div class="p-4 border-t border-neutral-200 dark:border-neutral-700">
         <UDropdownMenu :items="userMenuItems">
           <template #default>
-            <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer">
-              <UAvatar
-                :alt="authStore.user?.fullName"
-                size="sm"
-              />
+            <div
+              class="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
+            >
+              <UAvatar :alt="authStore.user?.fullName" size="sm" />
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium truncate">
                   {{ authStore.user?.fullName }}
@@ -119,14 +124,16 @@
     <!-- Overlay para mobile -->
     <div
       v-if="sidebarOpen"
-      class="fixed inset-0 bg-neutral-900/50 z-30 lg:hidden"
+      class="fixed inset-0 bg-neutral-800/50 z-30 lg:hidden"
       @click="sidebarOpen = false"
     />
 
     <!-- Main content -->
     <div class="flex-1 flex flex-col min-w-0">
       <!-- Top navbar -->
-      <header class="h-16 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 flex items-center px-4 gap-4">
+      <header
+        class="h-16 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 flex items-center px-4 gap-4"
+      >
         <!-- Hamburger menu mobile -->
         <UButton
           icon="i-lucide-menu"
@@ -143,13 +150,9 @@
         <div class="flex items-center gap-2">
           <!-- Color mode toggle -->
           <UColorModeButton />
-          
+
           <!-- Notifications (futuro) -->
-          <UButton
-            icon="i-lucide-bell"
-            color="neutral"
-            variant="ghost"
-          />
+          <UButton icon="i-lucide-bell" color="neutral" variant="ghost" />
         </div>
       </header>
 
@@ -164,118 +167,126 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from '~/stores/auth'
+import { useAuthStore } from "~/stores/auth";
 
-const authStore = useAuthStore()
-const route = useRoute()
+const authStore = useAuthStore();
+const route = useRoute();
 
 // Sidebar state (mobile)
-const sidebarOpen = ref(false)
+const sidebarOpen = ref(false);
 
 // Close sidebar on route change (mobile)
-watch(() => route.path, () => {
-  sidebarOpen.value = false
-})
+watch(
+  () => route.path,
+  () => {
+    sidebarOpen.value = false;
+  }
+);
 
 // Navigation links
 const navigationLinks = [
   {
-    label: 'Dashboard',
-    icon: 'i-lucide-layout-dashboard',
-    to: '/admin'
+    label: "Dashboard",
+    icon: "i-lucide-layout-dashboard",
+    to: "/admin",
   },
   {
-    label: 'Tours',
-    icon: 'i-lucide-map',
-    to: '/admin/tours'
+    label: "Tours",
+    icon: "i-lucide-map",
+    to: "/admin/tours",
   },
   {
-    label: 'Calendario',
-    icon: 'i-lucide-calendar-days',
-    to: '/admin/calendar'
+    label: "Calendario",
+    icon: "i-lucide-calendar-days",
+    to: "/admin/calendar",
   },
   {
-    label: 'Reservas',
-    icon: 'i-lucide-book-marked',
-    to: '/admin/bookings'
+    label: "Reservas",
+    icon: "i-lucide-book-marked",
+    to: "/admin/bookings",
   },
   {
-    label: 'Usuarios',
-    icon: 'i-lucide-users',
-    to: '/admin/users'
+    label: "Usuarios",
+    icon: "i-lucide-users",
+    to: "/admin/users",
   },
   {
-    label: 'Alertas',
-    icon: 'i-lucide-alert-triangle',
-    to: '/admin/alerts'
+    label: "Alertas",
+    icon: "i-lucide-alert-triangle",
+    to: "/admin/alerts",
   },
   {
-    label: 'Tours Privados',
-    icon: 'i-lucide-mail',
-    to: '/admin/private-requests'
+    label: "Tours Privados",
+    icon: "i-lucide-mail",
+    to: "/admin/private-requests",
   },
   {
-    label: 'Reportes',
-    icon: 'i-lucide-bar-chart',
-    to: '/admin/reports'
+    label: "Reportes",
+    icon: "i-lucide-bar-chart",
+    to: "/admin/reports",
   },
   {
-    label: 'Configuración',
-    icon: 'i-lucide-settings',
-    to: '/admin/settings'
-  }
-]
+    label: "Configuración",
+    icon: "i-lucide-settings",
+    to: "/admin/settings",
+  },
+];
 
 // User menu items
 const userMenuItems = [
-  [{
-    label: 'Mi Perfil',
-    icon: 'i-lucide-user',
-    to: '/profile'
-  }],
-  [{
-    label: 'Cerrar Sesión',
-    icon: 'i-lucide-log-out',
-    click: () => authStore.logout()
-  }]
-]
+  [
+    {
+      label: "Mi Perfil",
+      icon: "i-lucide-user",
+      to: "/profile",
+    },
+  ],
+  [
+    {
+      label: "Cerrar Sesión",
+      icon: "i-lucide-log-out",
+      click: () => authStore.logout(),
+    },
+  ],
+];
 
 // Breadcrumbs dinámicos
 const breadcrumbItems = computed(() => {
-  const path = route.path
-  const segments = path.split('/').filter(Boolean)
-  
-  const items = [{ label: 'Inicio', to: '/admin' }]
-  
-  let currentPath = ''
-  segments.slice(1).forEach(segment => {
-    currentPath += `/${segment}`
+  const path = route.path;
+  const segments = path.split("/").filter(Boolean);
+
+  const items = [{ label: "Inicio", to: "/admin" }];
+
+  let currentPath = "";
+  segments.slice(1).forEach((segment) => {
+    currentPath += `/${segment}`;
     items.push({
       label: formatSegment(segment),
-      to: `/admin${currentPath}`
-    })
-  })
-  
-  return items
-})
+      to: `/admin${currentPath}`,
+    });
+  });
+
+  return items;
+});
 
 function formatSegment(segment: string) {
   const labels: Record<string, string> = {
-    'tours': 'Tours',
-    'bookings': 'Reservas',
-    'users': 'Usuarios',
-    'calendar': 'Calendario',
-    'alerts': 'Alertas',
-    'private-requests': 'Tours Privados',
-    'reports': 'Reportes',
-    'settings': 'Configuración'
-  }
-  return labels[segment] || segment
+    tours: "Tours",
+    bookings: "Reservas",
+    users: "Usuarios",
+    calendar: "Calendario",
+    alerts: "Alertas",
+    "private-requests": "Tours Privados",
+    reports: "Reportes",
+    settings: "Configuración",
+  };
+  return labels[segment] || segment;
 }
 </script>
 ```
 
 **Tareas:**
+
 - [ ] Implementar layout custom responsive con sidebar colapsable
 - [ ] Agregar breadcrumbs dinámicos
 - [ ] Implementar user dropdown menu
@@ -301,11 +312,13 @@ Crear componente reutilizable para stats:
         <p class="mt-2 text-3xl font-semibold text-neutral-900 dark:text-white">
           {{ formattedValue }}
         </p>
-        
+
         <!-- Cambio vs período anterior -->
         <div v-if="change !== undefined" class="mt-2 flex items-center gap-1">
           <UIcon
-            :name="change >= 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down'"
+            :name="
+              change >= 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down'
+            "
             :class="change >= 0 ? 'text-success' : 'text-error'"
             class="w-4 h-4"
           />
@@ -318,14 +331,9 @@ Crear componente reutilizable para stats:
           <span class="text-xs text-neutral-500">vs período anterior</span>
         </div>
       </div>
-      
+
       <!-- Icon -->
-      <div
-        :class="[
-          'p-3 rounded-lg',
-          iconColor || 'bg-primary/10'
-        ]"
-      >
+      <div :class="['p-3 rounded-lg', iconColor || 'bg-primary/10']">
         <UIcon
           :name="icon"
           :class="iconTextColor || 'text-primary'"
@@ -333,7 +341,7 @@ Crear componente reutilizable para stats:
         />
       </div>
     </div>
-    
+
     <!-- Loading skeleton -->
     <USkeleton v-if="loading" class="h-20 mt-4" />
   </UCard>
@@ -341,22 +349,22 @@ Crear componente reutilizable para stats:
 
 <script setup lang="ts">
 const props = defineProps<{
-  label: string
-  value: number | string
-  icon: string
-  change?: number
-  iconColor?: string
-  iconTextColor?: string
-  loading?: boolean
-  formatter?: (value: number | string) => string
-}>()
+  label: string;
+  value: number | string;
+  icon: string;
+  change?: number;
+  iconColor?: string;
+  iconTextColor?: string;
+  loading?: boolean;
+  formatter?: (value: number | string) => string;
+}>();
 
 const formattedValue = computed(() => {
   if (props.formatter) {
-    return props.formatter(props.value)
+    return props.formatter(props.value);
   }
-  return props.value.toString()
-})
+  return props.value.toString();
+});
 </script>
 ```
 
@@ -399,7 +407,7 @@ const formattedValue = computed(() => {
         icon="i-lucide-calendar-check"
         :loading="loadingStats"
       />
-      
+
       <AdminStatsCard
         label="Ingresos"
         :value="stats.revenue.total"
@@ -410,7 +418,7 @@ const formattedValue = computed(() => {
         icon-text-color="text-success"
         :loading="loadingStats"
       />
-      
+
       <AdminStatsCard
         label="Tours Activos"
         :value="stats.activeTours"
@@ -419,7 +427,7 @@ const formattedValue = computed(() => {
         icon-text-color="text-info"
         :loading="loadingStats"
       />
-      
+
       <AdminStatsCard
         label="Alertas Pendientes"
         :value="stats.pendingAlerts"
@@ -445,10 +453,7 @@ const formattedValue = computed(() => {
         <template #header>
           <h3 class="text-lg font-semibold">Reservas Recientes</h3>
         </template>
-        <UTable
-          :data="recentBookings"
-          :columns="bookingsColumns"
-        />
+        <UTable :data="recentBookings" :columns="bookingsColumns" />
       </UCard>
     </div>
 
@@ -481,7 +486,9 @@ const formattedValue = computed(() => {
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+    >
       <div>
         <h1 class="text-2xl font-bold">Título</h1>
         <p class="text-sm text-neutral-600 dark:text-neutral-400">
@@ -509,10 +516,7 @@ const formattedValue = computed(() => {
         <p class="text-sm text-neutral-600">
           Mostrando {{ from }} - {{ to }} de {{ total }}
         </p>
-        <UPagination
-          v-model="page"
-          :total="totalPages"
-        />
+        <UPagination v-model="page" :total="totalPages" />
       </div>
     </UCard>
   </div>
@@ -537,8 +541,8 @@ const formattedValue = computed(() => {
         alt="Atacama"
         class="absolute inset-0 w-full h-full object-cover"
       />
-      <div class="absolute inset-0 bg-neutral-900/50" />
-      
+      <div class="absolute inset-0 bg-neutral-800/50" />
+
       <div class="relative h-full flex items-center justify-center">
         <div class="max-w-4xl mx-auto px-4 text-center text-white">
           <h1 class="text-5xl md:text-6xl font-bold mb-4">
@@ -548,12 +552,7 @@ const formattedValue = computed(() => {
             Tours astronómicos en San Pedro de Atacama
           </p>
           <div class="flex gap-4 justify-center">
-            <UButton
-              label="Ver Tours"
-              size="xl"
-              color="primary"
-              to="/tours"
-            />
+            <UButton label="Ver Tours" size="xl" color="primary" to="/tours" />
             <UButton
               label="Contactar"
               size="xl"
@@ -567,11 +566,9 @@ const formattedValue = computed(() => {
     </section>
 
     <!-- Tours Destacados - con UCarousel (FREE) -->
-    <section class="py-16 bg-white dark:bg-neutral-900">
+    <section class="py-16 bg-white dark:bg-neutral-800">
       <div class="max-w-7xl mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-8">
-          Tours Destacados
-        </h2>
+        <h2 class="text-3xl font-bold text-center mb-8">Tours Destacados</h2>
         <UCarousel :items="featuredTours">
           <template #default="{ item }">
             <TourCard :tour="item" />
@@ -589,7 +586,9 @@ const formattedValue = computed(() => {
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <UCard v-for="feature in features" :key="feature.title">
             <div class="text-center">
-              <div class="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <div
+                class="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4"
+              >
                 <UIcon :name="feature.icon" class="w-6 h-6 text-primary" />
               </div>
               <h3 class="text-lg font-semibold mb-2">{{ feature.title }}</h3>
@@ -631,7 +630,7 @@ const formattedValue = computed(() => {
               {{ tour.description }}
             </div>
           </template>
-          
+
           <template #included>
             <ul class="space-y-2">
               <li v-for="item in tour.included" class="flex gap-2">
@@ -640,7 +639,7 @@ const formattedValue = computed(() => {
               </li>
             </ul>
           </template>
-          
+
           <template #faq>
             <UAccordion :items="tour.faq" />
           </template>
@@ -654,15 +653,17 @@ const formattedValue = computed(() => {
           <div class="space-y-4">
             <div>
               <p class="text-sm text-neutral-600">Desde</p>
-              <p class="text-3xl font-bold">{{ formatPrice(tour.priceAdult) }}</p>
+              <p class="text-3xl font-bold">
+                {{ formatPrice(tour.priceAdult) }}
+              </p>
             </div>
-            
+
             <!-- Date Picker con UCalendar (FREE) -->
             <UCalendar
               v-model="selectedDate"
               :is-date-disabled="isDateDisabled"
             />
-            
+
             <UButton
               label="Reservar Ahora"
               color="primary"
@@ -683,30 +684,28 @@ const formattedValue = computed(() => {
 ## COMPONENTES CUSTOM A CREAR
 
 ### 1. Sidebar Collapsible (reemplaza UDashboardSidebar)
+
 ```vue
 <!-- components/admin/AdminSidebar.vue -->
-- Estado collapsed
-- Responsive (drawer en mobile)
-- Transiciones suaves
+- Estado collapsed - Responsive (drawer en mobile) - Transiciones suaves
 ```
 
 ### 2. Stats Card (reemplaza UDashboardStats)
+
 ```vue
 <!-- components/admin/StatsCard.vue -->
-- Icon customizable
-- Valor + cambio porcentual
-- Loading state con USkeleton
+- Icon customizable - Valor + cambio porcentual - Loading state con USkeleton
 ```
 
 ### 3. Page Header (reemplaza UPageHeader)
+
 ```vue
 <!-- components/common/PageHeader.vue -->
-- Título + descripción
-- Breadcrumbs opcionales
-- Actions slot
+- Título + descripción - Breadcrumbs opcionales - Actions slot
 ```
 
 ### 4. Empty State (usar UEmpty que es FREE)
+
 ```vue
 <!-- Usar UEmpty directamente -->
 <UEmpty
@@ -721,15 +720,18 @@ const formattedValue = computed(() => {
 ## STACK TECNOLÓGICO ACTUALIZADO
 
 ### Componentes UI
+
 - **Nuxt UI v4 FREE**: Solo componentes base
 - **NO usar**: Dashboard, Page, Auth, Blog, Changelog, Content, Pricing components
 - **Custom components**: Para layouts complejos
 
 ### Charts
+
 - **Chart.js** + **vue-chartjs**: Para gráficos
 - Alternativa: **ECharts** + **vue-echarts**
 
 ### Todo lo demás igual que antes
+
 - Nuxt 3, Vue 3, Composition API
 - TypeScript
 - Pinia
@@ -743,23 +745,27 @@ const formattedValue = computed(() => {
 ## ORDEN DE IMPLEMENTACIÓN ACTUALIZADO
 
 ### Sprint 1 (Admin Layout & Core)
-1. **Layout admin CUSTOM** (sin UDashboard*)
+
+1. **Layout admin CUSTOM** (sin UDashboard\*)
 2. **StatsCard component**
 3. **Dashboard con stats reales**
 4. **Mejorar página Tours**
 
 ### Sprint 2 (Admin CRUD)
+
 5. **Calendario - modals**
 6. **Reservas completa**
 7. **Usuarios completa**
 
 ### Sprint 3 (Admin Avanzado)
+
 8. **Alertas**
 9. **Tours Privados**
 10. **Reportes**
 11. **Configuración**
 
 ### Sprint 4+ (Frontend Público)
+
 12-20. **Todo el frontend público** (sin componentes Pro)
 
 ---
@@ -767,12 +773,15 @@ const formattedValue = computed(() => {
 ## NOTAS IMPORTANTES
 
 1. **Verificar qué tienes instalado:**
+
    ```bash
    cat package.json | grep "@nuxt/ui"
    ```
+
    Si solo tienes `@nuxt/ui` (sin `-pro`), solo tienes FREE
 
 2. **Componentes seguros (100% FREE):**
+
    - Form inputs (todos)
    - Table
    - Card
@@ -786,6 +795,7 @@ const formattedValue = computed(() => {
    - etc.
 
 3. **Para Dashboard:**
+
    - Construir layout custom con flex/grid
    - Usar UCard para containers
    - Crear componentes custom para stats
@@ -795,7 +805,7 @@ const formattedValue = computed(() => {
    - Hero section: HTML/CSS custom
    - Features: Grid de UCard
    - Carousel: UCarousel (FREE)
-   - Sin componentes UPage*
+   - Sin componentes UPage\*
 
 ---
 

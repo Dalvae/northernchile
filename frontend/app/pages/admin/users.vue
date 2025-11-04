@@ -6,21 +6,18 @@ definePageMeta({
   layout: "admin",
 });
 
-const { fetchAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser } = useAdminData();
+const { fetchAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser } =
+  useAdminData();
 
 const {
   data: users,
   pending,
   refresh,
-} = useAsyncData(
-  "admin-users",
-  () => fetchAdminUsers(),
-  {
-    server: false,
-    lazy: true,
-    default: () => []
-  }
-);
+} = useAsyncData("admin-users", () => fetchAdminUsers(), {
+  server: false,
+  lazy: true,
+  default: () => [],
+});
 
 const isModalOpen = ref(false);
 const selectedUser = ref<UserRes | null>(null);
@@ -80,10 +77,11 @@ const filteredRows = computed(() => {
   // Filter by search query
   if (q.value) {
     const query = q.value.toLowerCase();
-    rows = rows.filter((user) =>
-      user.email?.toLowerCase().includes(query) ||
-      user.fullName?.toLowerCase().includes(query) ||
-      user.id?.toLowerCase().includes(query)
+    rows = rows.filter(
+      (user) =>
+        user.email?.toLowerCase().includes(query) ||
+        user.fullName?.toLowerCase().includes(query) ||
+        user.id?.toLowerCase().includes(query)
     );
   }
 
@@ -178,9 +176,9 @@ function getRoleBadgeColor(role: string): string {
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-900">
+  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-800">
     <div
-      class="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900"
+      class="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-800"
     >
       <div class="px-6 py-4">
         <div class="flex items-center justify-between">
@@ -232,7 +230,9 @@ function getRoleBadgeColor(role: string): string {
           }"
         >
           <template #id-data="{ row }">
-            <span class="font-mono text-xs text-neutral-600 dark:text-neutral-400">
+            <span
+              class="font-mono text-xs text-neutral-600 dark:text-neutral-400"
+            >
               {{ row.getValue("id")?.slice(0, 8) }}...
             </span>
           </template>

@@ -1,12 +1,19 @@
 <template>
-  <header class="sticky top-0 z-50 bg-neutral-50 dark:bg-neutral-950/95 backdrop-blur-sm border-b border-neutral-200 dark:border-neutral-700">
+  <header
+    class="sticky top-0 z-50 bg-default/95 backdrop-blur-sm border-b border-default"
+  >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
         <div class="flex-shrink-0">
           <NuxtLink :to="localePath('/')" class="flex items-center gap-2 group">
-            <UIcon name="i-lucide-telescope" class="w-6 h-6 text-primary group-hover:rotate-12 transition-transform" />
-            <span class="font-display font-bold text-xl text-neutral-900 dark:text-neutral-50">
+            <UIcon
+              name="i-lucide-telescope"
+              class="w-6 h-6 text-primary group-hover:rotate-12 transition-transform"
+            />
+            <span
+              class="font-display font-bold text-xl text-highlighted"
+            >
               Northern Chile
             </span>
           </NuxtLink>
@@ -58,7 +65,7 @@
               icon="i-lucide-log-in"
               class="hidden sm:flex"
             >
-              {{ t('nav.login') }}
+              {{ t("nav.login") }}
             </UButton>
           </template>
 
@@ -72,10 +79,18 @@
                 class="hidden sm:flex"
               >
                 <div class="flex items-center gap-1">
-                  <div class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center">
-                    <UIcon name="i-lucide-user" class="w-4 h-4 text-primary-600 dark:text-primary-400" />
+                  <div
+                    class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center"
+                  >
+                    <UIcon
+                      name="i-lucide-user"
+                      class="w-4 h-4 text-primary-600 dark:text-primary-400"
+                    />
                   </div>
-                  <UIcon name="i-lucide-chevron-down" class="w-4 h-4 text-neutral-500 dark:text-neutral-300" />
+                  <UIcon
+                    name="i-lucide-chevron-down"
+                    class="w-4 h-4 text-neutral-500 dark:text-neutral-300"
+                  />
                 </div>
               </UButton>
             </UDropdownMenu>
@@ -98,9 +113,13 @@
       <template #content>
         <div class="p-6 space-y-6">
           <!-- Close Button -->
-          <div class="flex justify-between items-center pb-4 border-b border-neutral-200 dark:border-neutral-700">
-            <h2 class="text-lg font-semibold text-neutral-900 dark:text-neutral-50">
-              {{ t('common.menu') || 'Menú' }}
+          <div
+            class="flex justify-between items-center pb-4 border-b border-neutral-200 dark:border-neutral-700"
+          >
+            <h2
+              class="text-lg font-semibold text-neutral-900 dark:text-neutral-50"
+            >
+              {{ t("common.menu") || "Menú" }}
             </h2>
             <UButton
               icon="i-lucide-x"
@@ -127,7 +146,9 @@
           </nav>
 
           <!-- Auth Actions -->
-          <div class="space-y-2 pt-4 border-t border-neutral-200 dark:border-neutral-700">
+          <div
+            class="space-y-2 pt-4 border-t border-neutral-200 dark:border-neutral-700"
+          >
             <template v-if="!authStore.isAuthenticated">
               <UButton
                 :to="localePath('/auth')"
@@ -136,14 +157,18 @@
                 icon="i-lucide-log-in"
                 @click="mobileMenuOpen = false"
               >
-                {{ t('nav.login') }}
+                {{ t("nav.login") }}
               </UButton>
             </template>
 
             <template v-else>
               <!-- User Info -->
-              <div class="p-3 bg-neutral-100 dark:bg-neutral-800/50 rounded-lg mb-4">
-                <p class="text-sm font-medium text-neutral-900 dark:text-neutral-50">
+              <div
+                class="p-3 bg-neutral-100 dark:bg-neutral-800/50 rounded-lg mb-4"
+              >
+                <p
+                  class="text-sm font-medium text-neutral-900 dark:text-neutral-50"
+                >
                   {{ authStore.user?.fullName }}
                 </p>
                 <p class="text-xs text-neutral-500 dark:text-neutral-300">
@@ -160,7 +185,7 @@
                 icon="i-lucide-shield-check"
                 @click="mobileMenuOpen = false"
               >
-                {{ t('nav.admin') }}
+                {{ t("nav.admin") }}
               </UButton>
 
               <UButton
@@ -171,7 +196,7 @@
                 icon="i-lucide-user"
                 @click="mobileMenuOpen = false"
               >
-                {{ t('nav.my_account') }}
+                {{ t("nav.my_account") }}
               </UButton>
 
               <UButton
@@ -182,7 +207,7 @@
                 icon="i-lucide-book-marked"
                 @click="mobileMenuOpen = false"
               >
-                {{ t('nav.bookings') }}
+                {{ t("nav.bookings") }}
               </UButton>
 
               <UButton
@@ -192,7 +217,7 @@
                 icon="i-lucide-log-out"
                 @click="handleLogout"
               >
-                {{ t('nav.logout') }}
+                {{ t("nav.logout") }}
               </UButton>
             </template>
           </div>
@@ -203,68 +228,75 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from '~/stores/auth'
+import { useAuthStore } from "~/stores/auth";
 
-const { t } = useI18n()
-const authStore = useAuthStore()
-const localePath = useLocalePath()
+const { t } = useI18n();
+const authStore = useAuthStore();
+const localePath = useLocalePath();
 
-const mobileMenuOpen = ref(false)
-const isAdmin = computed(() => authStore.isAdmin)
+const mobileMenuOpen = ref(false);
+const isAdmin = computed(() => authStore.isAdmin);
 
 // Cart items count (TODO: connect to actual cart store)
-const cartItemsCount = ref(0)
+const cartItemsCount = ref(0);
 
 // Navigation links
 const links = computed(() => [
   {
-    label: t('nav.tours'),
-    to: localePath('/tours')
+    label: t("nav.tours"),
+    to: localePath("/tours"),
   },
   {
-    label: t('nav.private_tours'),
-    to: localePath('/private-tours')
+    label: t("nav.private_tours"),
+    to: localePath("/private-tours"),
   },
   {
-    label: t('nav.about_us'),
-    to: localePath('/about')
+    label: t("nav.about_us"),
+    to: localePath("/about"),
   },
   {
-    label: t('nav.contact'),
-    to: localePath('/contact')
-  }
-])
+    label: t("nav.contact"),
+    to: localePath("/contact"),
+  },
+]);
 
 // User menu items
 const userMenuItems = computed(() => [
   [
     {
-      label: t('nav.my_account'),
-      icon: 'i-lucide-user',
-      to: localePath('/profile')
+      label: t("nav.my_account"),
+      icon: "i-lucide-user",
+      to: localePath("/profile"),
     },
     {
-      label: t('nav.bookings'),
-      icon: 'i-lucide-book-marked',
-      to: localePath('/bookings')
-    }
+      label: t("nav.bookings"),
+      icon: "i-lucide-book-marked",
+      to: localePath("/bookings"),
+    },
   ],
-  ...(isAdmin.value ? [[{
-    label: t('nav.admin'),
-    icon: 'i-lucide-shield-check',
-    to: localePath('/admin')
-  }]] : []),
+  ...(isAdmin.value
+    ? [
+        [
+          {
+            label: t("nav.admin"),
+            icon: "i-lucide-shield-check",
+            to: localePath("/admin"),
+          },
+        ],
+      ]
+    : []),
   [
     {
-      label: t('nav.logout'),
-      icon: 'i-lucide-log-out',
-      click: () => authStore.logout()
-    }
-  ]
-])
+      label: t("nav.logout"),
+      icon: "i-lucide-log-out",
+      click: () => authStore.logout(),
+    },
+  ],
+]);
 
 function handleLogout() {
-  mobileMenuOpen.value = false
-  authStore.logout()
+  mobileMenuOpen.value = false;
+  authStore.logout();
 }
 </script>
+
