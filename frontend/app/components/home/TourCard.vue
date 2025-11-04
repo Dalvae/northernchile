@@ -4,7 +4,7 @@
       body: { padding: 'p-0' },
       rounded: 'rounded-xl',
       shadow: 'shadow-lg hover:shadow-xl',
-      ring: 'ring-1 ring-neutral-700'
+      ring: 'ring-1 ring-neutral-300',
     }"
     class="overflow-hidden transition-all duration-300 hover:-translate-y-1"
   >
@@ -58,11 +58,15 @@
       <div class="flex items-center gap-4 text-sm text-neutral-300">
         <div class="flex items-center gap-1">
           <UIcon name="i-lucide-clock" class="w-4 h-4" />
-          <span>{{ t('tours.duration_hours', { hours: tour.durationHours }) }}</span>
+          <span>{{
+            t("tours.duration_hours", { hours: tour.durationHours })
+          }}</span>
         </div>
         <div class="flex items-center gap-1">
           <UIcon name="i-lucide-users" class="w-4 h-4" />
-          <span>{{ t('tours.max_participants', { count: tour.maxParticipants }) }}</span>
+          <span>{{
+            t("tours.max_participants", { count: tour.maxParticipants })
+          }}</span>
         </div>
         <div v-if="tour.rating" class="flex items-center gap-1">
           <UIcon name="i-lucide-star" class="w-4 h-4 text-warning" />
@@ -71,9 +75,11 @@
       </div>
 
       <!-- Precio y CTA -->
-      <div class="flex items-center justify-between pt-4 border-t border-neutral-700">
+      <div
+        class="flex items-center justify-between pt-4 border-t border-neutral-700"
+      >
         <div>
-          <p class="text-xs text-neutral-400">{{ t('tours.price_from') }}</p>
+          <p class="text-xs text-neutral-400">{{ t("tours.price_from") }}</p>
           <p class="text-2xl font-bold text-neutral-50">
             {{ formatPrice(tour.price) }}
           </p>
@@ -84,7 +90,7 @@
           icon="i-lucide-arrow-right"
           trailing
         >
-          {{ t('tours.view_tour') }}
+          {{ t("tours.view_tour") }}
         </UButton>
       </div>
     </div>
@@ -92,34 +98,42 @@
 </template>
 
 <script setup lang="ts">
-import type { TourRes } from '~/lib/api-client'
+import type { TourRes } from "~/lib/api-client";
 
 const props = defineProps<{
-  tour: TourRes
-}>()
+  tour: TourRes;
+}>();
 
-const { t, locale } = useI18n()
-const { formatPrice } = useCurrency()
+const { t, locale } = useI18n();
+const { formatPrice } = useCurrency();
 
 function getTourName(): string {
-  return props.tour.nameTranslations?.[locale.value] || props.tour.nameTranslations?.['es'] || 'Tour'
+  return (
+    props.tour.nameTranslations?.[locale.value] ||
+    props.tour.nameTranslations?.["es"] ||
+    "Tour"
+  );
 }
 
 function getTourDescription(): string {
-  return props.tour.descriptionTranslations?.[locale.value] || props.tour.descriptionTranslations?.['es'] || ''
+  return (
+    props.tour.descriptionTranslations?.[locale.value] ||
+    props.tour.descriptionTranslations?.["es"] ||
+    ""
+  );
 }
 
 function getCategoryColor(category: string): string {
   const colors: Record<string, string> = {
-    'ASTRONOMICAL': 'tertiary',
-    'REGULAR': 'primary',
-    'SPECIAL': 'warning',
-    'PRIVATE': 'secondary'
-  }
-  return colors[category] || 'neutral'
+    ASTRONOMICAL: "tertiary",
+    REGULAR: "primary",
+    SPECIAL: "warning",
+    PRIVATE: "secondary",
+  };
+  return colors[category] || "neutral";
 }
 
 function getCategoryLabel(category: string): string {
-  return t(`tours.category.${category}`, category)
+  return t(`tours.category.${category}`, category);
 }
 </script>
