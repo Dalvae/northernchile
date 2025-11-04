@@ -3,7 +3,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
   
   // Solo ejecutar en el cliente
   if (process.client) {
-    authStore.checkAuth();
+    authStore.initializeAuth();
   }
   
   // Rutas protegidas que requieren autenticación
