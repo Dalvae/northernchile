@@ -1,6 +1,6 @@
 <template>
   <header
-    class="sticky top-0 z-50 bg-default/95 backdrop-blur-sm border-b border-default"
+    class="sticky top-0 z-50 bg-neutral-80 backdrop-blur-sm border-b border-neutral"
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
@@ -11,9 +11,7 @@
               name="i-lucide-telescope"
               class="w-6 h-6 text-primary group-hover:rotate-12 transition-transform"
             />
-            <span
-              class="font-display font-bold text-xl text-highlighted"
-            >
+            <span class="font-display font-bold text-xl text-highlighted">
               Northern Chile
             </span>
           </NuxtLink>
@@ -299,4 +297,3 @@ function handleLogout() {
   authStore.logout();
 }
 </script>
-

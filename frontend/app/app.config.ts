@@ -1,11 +1,10 @@
 export default defineAppConfig({
   ui: {
     colors: {
-      primary: "nebula", // El azul profundo para acciones principales.
-      secondary: "celeste", // Un azul más claro para acentos.
-      tertiary: "starburst", // Un magenta para detalles especiales (si lo definieras).
-      neutral: "deep-space", // El gris espacial para fondos, textos y bordes.
-
+      primary: "nebula",
+      secondary: "celeste",
+      tertiary: "starburst",
+      neutral: "deep-space",
       success: "emerald",
       info: "sky",
       warning: "amber",
@@ -20,4 +19,3 @@ export default defineAppConfig({
     },
   },
 });
-

@@ -1,17 +1,42 @@
+/* 1. Importaciones esenciales (SOLO UNA VEZ) */
 @import "tailwindcss";
 @import "@nuxt/ui";
-@import "./themes/cosmic.css";
+@import "./theme.css";
 
-@theme static {
-  --font-sans: var(--font-body);
-  --font-serif: var(--font-display);
+/* 2. Mapeo semántico para Nuxt UI en modo oscuro */
+.dark {
+  /* Semantic colors */
+  --ui-primary: var(--color-nebula-600);
+  --ui-secondary: var(--color-celeste-500);
+  --ui-success: var(--color-emerald-500);
+  --ui-info: var(--color-sky-500);
+  --ui-warning: var(--color-amber-500);
+  --ui-error: var(--color-rose-500);
+
+  /* Neutral (usado para textos, fondos, bordes) */
+  --ui-text-dimmed: var(--color-deep-space-600);
+  --ui-text-muted: var(--color-deep-space-500);
+  --ui-text-toned: var(--color-deep-space-400);
+  --ui-text: var(--color-deep-space-200);
+  --ui-text-highlighted: var(--color-deep-space-50);
+  --ui-text-inverted: var(--color-deep-space-950);
+
+  --ui-bg: var(--color-deep-space-950);
+  --ui-bg-muted: var(--color-deep-space-900);
+  --ui-bg-elevated: var(--color-deep-space-800);
+  --ui-bg-accented: var(--color-deep-space-700);
+  --ui-bg-inverted: var(--color-deep-space-50);
+
+  --ui-border: var(--color-deep-space-800);
+  --ui-border-muted: var(--color-deep-space-800);
+  --ui-border-accented: var(--color-deep-space-700);
+  --ui-border-inverted: var(--color-deep-space-50);
 }
 
-/* Forzar tema oscuro globalmente */
+/* 3. Configuración global */
 :root {
   color-scheme: dark;
 }
 
 body {
-  @apply bg-default text-default;
 }
