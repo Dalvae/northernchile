@@ -1,6 +1,6 @@
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
-  const backendUrl = config.backendApiUrl
+  const backendUrl = config.public.apiBase
 
   // 1. Leer el token de la petición original del cliente
   const authToken = getHeader(event, 'Authorization')

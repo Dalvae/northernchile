@@ -1,7 +1,7 @@
 export default defineEventHandler(async (event) => {
   // Obtenemos la URL secreta del backend desde la configuración
   const config = useRuntimeConfig(event)
-  const backendUrl = config.backendApiUrl
+  const backendUrl = config.public.apiBase
 
   try {
     // El servidor de Nuxt hace la llamada al servidor de Spring Boot

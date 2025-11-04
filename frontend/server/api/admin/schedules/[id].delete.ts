@@ -1,6 +1,6 @@
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event);
-  const backendUrl = config.backendApiUrl;
+  const backendUrl = config.public.apiBase;
   const authToken = getHeader(event, 'Authorization');
   const scheduleId = getRouterParam(event, 'id');
 

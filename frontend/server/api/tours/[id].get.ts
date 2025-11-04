@@ -1,6 +1,6 @@
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
-  const backendUrl = config.backendApiUrl
+  const backendUrl = config.public.apiBase
 
   // Obtenemos el 'id' de la URL, por ejemplo: /api/tours/abc-123
   const tourId = getRouterParam(event, 'id')
