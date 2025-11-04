@@ -4,8 +4,14 @@
   "type": "module",
   "pnpm": {
     "overrides": {
-      "@vue/devtools-api": "^8.0.3",
-      "@vue/devtools-kit": "^8.0.3"
+      "@vue/devtools-api": "8.0.3",
+      "@vue/devtools-kit": "8.0.3"
+    },
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "@vue/devtools-api",
+        "@vue/devtools-kit"
+      ]
     }
   },
   "scripts": {
@@ -13,6 +19,7 @@
     "dev": "nuxt dev",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "vercel-build": "NODE_ENV=production nuxt build",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
     "generate-api-client": "curl http://localhost:8080/api-docs -o openapi.json && pnpm openapi-generator-cli generate -i openapi.json -g typescript-axios -o ./lib/api-client --additional-properties=supportsES6=true,typescriptThreePlus=true"
