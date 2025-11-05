@@ -2,35 +2,41 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 @import "./theme.css";
+@import "./themes/atacama-nocturna.css";
 
-/* 2. Mapeo semántico para Nuxt UI en modo oscuro */
+/* 2. Mapeo semántico para Nuxt UI - ATACAMA NOCTURNA OKLCH */
 .dark {
-  /* Semantic colors */
-  --ui-primary: var(--color-nebula-600);
-  --ui-secondary: var(--color-celeste-500);
-  --ui-success: var(--color-emerald-500);
-  --ui-info: var(--color-sky-500);
-  --ui-warning: var(--color-amber-500);
-  --ui-error: var(--color-rose-500);
+  /* FONDO: Espacial profundo con valores OKLCH */
+  --ui-bg: oklch(0.15 0.02 260);
 
-  /* Neutral (usado para textos, fondos, bordes) */
-  --ui-text-dimmed: var(--color-deep-space-600);
-  --ui-text-muted: var(--color-deep-space-500);
-  --ui-text-toned: var(--color-deep-space-400);
-  --ui-text: var(--color-deep-space-200);
-  --ui-text-highlighted: var(--color-deep-space-50);
-  --ui-text-inverted: var(--color-deep-space-950);
+  /* TARJETAS: Contraste armonioso */
+  --ui-bg-elevated: oklch(0.20 0.03 260);
+  --ui-bg-muted: oklch(0.18 0.025 260);
 
-  --ui-bg: var(--color-deep-space-900);
-  --ui-bg-muted: var(--color-deep-space-900);
-  --ui-bg-elevated: var(--color-deep-space-800);
-  --ui-bg-accented: var(--color-deep-space-700);
-  --ui-bg-inverted: var(--color-deep-space-50);
+  /* BORDES: Óxido mineral OKLCH */
+  --ui-border: oklch(0.43 0.14 45);
+  --ui-border-muted: oklch(0.35 0.12 45);
+  --ui-border-accented: oklch(0.50 0.16 55);
 
-  --ui-border: var(--color-deep-space-800);
-  --ui-border-muted: var(--color-deep-space-800);
-  --ui-border-accented: var(--color-deep-space-700);
-  --ui-border-inverted: var(--color-deep-space-50);
+  /* COLORES SEMÁNTICOS: Tierra-cielo atacameño OKLCH corregido */
+  --ui-primary: oklch(0.55 0.13 35);     /* Cobre rojizo medio (NO amarillo) */
+  --ui-primary-hover: oklch(0.60 0.14 38); /* Cobre vivo desértico */
+  --ui-primary-active: oklch(0.48 0.10 30); /* Cobre oscuro mineral */
+  --ui-secondary: oklch(0.55 0.11 247);  /* Azul cielo intenso */
+  --ui-tertiary: oklch(0.60 0.06 230);   /* Azul laguna */
+  --ui-accent: oklch(0.74 0.14 70);      /* Dorado desértico */
+  --ui-success: oklch(0.74 0.14 70);     /* Dorado para éxito */
+  --ui-info: oklch(0.55 0.11 247);       /* Azul cielo */
+  --ui-warning: oklch(0.74 0.14 70);     /* Dorado desértico */
+  --ui-error: oklch(0.52 0.11 28);       /* Cobre oxidado para error */
+
+  /* TEXTOS: Tonos espaciales OKLCH */
+  --ui-text: oklch(0.90 0.02 260);
+  --ui-text-highlighted: oklch(0.95 0.01 260);
+  --ui-text-toned: oklch(0.80 0.03 260);
+  --ui-text-muted: oklch(0.65 0.04 260);
+  --ui-text-dimmed: oklch(0.50 0.05 330);
+  --ui-text-inverted: oklch(0.15 0.02 260);
 }
 
 /* 3. Configuración global */
@@ -39,4 +45,54 @@
 }
 
 body {
+  background: linear-gradient(135deg, oklch(0.15 0.02 260) 0%, oklch(0.20 0.03 260) 100%);
+  min-height: 100vh;
+}
+
+/* 4. Efectos Atacama Nocturna OKLCH */
+@layer utilities {
+  .atacama-gradient {
+    background: linear-gradient(135deg, oklch(0.15 0.02 260) 0%, oklch(0.20 0.03 260) 100%);
+  }
+
+  .atacama-card {
+    background: oklch(0.20 0.03 260);
+    border: 1px solid oklch(0.43 0.14 45);
+  }
+
+  .cobre-glow {
+    box-shadow: 0 0 20px oklch(0.58 0.16 55 / 0.3);
+  }
+
+  .cielo-hover:hover {
+    background: linear-gradient(135deg, oklch(0.43 0.14 45), oklch(0.50 0.16 55));
+    transition: all 0.3s ease;
+  }
+
+  .estrellas-atacama::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(oklch(0.74 0.14 70) 1px, transparent 1px),
+      radial-gradient(oklch(0.55 0.11 247) 1px, transparent 1px);
+    background-size: 25px 25px, 50px 50px;
+    opacity: 0.1;
+    z-index: 0;
+  }
+
+  .texto-cobre {
+    background: linear-gradient(45deg, oklch(0.58 0.16 55), oklch(0.74 0.14 70));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .lagoon-text {
+    color: oklch(0.60 0.06 230);
+  }
+
+  .sky-text {
+    color: oklch(0.55 0.11 247);
+  }
 }
