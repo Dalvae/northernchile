@@ -53,6 +53,8 @@ public class SecurityConfig {
                         // Permitir rutas de autenticación y documentación
                         .requestMatchers(
                                 "/api/auth/**",
+                                "/actuator/health/**",
+                                "/actuator/info",
                                 "/api-docs/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
