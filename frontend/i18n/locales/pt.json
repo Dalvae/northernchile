@@ -46,17 +46,17 @@
     "validation_error": "Erro de Validação",
     "validation_error_description": "Por favor, corrija os campos marcados.",
     "save_error": "Erro ao Salvar",
-      "days": {
-        "sunday_short": "Dom",
-        "monday_short": "Seg",
-        "tuesday_short": "Ter",
-        "wednesday_short": "Qua",
-        "thursday_short": "Qui",
-        "friday_short": "Sex",
-        "saturday_short": "Sáb"
-      },
-      "today": "Hoje"
+    "days": {
+      "sunday_short": "Dom",
+      "monday_short": "Seg",
+      "tuesday_short": "Ter",
+      "wednesday_short": "Qua",
+      "thursday_short": "Qui",
+      "friday_short": "Sex",
+      "saturday_short": "Sáb"
     },
+    "today": "Hoje"
+  },
   "tours": {
     "all": "Todos os Tours",
     "featured": "Tours em Destaque",
@@ -446,7 +446,5 @@
       "cloudy": "Nublado",
       "rain": "Chuva"
     }
-  }
-}
   }
 }

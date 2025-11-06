@@ -46,17 +46,17 @@
     "validation_error": "Validation Error",
     "validation_error_description": "Please correct the marked fields.",
     "save_error": "Save Error",
-      "days": {
-        "sunday_short": "Sun",
-        "monday_short": "Mon",
-        "tuesday_short": "Tue",
-        "wednesday_short": "Wed",
-        "thursday_short": "Thu",
-        "friday_short": "Fri",
-        "saturday_short": "Sat"
-      },
-      "today": "Today"
+    "days": {
+      "sunday_short": "Sun",
+      "monday_short": "Mon",
+      "tuesday_short": "Tue",
+      "wednesday_short": "Wed",
+      "thursday_short": "Thu",
+      "friday_short": "Fri",
+      "saturday_short": "Sat"
     },
+    "today": "Today"
+  },
   "tours": {
     "all": "All Tours",
     "featured": "Featured Tours",
@@ -446,7 +446,5 @@
       "cloudy": "Cloudy",
       "rain": "Rain"
     }
-  }
-}
   }
 }
