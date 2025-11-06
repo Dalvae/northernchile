@@ -10,32 +10,32 @@
   --ui-bg: oklch(0.15 0.02 260);
 
   /* TARJETAS: Contraste armonioso */
-  --ui-bg-elevated: oklch(0.20 0.03 260);
+  --ui-bg-elevated: oklch(0.2 0.03 260);
   --ui-bg-muted: oklch(0.18 0.025 260);
 
   /* BORDES: Óxido mineral OKLCH */
   --ui-border: oklch(0.43 0.14 45);
   --ui-border-muted: oklch(0.35 0.12 45);
-  --ui-border-accented: oklch(0.50 0.16 55);
+  --ui-border-accented: oklch(0.5 0.16 55);
 
   /* COLORES SEMÁNTICOS: Tierra-cielo atacameño OKLCH corregido */
-  --ui-primary: oklch(0.55 0.13 35);     /* Cobre rojizo medio (NO amarillo) */
-  --ui-primary-hover: oklch(0.60 0.14 38); /* Cobre vivo desértico */
-  --ui-primary-active: oklch(0.48 0.10 30); /* Cobre oscuro mineral */
-  --ui-secondary: oklch(0.55 0.11 247);  /* Azul cielo intenso */
-  --ui-tertiary: oklch(0.60 0.06 230);   /* Azul laguna */
-  --ui-accent: oklch(0.74 0.14 70);      /* Dorado desértico */
-  --ui-success: oklch(0.74 0.14 70);     /* Dorado para éxito */
-  --ui-info: oklch(0.55 0.11 247);       /* Azul cielo */
-  --ui-warning: oklch(0.74 0.14 70);     /* Dorado desértico */
-  --ui-error: oklch(0.52 0.11 28);       /* Cobre oxidado para error */
+  --ui-primary: #b56b45; /* Cobre rojizo medio (NO amarillo) */
+  --ui-primary-hover: oklch(0.6 0.14 38); /* Cobre vivo desértico */
+  --ui-primary-active: oklch(0.48 0.1 30); /* Cobre oscuro mineral */
+  --ui-secondary: oklch(0.55 0.11 247); /* Azul cielo intenso */
+  --ui-tertiary: oklch(0.6 0.06 230); /* Azul laguna */
+  --ui-accent: oklch(0.74 0.14 70); /* Dorado desértico */
+  --ui-success: oklch(0.74 0.14 70); /* Dorado para éxito */
+  --ui-info: oklch(0.55 0.11 247); /* Azul cielo */
+  --ui-warning: oklch(0.74 0.14 70); /* Dorado desértico */
+  --ui-error: oklch(0.52 0.11 28); /* Cobre oxidado para error */
 
   /* TEXTOS: Tonos espaciales OKLCH */
-  --ui-text: oklch(0.90 0.02 260);
+  --ui-text: oklch(0.9 0.02 260);
   --ui-text-highlighted: oklch(0.95 0.01 260);
-  --ui-text-toned: oklch(0.80 0.03 260);
+  --ui-text-toned: oklch(0.8 0.03 260);
   --ui-text-muted: oklch(0.65 0.04 260);
-  --ui-text-dimmed: oklch(0.50 0.05 330);
+  --ui-text-dimmed: oklch(0.5 0.05 330);
   --ui-text-inverted: oklch(0.15 0.02 260);
 }
 
@@ -45,18 +45,26 @@
 }
 
 body {
-  background: linear-gradient(135deg, oklch(0.15 0.02 260) 0%, oklch(0.20 0.03 260) 100%);
+  background: linear-gradient(
+    135deg,
+    oklch(0.15 0.02 260) 0%,
+    oklch(0.2 0.03 260) 100%
+  );
   min-height: 100vh;
 }
 
 /* 4. Efectos Atacama Nocturna OKLCH */
 @layer utilities {
   .atacama-gradient {
-    background: linear-gradient(135deg, oklch(0.15 0.02 260) 0%, oklch(0.20 0.03 260) 100%);
+    background: linear-gradient(
+      135deg,
+      oklch(0.15 0.02 260) 0%,
+      oklch(0.2 0.03 260) 100%
+    );
   }
 
   .atacama-card {
-    background: oklch(0.20 0.03 260);
+    background: oklch(0.2 0.03 260);
     border: 1px solid oklch(0.43 0.14 45);
   }
 
@@ -65,7 +73,11 @@ body {
   }
 
   .cielo-hover:hover {
-    background: linear-gradient(135deg, oklch(0.43 0.14 45), oklch(0.50 0.16 55));
+    background: linear-gradient(
+      135deg,
+      oklch(0.43 0.14 45),
+      oklch(0.5 0.16 55)
+    );
     transition: all 0.3s ease;
   }
 
@@ -76,20 +88,26 @@ body {
     background-image:
       radial-gradient(oklch(0.74 0.14 70) 1px, transparent 1px),
       radial-gradient(oklch(0.55 0.11 247) 1px, transparent 1px);
-    background-size: 25px 25px, 50px 50px;
+    background-size:
+      25px 25px,
+      50px 50px;
     opacity: 0.1;
     z-index: 0;
   }
 
   .texto-cobre {
-    background: linear-gradient(45deg, oklch(0.58 0.16 55), oklch(0.74 0.14 70));
+    background: linear-gradient(
+      45deg,
+      oklch(0.58 0.16 55),
+      oklch(0.74 0.14 70)
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .lagoon-text {
-    color: oklch(0.60 0.06 230);
+    color: oklch(0.6 0.06 230);
   }
 
   .sky-text {
