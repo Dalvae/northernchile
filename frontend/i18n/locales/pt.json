@@ -83,9 +83,9 @@
       "PRIVATE": "Privado"
     },
     "sensitive": {
-      "moon": "Sensível à lua cheia",
-      "wind": "Sensível ao vento",
-      "cloud": "Sensível a nuvens"
+      "moon": "Sensível à lua cheia",
+      "wind": "Sensível ao vento",
+      "cloud": "Sensível a nuvens"
     },
     "calendar": {
       "loading": "Carregando calendário...",
@@ -209,7 +209,7 @@
     "forgot_password": "Esqueceu sua senha?",
     "reset_password": "Redefinir Senha",
     "email": "Email",
-    "email_placeholder": "exemplo: usuario{'@'}email.com",
+    "email_placeholder": "exemplo: usuario@email.com",
     "email_invalid": "Email inválido",
     "password": "Senha",
     "password_placeholder": "••••••••",
