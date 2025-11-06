@@ -30,6 +30,7 @@ public class BookingController {
     }
 
     @PostMapping("/bookings")
+    @PreAuthorize("@bookingSecurityService.canCreateBooking(authentication)")
     public ResponseEntity<BookingRes> createBooking(@RequestBody BookingCreateReq req,
                                                     @CurrentUser User currentUser) {
         BookingRes createdBooking = bookingService.createBooking(req, currentUser);
@@ -37,12 +38,15 @@ public class BookingController {
     }
 
     @GetMapping("/bookings")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<BookingRes>> getAllBookings(@CurrentUser User currentUser) {
-        List<BookingRes> bookings = bookingService.getAllBookings(currentUser);
+        // Regular users see only their own bookings
+        List<BookingRes> bookings = bookingService.getBookingsByUser(currentUser);
         return new ResponseEntity<>(bookings, HttpStatus.OK);
     }
 
     @GetMapping("/bookings/{bookingId}")
+    @PreAuthorize("@bookingSecurityService.canViewBooking(authentication, #bookingId)")
     public ResponseEntity<BookingRes> getBookingById(@PathVariable UUID bookingId,
                                                     @CurrentUser User currentUser) {
         return bookingService.getBookingById(bookingId, currentUser)
@@ -51,21 +55,28 @@ public class BookingController {
     }
 
     @PostMapping("/bookings/{bookingId}/confirm-mock")
+    @PreAuthorize("@bookingSecurityService.isBookingUser(authentication, #bookingId)")
     public ResponseEntity<BookingRes> confirmMockPayment(@PathVariable UUID bookingId,
                                                         @CurrentUser User currentUser) {
         BookingRes confirmedBooking = bookingService.confirmBookingAfterMockPayment(bookingId, currentUser);
         return new ResponseEntity<>(confirmedBooking, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'PARTNER_ADMIN')")
     @GetMapping("/admin/bookings")
+    @PreAuthorize("@bookingSecurityService.canViewTourBookings(authentication)")
     public ResponseEntity<List<BookingRes>> getAdminBookings(@CurrentUser User currentUser) {
-        List<BookingRes> bookings = bookingService.getAllBookings(currentUser);
+        // SUPER_ADMIN sees all bookings, PARTNER_ADMIN sees only their tours' bookings
+        List<BookingRes> bookings;
+        if (currentUser.getRole().equals("ROLE_SUPER_ADMIN")) {
+            bookings = bookingService.getAllBookingsForAdmin();
+        } else {
+            bookings = bookingService.getBookingsByTourOwner(currentUser);
+        }
         return new ResponseEntity<>(bookings, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'PARTNER_ADMIN')")
     @GetMapping("/admin/bookings/{bookingId}")
+    @PreAuthorize("@bookingSecurityService.canViewBooking(authentication, #bookingId)")
     public ResponseEntity<BookingRes> getAdminBookingById(@PathVariable UUID bookingId,
                                                         @CurrentUser User currentUser) {
         return bookingService.getBookingById(bookingId, currentUser)
@@ -73,8 +84,8 @@ public class BookingController {
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'PARTNER_ADMIN')")
     @PutMapping("/admin/bookings/{bookingId}")
+    @PreAuthorize("@bookingSecurityService.canUpdateBooking(authentication, #bookingId)")
     public ResponseEntity<BookingRes> updateAdminBooking(
             @PathVariable UUID bookingId,
             @Valid @RequestBody BookingUpdateReq req,
@@ -83,8 +94,8 @@ public class BookingController {
         return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'PARTNER_ADMIN')")
     @DeleteMapping("/admin/bookings/{bookingId}")
+    @PreAuthorize("@bookingSecurityService.canCancelBooking(authentication, #bookingId)")
     public ResponseEntity<Void> cancelAdminBooking(@PathVariable UUID bookingId,
                                                    @CurrentUser User currentUser) {
         bookingService.cancelBooking(bookingId, currentUser);

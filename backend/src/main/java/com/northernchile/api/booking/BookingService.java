@@ -107,19 +107,24 @@ public class BookingService {
         return bookingMapper.toBookingRes(savedBooking);
     }
 
-    public List<BookingRes> getAllBookings(User currentUser) {
-        if ("ROLE_SUPER_ADMIN".equals(currentUser.getRole())) {
-            return bookingRepository.findAll().stream()
-                    .map(bookingMapper::toBookingRes)
-                    .collect(Collectors.toList());
-        } else if ("ROLE_PARTNER_ADMIN".equals(currentUser.getRole())) {
-            return bookingRepository.findAll().stream()
-                    .filter(booking -> booking.getSchedule().getTour().getOwner().getId().equals(currentUser.getId()))
-                    .map(bookingMapper::toBookingRes)
-                    .collect(Collectors.toList());
-        } else {
-            return List.of();
-        }
+    public List<BookingRes> getAllBookingsForAdmin() {
+        return bookingRepository.findAll().stream()
+                .map(bookingMapper::toBookingRes)
+                .collect(Collectors.toList());
+    }
+
+    public List<BookingRes> getBookingsByTourOwner(User owner) {
+        return bookingRepository.findAll().stream()
+                .filter(booking -> booking.getSchedule().getTour().getOwner().getId().equals(owner.getId()))
+                .map(bookingMapper::toBookingRes)
+                .collect(Collectors.toList());
+    }
+
+    public List<BookingRes> getBookingsByUser(User user) {
+        return bookingRepository.findAll().stream()
+                .filter(booking -> booking.getUser().getId().equals(user.getId()))
+                .map(bookingMapper::toBookingRes)
+                .collect(Collectors.toList());
     }
 
     @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId) or @bookingSecurityService.isBookingUser(authentication, #bookingId)")

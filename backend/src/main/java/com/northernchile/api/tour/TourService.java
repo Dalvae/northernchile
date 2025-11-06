@@ -93,16 +93,17 @@ public class TourService {
     }
 
     @Transactional(readOnly = true)
-    public List<TourRes> getAllTours(User currentUser) {
-        if ("ROLE_SUPER_ADMIN".equals(currentUser.getRole())) {
-            return tourRepository.findAllNotDeleted().stream()
-                    .map(tourMapper::toTourRes)
-                    .collect(Collectors.toList());
-        } else {
-            return tourRepository.findByOwnerIdNotDeleted(currentUser.getId()).stream()
-                    .map(tourMapper::toTourRes)
-                    .collect(Collectors.toList());
-        }
+    public List<TourRes> getAllToursForAdmin() {
+        return tourRepository.findAllNotDeleted().stream()
+                .map(tourMapper::toTourRes)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<TourRes> getToursByOwner(User owner) {
+        return tourRepository.findByOwnerIdNotDeleted(owner.getId()).stream()
+                .map(tourMapper::toTourRes)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
