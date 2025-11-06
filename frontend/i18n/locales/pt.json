@@ -46,16 +46,17 @@
     "validation_error": "Erro de Validação",
     "validation_error_description": "Por favor, corrija os campos marcados.",
     "save_error": "Erro ao Salvar",
-    "days": {
-      "sunday_short": "Dom",
-      "monday_short": "Seg",
-      "tuesday_short": "Ter",
-      "wednesday_short": "Qua",
-      "thursday_short": "Qui",
-      "friday_short": "Sex",
-      "saturday_short": "Sáb"
-    }
-  },
+      "days": {
+        "sunday_short": "Dom",
+        "monday_short": "Seg",
+        "tuesday_short": "Ter",
+        "wednesday_short": "Qua",
+        "thursday_short": "Qui",
+        "friday_short": "Sex",
+        "saturday_short": "Sáb"
+      },
+      "today": "Hoje"
+    },
   "tours": {
     "all": "Todos os Tours",
     "featured": "Tours em Destaque",
@@ -82,9 +83,14 @@
       "PRIVATE": "Privado"
     },
     "sensitive": {
-      "moon": "Sensível à lua cheia",
-      "wind": "Sensível ao vento",
-      "cloud": "Sensível a nuvens"
+      "moon": "Sensível à lua cheia",
+      "wind": "Sensível ao vento",
+      "cloud": "Sensível a nuvens"
+    },
+    "calendar": {
+      "loading": "Carregando calendário...",
+      "tours": "Tours",
+      "conditions": "Condições"
     }
   },
   "booking": {
@@ -433,20 +439,14 @@
       "added_title": "Adicionado ao carrinho",
       "added_description": "{count} pessoa | {count} pessoas para {tourName}"
     },
-    "back_to_tour": "Voltar ao tour",
-    "select_date_title": "Selecione uma data",
-    "loading_schedules": "Carregando horários disponíveis...",
-    "calendar_availability_title": "Calendário de Disponibilidade",
-    "schedules_count": "{count} horário | {count} horários",
-    "no_schedules_available": "Nenhum horário disponível no momento",
-    "available_schedules_title": "Horários Disponíveis",
-    "available_spots": "{count} vagas disponíveis",
-    "select_date_prompt": "Selecione uma data para ver os horários disponíveis",
-    "participant_modal": {
-      "title": "Quantas pessoas?",
-      "participant_count_label": "Número de participantes",
-      "price_per_person": "Preço por pessoa",
-      "add_to_cart_button": "Adicionar ao Carrinho"
+    "legend_title": "Legenda",
+    "legend": {
+      "moon_phases": "Fases da lua",
+      "high_wind": "Vento forte",
+      "cloudy": "Nublado",
+      "rain": "Chuva"
     }
+  }
+}
   }
 }

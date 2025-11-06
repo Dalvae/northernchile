@@ -403,6 +403,16 @@ defineExpose({
   padding: 1rem;
   border-radius: 0.5rem 0.5rem 0 0;
   margin-bottom: 0;
+  display: flex;
+  align-items: center;
+}
+
+.tour-calendar-container .fc .fc-toolbar-chunk {
+  flex: 1;
+}
+
+.tour-calendar-container .fc .fc-toolbar-chunk:nth-child(2) {
+  text-align: center;
 }
 
 .dark .tour-calendar-container .fc .fc-toolbar {

@@ -46,16 +46,17 @@
     "validation_error": "Error de validación",
     "validation_error_description": "Por favor, corrige los campos marcados.",
     "save_error": "Error al guardar",
-    "days": {
-      "sunday_short": "Dom",
-      "monday_short": "Lun",
-      "tuesday_short": "Mar",
-      "wednesday_short": "Mié",
-      "thursday_short": "Jue",
-      "friday_short": "Vie",
-      "saturday_short": "Sáb"
-    }
-  },
+      "days": {
+        "sunday_short": "Dom",
+        "monday_short": "Lun",
+        "tuesday_short": "Mar",
+        "wednesday_short": "Mié",
+        "thursday_short": "Jue",
+        "friday_short": "Vie",
+        "saturday_short": "Sáb"
+      },
+      "today": "Hoy"
+    },
   "tours": {
     "all": "Todos los Tours",
     "featured": "Tours Destacados",
@@ -85,6 +86,11 @@
       "moon": "Sensible a luna llena",
       "wind": "Sensible al viento",
       "cloud": "Sensible a nubosidad"
+    },
+    "calendar": {
+      "loading": "Cargando calendario...",
+      "tours": "Tours",
+      "conditions": "Condiciones"
     }
   },
   "booking": {
@@ -433,21 +439,15 @@
       "added_title": "Agregado al carrito",
       "added_description": "{count} persona | {count} personas para {tourName}"
     },
-    "back_to_tour": "Volver al tour",
-    "select_date_title": "Selecciona una fecha",
-    "loading_schedules": "Cargando horarios disponibles...",
-    "calendar_availability_title": "Calendario de Disponibilidad",
-          "schedules_count": "{count} horario | {count} horarios",
-    "no_schedules_available": "No hay horarios disponibles en este momento",
-    "available_schedules_title": "Horarios Disponibles",
-    "available_spots": "{count} cupos disponibles",
-    "select_date_prompt": "Selecciona una fecha para ver los horarios disponibles",
-    "participant_modal": {
-      "title": "¿Cuántas personas?",
-      "participant_count_label": "Número de participantes",
-      "price_per_person": "Precio por persona",
-      "add_to_cart_button": "Agregar al Carrito"
+    "legend_title": "Leyenda",
+    "legend": {
+      "moon_phases": "Fases lunares",
+      "high_wind": "Viento fuerte",
+      "cloudy": "Nublado",
+      "rain": "Lluvia"
     }
+  }
+}
   }
 }
 
