@@ -704,16 +704,53 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
   --fc-today-bg-color: rgba(6, 78, 59, 0.2);
 }
 
-/* Header de días más oscuro */
+/* Header background (toolbar with prev/next/today buttons) */
+.fc .fc-toolbar {
+  background-color: rgb(14 165 233);
+  padding: 1rem;
+  border-radius: 0.5rem 0.5rem 0 0;
+  margin-bottom: 0;
+}
+
+.dark .fc .fc-toolbar {
+  background-color: rgb(3 105 161);
+}
+
+/* Header text color (title and buttons) */
+.fc .fc-toolbar-title,
+.fc .fc-button {
+  color: white !important;
+  text-transform: capitalize;
+  font-weight: 600;
+}
+
+.fc .fc-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.fc .fc-button:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Header de días (lun, mar, mié, etc.) */
 .fc-col-header-cell {
-  background-color: #f4f4f5 !important;
+  background-color: rgb(14 165 233) !important;
+  border-color: rgb(2 132 199) !important;
+  padding: 0.75rem 0.5rem !important;
   font-weight: 600 !important;
-  color: #18181b !important;
 }
 
 .dark .fc-col-header-cell {
-  background-color: #27272a !important;
-  color: #fafafa !important;
+  background-color: rgb(3 105 161) !important;
+  border-color: rgb(7 89 133) !important;
+}
+
+.fc-col-header-cell-cushion {
+  color: white !important;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .fc-daygrid-day {

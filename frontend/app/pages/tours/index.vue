@@ -1,86 +1,75 @@
 <script setup lang="ts">
-import type { TourRes } from "~/lib/api-client";
+import type { TourRes } from "~/lib/api-client"
 
-const { fetchAll } = useTours();
-const { data: allTours } = await fetchAll();
+const router = useRouter()
+const { t } = useI18n()
+
+const { fetchAll } = useTours()
+const { data: allTours } = await fetchAll()
 
 // Filtros
-const searchQuery = ref("");
-const selectedCategory = ref<string | null>(null);
-const sortBy = ref<"name" | "price-asc" | "price-desc" | "duration">("name");
-
-const { t } = useI18n();
-
-// Opciones de filtros
-const categoryOptions = computed(() => [
-  { label: t("tours.all_categories"), value: null },
-  { label: t("tours.category.ASTRONOMICAL"), value: "ASTRONOMICAL" },
-  { label: t("tours.category.REGULAR"), value: "REGULAR" },
-  { label: t("tours.category.SPECIAL"), value: "SPECIAL" },
-  { label: t("tours.category.PRIVATE"), value: "PRIVATE" },
-]);
-
-const sortOptions = computed(() => [
-  { label: t("tours.sort_name"), value: "name" },
-  { label: t("tours.sort_price_asc"), value: "price-asc" },
-  { label: t("tours.sort_price_desc"), value: "price-desc" },
-  { label: t("tours.sort_duration"), value: "duration" },
-]);
+const searchQuery = ref("")
+const selectedCategory = ref<string | null>(null)
+const sortBy = ref<"name" | "price-asc" | "price-desc" | "duration">("name")
 
 // Tours filtrados y ordenados
 const filteredTours = computed(() => {
-  let tours = (allTours.value || []).filter((t) => t.status === "PUBLISHED");
+  let tours = (allTours.value || []).filter((t) => t.status === "PUBLISHED")
 
   // Filtrar por búsqueda
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    tours = tours.filter(
-      (t) =>
-        t.name?.toLowerCase().includes(query) ||
-        t.description?.toLowerCase().includes(query)
-    );
+    const query = searchQuery.value.toLowerCase()
+    tours = tours.filter((t) => {
+      const name = (t.nameTranslations?.es || "").toLowerCase()
+      const description = (t.descriptionTranslations?.es || "").toLowerCase()
+      return name.includes(query) || description.includes(query)
+    })
   }
 
   // Filtrar por categoría
   if (selectedCategory.value) {
-    tours = tours.filter((t) => t.category === selectedCategory.value);
+    tours = tours.filter((t) => t.category === selectedCategory.value)
   }
 
   // Ordenar
-  switch (sortBy.value) {
-    case "name":
-      tours.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-      break;
-    case "price-asc":
-      tours.sort((a, b) => (a.price || 0) - (b.price || 0));
-      break;
-    case "price-desc":
-      tours.sort((a, b) => (b.price || 0) - (a.price || 0));
-      break;
-    case "duration":
-      tours.sort((a, b) => (a.durationHours || 0) - (b.durationHours || 0));
-      break;
+  if (sortBy.value === "price-asc") {
+    tours = tours.sort((a, b) => (a.basePrice || 0) - (b.basePrice || 0))
+  } else if (sortBy.value === "price-desc") {
+    tours = tours.sort((a, b) => (b.basePrice || 0) - (a.basePrice || 0))
+  } else if (sortBy.value === "duration") {
+    tours = tours.sort((a, b) => (a.durationHours || 0) - (b.durationHours || 0))
+  } else {
+    tours = tours.sort((a, b) =>
+      (a.nameTranslations?.es || "").localeCompare(b.nameTranslations?.es || "")
+    )
   }
 
-  return tours;
-});
+  return tours
+})
 
 // Paginación
-const page = ref(1);
-const pageSize = 9;
+const page = ref(1)
+const pageSize = 9
 const totalPages = computed(() =>
   Math.ceil(filteredTours.value.length / pageSize)
-);
+)
 const paginatedTours = computed(() => {
-  const start = (page.value - 1) * pageSize;
-  const end = start + pageSize;
-  return filteredTours.value.slice(start, end);
-});
+  const start = (page.value - 1) * pageSize
+  const end = start + pageSize
+  return filteredTours.value.slice(start, end)
+})
 
 // Reset página cuando cambian los filtros
 watch([searchQuery, selectedCategory, sortBy], () => {
-  page.value = 1;
-});
+  page.value = 1
+})
+
+// Handle calendar schedule click
+function handleScheduleClick(schedule: any, tour: any) {
+  if (tour?.slug) {
+    router.push(`/tours/${tour.slug}/schedule`)
+  }
+}
 
 // SEO
 useSeoMeta({
@@ -92,11 +81,11 @@ useSeoMeta({
     "Explora nuestra selección completa de tours astronómicos y experiencias únicas en San Pedro de Atacama",
   ogImage: "https://www.northernchile.cl/og-image-tours.jpg",
   twitterCard: "summary_large_image",
-});
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-white dark:bg-neutral-800">
+  <div class="min-h-screen bg-white dark:bg-neutral-900">
     <UContainer class="py-8 sm:py-12">
       <!-- Header -->
       <div class="mb-8">
@@ -109,77 +98,17 @@ useSeoMeta({
       </div>
 
       <!-- Filters Bar -->
-      <UCard class="mb-8">
-        <div class="space-y-4">
-          <!-- Primera fila: Búsqueda -->
-          <div>
-            <UInput
-              v-model="searchQuery"
-              icon="i-lucide-search"
-              :placeholder="t('tours.search_placeholder')"
-              size="lg"
-              class="w-full"
-            />
-          </div>
-
-          <!-- Segunda fila: Filtros y ordenamiento -->
-          <div class="flex flex-col sm:flex-row gap-4">
-            <div class="flex-1">
-              <USelectMenu
-                v-model="selectedCategory"
-                :options="categoryOptions"
-                option-attribute="label"
-                value-attribute="value"
-                :placeholder="t('tours.filter_by_category')"
-                size="lg"
-                class="w-full"
-              />
-            </div>
-            <div class="flex-1">
-              <USelectMenu
-                v-model="sortBy"
-                :options="sortOptions"
-                option-attribute="label"
-                value-attribute="value"
-                :placeholder="t('tours.sort_by')"
-                size="lg"
-                class="w-full"
-              />
-            </div>
-          </div>
-
-          <!-- Contador de resultados -->
-          <div
-            class="flex items-center justify-between text-sm text-neutral-600 dark:text-neutral-400"
-          >
-            <span>
-              {{
-                t(
-                  "tours.results",
-                  { count: filteredTours.length },
-                  filteredTours.length
-                )
-              }}
-            </span>
-            <UButton
-              v-if="searchQuery || selectedCategory"
-              color="neutral"
-              variant="ghost"
-              size="sm"
-              icon="i-lucide-x"
-              @click="
-                searchQuery = '';
-                selectedCategory = null;
-              "
-            >
-              {{ t("tours.clear_filters") }}
-            </UButton>
-          </div>
-        </div>
-      </UCard>
+      <div class="mb-8">
+        <TourFilters
+          v-model:search-query="searchQuery"
+          v-model:selected-category="selectedCategory"
+          v-model:sort-by="sortBy"
+          :results-count="filteredTours.length"
+        />
+      </div>
 
       <!-- Tours Grid -->
-      <div v-if="paginatedTours.length > 0" class="space-y-8">
+      <div v-if="paginatedTours.length > 0" class="space-y-8 mb-12">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <HomeTourCard
             v-for="tour in paginatedTours"
@@ -201,7 +130,7 @@ useSeoMeta({
       </div>
 
       <!-- Empty State -->
-      <UCard v-else class="text-center py-12">
+      <UCard v-else class="text-center py-12 mb-12">
         <div class="space-y-4">
           <div
             class="w-16 h-16 mx-auto rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center"
@@ -232,6 +161,27 @@ useSeoMeta({
           </UButton>
         </div>
       </UCard>
+
+      <!-- Calendar Section (AFTER tours list) -->
+      <div>
+        <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-6">
+          {{ t("tours.calendar_title") || "Calendario de Disponibilidad" }}
+        </h2>
+
+        <TourCalendar
+          :tours="filteredTours"
+          @schedule-click="handleScheduleClick"
+        >
+          <template #info>
+            <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p class="text-sm text-blue-900 dark:text-blue-200">
+                <UIcon name="i-lucide-info" class="inline w-4 h-4 mr-1" />
+                {{ t("tours.calendar.info_text") || "Haz clic en un evento para reservar. Los filtros afectan qué tours se muestran en el calendario." }}
+              </p>
+            </div>
+          </template>
+        </TourCalendar>
+      </div>
     </UContainer>
   </div>
 </template>
