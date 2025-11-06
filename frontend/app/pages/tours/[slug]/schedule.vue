@@ -157,7 +157,7 @@ useSeoMeta({
           </p>
 
           <!-- Tour Info Cards -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <UCard>
               <div class="flex items-center gap-3">
                 <div
@@ -188,7 +188,7 @@ useSeoMeta({
                     {{ t("tours.price_from") }}
                   </p>
                   <p class="font-semibold text-neutral-900 dark:text-white">
-                    ${{ tour.basePrice?.toLocaleString() }}
+                    ${{ (tour.price || tour.basePrice)?.toLocaleString() }}
                   </p>
                 </div>
               </div>
@@ -200,6 +200,24 @@ useSeoMeta({
                   class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
                 >
                   <UIcon name="i-lucide-users" class="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                    {{ t("tours.max_participants_label") }}
+                  </p>
+                  <p class="font-semibold text-neutral-900 dark:text-white">
+                    {{ t("tours.max_participants", { count: tour.defaultMaxParticipants }) }}
+                  </p>
+                </div>
+              </div>
+            </UCard>
+
+            <UCard>
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
+                >
+                  <UIcon name="i-lucide-tag" class="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <p class="text-sm text-neutral-600 dark:text-neutral-400">

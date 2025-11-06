@@ -1,5 +1,6 @@
 package com.northernchile.api.cart;
 
+import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.cart.dto.CartItemReq;
 import com.northernchile.api.cart.dto.CartItemRes;
 import com.northernchile.api.cart.dto.CartRes;
@@ -35,6 +36,8 @@ public class CartService {
     private CartItemRepository cartItemRepository;
     @Autowired
     private TourScheduleRepository tourScheduleRepository;
+    @Autowired
+    private BookingRepository bookingRepository;
 
     @Transactional
     public Cart getOrCreateCart(Optional<User> currentUser, Optional<UUID> cartId) {
@@ -62,6 +65,29 @@ public class CartService {
     public Cart addItemToCart(Cart cart, CartItemReq itemReq) {
         var schedule = tourScheduleRepository.findById(itemReq.getScheduleId())
                 .orElseThrow(() -> new EntityNotFoundException("TourSchedule not found"));
+
+        // Validate available slots - only count CONFIRMED bookings
+        Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(itemReq.getScheduleId());
+        if (bookedParticipants == null) bookedParticipants = 0;
+
+        // Also count participants already in THIS cart for the same schedule
+        int participantsInCart = cart.getItems() != null
+            ? cart.getItems().stream()
+                .filter(item -> item.getSchedule().getId().equals(itemReq.getScheduleId()))
+                .mapToInt(CartItem::getNumParticipants)
+                .sum()
+            : 0;
+
+        int requestedSlots = itemReq.getNumParticipants();
+        int totalRequestedSlots = participantsInCart + requestedSlots;
+        int availableSlots = schedule.getMaxParticipants() - bookedParticipants;
+
+        if (availableSlots < totalRequestedSlots) {
+            throw new IllegalStateException(String.format(
+                "Not enough available slots. Requested: %d, Already in cart: %d, Available: %d",
+                requestedSlots, participantsInCart, availableSlots
+            ));
+        }
 
         CartItem newItem = new CartItem();
         newItem.setCart(cart);

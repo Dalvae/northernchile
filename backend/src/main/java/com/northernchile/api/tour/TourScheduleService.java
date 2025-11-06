@@ -1,6 +1,7 @@
 package com.northernchile.api.tour;
 
 import com.northernchile.api.audit.AuditLogService;
+import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.User;
@@ -29,6 +30,8 @@ public class TourScheduleService {
     private TourRepository tourRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private BookingRepository bookingRepository;
     @Autowired
     private AuditLogService auditLogService;
 
@@ -147,8 +150,16 @@ public class TourScheduleService {
         res.setId(schedule.getId());
         res.setTourId(schedule.getTour().getId());
         res.setTourName(schedule.getTour().getNameTranslations().get("es"));
+        res.setTourNameTranslations(schedule.getTour().getNameTranslations());
+        res.setTourDurationHours(schedule.getTour().getDurationHours());
         res.setStartDatetime(schedule.getStartDatetime());
         res.setMaxParticipants(schedule.getMaxParticipants());
+
+        // Calculate booked and available spots
+        Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(schedule.getId());
+        res.setBookedParticipants(bookedParticipants != null ? bookedParticipants : 0);
+        res.setAvailableSpots(schedule.getMaxParticipants() - res.getBookedParticipants());
+
         res.setStatus(schedule.getStatus());
         if (schedule.getAssignedGuide() != null) {
             res.setAssignedGuideId(schedule.getAssignedGuide().getId());

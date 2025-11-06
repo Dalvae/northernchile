@@ -190,7 +190,9 @@ const calendarEvents = computed(() => {
         type: "schedule",
         schedule: schedule,
         tour: schedule.tour,
-        availableSpots: schedule.maxParticipants,
+        availableSpots: schedule.availableSpots || schedule.maxParticipants,
+        bookedParticipants: schedule.bookedParticipants || 0,
+        maxParticipants: schedule.maxParticipants,
         status: schedule.status,
       },
     })
@@ -257,6 +259,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   },
   events: calendarEvents.value,
   eventClick: handleEventClick,
+  eventContent: renderEventContent,
   height: props.height,
   eventDisplay: "block",
   displayEventTime: true,
@@ -269,6 +272,32 @@ const calendarOptions = computed<CalendarOptions>(() => ({
     today: t("common.today"),
   },
 }))
+
+// Custom event content renderer to show available spots
+function renderEventContent(arg: any) {
+  const eventType = arg.event.extendedProps.type
+
+  if (eventType === "schedule") {
+    const availableSpots = arg.event.extendedProps.availableSpots
+    const maxParticipants = arg.event.extendedProps.maxParticipants
+
+    return {
+      html: `
+        <div class="fc-event-main-frame" style="padding: 2px 4px;">
+          <div class="fc-event-time">${arg.timeText}</div>
+          <div class="fc-event-title-container">
+            <div class="fc-event-title fc-sticky">${arg.event.title}</div>
+            <div class="fc-event-spots" style="font-size: 0.75rem; opacity: 0.9;">
+              ${availableSpots}/${maxParticipants} ${t("tours.max_participants_label").toLowerCase()}
+            </div>
+          </div>
+        </div>
+      `
+    }
+  }
+
+  return { html: `<div>${arg.timeText} ${arg.event.title}</div>` }
+}
 
 // Handle event click
 function handleEventClick(info: EventClickArg) {

@@ -54,11 +54,20 @@ public class BookingService {
         var schedule = tourScheduleRepository.findById(req.getScheduleId())
                 .orElseThrow(() -> new EntityNotFoundException("TourSchedule not found with id: " + req.getScheduleId()));
 
-        Integer bookedParticipants = bookingRepository.countParticipantsByScheduleId(req.getScheduleId());
+        // Validate available slots - only count CONFIRMED bookings
+        // Note: This validation prevents overbooking in most cases. For complete protection
+        // against race conditions (two users booking the last slot simultaneously),
+        // consider adding optimistic locking (@Version) or a database constraint.
+        Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(req.getScheduleId());
         if (bookedParticipants == null) bookedParticipants = 0;
         int requestedSlots = req.getParticipants().size();
-        if (schedule.getMaxParticipants() - bookedParticipants < requestedSlots) {
-            throw new IllegalStateException("Not enough available slots for this tour schedule.");
+        int availableSlots = schedule.getMaxParticipants() - bookedParticipants;
+
+        if (availableSlots < requestedSlots) {
+            throw new IllegalStateException(String.format(
+                "Not enough available slots. Requested: %d, Available: %d",
+                requestedSlots, availableSlots
+            ));
         }
 
         int participantCount = req.getParticipants().size();

@@ -43,6 +43,7 @@
     "status": "Status",
     "created_at": "Criado Em",
     "tour": "Tour",
+    "hours": "horas",
     "validation_error": "Erro de Validação",
     "validation_error_description": "Por favor, corrija os campos marcados.",
     "save_error": "Erro ao Salvar",
@@ -75,8 +76,12 @@
     "book_now": "Reservar Agora",
     "duration_hours": "{hours}h",
     "max_participants": "Máx {count}",
+    "max_participants_label": "Participantes",
     "price_from": "A partir de",
+    "duration": "Duração",
+    "calendar_title": "Calendário de Disponibilidade",
     "category": {
+      "label": "Categoria",
       "ASTRONOMICAL": "Astronômico",
       "REGULAR": "Regular",
       "SPECIAL": "Especial",
@@ -90,7 +95,8 @@
     "calendar": {
       "loading": "Carregando calendário...",
       "tours": "Tours",
-      "conditions": "Condições"
+      "conditions": "Condições",
+      "info_text": "Clique em um evento para reservar. Os filtros afetam quais tours são exibidos no calendário."
     }
   },
   "booking": {
@@ -435,6 +441,8 @@
   },
   "schedule": {
     "error_loading_tour": "Erro ao carregar tour",
+    "select_date": "Selecione uma data",
+    "info_text": "Clique em uma data disponível para reservar seu lugar.",
     "cart": {
       "added_title": "Adicionado ao carrinho",
       "added_description": "{count} pessoa | {count} pessoas para {tourName}"

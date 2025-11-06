@@ -11,6 +11,9 @@ import java.util.UUID;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, UUID> {
+    @Query("SELECT COUNT(p) FROM Participant p WHERE p.booking.schedule.id = :scheduleId AND p.booking.status = 'CONFIRMED'")
+    Integer countConfirmedParticipantsByScheduleId(UUID scheduleId);
+
     @Query("SELECT COUNT(p) FROM Participant p WHERE p.booking.schedule.id = :scheduleId")
     Integer countParticipantsByScheduleId(UUID scheduleId);
 

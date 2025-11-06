@@ -14,6 +14,8 @@ public class TourScheduleRes {
     private Integer tourDurationHours;  // Para calcular el end time en el calendario
     private Instant startDatetime;
     private Integer maxParticipants;
+    private Integer bookedParticipants;  // Participantes ya reservados
+    private Integer availableSpots;  // Cupos disponibles (maxParticipants - bookedParticipants)
     private String status;
     private UUID assignedGuideId;
     private String assignedGuideName;
@@ -88,6 +90,22 @@ public class TourScheduleRes {
 
     public void setMaxParticipants(Integer maxParticipants) {
         this.maxParticipants = maxParticipants;
+    }
+
+    public Integer getBookedParticipants() {
+        return bookedParticipants;
+    }
+
+    public void setBookedParticipants(Integer bookedParticipants) {
+        this.bookedParticipants = bookedParticipants;
+    }
+
+    public Integer getAvailableSpots() {
+        return availableSpots;
+    }
+
+    public void setAvailableSpots(Integer availableSpots) {
+        this.availableSpots = availableSpots;
     }
 
     public String getStatus() {
