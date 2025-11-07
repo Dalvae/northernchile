@@ -17,16 +17,16 @@
             color="neutral"
             variant="outline"
             icon="i-lucide-refresh-cw"
-            @click="refreshAlerts"
             :loading="refreshing"
+            @click="refreshAlerts"
           >
             Actualizar
           </UButton>
           <UButton
             color="primary"
             icon="i-lucide-cloud"
-            @click="checkAlertsManually"
             :loading="checking"
+            @click="checkAlertsManually"
           >
             Verificar Ahora
           </UButton>
@@ -57,7 +57,10 @@
         <UCard>
           <div class="flex items-center gap-3">
             <div class="p-2 bg-error/10 rounded-lg">
-              <UIcon name="i-lucide-x-circle" class="w-6 h-6 text-error" />
+              <UIcon
+                name="i-lucide-x-circle"
+                class="w-6 h-6 text-error"
+              />
             </div>
             <div>
               <p class="text-sm text-neutral-600 dark:text-neutral-400">
@@ -92,7 +95,10 @@
         <UCard>
           <div class="flex items-center gap-3">
             <div class="p-2 bg-info/10 rounded-lg">
-              <UIcon name="i-lucide-calendar" class="w-6 h-6 text-info" />
+              <UIcon
+                name="i-lucide-calendar"
+                class="w-6 h-6 text-info"
+              />
             </div>
             <div>
               <p class="text-sm text-neutral-600 dark:text-neutral-400">
@@ -160,7 +166,10 @@
       </div>
 
       <!-- Alerts List -->
-      <div v-if="pending" class="flex justify-center py-12">
+      <div
+        v-if="pending"
+        class="flex justify-center py-12"
+      >
         <UIcon
           name="i-lucide-loader-2"
           class="w-8 h-8 animate-spin text-primary"
@@ -183,7 +192,10 @@
         </p>
       </div>
 
-      <div v-else class="grid gap-4">
+      <div
+        v-else
+        class="grid gap-4"
+      >
         <UCard
           v-for="alert in filteredAlerts"
           :key="alert.id"
@@ -226,27 +238,43 @@
                 class="grid md:grid-cols-2 gap-2 text-sm text-neutral-600 dark:text-neutral-400"
               >
                 <div class="flex items-center gap-2">
-                  <UIcon name="i-lucide-calendar" class="w-4 h-4" />
+                  <UIcon
+                    name="i-lucide-calendar"
+                    class="w-4 h-4"
+                  />
                   <span>{{ formatDate(alert.scheduleDate) }}</span>
                 </div>
 
                 <div class="flex items-center gap-2">
-                  <UIcon name="i-lucide-map-pin" class="w-4 h-4" />
-                  <span
-                    >Tour
+                  <UIcon
+                    name="i-lucide-map-pin"
+                    class="w-4 h-4"
+                  />
+                  <span>Tour
                     {{
                       alert.tourScheduleId ? "programado" : "no disponible"
-                    }}</span
-                  >
+                    }}</span>
                 </div>
 
-                <div v-if="alert.windSpeed" class="flex items-center gap-2">
-                  <UIcon name="i-lucide-wind" class="w-4 h-4" />
+                <div
+                  v-if="alert.windSpeed"
+                  class="flex items-center gap-2"
+                >
+                  <UIcon
+                    name="i-lucide-wind"
+                    class="w-4 h-4"
+                  />
                   <span>Viento: {{ alert.windSpeed }} nudos</span>
                 </div>
 
-                <div v-if="alert.cloudCoverage" class="flex items-center gap-2">
-                  <UIcon name="i-lucide-cloud" class="w-4 h-4" />
+                <div
+                  v-if="alert.cloudCoverage"
+                  class="flex items-center gap-2"
+                >
+                  <UIcon
+                    name="i-lucide-cloud"
+                    class="w-4 h-4"
+                  />
                   <span>Nubes: {{ alert.cloudCoverage }}%</span>
                 </div>
 
@@ -254,12 +282,18 @@
                   v-if="alert.moonIllumination !== null"
                   class="flex items-center gap-2"
                 >
-                  <UIcon name="i-lucide-moon" class="w-4 h-4" />
+                  <UIcon
+                    name="i-lucide-moon"
+                    class="w-4 h-4"
+                  />
                   <span>Luna: {{ alert.moonIllumination }}%</span>
                 </div>
 
                 <div class="flex items-center gap-2">
-                  <UIcon name="i-lucide-clock" class="w-4 h-4" />
+                  <UIcon
+                    name="i-lucide-clock"
+                    class="w-4 h-4"
+                  />
                   <span>Creada: {{ formatDate(alert.createdAt) }}</span>
                 </div>
               </div>
@@ -279,7 +313,10 @@
             </div>
 
             <!-- Actions -->
-            <div v-if="alert.status === 'PENDING'" class="flex flex-col gap-2">
+            <div
+              v-if="alert.status === 'PENDING'"
+              class="flex flex-col gap-2"
+            >
               <UButton
                 color="primary"
                 variant="outline"
@@ -400,271 +437,271 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: "admin",
-});
+  layout: 'admin'
+})
 
-const config = useRuntimeConfig();
-const toast = useToast();
+const config = useRuntimeConfig()
+const toast = useToast()
 
 // State
-const pending = ref(false);
-const refreshing = ref(false);
-const checking = ref(false);
-const resolving = ref(false);
-const showResolveModal = ref(false);
-const selectedAlert = ref<any>(null);
+const pending = ref(false)
+const refreshing = ref(false)
+const checking = ref(false)
+const resolving = ref(false)
+const showResolveModal = ref(false)
+const selectedAlert = ref<any>(null)
 
 // Alerts data
 const { data: alertsData, refresh: refreshAlerts } = await useAsyncData(
-  "admin-alerts",
+  'admin-alerts',
   async () => {
     const response = await $fetch(
       `${config.public.apiBaseUrl}/admin/alerts/history`,
       {
-        credentials: "include",
+        credentials: 'include'
       }
-    );
-    return response;
+    )
+    return response
   },
   {
     server: false,
-    lazy: true,
+    lazy: true
   }
-);
+)
 
 // Filters
 const filters = ref({
-  status: "ALL",
-  severity: "ALL",
-  type: "ALL",
-});
+  status: 'ALL',
+  severity: 'ALL',
+  type: 'ALL'
+})
 
 const statusFilterOptions = [
-  { value: "ALL", label: "Todos" },
-  { value: "PENDING", label: "Pendiente" },
-  { value: "KEPT", label: "Mantenido" },
-  { value: "CANCELLED", label: "Cancelado" },
-  { value: "RESCHEDULED", label: "Reagendado" },
-];
+  { value: 'ALL', label: 'Todos' },
+  { value: 'PENDING', label: 'Pendiente' },
+  { value: 'KEPT', label: 'Mantenido' },
+  { value: 'CANCELLED', label: 'Cancelado' },
+  { value: 'RESCHEDULED', label: 'Reagendado' }
+]
 
 const severityFilterOptions = [
-  { value: "ALL", label: "Todas" },
-  { value: "LOW", label: "Baja" },
-  { value: "MEDIUM", label: "Media" },
-  { value: "HIGH", label: "Alta" },
-  { value: "CRITICAL", label: "Crítica" },
-];
+  { value: 'ALL', label: 'Todas' },
+  { value: 'LOW', label: 'Baja' },
+  { value: 'MEDIUM', label: 'Media' },
+  { value: 'HIGH', label: 'Alta' },
+  { value: 'CRITICAL', label: 'Crítica' }
+]
 
 const typeFilterOptions = [
-  { value: "ALL", label: "Todos" },
-  { value: "WIND", label: "Viento" },
-  { value: "CLOUDS", label: "Nubes" },
-  { value: "MOON", label: "Luna" },
-  { value: "RAIN", label: "Lluvia" },
-];
+  { value: 'ALL', label: 'Todos' },
+  { value: 'WIND', label: 'Viento' },
+  { value: 'CLOUDS', label: 'Nubes' },
+  { value: 'MOON', label: 'Luna' },
+  { value: 'RAIN', label: 'Lluvia' }
+]
 
 // Resolve form
 const resolveForm = ref({
-  resolution: "",
-  notes: "",
-});
+  resolution: '',
+  notes: ''
+})
 
 // Computed
 const filteredAlerts = computed(() => {
-  if (!alertsData.value) return [];
+  if (!alertsData.value) return []
 
-  let filtered = [...alertsData.value];
+  let filtered = [...alertsData.value]
 
-  if (filters.value.status !== "ALL") {
+  if (filters.value.status !== 'ALL') {
     filtered = filtered.filter(
       (alert: any) => alert.status === filters.value.status
-    );
+    )
   }
 
-  if (filters.value.severity !== "ALL") {
+  if (filters.value.severity !== 'ALL') {
     filtered = filtered.filter(
       (alert: any) => alert.severity === filters.value.severity
-    );
+    )
   }
 
-  if (filters.value.type !== "ALL") {
+  if (filters.value.type !== 'ALL') {
     filtered = filtered.filter(
       (alert: any) => alert.alertType === filters.value.type
-    );
+    )
   }
 
   // Sort by createdAt descending (newest first)
   return filtered.sort(
     (a: any, b: any) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
-});
+  )
+})
 
 const stats = computed(() => {
   if (!alertsData.value)
-    return { pending: 0, cancelled: 0, kept: 0, rescheduled: 0 };
+    return { pending: 0, cancelled: 0, kept: 0, rescheduled: 0 }
 
   return {
-    pending: alertsData.value.filter((a: any) => a.status === "PENDING").length,
-    cancelled: alertsData.value.filter((a: any) => a.status === "CANCELLED")
+    pending: alertsData.value.filter((a: any) => a.status === 'PENDING').length,
+    cancelled: alertsData.value.filter((a: any) => a.status === 'CANCELLED')
       .length,
-    kept: alertsData.value.filter((a: any) => a.status === "KEPT").length,
-    rescheduled: alertsData.value.filter((a: any) => a.status === "RESCHEDULED")
-      .length,
-  };
-});
+    kept: alertsData.value.filter((a: any) => a.status === 'KEPT').length,
+    rescheduled: alertsData.value.filter((a: any) => a.status === 'RESCHEDULED')
+      .length
+  }
+})
 
 // Methods
 const checkAlertsManually = async () => {
-  checking.value = true;
+  checking.value = true
   try {
     const response = await $fetch(
       `${config.public.apiBaseUrl}/admin/alerts/check`,
       {
-        method: "POST",
-        credentials: "include",
+        method: 'POST',
+        credentials: 'include'
       }
-    );
+    )
 
     toast.add({
-      title: "Verificación completada",
+      title: 'Verificación completada',
       description: `Se encontraron ${response.pendingAlerts} alertas pendientes`,
-      color: "success",
-    });
+      color: 'success'
+    })
 
-    await refreshAlerts();
+    await refreshAlerts()
   } catch (error) {
-    console.error("Error checking alerts:", error);
+    console.error('Error checking alerts:', error)
     toast.add({
-      title: "Error",
-      description: "No se pudo verificar las alertas",
-      color: "error",
-    });
+      title: 'Error',
+      description: 'No se pudo verificar las alertas',
+      color: 'error'
+    })
   } finally {
-    checking.value = false;
+    checking.value = false
   }
-};
+}
 
 const openResolveModal = (alert: any, resolution: string) => {
-  selectedAlert.value = alert;
+  selectedAlert.value = alert
   resolveForm.value = {
     resolution,
-    notes: "",
-  };
-  showResolveModal.value = true;
-};
+    notes: ''
+  }
+  showResolveModal.value = true
+}
 
 const closeResolveModal = () => {
-  showResolveModal.value = false;
-  selectedAlert.value = null;
+  showResolveModal.value = false
+  selectedAlert.value = null
   resolveForm.value = {
-    resolution: "",
-    notes: "",
-  };
-};
+    resolution: '',
+    notes: ''
+  }
+}
 
 const resolveAlert = async () => {
-  if (!selectedAlert.value) return;
+  if (!selectedAlert.value) return
 
-  resolving.value = true;
+  resolving.value = true
   try {
     await $fetch(
       `${config.public.apiBaseUrl}/admin/alerts/${selectedAlert.value.id}/resolve`,
       {
-        method: "POST",
+        method: 'POST',
         body: {
-          resolution: resolveForm.value.resolution,
+          resolution: resolveForm.value.resolution
         },
-        credentials: "include",
+        credentials: 'include'
       }
-    );
+    )
 
     toast.add({
-      title: "Alerta resuelta",
-      description: "La alerta se ha resuelto correctamente",
-      color: "success",
-    });
+      title: 'Alerta resuelta',
+      description: 'La alerta se ha resuelto correctamente',
+      color: 'success'
+    })
 
-    await refreshAlerts();
-    closeResolveModal();
+    await refreshAlerts()
+    closeResolveModal()
   } catch (error: any) {
-    console.error("Error resolving alert:", error);
+    console.error('Error resolving alert:', error)
     toast.add({
-      title: "Error",
-      description: error.data?.error || "No se pudo resolver la alerta",
-      color: "error",
-    });
+      title: 'Error',
+      description: error.data?.error || 'No se pudo resolver la alerta',
+      color: 'error'
+    })
   } finally {
-    resolving.value = false;
+    resolving.value = false
   }
-};
+}
 
 // Helper functions
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("es-CL", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return new Date(dateString).toLocaleDateString('es-CL', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 function getSeverityColor(severity: string): string {
   const colors: Record<string, string> = {
-    LOW: "info",
-    MEDIUM: "warning",
-    HIGH: "error",
-    CRITICAL: "error",
-  };
-  return colors[severity] || "neutral";
+    LOW: 'info',
+    MEDIUM: 'warning',
+    HIGH: 'error',
+    CRITICAL: 'error'
+  }
+  return colors[severity] || 'neutral'
 }
 
 function getTypeColor(type: string): string {
   const colors: Record<string, string> = {
-    WIND: "error",
-    CLOUDS: "warning",
-    MOON: "tertiary",
-    RAIN: "info",
-  };
-  return colors[type] || "neutral";
+    WIND: 'error',
+    CLOUDS: 'warning',
+    MOON: 'tertiary',
+    RAIN: 'info'
+  }
+  return colors[type] || 'neutral'
 }
 
 function getTypeLabel(type: string): string {
   const labels: Record<string, string> = {
-    WIND: "Viento",
-    CLOUDS: "Nubes",
-    MOON: "Luna",
-    RAIN: "Lluvia",
-  };
-  return labels[type] || type;
+    WIND: 'Viento',
+    CLOUDS: 'Nubes',
+    MOON: 'Luna',
+    RAIN: 'Lluvia'
+  }
+  return labels[type] || type
 }
 
 function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
-    PENDING: "warning",
-    KEPT: "success",
-    CANCELLED: "error",
-    RESCHEDULED: "info",
-  };
-  return colors[status] || "neutral";
+    PENDING: 'warning',
+    KEPT: 'success',
+    CANCELLED: 'error',
+    RESCHEDULED: 'info'
+  }
+  return colors[status] || 'neutral'
 }
 
 function getResolutionColor(resolution: string): string {
   const colors: Record<string, string> = {
-    KEPT: "success",
-    CANCELLED: "error",
-    RESCHEDULED: "warning",
-  };
-  return colors[resolution] || "neutral";
+    KEPT: 'success',
+    CANCELLED: 'error',
+    RESCHEDULED: 'warning'
+  }
+  return colors[resolution] || 'neutral'
 }
 
 function getResolutionLabel(resolution: string): string {
   const labels: Record<string, string> = {
-    KEPT: "Mantener Tour",
-    CANCELLED: "Cancelar Tour",
-    RESCHEDULED: "Reagendar Tour",
-  };
-  return labels[resolution] || resolution;
+    KEPT: 'Mantener Tour',
+    CANCELLED: 'Cancelar Tour',
+    RESCHEDULED: 'Reagendar Tour'
+  }
+  return labels[resolution] || resolution
 }
 </script>

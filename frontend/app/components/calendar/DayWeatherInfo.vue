@@ -1,13 +1,19 @@
 <template>
   <div class="flex flex-col gap-1">
     <!-- Fase lunar -->
-    <div v-if="moonPhase" class="flex items-center gap-1 text-xs">
+    <div
+      v-if="moonPhase"
+      class="flex items-center gap-1 text-xs"
+    >
       <span class="text-lg">{{ moonPhase.icon }}</span>
       <span class="text-neutral-600 dark:text-neutral-400">{{ moonPhase.illumination }}%</span>
     </div>
 
     <!-- Clima -->
-    <div v-if="weather" class="flex flex-col gap-1">
+    <div
+      v-if="weather"
+      class="flex flex-col gap-1"
+    >
       <!-- Temperatura -->
       <div class="flex items-center gap-1 text-xs">
         <span>{{ getWeatherIcon(weather.weather[0]?.main) }}</span>

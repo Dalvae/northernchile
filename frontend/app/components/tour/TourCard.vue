@@ -31,12 +31,14 @@ const heroImage = computed(() =>
           class="w-full h-48 object-cover"
           :src="heroImage"
           :alt="translatedName"
-        />
+        >
       </div>
     </template>
 
     <div class="p-4">
-      <h3 class="text-xl font-bold mb-2 h-14 text-ellipsis overflow-hidden font-display text-gray-900 dark:text-white">{{ translatedName }}</h3>
+      <h3 class="text-xl font-bold mb-2 h-14 text-ellipsis overflow-hidden font-display text-gray-900 dark:text-white">
+        {{ translatedName }}
+      </h3>
     </div>
 
     <template #footer>

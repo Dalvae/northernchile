@@ -1,109 +1,109 @@
 <script setup lang="ts">
-import type { UserRes } from "~/lib/api-client";
-import { z } from "zod";
+import type { UserRes } from '~/lib/api-client'
+import { z } from 'zod'
 
 const props = defineProps<{
-  user: UserRes;
-}>();
+  user: UserRes
+}>()
 
 const emit = defineEmits<{
-  success: [];
-}>();
+  success: []
+}>()
 
-const { updateAdminUser, resetAdminUserPassword } = useAdminData();
-const toast = useToast();
-const { countries } = useCountries();
+const { updateAdminUser, resetAdminUserPassword } = useAdminData()
+const toast = useToast()
+const { countries } = useCountries()
 
 // Role options for select
 const roleOptions = [
-  { label: "Cliente", value: "ROLE_CLIENT" },
-  { label: "Partner Admin", value: "ROLE_PARTNER_ADMIN" },
-  { label: "Super Admin", value: "ROLE_SUPER_ADMIN" },
-];
+  { label: 'Cliente', value: 'ROLE_CLIENT' },
+  { label: 'Partner Admin', value: 'ROLE_PARTNER_ADMIN' },
+  { label: 'Super Admin', value: 'ROLE_SUPER_ADMIN' }
+]
 
 // Form state - initialize with user data
 const state = reactive({
-  fullName: props.user.fullName || "",
-  role: props.user.role || "ROLE_CLIENT",
-  nationality: props.user.nationality || "",
-  phoneNumber: props.user.phoneNumber || "",
-});
+  fullName: props.user.fullName || '',
+  role: props.user.role || 'ROLE_CLIENT',
+  nationality: props.user.nationality || '',
+  phoneNumber: props.user.phoneNumber || ''
+})
 
 // Validation schema
 const schema = z.object({
-  fullName: z.string().min(1, "Nombre completo es requerido"),
-  role: z.string().min(1, "Rol es requerido"),
+  fullName: z.string().min(1, 'Nombre completo es requerido'),
+  role: z.string().min(1, 'Rol es requerido'),
   nationality: z.string().optional(),
-  phoneNumber: z.string().optional(),
-});
+  phoneNumber: z.string().optional()
+})
 
-const isSubmitting = ref(false);
-const isResettingPassword = ref(false);
-const showPasswordReset = ref(false);
-const newPassword = ref("");
+const isSubmitting = ref(false)
+const isResettingPassword = ref(false)
+const showPasswordReset = ref(false)
+const newPassword = ref('')
 
 async function handlePasswordReset() {
   if (!newPassword.value || newPassword.value.length < 8) {
     toast.add({
-      title: "Error",
-      description: "La contraseña debe tener al menos 8 caracteres",
-      color: "error",
-      icon: "i-lucide-x-circle",
-    });
-    return;
+      title: 'Error',
+      description: 'La contraseña debe tener al menos 8 caracteres',
+      color: 'error',
+      icon: 'i-lucide-x-circle'
+    })
+    return
   }
 
-  if (!confirm("¿Estás seguro de que quieres restablecer la contraseña de este usuario?")) {
-    return;
+  if (!confirm('¿Estás seguro de que quieres restablecer la contraseña de este usuario?')) {
+    return
   }
 
-  isResettingPassword.value = true;
+  isResettingPassword.value = true
   try {
-    await resetAdminUserPassword(props.user.id, newPassword.value);
+    await resetAdminUserPassword(props.user.id, newPassword.value)
     toast.add({
-      title: "Contraseña restablecida",
-      description: "La contraseña del usuario ha sido actualizada correctamente",
-      color: "success",
-      icon: "i-lucide-check-circle",
-    });
-    newPassword.value = "";
-    showPasswordReset.value = false;
+      title: 'Contraseña restablecida',
+      description: 'La contraseña del usuario ha sido actualizada correctamente',
+      color: 'success',
+      icon: 'i-lucide-check-circle'
+    })
+    newPassword.value = ''
+    showPasswordReset.value = false
   } catch (e: any) {
     toast.add({
-      title: "Error al restablecer contraseña",
-      description: e.message || "Error desconocido",
-      color: "error",
-      icon: "i-lucide-x-circle",
-    });
+      title: 'Error al restablecer contraseña',
+      description: e.message || 'Error desconocido',
+      color: 'error',
+      icon: 'i-lucide-x-circle'
+    })
   } finally {
-    isResettingPassword.value = false;
+    isResettingPassword.value = false
   }
 }
 
 async function handleSubmit() {
-  isSubmitting.value = true;
+  isSubmitting.value = true
   try {
     await updateAdminUser(props.user.id, {
       fullName: state.fullName,
       role: state.role,
       nationality: state.nationality || null,
-      phoneNumber: state.phoneNumber || null,
-    });
+      phoneNumber: state.phoneNumber || null
+    })
     toast.add({
-      title: "Usuario actualizado",
-      color: "success",
-      icon: "i-lucide-check-circle",
-    });
-    emit("success");
+      title: 'Usuario actualizado',
+      color: 'success',
+      icon: 'i-lucide-check-circle'
+    })
+    emit('success')
   } catch (e: any) {
     toast.add({
-      title: "Error al actualizar",
-      description: e.message || "Error desconocido",
-      color: "error",
-      icon: "i-lucide-x-circle",
-    });
+      title: 'Error al actualizar',
+      description: e.message || 'Error desconocido',
+      color: 'error',
+      icon: 'i-lucide-x-circle'
+    })
   } finally {
-    isSubmitting.value = false;
+    isSubmitting.value = false
   }
 }
 </script>
@@ -148,7 +148,10 @@ async function handleSubmit() {
           @submit="handleSubmit"
         >
           <!-- Email (readonly) -->
-          <UFormField label="Email" name="email">
+          <UFormField
+            label="Email"
+            name="email"
+          >
             <UInput
               :model-value="user.email"
               type="email"
@@ -160,7 +163,11 @@ async function handleSubmit() {
           </UFormField>
 
           <!-- Full Name -->
-          <UFormField label="Nombre Completo" name="fullName" required>
+          <UFormField
+            label="Nombre Completo"
+            name="fullName"
+            required
+          >
             <UInput
               v-model="state.fullName"
               placeholder="Nombre completo"
@@ -170,7 +177,11 @@ async function handleSubmit() {
           </UFormField>
 
           <!-- Role -->
-          <UFormField label="Rol" name="role" required>
+          <UFormField
+            label="Rol"
+            name="role"
+            required
+          >
             <USelectMenu
               v-model="state.role"
               :options="roleOptions"
@@ -182,21 +193,17 @@ async function handleSubmit() {
           </UFormField>
 
           <!-- Nationality -->
-          <UFormField label="Nacionalidad" name="nationality">
-            <USelectMenu
-              v-model="state.nationality"
-              :items="countries"
-              value-attribute="value"
-              option-attribute="label"
-              placeholder="Selecciona nacionalidad"
-              size="lg"
-              class="w-full"
-              searchable
-            />
-          </UFormField>
+          <CountrySelect
+            v-model="state.nationality"
+            label="Nacionalidad"
+            placeholder="Selecciona nacionalidad"
+          />
 
           <!-- Phone Number -->
-          <UFormField label="Teléfono" name="phoneNumber">
+          <UFormField
+            label="Teléfono"
+            name="phoneNumber"
+          >
             <UInput
               v-model="state.phoneNumber"
               type="tel"
@@ -210,7 +217,9 @@ async function handleSubmit() {
           <div class="pt-4 border-t border-neutral-200 dark:border-neutral-700">
             <div class="flex items-center justify-between mb-3">
               <div>
-                <h4 class="font-medium text-neutral-900 dark:text-white">Restablecer Contraseña</h4>
+                <h4 class="font-medium text-neutral-900 dark:text-white">
+                  Restablecer Contraseña
+                </h4>
                 <p class="text-sm text-neutral-600 dark:text-neutral-400">
                   Establece una nueva contraseña para este usuario
                 </p>
@@ -227,8 +236,14 @@ async function handleSubmit() {
               </UButton>
             </div>
 
-            <div v-if="showPasswordReset" class="space-y-3 p-4 bg-warning-50 dark:bg-warning-950 rounded-lg border border-warning-200 dark:border-warning-800">
-              <UFormField label="Nueva Contraseña" help="Mínimo 8 caracteres">
+            <div
+              v-if="showPasswordReset"
+              class="space-y-3 p-4 bg-warning-50 dark:bg-warning-950 rounded-lg border border-warning-200 dark:border-warning-800"
+            >
+              <UFormField
+                label="Nueva Contraseña"
+                help="Mínimo 8 caracteres"
+              >
                 <UInput
                   v-model="newPassword"
                   type="password"
@@ -241,16 +256,16 @@ async function handleSubmit() {
                 <UButton
                   color="warning"
                   :loading="isResettingPassword"
-                  @click="handlePasswordReset"
                   icon="i-lucide-key"
+                  @click="handlePasswordReset"
                 >
                   Restablecer Contraseña
                 </UButton>
                 <UButton
                   color="neutral"
                   variant="outline"
-                  @click="showPasswordReset = false; newPassword = ''"
                   :disabled="isResettingPassword"
+                  @click="showPasswordReset = false; newPassword = ''"
                 >
                   Cancelar
                 </UButton>
@@ -265,8 +280,8 @@ async function handleSubmit() {
             label="Cancelar"
             color="neutral"
             variant="outline"
-            @click="$emit('close')"
             :disabled="isSubmitting"
+            @click="$emit('close')"
           />
           <UButton
             label="Guardar Cambios"

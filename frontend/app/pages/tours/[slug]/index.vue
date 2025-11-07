@@ -1,36 +1,36 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
-import type { TourRes } from "~/lib/api-client";
+import { ref, computed, watch } from 'vue'
+import type { TourRes } from '~/lib/api-client'
 
-const route = useRoute();
-const { locale } = useI18n();
-const tourSlug = route.params.slug as string;
+const route = useRoute()
+const { locale } = useI18n()
+const tourSlug = route.params.slug as string
 
 const {
   data: tour,
   pending: tourPending,
-  error: tourError,
-} = await useFetch<TourRes>(`/api/tours/slug/${tourSlug}`);
+  error: tourError
+} = await useFetch<TourRes>(`/api/tours/slug/${tourSlug}`)
 
 // Ref para el contenido enriquecido
-const tourContent = ref<any>(null);
+const tourContent = ref<any>(null)
 
 // Función para cargar dinámicamente el contenido
 async function fetchContent(contentKey: string | undefined) {
   if (!contentKey) {
-    tourContent.value = null;
-    return;
+    tourContent.value = null
+    return
   }
   try {
     // Importación dinámica basada en la clave
-    const contentModule = await import(`~/app/content/tours/${contentKey}.ts`);
-    tourContent.value = contentModule.default;
+    const contentModule = await import(`~/app/content/tours/${contentKey}.ts`)
+    tourContent.value = contentModule.default
   } catch (e) {
     console.error(
-      "No se encontró contenido enriquecido para la clave:",
+      'No se encontró contenido enriquecido para la clave:',
       contentKey
-    );
-    tourContent.value = null;
+    )
+    tourContent.value = null
   }
 }
 
@@ -39,39 +39,39 @@ watch(
   tour,
   (newTour) => {
     if (newTour?.contentKey) {
-      fetchContent(newTour.contentKey);
+      fetchContent(newTour.contentKey)
     }
   },
   { immediate: true }
-);
+)
 
 // Propiedades computadas para usar en el template
 const translatedContent = computed(() => {
-  if (!tourContent.value) return null;
-  return tourContent.value[locale.value] || tourContent.value.es;
-});
+  if (!tourContent.value) return null
+  return tourContent.value[locale.value] || tourContent.value.es
+})
 
 const translatedName = computed(
   () =>
-    tour.value?.nameTranslations?.[locale.value] ||
-    tour.value?.nameTranslations?.es ||
-    ""
-);
+    tour.value?.nameTranslations?.[locale.value]
+    || tour.value?.nameTranslations?.es
+    || ''
+)
 const translatedDescription = computed(
   () =>
-    tour.value?.descriptionTranslations?.[locale.value] ||
-    tour.value?.descriptionTranslations?.es ||
-    ""
-);
+    tour.value?.descriptionTranslations?.[locale.value]
+    || tour.value?.descriptionTranslations?.es
+    || ''
+)
 const heroImage = computed(
-  () => tour.value?.images?.[0]?.imageUrl || "default-image.jpg"
-);
+  () => tour.value?.images?.[0]?.imageUrl || 'default-image.jpg'
+)
 
 async function goToSchedule() {
-  console.log("Navigating to schedule page for:", tourSlug);
-  const schedulePath = `/tours/${tourSlug}/schedule`;
-  console.log("Schedule path:", schedulePath);
-  await navigateTo(schedulePath);
+  console.log('Navigating to schedule page for:', tourSlug)
+  const schedulePath = `/tours/${tourSlug}/schedule`
+  console.log('Schedule path:', schedulePath)
+  await navigateTo(schedulePath)
 }
 </script>
 
@@ -84,10 +84,19 @@ async function goToSchedule() {
       >
         Cargando tour...
       </div>
-      <div v-else-if="tourError" class="text-center">
-        <UAlert color="error" :title="tourError.message" />
+      <div
+        v-else-if="tourError"
+        class="text-center"
+      >
+        <UAlert
+          color="error"
+          :title="tourError.message"
+        />
       </div>
-      <div v-else-if="tour" class="space-y-8">
+      <div
+        v-else-if="tour"
+        class="space-y-8"
+      >
         <!-- Hero Section -->
         <div>
           <h1 class="text-4xl font-bold mb-4 text-neutral-900 dark:text-white">
@@ -97,7 +106,7 @@ async function goToSchedule() {
             :src="heroImage"
             :alt="translatedName"
             class="w-full h-96 object-cover rounded-lg shadow-lg"
-          />
+          >
         </div>
 
         <!-- Description -->
@@ -108,7 +117,10 @@ async function goToSchedule() {
         </div>
 
         <!-- Renderizar el contenido ENRIQUECIDO si existe -->
-        <div v-if="translatedContent" class="space-y-8 mt-8">
+        <div
+          v-if="translatedContent"
+          class="space-y-8 mt-8"
+        >
           <!-- Sección del Guía -->
           <UCard>
             <template #header>
@@ -130,7 +142,9 @@ async function goToSchedule() {
           <!-- Sección del Itinerario -->
           <UCard>
             <template #header>
-              <h2 class="text-2xl font-bold">Itinerario de tu Noche Cósmica</h2>
+              <h2 class="text-2xl font-bold">
+                Itinerario de tu Noche Cósmica
+              </h2>
             </template>
             <div
               v-for="item in translatedContent.itinerary"
@@ -145,10 +159,15 @@ async function goToSchedule() {
           <!-- Sección de Equipamiento -->
           <UCard>
             <template #header>
-              <h2 class="text-2xl font-bold">Nuestro Equipo Técnico</h2>
+              <h2 class="text-2xl font-bold">
+                Nuestro Equipo Técnico
+              </h2>
             </template>
             <ul class="list-disc list-inside">
-              <li v-for="item in translatedContent.equipment" :key="item">
+              <li
+                v-for="item in translatedContent.equipment"
+                :key="item"
+              >
                 {{ item }}
               </li>
             </ul>
@@ -157,10 +176,15 @@ async function goToSchedule() {
           <!-- Sección de Incluye -->
           <UCard>
             <template #header>
-              <h2 class="text-2xl font-bold">Incluye</h2>
+              <h2 class="text-2xl font-bold">
+                Incluye
+              </h2>
             </template>
             <ul class="list-disc list-inside">
-              <li v-for="item in translatedContent.includes" :key="item">
+              <li
+                v-for="item in translatedContent.includes"
+                :key="item"
+              >
                 {{ item }}
               </li>
             </ul>
@@ -180,12 +204,12 @@ async function goToSchedule() {
               :key="image.id || index"
               :src="image.imageUrl"
               :alt="
-                image.altTextTranslations?.[locale] ||
-                image.altTextTranslations?.['es'] ||
-                translatedName + ' image ' + index
+                image.altTextTranslations?.[locale]
+                  || image.altTextTranslations?.['es']
+                  || translatedName + ' image ' + index
               "
               class="w-full h-32 object-cover rounded-lg shadow-md hover:shadow-xl transition-shadow"
-            />
+            >
           </div>
         </div>
 
@@ -199,7 +223,10 @@ async function goToSchedule() {
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="flex items-center gap-3">
-              <UIcon name="i-lucide-tag" class="w-5 h-5 text-primary" />
+              <UIcon
+                name="i-lucide-tag"
+                class="w-5 h-5 text-primary"
+              />
               <div>
                 <p class="text-sm text-neutral-500 dark:text-neutral-400">
                   Categoría
@@ -211,7 +238,10 @@ async function goToSchedule() {
             </div>
 
             <div class="flex items-center gap-3">
-              <UIcon name="i-lucide-dollar-sign" class="w-5 h-5 text-primary" />
+              <UIcon
+                name="i-lucide-dollar-sign"
+                class="w-5 h-5 text-primary"
+              />
               <div>
                 <p class="text-sm text-neutral-500 dark:text-neutral-400">
                   Precio
@@ -223,7 +253,10 @@ async function goToSchedule() {
             </div>
 
             <div class="flex items-center gap-3">
-              <UIcon name="i-lucide-clock" class="w-5 h-5 text-primary" />
+              <UIcon
+                name="i-lucide-clock"
+                class="w-5 h-5 text-primary"
+              />
               <div>
                 <p class="text-sm text-neutral-500 dark:text-neutral-400">
                   Duración
@@ -235,7 +268,10 @@ async function goToSchedule() {
             </div>
 
             <div class="flex items-center gap-3">
-              <UIcon name="i-lucide-users" class="w-5 h-5 text-primary" />
+              <UIcon
+                name="i-lucide-users"
+                class="w-5 h-5 text-primary"
+              />
               <div>
                 <p class="text-sm text-neutral-500 dark:text-neutral-400">
                   Máximo Participantes
@@ -246,33 +282,66 @@ async function goToSchedule() {
               </div>
             </div>
 
-            <div v-if="tour.isWindSensitive" class="flex items-center gap-3">
-              <UIcon name="i-lucide-wind" class="w-5 h-5 text-info" />
+            <div
+              v-if="tour.isWindSensitive"
+              class="flex items-center gap-3"
+            >
+              <UIcon
+                name="i-lucide-wind"
+                class="w-5 h-5 text-info"
+              />
               <div>
                 <p class="text-sm text-neutral-500 dark:text-neutral-400">
                   Sensible al Viento
                 </p>
-                <UBadge color="info" size="sm">Sí</UBadge>
+                <UBadge
+                  color="info"
+                  size="sm"
+                >
+                  Sí
+                </UBadge>
               </div>
             </div>
 
-            <div v-if="tour.isMoonSensitive" class="flex items-center gap-3">
-              <UIcon name="i-lucide-moon" class="w-5 h-5 text-tertiary" />
+            <div
+              v-if="tour.isMoonSensitive"
+              class="flex items-center gap-3"
+            >
+              <UIcon
+                name="i-lucide-moon"
+                class="w-5 h-5 text-tertiary"
+              />
               <div>
                 <p class="text-sm text-neutral-500 dark:text-neutral-400">
                   Sensible a la Luna
                 </p>
-                <UBadge color="tertiary" size="sm">Sí</UBadge>
+                <UBadge
+                  color="tertiary"
+                  size="sm"
+                >
+                  Sí
+                </UBadge>
               </div>
             </div>
 
-            <div v-if="tour.isCloudSensitive" class="flex items-center gap-3">
-              <UIcon name="i-lucide-cloud" class="w-5 h-5 text-neutral" />
+            <div
+              v-if="tour.isCloudSensitive"
+              class="flex items-center gap-3"
+            >
+              <UIcon
+                name="i-lucide-cloud"
+                class="w-5 h-5 text-neutral"
+              />
               <div>
                 <p class="text-sm text-neutral-500 dark:text-neutral-400">
                   Sensible a la Nubosidad
                 </p>
-                <UBadge color="neutral" size="sm">Sí</UBadge>
+                <UBadge
+                  color="neutral"
+                  size="sm"
+                >
+                  Sí
+                </UBadge>
               </div>
             </div>
           </div>
@@ -300,8 +369,14 @@ async function goToSchedule() {
           </template>
         </UCard>
       </div>
-      <div v-else class="text-center">
-        <UAlert color="warning" title="Tour no encontrado" />
+      <div
+        v-else
+        class="text-center"
+      >
+        <UAlert
+          color="warning"
+          title="Tour no encontrado"
+        />
       </div>
     </UContainer>
   </div>

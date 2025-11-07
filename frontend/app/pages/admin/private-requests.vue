@@ -1,205 +1,205 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: "admin",
-});
+  layout: 'admin'
+})
 
-const config = useRuntimeConfig();
-const toast = useToast();
+const config = useRuntimeConfig()
+const toast = useToast()
 
 // Fetch private tour requests
 const {
   data: requests,
   pending,
   error,
-  refresh,
+  refresh
 } = await useAsyncData(
-  "private-tour-requests",
+  'private-tour-requests',
   async () => {
     try {
       const response = await $fetch<
         Array<{
-          id: string;
-          customerName: string;
-          customerEmail: string;
-          customerPhone: string;
-          requestedTourType: string;
-          requestedDatetime: string;
-          numAdults: number;
-          numChildren: number;
-          specialRequests: string;
-          status: string;
-          quotedPrice: number;
-          createdAt: string;
+          id: string
+          customerName: string
+          customerEmail: string
+          customerPhone: string
+          requestedTourType: string
+          requestedDatetime: string
+          numAdults: number
+          numChildren: number
+          specialRequests: string
+          status: string
+          quotedPrice: number
+          createdAt: string
         }>
       >(`${config.public.apiBase}/api/admin/private-tours/requests`, {
         headers:
-          process.client && localStorage.getItem("auth_token")
+          import.meta.client && localStorage.getItem('auth_token')
             ? {
-                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+                Authorization: `Bearer ${localStorage.getItem('auth_token')}`
               }
-            : {},
-      });
-      return response;
+            : {}
+      })
+      return response
     } catch (err) {
-      console.error("Error fetching private tour requests:", err);
+      console.error('Error fetching private tour requests:', err)
       toast.add({
-        color: "error",
-        title: "Error",
-        description: "No se pudieron cargar las solicitudes",
-      });
-      throw err;
+        color: 'error',
+        title: 'Error',
+        description: 'No se pudieron cargar las solicitudes'
+      })
+      throw err
     }
   },
   {
     server: false,
-    lazy: true,
+    lazy: true
   }
-);
+)
 
 // Filter and search
-const searchQuery = ref("");
-const filterByStatus = ref("");
+const searchQuery = ref('')
+const filterByStatus = ref('')
 
 const filteredRequests = computed(() => {
-  if (!requests.value || !Array.isArray(requests.value)) return [];
+  if (!requests.value || !Array.isArray(requests.value)) return []
 
-  let filtered = requests.value;
+  let filtered = requests.value
 
   // Search
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
+    const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(
-      (r) =>
-        r.customerName.toLowerCase().includes(query) ||
-        r.customerEmail.toLowerCase().includes(query) ||
-        r.requestedTourType.toLowerCase().includes(query)
-    );
+      r =>
+        r.customerName.toLowerCase().includes(query)
+        || r.customerEmail.toLowerCase().includes(query)
+        || r.requestedTourType.toLowerCase().includes(query)
+    )
   }
 
   // Filter by status
   if (filterByStatus.value) {
-    filtered = filtered.filter((r) => r.status === filterByStatus.value);
+    filtered = filtered.filter(r => r.status === filterByStatus.value)
   }
 
-  return filtered;
-});
+  return filtered
+})
 
 // Stats
 const stats = computed(() => {
   if (!requests.value || !Array.isArray(requests.value)) {
-    return { total: 0, pending: 0, quoted: 0, confirmed: 0, cancelled: 0 };
+    return { total: 0, pending: 0, quoted: 0, confirmed: 0, cancelled: 0 }
   }
 
   return {
     total: requests.value.length,
-    pending: requests.value.filter((r) => r.status === "PENDING").length,
-    quoted: requests.value.filter((r) => r.status === "QUOTED").length,
-    confirmed: requests.value.filter((r) => r.status === "CONFIRMED").length,
-    cancelled: requests.value.filter((r) => r.status === "CANCELLED").length,
-  };
-});
+    pending: requests.value.filter(r => r.status === 'PENDING').length,
+    quoted: requests.value.filter(r => r.status === 'QUOTED').length,
+    confirmed: requests.value.filter(r => r.status === 'CONFIRMED').length,
+    cancelled: requests.value.filter(r => r.status === 'CANCELLED').length
+  }
+})
 
 // Modal state
-const showDetailsModal = ref(false);
-const selectedRequest = ref<any>(null);
-const updatingStatus = ref(false);
+const showDetailsModal = ref(false)
+const selectedRequest = ref<any>(null)
+const updatingStatus = ref(false)
 const statusForm = ref({
-  status: "",
-  quotedPrice: "",
-});
+  status: '',
+  quotedPrice: ''
+})
 
 // Status options - sin valor vacío porque USelect no lo permite
 const statusOptions = [
-  { label: "Pendiente", value: "PENDING" },
-  { label: "Cotizado", value: "QUOTED" },
-  { label: "Confirmado", value: "CONFIRMED" },
-  { label: "Cancelado", value: "CANCELLED" },
-];
+  { label: 'Pendiente', value: 'PENDING' },
+  { label: 'Cotizado', value: 'QUOTED' },
+  { label: 'Confirmado', value: 'CONFIRMED' },
+  { label: 'Cancelado', value: 'CANCELLED' }
+]
 
 const statusSelectOptions = [
-  { label: "Pendiente", value: "PENDING" },
-  { label: "Cotizado", value: "QUOTED" },
-  { label: "Confirmado", value: "CONFIRMED" },
-  { label: "Cancelado", value: "CANCELLED" },
-];
+  { label: 'Pendiente', value: 'PENDING' },
+  { label: 'Cotizado', value: 'QUOTED' },
+  { label: 'Confirmado', value: 'CONFIRMED' },
+  { label: 'Cancelado', value: 'CANCELLED' }
+]
 
 // Functions
 const openDetailsModal = (request: any) => {
-  selectedRequest.value = request;
+  selectedRequest.value = request
   statusForm.value = {
     status: request.status,
-    quotedPrice: request.quotedPrice?.toString() || "",
-  };
-  showDetailsModal.value = true;
-};
+    quotedPrice: request.quotedPrice?.toString() || ''
+  }
+  showDetailsModal.value = true
+}
 
 const closeDetailsModal = () => {
-  showDetailsModal.value = false;
-  selectedRequest.value = null;
-  statusForm.value = { status: "", quotedPrice: "" };
-};
+  showDetailsModal.value = false
+  selectedRequest.value = null
+  statusForm.value = { status: '', quotedPrice: '' }
+}
 
 const updateRequestStatus = async () => {
-  if (!selectedRequest.value) return;
+  if (!selectedRequest.value) return
 
   try {
-    updatingStatus.value = true;
+    updatingStatus.value = true
 
     await $fetch(
       `${config.public.apiBaseUrl}/admin/private-tours/requests/${selectedRequest.value.id}`,
       {
-        method: "PUT",
+        method: 'PUT',
         body: {
           status: statusForm.value.status,
           quotedPrice: statusForm.value.quotedPrice
             ? parseFloat(statusForm.value.quotedPrice)
-            : null,
+            : null
         },
-        credentials: "include",
+        credentials: 'include'
       }
-    );
+    )
 
     toast.add({
-      color: "success",
-      title: "Estado actualizado",
-      description: "La solicitud ha sido actualizada correctamente",
-    });
+      color: 'success',
+      title: 'Estado actualizado',
+      description: 'La solicitud ha sido actualizada correctamente'
+    })
 
-    closeDetailsModal();
-    await refresh();
+    closeDetailsModal()
+    await refresh()
   } catch (err) {
-    console.error("Error updating request:", err);
+    console.error('Error updating request:', err)
     toast.add({
-      color: "error",
-      title: "Error",
-      description: "No se pudo actualizar la solicitud",
-    });
+      color: 'error',
+      title: 'Error',
+      description: 'No se pudo actualizar la solicitud'
+    })
   } finally {
-    updatingStatus.value = false;
+    updatingStatus.value = false
   }
-};
+}
 
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    PENDING: "warning",
-    QUOTED: "info",
-    CONFIRMED: "success",
-    CANCELLED: "error",
-  };
-  return colors[status] || "neutral";
-};
+    PENDING: 'warning',
+    QUOTED: 'info',
+    CONFIRMED: 'success',
+    CANCELLED: 'error'
+  }
+  return colors[status] || 'neutral'
+}
 
 const formatDateTime = (datetime: string) => {
-  return new Date(datetime).toLocaleString("es-CL", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+  return new Date(datetime).toLocaleString('es-CL', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 
-const { formatCurrency } = useCurrency();
+const { formatCurrency } = useCurrency()
 </script>
 
 <template>
@@ -254,7 +254,10 @@ const { formatCurrency } = useCurrency();
     </div>
 
     <!-- Loading state -->
-    <div v-if="pending" class="flex justify-center items-center py-12">
+    <div
+      v-if="pending"
+      class="flex justify-center items-center py-12"
+    >
       <UIcon
         name="i-lucide-loader-2"
         class="w-8 h-8 animate-spin text-primary"
@@ -262,7 +265,10 @@ const { formatCurrency } = useCurrency();
     </div>
 
     <!-- Error state -->
-    <div v-else-if="error" class="text-center py-12">
+    <div
+      v-else-if="error"
+      class="text-center py-12"
+    >
       <UIcon
         name="i-lucide-alert-circle"
         class="w-12 h-12 text-error mx-auto mb-4"
@@ -270,7 +276,12 @@ const { formatCurrency } = useCurrency();
       <p class="text-neutral-600 dark:text-neutral-400">
         Error al cargar las solicitudes
       </p>
-      <UButton color="primary" variant="soft" class="mt-4" @click="refresh">
+      <UButton
+        color="primary"
+        variant="soft"
+        class="mt-4"
+        @click="refresh"
+      >
         Reintentar
       </UButton>
     </div>
@@ -416,7 +427,10 @@ const { formatCurrency } = useCurrency();
 
               <!-- Empty state -->
               <tr v-if="filteredRequests.length === 0">
-                <td colspan="7" class="px-4 py-12 text-center">
+                <td
+                  colspan="7"
+                  class="px-4 py-12 text-center"
+                >
                   <UIcon
                     name="i-lucide-inbox"
                     class="w-12 h-12 text-neutral-400 mx-auto mb-4"
@@ -435,7 +449,10 @@ const { formatCurrency } = useCurrency();
     <!-- Details Modal -->
     <UModal v-model:open="showDetailsModal">
       <template #content>
-        <div v-if="selectedRequest" class="p-6">
+        <div
+          v-if="selectedRequest"
+          class="p-6"
+        >
           <!-- Header -->
           <div
             class="flex justify-between items-center pb-4 border-b border-neutral-200 dark:border-neutral-700"
@@ -465,31 +482,22 @@ const { formatCurrency } = useCurrency();
                 class="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-3 space-y-2"
               >
                 <div class="flex justify-between">
-                  <span class="text-sm text-neutral-600 dark:text-neutral-400"
-                    >Nombre:</span
-                  >
+                  <span class="text-sm text-neutral-600 dark:text-neutral-400">Nombre:</span>
                   <span
                     class="text-sm font-medium text-neutral-900 dark:text-white"
-                    >{{ selectedRequest.customerName }}</span
-                  >
+                  >{{ selectedRequest.customerName }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-neutral-600 dark:text-neutral-400"
-                    >Email:</span
-                  >
+                  <span class="text-sm text-neutral-600 dark:text-neutral-400">Email:</span>
                   <span
                     class="text-sm font-medium text-neutral-900 dark:text-white"
-                    >{{ selectedRequest.customerEmail }}</span
-                  >
+                  >{{ selectedRequest.customerEmail }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-neutral-600 dark:text-neutral-400"
-                    >Teléfono:</span
-                  >
+                  <span class="text-sm text-neutral-600 dark:text-neutral-400">Teléfono:</span>
                   <span
                     class="text-sm font-medium text-neutral-900 dark:text-white"
-                    >{{ selectedRequest.customerPhone }}</span
-                  >
+                  >{{ selectedRequest.customerPhone }}</span>
                 </div>
               </div>
             </div>
@@ -505,42 +513,30 @@ const { formatCurrency } = useCurrency();
                 class="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-3 space-y-2"
               >
                 <div class="flex justify-between">
-                  <span class="text-sm text-neutral-600 dark:text-neutral-400"
-                    >Tipo:</span
-                  >
+                  <span class="text-sm text-neutral-600 dark:text-neutral-400">Tipo:</span>
                   <span
                     class="text-sm font-medium text-neutral-900 dark:text-white"
-                    >{{ selectedRequest.requestedTourType }}</span
-                  >
+                  >{{ selectedRequest.requestedTourType }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-neutral-600 dark:text-neutral-400"
-                    >Fecha:</span
-                  >
+                  <span class="text-sm text-neutral-600 dark:text-neutral-400">Fecha:</span>
                   <span
                     class="text-sm font-medium text-neutral-900 dark:text-white"
-                    >{{
-                      formatDateTime(selectedRequest.requestedDatetime)
-                    }}</span
-                  >
+                  >{{
+                    formatDateTime(selectedRequest.requestedDatetime)
+                  }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-neutral-600 dark:text-neutral-400"
-                    >Adultos:</span
-                  >
+                  <span class="text-sm text-neutral-600 dark:text-neutral-400">Adultos:</span>
                   <span
                     class="text-sm font-medium text-neutral-900 dark:text-white"
-                    >{{ selectedRequest.numAdults }}</span
-                  >
+                  >{{ selectedRequest.numAdults }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-neutral-600 dark:text-neutral-400"
-                    >Niños:</span
-                  >
+                  <span class="text-sm text-neutral-600 dark:text-neutral-400">Niños:</span>
                   <span
                     class="text-sm font-medium text-neutral-900 dark:text-white"
-                    >{{ selectedRequest.numChildren }}</span
-                  >
+                  >{{ selectedRequest.numChildren }}</span>
                 </div>
               </div>
             </div>
@@ -590,7 +586,11 @@ const { formatCurrency } = useCurrency();
           <div
             class="flex justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-700"
           >
-            <UButton color="neutral" variant="ghost" @click="closeDetailsModal">
+            <UButton
+              color="neutral"
+              variant="ghost"
+              @click="closeDetailsModal"
+            >
               Cancelar
             </UButton>
             <UButton

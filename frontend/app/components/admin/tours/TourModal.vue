@@ -1,95 +1,95 @@
 <script setup lang="ts">
-import { z } from "zod";
-import type { FormSubmitEvent, FormErrorEvent, FormError } from "@nuxt/ui";
-import type { TourRes, TourCreateReq, TourUpdateReq } from "~/lib/api-client";
+import { z } from 'zod'
+import type { FormSubmitEvent, FormErrorEvent, FormError } from '@nuxt/ui'
+import type { TourRes, TourCreateReq, TourUpdateReq } from '~/lib/api-client'
 
 const props = defineProps<{
-  tour?: TourRes | null;
-  open?: boolean; // ✅ Añade esto
-}>();
+  tour?: TourRes | null
+  open?: boolean // ✅ Añade esto
+}>()
 
 const emit = defineEmits<{
-  success: [];
-  close: []; // ✅ Añade esto
-  'update:open': [value: boolean]; // ✅ Añade esto
-}>();
+  'success': []
+  'close': [] // ✅ Añade esto
+  'update:open': [value: boolean] // ✅ Añade esto
+}>()
 
-const isEditing = computed(() => !!props.tour);
+const isEditing = computed(() => !!props.tour)
 
 // ✅ Control local del modal
 const isOpen = computed({
   get: () => props.open ?? false,
-  set: (value) => emit('update:open', value)
-});
+  set: value => emit('update:open', value)
+})
 
 const schema = z.object({
   nameTranslations: z.object({
-    es: z.string().min(3, "El nombre (ES) debe tener al menos 3 caracteres"),
-    en: z.string().min(3, "El nombre (EN) debe tener al menos 3 caracteres"),
-    pt: z.string().min(3, "El nombre (PT) debe tener al menos 3 caracteres"),
+    es: z.string().min(3, 'El nombre (ES) debe tener al menos 3 caracteres'),
+    en: z.string().min(3, 'El nombre (EN) debe tener al menos 3 caracteres'),
+    pt: z.string().min(3, 'El nombre (PT) debe tener al menos 3 caracteres')
   }),
   descriptionTranslations: z.object({
     es: z
       .string()
-      .min(10, "La descripción (ES) debe tener al menos 10 caracteres"),
+      .min(10, 'La descripción (ES) debe tener al menos 10 caracteres'),
     en: z
       .string()
-      .min(10, "La descripción (EN) debe tener al menos 10 caracteres"),
+      .min(10, 'La descripción (EN) debe tener al menos 10 caracteres'),
     pt: z
       .string()
-      .min(10, "La descripción (PT) debe tener al menos 10 caracteres"),
+      .min(10, 'La descripción (PT) debe tener al menos 10 caracteres')
   }),
-  imageUrls: z.array(z.string().url("Debe ser una URL válida")).optional(),
+  imageUrls: z.array(z.string().url('Debe ser una URL válida')).optional(),
   moonSensitive: z.boolean(),
   windSensitive: z.boolean(),
   cloudSensitive: z.boolean(),
-  category: z.string().min(1, "La categoría es requerida"),
-  price: z.number().min(1, "El precio debe ser mayor a 0"),
+  category: z.string().min(1, 'La categoría es requerida'),
+  price: z.number().min(1, 'El precio debe ser mayor a 0'),
   defaultMaxParticipants: z
     .number()
     .int()
-    .min(1, "Debe ser al menos 1 participante"),
-  durationHours: z.number().int().min(1, "Debe ser al menos 1 hora"),
-  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
-  contentKey: z.string().min(1, "La clave de contenido es requerida"),
-});
+    .min(1, 'Debe ser al menos 1 participante'),
+  durationHours: z.number().int().min(1, 'Debe ser al menos 1 hora'),
+  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
+  contentKey: z.string().min(1, 'La clave de contenido es requerida')
+})
 
-type Schema = z.output<typeof schema>;
+type Schema = z.output<typeof schema>
 
 const initialState: Schema = {
-  nameTranslations: { es: "", en: "", pt: "" },
-  descriptionTranslations: { es: "", en: "", pt: "" },
+  nameTranslations: { es: '', en: '', pt: '' },
+  descriptionTranslations: { es: '', en: '', pt: '' },
   imageUrls: [],
   moonSensitive: false,
   windSensitive: false,
   cloudSensitive: false,
-  category: "ASTRONOMICAL",
+  category: 'ASTRONOMICAL',
   price: 1,
   defaultMaxParticipants: 10,
   durationHours: 2,
-  status: "DRAFT",
-  contentKey: "",
-};
+  status: 'DRAFT',
+  contentKey: ''
+}
 
-const state = reactive<Schema>({ ...initialState });
-const form = ref();
+const state = reactive<Schema>({ ...initialState })
+const form = ref()
 
 // Variable para guardar los errores de validación
-const formErrors = ref<FormError[]>([]);
+const formErrors = ref<FormError[]>([])
 
 // Funciones para manejar imágenes
-const handleImageUploaded = (data: { key: string; url: string }) => {
+const handleImageUploaded = (data: { key: string, url: string }) => {
   if (!state.imageUrls) {
-    state.imageUrls = [];
+    state.imageUrls = []
   }
-  state.imageUrls.push(data.url);
-};
+  state.imageUrls.push(data.url)
+}
 
 const removeImage = (index: number) => {
   if (state.imageUrls) {
-    state.imageUrls.splice(index, 1);
+    state.imageUrls.splice(index, 1)
   }
-};
+}
 
 watch(
   () => props.tour,
@@ -100,7 +100,7 @@ watch(
           tour.nameTranslations || initialState.nameTranslations,
         descriptionTranslations:
           tour.descriptionTranslations || initialState.descriptionTranslations,
-        imageUrls: tour.images?.map((img) => img.imageUrl) || [],
+        imageUrls: tour.images?.map(img => img.imageUrl) || [],
         moonSensitive: tour.moonSensitive || false,
         windSensitive: tour.windSensitive || false,
         cloudSensitive: tour.cloudSensitive || false,
@@ -109,87 +109,87 @@ watch(
         defaultMaxParticipants: tour.defaultMaxParticipants,
         durationHours: tour.durationHours,
         status: tour.status,
-        contentKey: tour.contentKey || "",
-      });
+        contentKey: tour.contentKey || ''
+      })
     } else {
-      Object.assign(state, initialState);
+      Object.assign(state, initialState)
     }
   },
-  { immediate: true, deep: true },
-);
+  { immediate: true, deep: true }
+)
 
-const { createAdminTour, updateAdminTour } = useAdminData();
-const toast = useToast();
-const loading = ref(false);
+const { createAdminTour, updateAdminTour } = useAdminData()
+const toast = useToast()
+const loading = ref(false)
 
 // onError ahora guarda los errores en nuestra variable local
 function onError(event: FormErrorEvent) {
-  formErrors.value = event.errors;
+  formErrors.value = event.errors
   toast.add({
-    title: "Error de validación",
-    description: "Por favor, corrige los campos marcados.",
-    color: "error",
-    icon: "i-heroicons-exclamation-circle",
-  });
+    title: 'Error de validación',
+    description: 'Por favor, corrige los campos marcados.',
+    color: 'error',
+    icon: 'i-heroicons-exclamation-circle'
+  })
 }
 
 // onSubmit ahora limpia los errores antes de empezar
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  formErrors.value = []; // Limpiar errores al intentar enviar
-  loading.value = true;
+  formErrors.value = [] // Limpiar errores al intentar enviar
+  loading.value = true
   try {
-    const payload = { ...event.data };
+    const payload = { ...event.data }
 
     if (isEditing.value && props.tour?.id) {
-      await updateAdminTour(props.tour.id, payload as TourUpdateReq);
+      await updateAdminTour(props.tour.id, payload as TourUpdateReq)
       toast.add({
-        title: "Tour actualizado con éxito",
-        color: "success",
-        icon: "i-heroicons-check-circle",
-      });
+        title: 'Tour actualizado con éxito',
+        color: 'success',
+        icon: 'i-heroicons-check-circle'
+      })
     } else {
-      await createAdminTour(payload as TourCreateReq);
+      await createAdminTour(payload as TourCreateReq)
       toast.add({
-        title: "Tour creado con éxito",
-        color: "success",
-        icon: "i-heroicons-check-circle",
-      });
+        title: 'Tour creado con éxito',
+        color: 'success',
+        icon: 'i-heroicons-check-circle'
+      })
     }
-    emit("success");
+    emit('success')
   } catch (error: any) {
-    const description =
-      error.data?.message || error.message || "No se pudo guardar el tour";
+    const description
+      = error.data?.message || error.message || 'No se pudo guardar el tour'
     toast.add({
-      title: "Error al guardar",
+      title: 'Error al guardar',
       description,
-      color: "error",
-      icon: "i-heroicons-exclamation-triangle",
-    });
+      color: 'error',
+      icon: 'i-heroicons-exclamation-triangle'
+    })
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 function handleSubmit() {
-  form.value?.submit();
+  form.value?.submit()
 }
 
 // Función para encontrar el error de un campo específico
 const findError = (path: string) =>
-  formErrors.value.find((e) => e.path === path)?.message;
+  formErrors.value.find(e => e.path === path)?.message
 
 const categoryOptions = [
-  { label: "Astronómico", value: "ASTRONOMICAL" },
-  { label: "Regular", value: "REGULAR" },
-  { label: "Especial", value: "SPECIAL" },
-  { label: "Privado", value: "PRIVATE" },
-];
+  { label: 'Astronómico', value: 'ASTRONOMICAL' },
+  { label: 'Regular', value: 'REGULAR' },
+  { label: 'Especial', value: 'SPECIAL' },
+  { label: 'Privado', value: 'PRIVATE' }
+]
 
 const statusOptions = [
-  { label: "Borrador", value: "DRAFT" },
-  { label: "Publicado", value: "PUBLISHED" },
-  { label: "Archivado", value: "ARCHIVED" },
-];
+  { label: 'Borrador', value: 'DRAFT' },
+  { label: 'Publicado', value: 'PUBLISHED' },
+  { label: 'Archivado', value: 'ARCHIVED' }
+]
 </script>
 
 <template>
@@ -227,9 +227,9 @@ const statusOptions = [
                 ref="form"
                 :schema="schema"
                 :state="state"
+                class="space-y-8"
                 @submit="onSubmit"
                 @error="onError"
-                class="space-y-8"
               >
                 <div class="space-y-6">
                   <h4
@@ -241,7 +241,7 @@ const statusOptions = [
                     :items="[
                       { label: 'Español', slot: 'es' },
                       { label: 'Inglés', slot: 'en' },
-                      { label: 'Portugués', slot: 'pt' },
+                      { label: 'Portugués', slot: 'pt' }
                     ]"
                     class="w-full"
                   >
@@ -356,7 +356,10 @@ const statusOptions = [
                   >
                     <div class="space-y-4">
                       <!-- Mostrar imágenes actuales -->
-                      <div v-if="state.imageUrls && state.imageUrls.length > 0" class="grid grid-cols-2 gap-4">
+                      <div
+                        v-if="state.imageUrls && state.imageUrls.length > 0"
+                        class="grid grid-cols-2 gap-4"
+                      >
                         <div
                           v-for="(url, index) in state.imageUrls"
                           :key="index"

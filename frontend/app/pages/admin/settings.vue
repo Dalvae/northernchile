@@ -1,6 +1,6 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: 'admin',
+  layout: 'admin'
 })
 
 const config = useRuntimeConfig()
@@ -43,9 +43,11 @@ const { data: settings, pending, error, refresh } = await useAsyncData(
           depositPercentage: number
         }
       }>(`${config.public.apiBase}/api/admin/settings`, {
-        headers: process.client && localStorage.getItem('auth_token') ? {
-          Authorization: `Bearer ${localStorage.getItem('auth_token')}`
-        } : {}
+        headers: import.meta.client && localStorage.getItem('auth_token')
+          ? {
+              Authorization: `Bearer ${localStorage.getItem('auth_token')}`
+            }
+          : {}
       })
       return response
     } catch (err) {
@@ -111,13 +113,15 @@ const saveSettings = async () => {
   try {
     saving.value = true
 
-    const token = process.client ? localStorage.getItem('auth_token') : null
+    const token = import.meta.client ? localStorage.getItem('auth_token') : null
     await $fetch(`${config.public.apiBase}/api/admin/settings`, {
       method: 'PUT',
       body: settingsForm.value,
-      headers: token ? {
-        Authorization: `Bearer ${token}`
-      } : {}
+      headers: token
+        ? {
+            Authorization: `Bearer ${token}`
+          }
+        : {}
     })
 
     toast.add({
@@ -165,27 +169,50 @@ const resetSettings = () => {
     </div>
 
     <!-- Loading state -->
-    <div v-if="pending" class="flex justify-center items-center py-12">
-      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+    <div
+      v-if="pending"
+      class="flex justify-center items-center py-12"
+    >
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-8 h-8 animate-spin text-primary"
+      />
     </div>
 
     <!-- Error state -->
-    <div v-else-if="error" class="text-center py-12">
-      <UIcon name="i-lucide-alert-circle" class="w-12 h-12 text-error mx-auto mb-4" />
+    <div
+      v-else-if="error"
+      class="text-center py-12"
+    >
+      <UIcon
+        name="i-lucide-alert-circle"
+        class="w-12 h-12 text-error mx-auto mb-4"
+      />
       <p class="text-neutral-600 dark:text-neutral-400">
         Error al cargar las configuraciones
       </p>
-      <UButton color="primary" variant="soft" class="mt-4" @click="refresh">
+      <UButton
+        color="primary"
+        variant="soft"
+        class="mt-4"
+        @click="refresh"
+      >
         Reintentar
       </UButton>
     </div>
 
     <!-- Settings Form -->
-    <div v-else-if="settingsForm" class="space-y-6">
+    <div
+      v-else-if="settingsForm"
+      class="space-y-6"
+    >
       <!-- Weather Alerts -->
       <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 border border-neutral-200 dark:border-neutral-700">
         <div class="flex items-center gap-3 mb-4">
-          <UIcon name="i-lucide-cloud" class="w-5 h-5 text-info" />
+          <UIcon
+            name="i-lucide-cloud"
+            class="w-5 h-5 text-info"
+          />
           <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
             Alertas Climáticas
           </h3>
@@ -243,7 +270,10 @@ const resetSettings = () => {
       <!-- Booking Settings -->
       <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 border border-neutral-200 dark:border-neutral-700">
         <div class="flex items-center gap-3 mb-4">
-          <UIcon name="i-lucide-book-marked" class="w-5 h-5 text-primary" />
+          <UIcon
+            name="i-lucide-book-marked"
+            class="w-5 h-5 text-primary"
+          />
           <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
             Configuración de Reservas
           </h3>
@@ -297,7 +327,10 @@ const resetSettings = () => {
       <!-- Astronomical Tours -->
       <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 border border-neutral-200 dark:border-neutral-700">
         <div class="flex items-center gap-3 mb-4">
-          <UIcon name="i-lucide-moon" class="w-5 h-5 text-tertiary" />
+          <UIcon
+            name="i-lucide-moon"
+            class="w-5 h-5 text-tertiary"
+          />
           <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
             Tours Astronómicos
           </h3>
@@ -338,7 +371,10 @@ const resetSettings = () => {
       <!-- Notifications -->
       <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 border border-neutral-200 dark:border-neutral-700">
         <div class="flex items-center gap-3 mb-4">
-          <UIcon name="i-lucide-bell" class="w-5 h-5 text-warning" />
+          <UIcon
+            name="i-lucide-bell"
+            class="w-5 h-5 text-warning"
+          />
           <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
             Notificaciones
           </h3>
@@ -380,7 +416,10 @@ const resetSettings = () => {
       <!-- Payments -->
       <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 border border-neutral-200 dark:border-neutral-700">
         <div class="flex items-center gap-3 mb-4">
-          <UIcon name="i-lucide-credit-card" class="w-5 h-5 text-success" />
+          <UIcon
+            name="i-lucide-credit-card"
+            class="w-5 h-5 text-success"
+          />
           <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
             Pagos
           </h3>
@@ -454,7 +493,10 @@ const resetSettings = () => {
       <!-- Warning Notice -->
       <div class="bg-warning/10 border border-warning/20 rounded-lg p-4">
         <div class="flex gap-3">
-          <UIcon name="i-lucide-alert-triangle" class="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+          <UIcon
+            name="i-lucide-alert-triangle"
+            class="w-5 h-5 text-warning flex-shrink-0 mt-0.5"
+          />
           <div>
             <p class="text-sm font-medium text-warning mb-1">
               Nota de Implementación

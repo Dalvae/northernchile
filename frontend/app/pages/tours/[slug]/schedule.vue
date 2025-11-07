@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TourRes } from "~/lib/api-client"
+import type { TourRes } from '~/lib/api-client'
 
 const route = useRoute()
 const router = useRouter()
@@ -24,16 +24,16 @@ const calendarRef = ref<any>(null)
 
 const translatedName = computed(
   () =>
-    tour.value?.nameTranslations?.[locale.value] ||
-    tour.value?.nameTranslations?.["es"] ||
-    ""
+    tour.value?.nameTranslations?.[locale.value]
+    || tour.value?.nameTranslations?.['es']
+    || ''
 )
 
 const translatedDescription = computed(
   () =>
-    tour.value?.descriptionTranslations?.[locale.value] ||
-    tour.value?.descriptionTranslations?.["es"] ||
-    ""
+    tour.value?.descriptionTranslations?.[locale.value]
+    || tour.value?.descriptionTranslations?.['es']
+    || ''
 )
 
 // Fetch tour data
@@ -42,8 +42,8 @@ async function fetchTour() {
     const response = await $fetch(`/api/tours/slug/${tourSlug}`)
     tour.value = response as TourRes
   } catch (e: any) {
-    error.value = t("schedule.error_loading_tour")
-    console.error("Failed to fetch tour", e)
+    error.value = t('schedule.error_loading_tour')
+    console.error('Failed to fetch tour', e)
   } finally {
     loading.value = false
   }
@@ -63,27 +63,27 @@ async function addToCart() {
   try {
     await cartStore.addItem({
       scheduleId: selectedSchedule.value.id,
-      numParticipants: participantCount.value,
+      numParticipants: participantCount.value
     })
 
     toast.add({
-      color: "success",
-      title: t("schedule.added_to_cart"),
+      color: 'success',
+      title: t('schedule.added_to_cart'),
       description: `${translatedName.value} - ${new Date(
         selectedSchedule.value.startDatetime
-      ).toLocaleDateString(locale.value)}`,
+      ).toLocaleDateString(locale.value)}`
     })
 
     showParticipantModal.value = false
     selectedSchedule.value = null
 
     // Go to cart
-    router.push("/cart")
+    router.push('/cart')
   } catch (e: any) {
     toast.add({
-      color: "error",
-      title: t("common.error"),
-      description: e.data?.message || t("schedule.error_adding_to_cart"),
+      color: 'error',
+      title: t('common.error'),
+      description: e.data?.message || t('schedule.error_adding_to_cart')
     })
   }
 }
@@ -95,12 +95,12 @@ onMounted(async () => {
 
 // SEO
 useSeoMeta({
-  title: () => `${translatedName.value} - ${t("schedule.title")} - Northern Chile`,
+  title: () => `${translatedName.value} - ${t('schedule.title')} - Northern Chile`,
   description: translatedDescription,
-  ogTitle: () => `${translatedName.value} - ${t("schedule.title")}`,
+  ogTitle: () => `${translatedName.value} - ${t('schedule.title')}`,
   ogDescription: translatedDescription,
-  ogImage: tour.value?.images?.[0]?.url || "https://www.northernchile.cl/og-image-tours.jpg",
-  twitterCard: "summary_large_image",
+  ogImage: tour.value?.images?.[0]?.url || 'https://www.northernchile.cl/og-image-tours.jpg',
+  twitterCard: 'summary_large_image'
 })
 </script>
 
@@ -108,7 +108,10 @@ useSeoMeta({
   <div class="min-h-screen bg-white dark:bg-neutral-900">
     <UContainer class="py-8 sm:py-12">
       <!-- Loading State -->
-      <div v-if="loading" class="flex justify-center items-center py-20">
+      <div
+        v-if="loading"
+        class="flex justify-center items-center py-20"
+      >
         <UIcon
           name="i-lucide-loader-2"
           class="w-12 h-12 animate-spin text-primary"
@@ -116,11 +119,17 @@ useSeoMeta({
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="text-center py-20">
+      <div
+        v-else-if="error"
+        class="text-center py-20"
+      >
         <div
           class="w-16 h-16 mx-auto rounded-full bg-error/10 flex items-center justify-center mb-4"
         >
-          <UIcon name="i-lucide-alert-circle" class="w-8 h-8 text-error" />
+          <UIcon
+            name="i-lucide-alert-circle"
+            class="w-8 h-8 text-error"
+          />
         </div>
         <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
           {{ error }}
@@ -128,7 +137,10 @@ useSeoMeta({
         <p class="text-neutral-600 dark:text-neutral-400 mb-6">
           {{ t("schedule.error_description") }}
         </p>
-        <UButton color="primary" @click="router.push('/tours')">
+        <UButton
+          color="primary"
+          @click="router.push('/tours')"
+        >
           {{ t("schedule.back_to_tours") }}
         </UButton>
       </div>
@@ -162,7 +174,10 @@ useSeoMeta({
                 <div
                   class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
                 >
-                  <UIcon name="i-lucide-clock" class="w-5 h-5 text-primary" />
+                  <UIcon
+                    name="i-lucide-clock"
+                    class="w-5 h-5 text-primary"
+                  />
                 </div>
                 <div>
                   <p class="text-sm text-neutral-600 dark:text-neutral-400">
@@ -180,7 +195,10 @@ useSeoMeta({
                 <div
                   class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
                 >
-                  <UIcon name="i-lucide-tag" class="w-5 h-5 text-primary" />
+                  <UIcon
+                    name="i-lucide-tag"
+                    class="w-5 h-5 text-primary"
+                  />
                 </div>
                 <div>
                   <p class="text-sm text-neutral-600 dark:text-neutral-400">
@@ -198,7 +216,10 @@ useSeoMeta({
                 <div
                   class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
                 >
-                  <UIcon name="i-lucide-users" class="w-5 h-5 text-primary" />
+                  <UIcon
+                    name="i-lucide-users"
+                    class="w-5 h-5 text-primary"
+                  />
                 </div>
                 <div>
                   <p class="text-sm text-neutral-600 dark:text-neutral-400">
@@ -216,7 +237,10 @@ useSeoMeta({
                 <div
                   class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
                 >
-                  <UIcon name="i-lucide-tag" class="w-5 h-5 text-primary" />
+                  <UIcon
+                    name="i-lucide-tag"
+                    class="w-5 h-5 text-primary"
+                  />
                 </div>
                 <div>
                   <p class="text-sm text-neutral-600 dark:text-neutral-400">
@@ -245,7 +269,10 @@ useSeoMeta({
             <template #info>
               <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <p class="text-sm text-blue-900 dark:text-blue-200">
-                  <UIcon name="i-lucide-info" class="inline w-4 h-4 mr-1" />
+                  <UIcon
+                    name="i-lucide-info"
+                    class="inline w-4 h-4 mr-1"
+                  />
                   {{ t("schedule.info_text") || "Haz clic en una fecha disponible para reservar tu lugar." }}
                 </p>
               </div>
@@ -272,7 +299,10 @@ useSeoMeta({
               </div>
 
               <!-- Selected Schedule Info -->
-              <div v-if="selectedSchedule" class="mb-6 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+              <div
+                v-if="selectedSchedule"
+                class="mb-6 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg"
+              >
                 <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
                   {{ t("schedule.selected_date") }}
                 </p>
@@ -312,7 +342,7 @@ useSeoMeta({
                     min="1"
                     :max="selectedSchedule?.maxParticipants || 20"
                     class="w-20 text-center text-2xl font-bold bg-transparent text-neutral-900 dark:text-white"
-                  />
+                  >
                   <UButton
                     color="neutral"
                     variant="outline"

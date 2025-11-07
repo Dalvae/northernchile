@@ -1,150 +1,150 @@
 <script setup lang="ts">
-import { h } from "vue";
-import type { UserRes } from "~/lib/api-client";
+import { h } from 'vue'
+import type { UserRes } from '~/lib/api-client'
 
 definePageMeta({
-  layout: "admin",
-});
+  layout: 'admin'
+})
 
-const { fetchAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser } =
-  useAdminData();
+const { fetchAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser }
+  = useAdminData()
 
 const {
   data: users,
   pending,
-  refresh,
-} = useAsyncData("admin-users", () => fetchAdminUsers(), {
+  refresh
+} = useAsyncData('admin-users', () => fetchAdminUsers(), {
   server: false,
   lazy: true,
-  default: () => [],
-});
+  default: () => []
+})
 
-const q = ref("");
-const roleFilter = ref<string>("ALL");
+const q = ref('')
+const roleFilter = ref<string>('ALL')
 
 const columns = [
   {
-    id: "email",
-    accessorKey: "email",
-    header: "Email",
+    id: 'email',
+    accessorKey: 'email',
+    header: 'Email'
   },
   {
-    id: "fullName",
-    accessorKey: "fullName",
-    header: "Nombre Completo",
+    id: 'fullName',
+    accessorKey: 'fullName',
+    header: 'Nombre Completo'
   },
   {
-    id: "role",
-    accessorKey: "role",
-    header: "Rol",
+    id: 'role',
+    accessorKey: 'role',
+    header: 'Rol'
   },
   {
-    id: "nationality",
-    accessorKey: "nationality",
-    header: "Nacionalidad",
+    id: 'nationality',
+    accessorKey: 'nationality',
+    header: 'Nacionalidad'
   },
   {
-    id: "phoneNumber",
-    accessorKey: "phoneNumber",
-    header: "Teléfono",
+    id: 'phoneNumber',
+    accessorKey: 'phoneNumber',
+    header: 'Teléfono'
   },
   {
-    id: "createdAt",
-    accessorKey: "createdAt",
-    header: "Fecha Creación",
+    id: 'createdAt',
+    accessorKey: 'createdAt',
+    header: 'Fecha Creación'
   },
   {
-    id: "actions",
-    header: "Acciones",
-  },
-];
+    id: 'actions',
+    header: 'Acciones'
+  }
+]
 
 const roleOptions = [
-  { label: "Todos", value: "ALL" },
-  { label: "Clientes", value: "ROLE_CLIENT" },
-  { label: "Partner Admin", value: "ROLE_PARTNER_ADMIN" },
-  { label: "Super Admin", value: "ROLE_SUPER_ADMIN" },
-];
+  { label: 'Todos', value: 'ALL' },
+  { label: 'Clientes', value: 'ROLE_CLIENT' },
+  { label: 'Partner Admin', value: 'ROLE_PARTNER_ADMIN' },
+  { label: 'Super Admin', value: 'ROLE_SUPER_ADMIN' }
+]
 
 const filteredRows = computed(() => {
-  if (!users.value || users.value.length === 0) return [];
+  if (!users.value || users.value.length === 0) return []
 
-  let rows = users.value;
+  let rows = users.value
 
   // Filter by search query
   if (q.value) {
-    const query = q.value.toLowerCase();
+    const query = q.value.toLowerCase()
     rows = rows.filter(
-      (user) =>
-        user.email?.toLowerCase().includes(query) ||
-        user.fullName?.toLowerCase().includes(query) ||
-        user.id?.toLowerCase().includes(query)
-    );
+      user =>
+        user.email?.toLowerCase().includes(query)
+        || user.fullName?.toLowerCase().includes(query)
+        || user.id?.toLowerCase().includes(query)
+    )
   }
 
   // Filter by role
-  if (roleFilter.value && roleFilter.value !== "ALL") {
-    rows = rows.filter((user) => user.role === roleFilter.value);
+  if (roleFilter.value && roleFilter.value !== 'ALL') {
+    rows = rows.filter(user => user.role === roleFilter.value)
   }
 
-  return rows;
-});
+  return rows
+})
 
-const toast = useToast();
+const toast = useToast()
 
 async function handleDelete(user: UserRes) {
-  const userName = user.fullName || user.email || "este usuario";
+  const userName = user.fullName || user.email || 'este usuario'
   if (confirm(`¿Estás seguro de que quieres eliminar a "${userName}"?`)) {
     try {
-      await deleteAdminUser(user.id);
+      await deleteAdminUser(user.id)
       toast.add({
-        title: "Usuario eliminado",
-        color: "success",
-        icon: "i-lucide-check-circle",
-      });
-      await refresh();
+        title: 'Usuario eliminado',
+        color: 'success',
+        icon: 'i-lucide-check-circle'
+      })
+      await refresh()
     } catch (e: any) {
       toast.add({
-        title: "Error al eliminar",
-        description: e.message || "Error desconocido",
-        color: "error",
-        icon: "i-lucide-x-circle",
-      });
+        title: 'Error al eliminar',
+        description: e.message || 'Error desconocido',
+        color: 'error',
+        icon: 'i-lucide-x-circle'
+      })
     }
   }
 }
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("es-CL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  return new Date(dateString).toLocaleDateString('es-CL', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  })
 }
 
 function getRoleLabel(role: string): string {
   switch (role) {
-    case "ROLE_CLIENT":
-      return "Cliente";
-    case "ROLE_PARTNER_ADMIN":
-      return "Partner Admin";
-    case "ROLE_SUPER_ADMIN":
-      return "Super Admin";
+    case 'ROLE_CLIENT':
+      return 'Cliente'
+    case 'ROLE_PARTNER_ADMIN':
+      return 'Partner Admin'
+    case 'ROLE_SUPER_ADMIN':
+      return 'Super Admin'
     default:
-      return role;
+      return role
   }
 }
 
 function getRoleBadgeColor(role: string): string {
   switch (role) {
-    case "ROLE_SUPER_ADMIN":
-      return "error";
-    case "ROLE_PARTNER_ADMIN":
-      return "warning";
-    case "ROLE_CLIENT":
-      return "info";
+    case 'ROLE_SUPER_ADMIN':
+      return 'error'
+    case 'ROLE_PARTNER_ADMIN':
+      return 'warning'
+    case 'ROLE_CLIENT':
+      return 'info'
     default:
-      return "neutral";
+      return 'neutral'
   }
 }
 </script>
@@ -195,7 +195,7 @@ function getRoleBadgeColor(role: string): string {
           :loading="pending"
           :empty-state="{
             icon: 'i-lucide-users',
-            label: 'No hay usuarios registrados.',
+            label: 'No hay usuarios registrados.'
           }"
         >
           <template #email-data="{ row }">
@@ -240,7 +240,10 @@ function getRoleBadgeColor(role: string): string {
           <template #actions-cell="{ row }">
             <div class="flex items-center gap-2">
               <!-- Edit User Modal -->
-              <AdminUsersEditUserModal :user="row.original" @success="refresh" />
+              <AdminUsersEditUserModal
+                :user="row.original"
+                @success="refresh"
+              />
 
               <UButton
                 icon="i-lucide-trash-2"

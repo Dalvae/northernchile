@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import FullCalendar from "@fullcalendar/vue3"
-import dayGridPlugin from "@fullcalendar/daygrid"
-import interactionPlugin from "@fullcalendar/interaction"
-import type { CalendarOptions, EventClickArg } from "@fullcalendar/core"
-import esLocale from "@fullcalendar/core/locales/es"
-import ptLocale from "@fullcalendar/core/locales/pt"
-import enLocale from "@fullcalendar/core/locales/en-gb"
-import type { TourRes } from "~/lib/api-client"
+import FullCalendar from '@fullcalendar/vue3'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import type { CalendarOptions, EventClickArg } from '@fullcalendar/core'
+import esLocale from '@fullcalendar/core/locales/es'
+import ptLocale from '@fullcalendar/core/locales/pt'
+import enLocale from '@fullcalendar/core/locales/en-gb'
+import type { TourRes } from '~/lib/api-client'
 
 interface Props {
   tours: TourRes[]
@@ -17,8 +17,8 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   showLegend: true,
-  height: "auto",
-  initialView: "dayGridMonth",
+  height: 'auto',
+  initialView: 'dayGridMonth'
 })
 
 const emit = defineEmits<{
@@ -44,7 +44,7 @@ async function fetchSchedules() {
     const end = new Date()
     end.setDate(end.getDate() + 90)
 
-    const formatDate = (date: Date) => date.toISOString().split("T")[0]
+    const formatDate = (date: Date) => date.toISOString().split('T')[0]
 
     const allSchedules = await Promise.all(
       props.tours.map(async (tour) => {
@@ -52,8 +52,8 @@ async function fetchSchedules() {
           const response = await $fetch(`${config.public.apiBase}/api/tours/${tour.id}/schedules`, {
             params: {
               start: formatDate(start),
-              end: formatDate(end),
-            },
+              end: formatDate(end)
+            }
           })
           return (response as any[]).map(s => ({ ...s, tour }))
         } catch {
@@ -64,7 +64,7 @@ async function fetchSchedules() {
 
     schedules.value = allSchedules.flat()
   } catch (e: any) {
-    console.error("Failed to fetch schedules", e)
+    console.error('Failed to fetch schedules', e)
     schedules.value = []
   }
 }
@@ -78,18 +78,18 @@ async function fetchLunarData() {
     const end = new Date()
     end.setDate(end.getDate() + 90)
 
-    const formatDate = (date: Date) => date.toISOString().split("T")[0]
+    const formatDate = (date: Date) => date.toISOString().split('T')[0]
 
     const response = await $fetch(`${config.public.apiBase}/api/lunar/calendar`, {
       params: {
         startDate: formatDate(start),
-        endDate: formatDate(end),
-      },
+        endDate: formatDate(end)
+      }
     })
 
     lunarData.value = response as any[]
   } catch (e: any) {
-    console.error("Failed to fetch lunar data", e)
+    console.error('Failed to fetch lunar data', e)
     lunarData.value = []
   }
 }
@@ -103,19 +103,19 @@ async function fetchWeatherData() {
     const weatherArray: any[] = []
     if ((response as any)?.daily) {
       for (const day of (response as any).daily) {
-        const date = new Date(day.dt * 1000).toISOString().split("T")[0]
+        const date = new Date(day.dt * 1000).toISOString().split('T')[0]
         weatherArray.push({
           date,
           maxWindKph: (day.windSpeed || 0) / 0.514444,
           cloudCover: day.clouds || 0,
-          chanceOfRain: (day.pop || 0) * 100,
+          chanceOfRain: (day.pop || 0) * 100
         })
       }
     }
 
     weatherData.value = weatherArray
   } catch (e: any) {
-    console.error("Failed to fetch weather data", e)
+    console.error('Failed to fetch weather data', e)
     weatherData.value = []
   }
 }
@@ -126,7 +126,7 @@ async function fetchCalendarData() {
     await Promise.all([
       fetchSchedules(),
       fetchLunarData(),
-      fetchWeatherData(),
+      fetchWeatherData()
     ])
   } finally {
     loading.value = false
@@ -136,28 +136,28 @@ async function fetchCalendarData() {
 // Get moon emoji for phase
 function getMoonEmoji(phaseName: string): string {
   const moonPhases: Record<string, string> = {
-    "New Moon": "🌑",
-    "Waxing Crescent": "🌒",
-    "First Quarter": "🌓",
-    "Waxing Gibbous": "🌔",
-    "Full Moon": "🌕",
-    "Waning Gibbous": "🌖",
-    "Last Quarter": "🌗",
-    "Waning Crescent": "🌘",
+    'New Moon': '🌑',
+    'Waxing Crescent': '🌒',
+    'First Quarter': '🌓',
+    'Waxing Gibbous': '🌔',
+    'Full Moon': '🌕',
+    'Waning Gibbous': '🌖',
+    'Last Quarter': '🌗',
+    'Waning Crescent': '🌘'
   }
-  return moonPhases[phaseName] || "🌑"
+  return moonPhases[phaseName] || '🌑'
 }
 
 // Get tour color
 function getTourColor(tourId: string): string {
   const colors = [
-    "#10b981", // green
-    "#3b82f6", // blue
-    "#f59e0b", // amber
-    "#ef4444", // red
-    "#8b5cf6", // purple
-    "#ec4899", // pink
-    "#14b8a6", // teal
+    '#10b981', // green
+    '#3b82f6', // blue
+    '#f59e0b', // amber
+    '#ef4444', // red
+    '#8b5cf6', // purple
+    '#ec4899', // pink
+    '#14b8a6' // teal
   ]
 
   const index = props.tours.findIndex(t => t.id === tourId)
@@ -171,30 +171,30 @@ const calendarEvents = computed(() => {
   // Add tour schedules
   schedules.value.forEach((schedule) => {
     const startDate = new Date(schedule.startDatetime)
-    const tourName = schedule.tour?.nameTranslations?.[locale.value] ||
-                     schedule.tour?.nameTranslations?.es ||
-                     "Tour"
+    const tourName = schedule.tour?.nameTranslations?.[locale.value]
+      || schedule.tour?.nameTranslations?.es
+      || 'Tour'
 
     events.push({
       id: schedule.id,
       title: `${tourName} - ${startDate.toLocaleTimeString(locale.value, {
-        hour: "2-digit",
-        minute: "2-digit"
+        hour: '2-digit',
+        minute: '2-digit'
       })}`,
       start: schedule.startDatetime,
       allDay: false,
       backgroundColor: getTourColor(schedule.tour?.id),
       borderColor: getTourColor(schedule.tour?.id),
-      textColor: "#ffffff",
+      textColor: '#ffffff',
       extendedProps: {
-        type: "schedule",
+        type: 'schedule',
         schedule: schedule,
         tour: schedule.tour,
         availableSpots: schedule.availableSpots || schedule.maxParticipants,
         bookedParticipants: schedule.bookedParticipants || 0,
         maxParticipants: schedule.maxParticipants,
-        status: schedule.status,
-      },
+        status: schedule.status
+      }
     })
   })
 
@@ -204,14 +204,14 @@ const calendarEvents = computed(() => {
       title: getMoonEmoji(lunar.phaseName),
       start: lunar.date,
       allDay: true,
-      display: "background",
-      backgroundColor: "transparent",
-      textColor: "#6b7280",
+      display: 'background',
+      backgroundColor: 'transparent',
+      textColor: '#6b7280',
       extendedProps: {
-        type: "lunar",
+        type: 'lunar',
         phase: lunar.phaseName,
-        illumination: lunar.illumination,
-      },
+        illumination: lunar.illumination
+      }
     })
   })
 
@@ -222,24 +222,24 @@ const calendarEvents = computed(() => {
     const hasRain = weather.chanceOfRain > 50
 
     if (hasHighWind || hasHighCloudCover || hasRain) {
-      let weatherIcon = ""
-      if (hasHighWind) weatherIcon += "💨"
-      if (hasHighCloudCover) weatherIcon += "☁️"
-      if (hasRain) weatherIcon += "🌧️"
+      let weatherIcon = ''
+      if (hasHighWind) weatherIcon += '💨'
+      if (hasHighCloudCover) weatherIcon += '☁️'
+      if (hasRain) weatherIcon += '🌧️'
 
       events.push({
         title: weatherIcon,
         start: weather.date,
         allDay: true,
-        display: "background",
-        backgroundColor: "transparent",
-        textColor: "#ef4444",
+        display: 'background',
+        backgroundColor: 'transparent',
+        textColor: '#ef4444',
         extendedProps: {
-          type: "weather",
+          type: 'weather',
           wind: weather.maxWindKph,
           cloudCover: weather.cloudCover,
-          rain: weather.chanceOfRain,
-        },
+          rain: weather.chanceOfRain
+        }
       })
     }
   })
@@ -251,33 +251,33 @@ const calendarEvents = computed(() => {
 const calendarOptions = computed<CalendarOptions>(() => ({
   plugins: [dayGridPlugin, interactionPlugin],
   initialView: props.initialView,
-  locale: locale.value === "es" ? esLocale : locale.value === "pt" ? ptLocale : enLocale,
+  locale: locale.value === 'es' ? esLocale : locale.value === 'pt' ? ptLocale : enLocale,
   headerToolbar: {
-    left: "prev,next today",
-    center: "title",
-    right: "",
+    left: 'prev,next today',
+    center: 'title',
+    right: ''
   },
   events: calendarEvents.value,
   eventClick: handleEventClick,
   eventContent: renderEventContent,
   height: props.height,
-  eventDisplay: "block",
+  eventDisplay: 'block',
   displayEventTime: true,
   eventTimeFormat: {
-    hour: "2-digit",
-    minute: "2-digit",
-    meridiem: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    meridiem: false
   },
   buttonText: {
-    today: t("common.today"),
-  },
+    today: t('common.today')
+  }
 }))
 
 // Custom event content renderer to show available spots
 function renderEventContent(arg: any) {
   const eventType = arg.event.extendedProps.type
 
-  if (eventType === "schedule") {
+  if (eventType === 'schedule') {
     const availableSpots = arg.event.extendedProps.availableSpots
     const maxParticipants = arg.event.extendedProps.maxParticipants
 
@@ -306,10 +306,10 @@ function renderEventContent(arg: any) {
 function handleEventClick(info: EventClickArg) {
   const eventType = info.event.extendedProps.type
 
-  if (eventType === "schedule") {
+  if (eventType === 'schedule') {
     const schedule = info.event.extendedProps.schedule
     const tour = info.event.extendedProps.tour
-    emit("scheduleClick", schedule, tour)
+    emit('scheduleClick', schedule, tour)
   }
 }
 
@@ -327,13 +327,16 @@ onMounted(async () => {
 
 // Expose refresh method
 defineExpose({
-  refresh: fetchCalendarData,
+  refresh: fetchCalendarData
 })
 </script>
 
 <template>
   <div>
-    <div v-if="loading" class="text-center py-12">
+    <div
+      v-if="loading"
+      class="text-center py-12"
+    >
       <UIcon
         name="i-lucide-loader-2"
         class="w-8 h-8 animate-spin text-primary mx-auto"
@@ -345,7 +348,10 @@ defineExpose({
 
     <div v-else>
       <!-- Legend -->
-      <div v-if="showLegend" class="mb-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+      <div
+        v-if="showLegend"
+        class="mb-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg"
+      >
         <h3 class="text-sm font-semibold text-neutral-900 dark:text-white mb-3">
           {{ t("schedule.legend_title") || "Leyenda" }}
         </h3>
@@ -356,8 +362,15 @@ defineExpose({
               {{ t("tours.calendar.tours") || "Tours" }}
             </p>
             <div class="flex flex-wrap gap-3">
-              <div v-for="tour in tours.slice(0, 7)" :key="tour.id" class="flex items-center gap-2">
-                <div class="w-4 h-4 rounded" :style="{ backgroundColor: getTourColor(tour.id) }"></div>
+              <div
+                v-for="tour in tours.slice(0, 7)"
+                :key="tour.id"
+                class="flex items-center gap-2"
+              >
+                <div
+                  class="w-4 h-4 rounded"
+                  :style="{ backgroundColor: getTourColor(tour.id) }"
+                />
                 <span class="text-sm text-neutral-700 dark:text-neutral-300">
                   {{ tour.nameTranslations?.[locale] || tour.nameTranslations?.es }}
                 </span>
@@ -402,7 +415,10 @@ defineExpose({
 
       <!-- Calendar -->
       <div class="bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-4 tour-calendar-container">
-        <FullCalendar v-if="calendarOptions" :options="calendarOptions" />
+        <FullCalendar
+          v-if="calendarOptions"
+          :options="calendarOptions"
+        />
       </div>
 
       <!-- Slot for additional info -->

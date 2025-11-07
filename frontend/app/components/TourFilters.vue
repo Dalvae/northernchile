@@ -9,46 +9,46 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   resultsCount: 0,
-  showResultsCount: true,
+  showResultsCount: true
 })
 
 const emit = defineEmits<{
-  "update:searchQuery": [value: string]
-  "update:selectedCategory": [value: string | null]
-  "update:sortBy": [value: string]
-  "clearFilters": []
+  'update:searchQuery': [value: string]
+  'update:selectedCategory': [value: string | null]
+  'update:sortBy': [value: string]
+  'clearFilters': []
 }>()
 
 const { t } = useI18n()
 
 const localSearchQuery = computed({
   get: () => props.searchQuery,
-  set: (value) => emit("update:searchQuery", value),
+  set: value => emit('update:searchQuery', value)
 })
 
 const localSelectedCategory = computed({
   get: () => props.selectedCategory,
-  set: (value) => emit("update:selectedCategory", value),
+  set: value => emit('update:selectedCategory', value)
 })
 
 const localSortBy = computed({
   get: () => props.sortBy,
-  set: (value) => emit("update:sortBy", value),
+  set: value => emit('update:sortBy', value)
 })
 
 const categoryOptions = computed(() => [
-  { label: t("tours.all_categories"), value: null },
-  { label: t("tours.category.ASTRONOMICAL"), value: "ASTRONOMICAL" },
-  { label: t("tours.category.REGULAR"), value: "REGULAR" },
-  { label: t("tours.category.SPECIAL"), value: "SPECIAL" },
-  { label: t("tours.category.PRIVATE"), value: "PRIVATE" },
+  { label: t('tours.all_categories'), value: null },
+  { label: t('tours.category.ASTRONOMICAL'), value: 'ASTRONOMICAL' },
+  { label: t('tours.category.REGULAR'), value: 'REGULAR' },
+  { label: t('tours.category.SPECIAL'), value: 'SPECIAL' },
+  { label: t('tours.category.PRIVATE'), value: 'PRIVATE' }
 ])
 
 const sortOptions = computed(() => [
-  { label: t("tours.sort_name"), value: "name" },
-  { label: t("tours.sort_price_asc"), value: "price-asc" },
-  { label: t("tours.sort_price_desc"), value: "price-desc" },
-  { label: t("tours.sort_duration"), value: "duration" },
+  { label: t('tours.sort_name'), value: 'name' },
+  { label: t('tours.sort_price_asc'), value: 'price-asc' },
+  { label: t('tours.sort_price_desc'), value: 'price-desc' },
+  { label: t('tours.sort_duration'), value: 'duration' }
 ])
 
 const hasActiveFilters = computed(() => {
@@ -56,9 +56,9 @@ const hasActiveFilters = computed(() => {
 })
 
 function clearFilters() {
-  emit("update:searchQuery", "")
-  emit("update:selectedCategory", null)
-  emit("clearFilters")
+  emit('update:searchQuery', '')
+  emit('update:selectedCategory', null)
+  emit('clearFilters')
 }
 </script>
 

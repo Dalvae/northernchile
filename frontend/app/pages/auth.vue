@@ -27,11 +27,19 @@
         </div>
 
         <!-- Form -->
-        <UForm :state="state" :schema="schema" @submit="handleSubmit">
+        <UForm
+          :state="state"
+          :schema="schema"
+          @submit="handleSubmit"
+        >
           <div class="space-y-4">
             <!-- Login Fields -->
             <template v-if="isLogin">
-              <UFormField :label="t('auth.email')" name="email" required>
+              <UFormField
+                :label="t('auth.email')"
+                name="email"
+                required
+              >
                 <UInput
                   v-model="state.email"
                   type="email"
@@ -42,7 +50,11 @@
                 />
               </UFormField>
 
-              <UFormField :label="t('auth.password')" name="password" required>
+              <UFormField
+                :label="t('auth.password')"
+                name="password"
+                required
+              >
                 <UInput
                   v-model="state.password"
                   type="password"
@@ -56,7 +68,11 @@
 
             <!-- Register Fields -->
             <template v-else>
-              <UFormField :label="t('auth.full_name')" name="fullName" required>
+              <UFormField
+                :label="t('auth.full_name')"
+                name="fullName"
+                required
+              >
                 <UInput
                   v-model="state.fullName"
                   :placeholder="t('auth.full_name_placeholder')"
@@ -66,7 +82,11 @@
                 />
               </UFormField>
 
-              <UFormField :label="t('auth.email')" name="email" required>
+              <UFormField
+                :label="t('auth.email')"
+                name="email"
+                required
+              >
                 <UInput
                   v-model="state.email"
                   type="email"
@@ -94,7 +114,10 @@
                   />
                 </UFormField>
 
-                <UFormField :label="t('booking.phone')" name="phoneNumber">
+                <UFormField
+                  :label="t('booking.phone')"
+                  name="phoneNumber"
+                >
                   <UInput
                     v-model="state.phoneNumber"
                     type="tel"
@@ -119,7 +142,11 @@
                 />
               </UFormField>
 
-              <UFormField :label="t('auth.password')" name="password" required>
+              <UFormField
+                :label="t('auth.password')"
+                name="password"
+                required
+              >
                 <UInput
                   v-model="state.password"
                   type="password"
@@ -171,8 +198,8 @@
           <UButton
             variant="link"
             color="primary"
-            @click="toggleForm"
             class="ml-1"
+            @click="toggleForm"
           >
             {{ isLogin ? t("auth.register") : t("auth.login") }}
           </UButton>
@@ -201,82 +228,82 @@
 </template>
 
 <script setup lang="ts">
-import type { FormSubmitEvent } from "@nuxt/ui";
-import { z } from "zod";
+import type { FormSubmitEvent } from '@nuxt/ui'
+import { z } from 'zod'
 
-const { t } = useI18n();
-const authStore = useAuthStore();
-const router = useRouter();
-const toast = useToast();
-const { countries } = useCountries();
+const { t } = useI18n()
+const authStore = useAuthStore()
+const router = useRouter()
+const toast = useToast()
+const { countries } = useCountries()
 
 // Estado
-const isLogin = ref(true);
-const loading = ref(false);
+const isLogin = ref(true)
+const loading = ref(false)
 
 // State del formulario
 const state = reactive({
-  email: "",
-  password: "",
-  confirmPassword: "",
-  fullName: "",
-  nationality: "",
-  phoneNumber: "",
-  dateOfBirth: "",
-});
+  email: '',
+  password: '',
+  confirmPassword: '',
+  fullName: '',
+  nationality: '',
+  phoneNumber: '',
+  dateOfBirth: ''
+})
 
 // Schema de validación
 const schema = computed(() => {
   if (isLogin.value) {
     return z.object({
-      email: z.string().email(t("auth.email_invalid")),
-      password: z.string().min(1, t("auth.password_required")),
-    });
+      email: z.string().email(t('auth.email_invalid')),
+      password: z.string().min(1, t('auth.password_required'))
+    })
   } else {
     return z
       .object({
-        fullName: z.string().min(2, t("auth.full_name_min")),
-        email: z.string().email(t("auth.email_invalid")),
+        fullName: z.string().min(2, t('auth.full_name_min')),
+        email: z.string().email(t('auth.email_invalid')),
         nationality: z.string().optional(),
         phoneNumber: z.string().optional(),
         dateOfBirth: z.string().optional(),
-        password: z.string().min(8, t("auth.password_min")),
-        confirmPassword: z.string(),
+        password: z.string().min(8, t('auth.password_min')),
+        confirmPassword: z.string()
       })
-      .refine((data) => data.password === data.confirmPassword, {
-        message: t("auth.passwords_dont_match"),
-        path: ["confirmPassword"],
-      });
+      .refine(data => data.password === data.confirmPassword, {
+        message: t('auth.passwords_dont_match'),
+        path: ['confirmPassword']
+      })
   }
-});
+})
 
 // Alternar formulario
 function toggleForm() {
-  isLogin.value = !isLogin.value;
+  isLogin.value = !isLogin.value
   // Reset form
   Object.keys(state).forEach((key) => {
-    state[key as keyof typeof state] = "";
-  });
+    state[key as keyof typeof state] = ''
+  })
 }
 
 // Submit
 async function handleSubmit(event: FormSubmitEvent<any>) {
-  loading.value = true;
+  loading.value = true
 
   try {
     if (isLogin.value) {
       await authStore.login({
         email: state.email,
-        password: state.password,
-      });
+        password: state.password
+      })
 
       toast.add({
-        title: t("common.success"),
-        description: t("auth.login_success"),
-        color: "success",
-      });
+        title: t('common.success'),
+        description: t('auth.login_success'),
+        color: 'success'
+      })
 
-      await router.push("/");
+      await router.push('/')
     } else {
       await authStore.register({
         email: state.email,
@@ -284,45 +311,45 @@ async function handleSubmit(event: FormSubmitEvent<any>) {
         fullName: state.fullName,
         nationality: state.nationality || undefined,
         phoneNumber: state.phoneNumber || undefined,
-        dateOfBirth: state.dateOfBirth || undefined,
-      });
+        dateOfBirth: state.dateOfBirth || undefined
+      })
 
       toast.add({
-        title: t("common.success"),
-        description: t("auth.register_success"),
-        color: "success",
-      });
+        title: t('common.success'),
+        description: t('auth.register_success'),
+        color: 'success'
+      })
 
       // Cambiar a login
-      isLogin.value = true;
+      isLogin.value = true
       Object.keys(state).forEach((key) => {
-        state[key as keyof typeof state] = "";
-      });
+        state[key as keyof typeof state] = ''
+      })
     }
   } catch (error: any) {
-    console.error("Error en auth:", error);
+    console.error('Error en auth:', error)
 
-    let errorMessage = t("common.error");
+    let errorMessage = t('common.error')
 
     if (error.response?.status === 403) {
-      errorMessage = t("auth.invalid_credentials");
+      errorMessage = t('auth.invalid_credentials')
     } else if (error.response?.status === 400) {
-      errorMessage = t("auth.invalid_data");
+      errorMessage = t('auth.invalid_data')
     } else if (error.message) {
-      errorMessage = error.message;
+      errorMessage = error.message
     }
 
     toast.add({
-      title: t("common.error"),
+      title: t('common.error'),
       description: errorMessage,
-      color: "error",
-    });
+      color: 'error'
+    })
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
 definePageMeta({
-  layout: "default",
-});
+  layout: 'default'
+})
 </script>

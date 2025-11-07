@@ -39,9 +39,9 @@ export function useCountries() {
     { value: 'ZA', label: 'Sudáfrica' },
     { value: 'IL', label: 'Israel' },
     { value: 'TR', label: 'Turquía' }
-  ].sort((a, b) => a.label.localeCompare(b.label));
+  ].sort((a, b) => a.label.localeCompare(b.label))
 
   return {
     countries
-  };
+  }
 }

@@ -8,8 +8,15 @@
           completed ? 'bg-success text-white' : active ? 'bg-primary text-white' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400'
         ]"
       >
-        <UIcon v-if="completed" name="i-lucide-check" class="w-5 h-5" />
-        <span v-else class="font-semibold">{{ step }}</span>
+        <UIcon
+          v-if="completed"
+          name="i-lucide-check"
+          class="w-5 h-5"
+        />
+        <span
+          v-else
+          class="font-semibold"
+        >{{ step }}</span>
       </div>
     </div>
 

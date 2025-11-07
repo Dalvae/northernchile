@@ -1,90 +1,90 @@
 <script setup lang="ts">
-const { t } = useI18n();
-const toast = useToast();
-const config = useRuntimeConfig();
+const { t } = useI18n()
+const toast = useToast()
+const config = useRuntimeConfig()
 
 useSeoMeta({
-  title: t("privateTours.seo.title"),
-  description: t("privateTours.seo.description"),
-  ogTitle: t("privateTours.seo.og_title"),
-  ogDescription: t("privateTours.seo.og_description"),
-  twitterCard: "summary_large_image",
-});
+  title: t('privateTours.seo.title'),
+  description: t('privateTours.seo.description'),
+  ogTitle: t('privateTours.seo.og_title'),
+  ogDescription: t('privateTours.seo.og_description'),
+  twitterCard: 'summary_large_image'
+})
 
 const state = reactive({
-  fullName: "",
-  email: "",
-  phone: "",
+  fullName: '',
+  email: '',
+  phone: '',
   numberOfPeople: 2,
-  preferredDate: "",
-  preferredTime: "evening",
-  tourType: "ASTRONOMICAL",
-  specialRequests: "",
-  budget: "",
-  loading: false,
-});
+  preferredDate: '',
+  preferredTime: 'evening',
+  tourType: 'ASTRONOMICAL',
+  specialRequests: '',
+  budget: '',
+  loading: false
+})
 
 const tourTypeOptions = [
   {
-    label: t("privateTours.form.tour_type.astronomical"),
-    value: "ASTRONOMICAL",
+    label: t('privateTours.form.tour_type.astronomical'),
+    value: 'ASTRONOMICAL'
   },
-  { label: t("privateTours.form.tour_type.cultural"), value: "CULTURAL" },
-  { label: t("privateTours.form.tour_type.adventure"), value: "ADVENTURE" },
-  { label: t("privateTours.form.tour_type.photography"), value: "PHOTOGRAPHY" },
-  { label: t("privateTours.form.tour_type.combined"), value: "COMBINED" },
-];
+  { label: t('privateTours.form.tour_type.cultural'), value: 'CULTURAL' },
+  { label: t('privateTours.form.tour_type.adventure'), value: 'ADVENTURE' },
+  { label: t('privateTours.form.tour_type.photography'), value: 'PHOTOGRAPHY' },
+  { label: t('privateTours.form.tour_type.combined'), value: 'COMBINED' }
+]
 
 const timeOptions = [
-  { label: t("privateTours.form.time_options.morning"), value: "morning" },
-  { label: t("privateTours.form.time_options.afternoon"), value: "afternoon" },
-  { label: t("privateTours.form.time_options.night"), value: "evening" },
-  { label: t("privateTours.form.time_options.flexible"), value: "flexible" },
-];
+  { label: t('privateTours.form.time_options.morning'), value: 'morning' },
+  { label: t('privateTours.form.time_options.afternoon'), value: 'afternoon' },
+  { label: t('privateTours.form.time_options.night'), value: 'evening' },
+  { label: t('privateTours.form.time_options.flexible'), value: 'flexible' }
+]
 
 const benefits = [
   {
-    icon: "i-lucide-users",
-    title: t("privateTours.benefits.exclusive_experience_title"),
-    description: t("privateTours.benefits.exclusive_experience_description"),
+    icon: 'i-lucide-users',
+    title: t('privateTours.benefits.exclusive_experience_title'),
+    description: t('privateTours.benefits.exclusive_experience_description')
   },
   {
-    icon: "i-lucide-clock",
-    title: t("privateTours.benefits.flexible_hours_title"),
-    description: t("privateTours.benefits.flexible_hours_description"),
+    icon: 'i-lucide-clock',
+    title: t('privateTours.benefits.flexible_hours_title'),
+    description: t('privateTours.benefits.flexible_hours_description')
   },
   {
-    icon: "i-lucide-map",
-    title: t("privateTours.benefits.custom_itinerary_title"),
-    description: t("privateTours.benefits.custom_itinerary_description"),
+    icon: 'i-lucide-map',
+    title: t('privateTours.benefits.custom_itinerary_title'),
+    description: t('privateTours.benefits.custom_itinerary_description')
   },
   {
-    icon: "i-lucide-graduation-cap",
-    title: t("privateTours.benefits.exclusive_guide_title"),
-    description: t("privateTours.benefits.exclusive_guide_description"),
+    icon: 'i-lucide-graduation-cap',
+    title: t('privateTours.benefits.exclusive_guide_title'),
+    description: t('privateTours.benefits.exclusive_guide_description')
   },
   {
-    icon: "i-lucide-camera",
-    title: t("privateTours.benefits.professional_photography_title"),
+    icon: 'i-lucide-camera',
+    title: t('privateTours.benefits.professional_photography_title'),
     description: t(
-      "privateTours.benefits.professional_photography_description"
-    ),
+      'privateTours.benefits.professional_photography_description'
+    )
   },
   {
-    icon: "i-lucide-sparkles",
-    title: t("privateTours.benefits.unique_experiences_title"),
-    description: t("privateTours.benefits.unique_experiences_description"),
-  },
-];
+    icon: 'i-lucide-sparkles',
+    title: t('privateTours.benefits.unique_experiences_title'),
+    description: t('privateTours.benefits.unique_experiences_description')
+  }
+]
 
 async function submitRequest() {
-  state.loading = true;
+  state.loading = true
   try {
     const response = await $fetch(
       `${config.public.apiBase}/private-tour-requests`,
       {
-        method: "POST",
-        credentials: "include",
+        method: 'POST',
+        credentials: 'include',
         body: {
           fullName: state.fullName,
           email: state.email,
@@ -93,35 +93,35 @@ async function submitRequest() {
           preferredDate: state.preferredDate,
           tourType: state.tourType,
           specialRequests: state.specialRequests,
-          status: "PENDING",
-        },
+          status: 'PENDING'
+        }
       }
-    );
+    )
 
     toast.add({
-      title: t("privateTours.form.toast.success_title"),
-      description: t("privateTours.form.toast.success_description"),
-      color: "success",
-    });
+      title: t('privateTours.form.toast.success_title'),
+      description: t('privateTours.form.toast.success_description'),
+      color: 'success'
+    })
 
     // Reset form
-    state.fullName = "";
-    state.email = "";
-    state.phone = "";
-    state.numberOfPeople = 2;
-    state.preferredDate = "";
-    state.preferredTime = "evening";
-    state.tourType = "ASTRONOMICAL";
-    state.specialRequests = "";
-    state.budget = "";
+    state.fullName = ''
+    state.email = ''
+    state.phone = ''
+    state.numberOfPeople = 2
+    state.preferredDate = ''
+    state.preferredTime = 'evening'
+    state.tourType = 'ASTRONOMICAL'
+    state.specialRequests = ''
+    state.budget = ''
   } catch (error) {
     toast.add({
-      title: t("privateTours.form.toast.error_title"),
-      description: t("privateTours.form.toast.error_description"),
-      color: "error",
-    });
+      title: t('privateTours.form.toast.error_title'),
+      description: t('privateTours.form.toast.error_description'),
+      color: 'error'
+    })
   } finally {
-    state.loading = false;
+    state.loading = false
   }
 }
 </script>
@@ -199,7 +199,10 @@ async function submitRequest() {
           </div>
 
           <UCard>
-            <form @submit.prevent="submitRequest" class="space-y-6">
+            <form
+              class="space-y-6"
+              @submit.prevent="submitRequest"
+            >
               <!-- Personal Info -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>

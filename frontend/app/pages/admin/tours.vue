@@ -1,119 +1,119 @@
 <script setup lang="ts">
-import { h, resolveComponent } from "vue";
-import type { TourRes } from "~/lib/api-client";
+import { h, resolveComponent } from 'vue'
+import type { TourRes } from '~/lib/api-client'
 
 definePageMeta({
-  layout: "admin",
-});
+  layout: 'admin'
+})
 
-const { fetchAdminTours, deleteAdminTour } = useAdminData();
-const { formatPrice } = useCurrency();
+const { fetchAdminTours, deleteAdminTour } = useAdminData()
+const { formatPrice } = useCurrency()
 
 const {
   data: tours,
   pending,
-  refresh,
-} = useAsyncData("admin-tours", () => fetchAdminTours(), {
+  refresh
+} = useAsyncData('admin-tours', () => fetchAdminTours(), {
   // Importante: solo ejecutar en el cliente
   server: false,
   // Ejecutar solo si está autenticado
   lazy: true,
   // Transformar data para manejar null
-  default: () => [],
-});
+  default: () => []
+})
 
 // ✅ Variables para controlar los modales
-const isCreateModalOpen = ref(false);
-const isEditModalOpen = ref(false);
-const selectedTour = ref<TourRes | null>(null);
-const q = ref("");
+const isCreateModalOpen = ref(false)
+const isEditModalOpen = ref(false)
+const selectedTour = ref<TourRes | null>(null)
+const q = ref('')
 
 const columns = [
   {
-    id: "name",
-    accessorKey: "nameTranslations.es",
-    header: "Nombre",
+    id: 'name',
+    accessorKey: 'nameTranslations.es',
+    header: 'Nombre'
   },
   {
-    id: "description",
-    accessorKey: "descriptionTranslations.es",
-    header: "Descripción",
+    id: 'description',
+    accessorKey: 'descriptionTranslations.es',
+    header: 'Descripción'
   },
   {
-    id: "price",
-    accessorKey: "price",
-    header: "Precio",
+    id: 'price',
+    accessorKey: 'price',
+    header: 'Precio'
   },
   {
-    id: "status",
-    accessorKey: "status",
-    header: "Estado",
+    id: 'status',
+    accessorKey: 'status',
+    header: 'Estado'
   },
   {
-    id: "actions",
-    header: "Acciones",
-  },
-];
+    id: 'actions',
+    header: 'Acciones'
+  }
+]
 
 const filteredRows = computed(() => {
-  if (!tours.value || tours.value.length === 0) return [];
+  if (!tours.value || tours.value.length === 0) return []
 
-  let rows = tours.value;
+  let rows = tours.value
 
   if (q.value) {
-    const query = q.value.toLowerCase();
-    rows = rows.filter((tour) =>
+    const query = q.value.toLowerCase()
+    rows = rows.filter(tour =>
       tour.nameTranslations?.es?.toLowerCase().includes(query)
-    );
+    )
   }
 
-  return rows;
-});
+  return rows
+})
 
 // ✅ Abrir modal de creación
 function openCreateModal() {
-  selectedTour.value = null;
-  isCreateModalOpen.value = true;
+  selectedTour.value = null
+  isCreateModalOpen.value = true
 }
 
 // ✅ Abrir modal de edición
 function openEditModal(tour: TourRes) {
-  selectedTour.value = tour;
-  isEditModalOpen.value = true;
+  selectedTour.value = tour
+  isEditModalOpen.value = true
 }
 
 // ✅ Cerrar ambos modales y limpiar
 function closeModals() {
-  isCreateModalOpen.value = false;
-  isEditModalOpen.value = false;
-  selectedTour.value = null;
+  isCreateModalOpen.value = false
+  isEditModalOpen.value = false
+  selectedTour.value = null
 }
 
 // ✅ Manejar éxito (crear o editar)
 function onModalSuccess() {
-  closeModals();
-  refresh();
+  closeModals()
+  refresh()
 }
 
-const toast = useToast();
+const toast = useToast()
 async function handleDelete(tour: TourRes) {
-  const tourName = tour.nameTranslations?.es || "este tour";
+  const tourName = tour.nameTranslations?.es || 'este tour'
   if (confirm(`¿Estás seguro de que quieres eliminar "${tourName}"?`)) {
     try {
-      await deleteAdminTour(tour.id);
+      await deleteAdminTour(tour.id)
       toast.add({
-        title: "Tour eliminado",
-        color: "success",
-        icon: "i-lucide-check-circle",
-      });
-      await refresh();
+        title: 'Tour eliminado',
+        color: 'success',
+        icon: 'i-lucide-check-circle'
+      })
+      await refresh()
     } catch (e: any) {
       toast.add({
-        title: "Error al eliminar",
-        description: e.message || "Error desconocido",
-        color: "error",
-        icon: "i-lucide-x-circle",
-      });
+        title: 'Error al eliminar',
+        description: e.message || 'Error desconocido',
+        color: 'error',
+        icon: 'i-lucide-x-circle'
+      })
     }
   }
 }
@@ -163,7 +163,7 @@ async function handleDelete(tour: TourRes) {
           :loading="pending"
           :empty-state="{
             icon: 'i-lucide-map',
-            label: 'No hay tours creados.',
+            label: 'No hay tours creados.'
           }"
         >
           <template #name-data="{ row }">

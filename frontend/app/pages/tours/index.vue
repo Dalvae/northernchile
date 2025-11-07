@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TourRes } from "~/lib/api-client"
+import type { TourRes } from '~/lib/api-client'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -8,39 +8,39 @@ const { fetchAll } = useTours()
 const { data: allTours } = await fetchAll()
 
 // Filtros
-const searchQuery = ref("")
+const searchQuery = ref('')
 const selectedCategory = ref<string | null>(null)
-const sortBy = ref<"name" | "price-asc" | "price-desc" | "duration">("name")
+const sortBy = ref<'name' | 'price-asc' | 'price-desc' | 'duration'>('name')
 
 // Tours filtrados y ordenados
 const filteredTours = computed(() => {
-  let tours = (allTours.value || []).filter((t) => t.status === "PUBLISHED")
+  let tours = (allTours.value || []).filter(t => t.status === 'PUBLISHED')
 
   // Filtrar por búsqueda
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     tours = tours.filter((t) => {
-      const name = (t.nameTranslations?.es || "").toLowerCase()
-      const description = (t.descriptionTranslations?.es || "").toLowerCase()
+      const name = (t.nameTranslations?.es || '').toLowerCase()
+      const description = (t.descriptionTranslations?.es || '').toLowerCase()
       return name.includes(query) || description.includes(query)
     })
   }
 
   // Filtrar por categoría
   if (selectedCategory.value) {
-    tours = tours.filter((t) => t.category === selectedCategory.value)
+    tours = tours.filter(t => t.category === selectedCategory.value)
   }
 
   // Ordenar
-  if (sortBy.value === "price-asc") {
+  if (sortBy.value === 'price-asc') {
     tours = tours.sort((a, b) => (a.basePrice || 0) - (b.basePrice || 0))
-  } else if (sortBy.value === "price-desc") {
+  } else if (sortBy.value === 'price-desc') {
     tours = tours.sort((a, b) => (b.basePrice || 0) - (a.basePrice || 0))
-  } else if (sortBy.value === "duration") {
+  } else if (sortBy.value === 'duration') {
     tours = tours.sort((a, b) => (a.durationHours || 0) - (b.durationHours || 0))
   } else {
     tours = tours.sort((a, b) =>
-      (a.nameTranslations?.es || "").localeCompare(b.nameTranslations?.es || "")
+      (a.nameTranslations?.es || '').localeCompare(b.nameTranslations?.es || '')
     )
   }
 
@@ -73,14 +73,14 @@ function handleScheduleClick(schedule: any, tour: any) {
 
 // SEO
 useSeoMeta({
-  title: () => `${t("tours.all")} - Northern Chile`,
+  title: () => `${t('tours.all')} - Northern Chile`,
   description:
-    "Explora nuestra selección completa de tours astronómicos y experiencias únicas en San Pedro de Atacama. Encuentra el tour perfecto para ti.",
-  ogTitle: () => `${t("tours.all")} - Northern Chile`,
+    'Explora nuestra selección completa de tours astronómicos y experiencias únicas en San Pedro de Atacama. Encuentra el tour perfecto para ti.',
+  ogTitle: () => `${t('tours.all')} - Northern Chile`,
   ogDescription:
-    "Explora nuestra selección completa de tours astronómicos y experiencias únicas en San Pedro de Atacama",
-  ogImage: "https://www.northernchile.cl/og-image-tours.jpg",
-  twitterCard: "summary_large_image",
+    'Explora nuestra selección completa de tours astronómicos y experiencias únicas en San Pedro de Atacama',
+  ogImage: 'https://www.northernchile.cl/og-image-tours.jpg',
+  twitterCard: 'summary_large_image'
 })
 </script>
 
@@ -108,7 +108,10 @@ useSeoMeta({
       </div>
 
       <!-- Tours Grid -->
-      <div v-if="paginatedTours.length > 0" class="space-y-8 mb-12">
+      <div
+        v-if="paginatedTours.length > 0"
+        class="space-y-8 mb-12"
+      >
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <HomeTourCard
             v-for="tour in paginatedTours"
@@ -118,7 +121,10 @@ useSeoMeta({
         </div>
 
         <!-- Paginación -->
-        <div v-if="totalPages > 1" class="flex justify-center">
+        <div
+          v-if="totalPages > 1"
+          class="flex justify-center"
+        >
           <UPagination
             v-model="page"
             :total="filteredTours.length"
@@ -130,12 +136,18 @@ useSeoMeta({
       </div>
 
       <!-- Empty State -->
-      <UCard v-else class="text-center py-12 mb-12">
+      <UCard
+        v-else
+        class="text-center py-12 mb-12"
+      >
         <div class="space-y-4">
           <div
             class="w-16 h-16 mx-auto rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center"
           >
-            <UIcon name="i-lucide-telescope" class="w-8 h-8 text-neutral-400" />
+            <UIcon
+              name="i-lucide-telescope"
+              class="w-8 h-8 text-neutral-400"
+            />
           </div>
           <div>
             <h3
@@ -175,7 +187,10 @@ useSeoMeta({
           <template #info>
             <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <p class="text-sm text-blue-900 dark:text-blue-200">
-                <UIcon name="i-lucide-info" class="inline w-4 h-4 mr-1" />
+                <UIcon
+                  name="i-lucide-info"
+                  class="inline w-4 h-4 mr-1"
+                />
                 {{ t("tours.calendar.info_text") || "Haz clic en un evento para reservar. Los filtros afectan qué tours se muestran en el calendario." }}
               </p>
             </div>

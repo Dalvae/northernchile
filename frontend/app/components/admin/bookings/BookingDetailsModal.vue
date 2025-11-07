@@ -1,44 +1,44 @@
 <script setup lang="ts">
-import type { BookingRes } from "~/lib/api-client";
+import type { BookingRes } from '~/lib/api-client'
 
 const props = defineProps<{
-  booking: BookingRes;
-}>();
+  booking: BookingRes
+}>()
 
-const { formatPrice: formatCurrency } = useCurrency();
+const { formatPrice: formatCurrency } = useCurrency()
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("es-CL", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  return new Date(dateString).toLocaleDateString('es-CL', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
 }
 
 function getStatusBadgeColor(status: string): string {
   switch (status) {
-    case "CONFIRMED":
-      return "success";
-    case "PENDING":
-      return "warning";
-    case "CANCELLED":
-      return "error";
+    case 'CONFIRMED':
+      return 'success'
+    case 'PENDING':
+      return 'warning'
+    case 'CANCELLED':
+      return 'error'
     default:
-      return "neutral";
+      return 'neutral'
   }
 }
 
 function getStatusLabel(status: string): string {
   switch (status) {
-    case "CONFIRMED":
-      return "Confirmada";
-    case "PENDING":
-      return "Pendiente";
-    case "CANCELLED":
-      return "Cancelada";
+    case 'CONFIRMED':
+      return 'Confirmada'
+    case 'PENDING':
+      return 'Pendiente'
+    case 'CANCELLED':
+      return 'Cancelada'
     default:
-      return status;
+      return status
   }
 }
 </script>
@@ -167,7 +167,10 @@ function getStatusLabel(status: string): string {
                   </div>
                 </div>
 
-                <div v-if="participant.specialRequirements" class="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700">
+                <div
+                  v-if="participant.specialRequirements"
+                  class="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700"
+                >
                   <span class="text-neutral-600 dark:text-neutral-400 text-sm">Requerimientos especiales:</span>
                   <p class="mt-1 text-sm text-neutral-900 dark:text-white">
                     {{ participant.specialRequirements }}

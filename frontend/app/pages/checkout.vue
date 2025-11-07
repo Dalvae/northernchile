@@ -1,132 +1,132 @@
 <script setup lang="ts">
-const cartStore = useCartStore();
-const authStore = useAuthStore();
-const router = useRouter();
-const toast = useToast();
-const { locale } = useI18n();
-const { countries } = useCountries();
+const cartStore = useCartStore()
+const authStore = useAuthStore()
+const router = useRouter()
+const toast = useToast()
+const { locale } = useI18n()
+const { countries } = useCountries()
 
 // Redirect if cart is empty
 if (cartStore.cart.items.length === 0) {
-  router.push("/cart");
+  router.push('/cart')
 }
 
 // Wizard steps
-const currentStep = ref(1);
-const totalSteps = 3;
+const currentStep = ref(1)
+const totalSteps = 3
 
 // Step 1: Contact Information
 const contactForm = ref({
-  email: authStore.user?.email || "",
-  fullName: authStore.user?.fullName || "",
-  phone: "",
-  countryCode: "+56",
-  password: "",
-  confirmPassword: "",
-});
+  email: authStore.user?.email || '',
+  fullName: authStore.user?.fullName || '',
+  phone: '',
+  countryCode: '+56',
+  password: '',
+  confirmPassword: ''
+})
 
 // Step 2: Participants
 const participants = ref<
   Array<{
-    fullName: string;
-    documentId: string;
-    nationality: string;
-    age: number | null;
-    pickupAddress: string;
-    specialRequirements: string;
-    phoneNumber: string;
-    email: string;
+    fullName: string
+    documentId: string
+    nationality: string
+    age: number | null
+    pickupAddress: string
+    specialRequirements: string
+    phoneNumber: string
+    email: string
   }>
->([]);
+>([])
 
 // Initialize participants based on total count
-const totalParticipants = computed(() => cartStore.totalItems);
+const totalParticipants = computed(() => cartStore.totalItems)
 
 function initializeParticipants() {
   participants.value = Array.from(
     { length: totalParticipants.value },
     (_, i) => ({
-      fullName: i === 0 ? contactForm.value.fullName : "",
-      documentId: "",
-      nationality: "CL",
+      fullName: i === 0 ? contactForm.value.fullName : '',
+      documentId: '',
+      nationality: 'CL',
       age: null,
-      pickupAddress: "",
-      specialRequirements: "",
-      phoneNumber: i === 0 ? contactForm.value.phone : "",
-      email: i === 0 ? contactForm.value.email : "",
+      pickupAddress: '',
+      specialRequirements: '',
+      phoneNumber: i === 0 ? contactForm.value.phone : '',
+      email: i === 0 ? contactForm.value.email : ''
     })
-  );
+  )
 }
 
 // Step 3: Payment
-const paymentMethod = ref("credit_card");
+const paymentMethod = ref('credit_card')
 
 // Validation
 const step1Valid = computed(() => {
-  const baseValidation = 
-    contactForm.value.email &&
-    contactForm.value.fullName &&
-    contactForm.value.phone.length >= 8;
+  const baseValidation
+    = contactForm.value.email
+      && contactForm.value.fullName
+      && contactForm.value.phone.length >= 8
 
   if (authStore.isAuthenticated) {
-    return baseValidation;
+    return baseValidation
   }
 
-  const passwordValidation = 
-    contactForm.value.password.length >= 8 &&
-    contactForm.value.password === contactForm.value.confirmPassword;
+  const passwordValidation
+    = contactForm.value.password.length >= 8
+      && contactForm.value.password === contactForm.value.confirmPassword
 
-  return baseValidation && passwordValidation;
-});
+  return baseValidation && passwordValidation
+})
 
 const step2Valid = computed(() => {
   return participants.value.every(
-    (p) => p.fullName && p.documentId && p.nationality
-  );
-});
+    p => p.fullName && p.documentId && p.nationality
+  )
+})
 
 // Navigation
 function nextStep() {
   if (currentStep.value === 1 && !step1Valid.value) {
     toast.add({
-      color: "warning",
-      title: "Información incompleta",
-      description: "Por favor completa todos los campos requeridos",
-    });
-    return;
+      color: 'warning',
+      title: 'Información incompleta',
+      description: 'Por favor completa todos los campos requeridos'
+    })
+    return
   }
 
   if (currentStep.value === 1) {
-    initializeParticipants();
+    initializeParticipants()
   }
 
   if (currentStep.value === 2 && !step2Valid.value) {
     toast.add({
-      color: "warning",
-      title: "Información incompleta",
+      color: 'warning',
+      title: 'Información incompleta',
       description:
-        "Por favor completa la información de todos los participantes",
-    });
-    return;
+        'Por favor completa la información de todos los participantes'
+    })
+    return
   }
 
   if (currentStep.value < totalSteps) {
-    currentStep.value++;
+    currentStep.value++
   }
 }
 
 function prevStep() {
   if (currentStep.value > 1) {
-    currentStep.value--;
+    currentStep.value--
   }
 }
 
 // Clone contact info to first participant
 function cloneContactToParticipant() {
   if (participants.value.length > 0) {
-    participants.value[0].fullName = contactForm.value.fullName;
-    participants.value[0].email = contactForm.value.email;
-    participants.value[0].phoneNumber = contactForm.value.phone;
+    participants.value[0].fullName = contactForm.value.fullName
+    participants.value[0].email = contactForm.value.email
+    participants.value[0].phoneNumber = contactForm.value.phone
   }
 }
 
@@ -134,28 +134,28 @@ function cloneContactToParticipant() {
 function updateParticipant(index: number, data: Partial<typeof participants.value[0]>) {
   participants.value[index] = {
     ...participants.value[index],
-    ...data,
-  };
+    ...data
+  }
 }
 
 // Submit booking
-const isSubmitting = ref(false);
+const isSubmitting = ref(false)
 
 async function submitBooking() {
-  if (isSubmitting.value) return;
-  isSubmitting.value = true;
+  if (isSubmitting.value) return
+  isSubmitting.value = true
 
-  const config = useRuntimeConfig();
-  const createdBookingIds: string[] = [];
+  const config = useRuntimeConfig()
+  const createdBookingIds: string[] = []
 
   try {
     // Step 1: Ensure user is authenticated
     if (!authStore.isAuthenticated) {
       toast.add({
-        color: "info",
-        title: "Creando cuenta...",
-        description: "Estamos registrando tu información",
-      });
+        color: 'info',
+        title: 'Creando cuenta...',
+        description: 'Estamos registrando tu información'
+      })
 
       // Register and login the new user
       try {
@@ -164,50 +164,50 @@ async function submitBooking() {
           password: contactForm.value.password,
           fullName: contactForm.value.fullName,
           phoneNumber: contactForm.value.phone ? `${contactForm.value.countryCode}${contactForm.value.phone}` : null,
-          nationality: participants.value[0]?.nationality || null,
-        });
+          nationality: participants.value[0]?.nationality || null
+        })
 
         // Auto-login after registration
         await authStore.login({
           email: contactForm.value.email,
-          password: contactForm.value.password,
-        });
+          password: contactForm.value.password
+        })
       } catch (error: any) {
         if (error.statusCode === 409) {
           toast.add({
-            color: "warning",
-            title: "Cuenta existente",
-            description: "Ya tienes una cuenta. Por favor inicia sesión.",
-          });
-          router.push("/auth");
-          return;
+            color: 'warning',
+            title: 'Cuenta existente',
+            description: 'Ya tienes una cuenta. Por favor inicia sesión.'
+          })
+          router.push('/auth')
+          return
         }
-        throw error;
+        throw error
       }
     }
 
-    const token = authStore.token;
+    const token = authStore.token
 
     // Step 2: Create all bookings (status: PENDING)
     toast.add({
-      color: "info",
-      title: "Procesando reservas...",
-      description: "Creando tus reservas",
-    });
+      color: 'info',
+      title: 'Procesando reservas...',
+      description: 'Creando tus reservas'
+    })
 
-    let participantIndex = 0;
+    let participantIndex = 0
 
     for (const item of cartStore.cart.items) {
       // Assign participants to this booking
-      const numParticipantsForThisItem = item.numParticipants;
+      const numParticipantsForThisItem = item.numParticipants
       const bookingParticipants = participants.value.slice(
         participantIndex,
         participantIndex + numParticipantsForThisItem
-      );
-      participantIndex += numParticipantsForThisItem;
+      )
+      participantIndex += numParticipantsForThisItem
 
       // Map to backend format
-      const participantReqs = bookingParticipants.map((p) => ({
+      const participantReqs = bookingParticipants.map(p => ({
         fullName: p.fullName,
         documentId: p.documentId,
         nationality: p.nationality,
@@ -215,152 +215,152 @@ async function submitBooking() {
         pickupAddress: p.pickupAddress || null,
         specialRequirements: p.specialRequirements || null,
         phoneNumber: p.phoneNumber || null,
-        email: p.email || null,
-      }));
+        email: p.email || null
+      }))
 
       // Create booking (will be PENDING)
       const bookingReq = {
         scheduleId: item.scheduleId,
         participants: participantReqs,
         languageCode: locale.value,
-        specialRequests: null,
-      };
+        specialRequests: null
+      }
 
       try {
         const bookingRes = await $fetch<any>(`${config.public.apiBase}/api/bookings`, {
-          method: "POST",
+          method: 'POST',
           body: bookingReq,
           headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
 
-        createdBookingIds.push(bookingRes.id);
+        createdBookingIds.push(bookingRes.id)
       } catch (error: any) {
         // If booking creation fails, rollback by cancelling already created bookings
-        console.error("Error creating booking:", error);
+        console.error('Error creating booking:', error)
 
         // Rollback: Cancel all previously created bookings
         for (const bookingId of createdBookingIds) {
           try {
             await $fetch(`${config.public.apiBase}/api/admin/bookings/${bookingId}`, {
-              method: "DELETE",
+              method: 'DELETE',
               headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
+                Authorization: `Bearer ${token}`
+              }
+            })
           } catch (e) {
-            console.error("Error rolling back booking:", e);
+            console.error('Error rolling back booking:', e)
           }
         }
 
-        throw error;
+        throw error
       }
     }
 
     // Step 3: Simulate payment processing
     toast.add({
-      color: "info",
-      title: "Procesando pago...",
-      description: "Simulando pasarela de pago",
-    });
+      color: 'info',
+      title: 'Procesando pago...',
+      description: 'Simulando pasarela de pago'
+    })
 
     // Wait 1.5 seconds to simulate payment gateway
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 1500))
 
     // Step 4: Confirm all bookings (PENDING -> CONFIRMED)
     toast.add({
-      color: "info",
-      title: "Confirmando reservas...",
-      description: "Finalizando tu compra",
-    });
+      color: 'info',
+      title: 'Confirmando reservas...',
+      description: 'Finalizando tu compra'
+    })
 
     for (const bookingId of createdBookingIds) {
       try {
         await $fetch(`${config.public.apiBase}/api/bookings/${bookingId}/confirm-mock`, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+            Authorization: `Bearer ${token}`
+          }
+        })
       } catch (error: any) {
-        console.error("Error confirming booking:", error);
+        console.error('Error confirming booking:', error)
 
         // If confirmation fails, the bookings remain PENDING
         // Admin can manually review them
         toast.add({
-          color: "warning",
-          title: "Advertencia",
-          description: "Algunas reservas quedaron pendientes de confirmación. Contacta a soporte.",
-        });
+          color: 'warning',
+          title: 'Advertencia',
+          description: 'Algunas reservas quedaron pendientes de confirmación. Contacta a soporte.'
+        })
       }
     }
 
     // Step 5: Clear cart (silently)
-    const itemsToRemove = [...cartStore.cart.items];
+    const itemsToRemove = [...cartStore.cart.items]
     for (const item of itemsToRemove) {
       try {
         await $fetch(`${config.public.apiBase}/api/cart/items/${item.itemId}`, {
-          method: "DELETE",
-          credentials: "include",
-        });
+          method: 'DELETE',
+          credentials: 'include'
+        })
       } catch (e) {
         // Cart cleanup is not critical, ignore errors
-        console.warn("Could not remove cart item:", e);
+        console.warn('Could not remove cart item:', e)
       }
     }
 
     // Clear local cart state
-    cartStore.clearCart();
+    cartStore.clearCart()
 
     // Success!
     toast.add({
-      color: "success",
-      title: "¡Reservas confirmadas!",
-      description: `Se confirmaron ${createdBookingIds.length} reserva(s) exitosamente`,
-    });
+      color: 'success',
+      title: '¡Reservas confirmadas!',
+      description: `Se confirmaron ${createdBookingIds.length} reserva(s) exitosamente`
+    })
 
     // Redirect to bookings page
-    router.push("/profile/bookings");
+    router.push('/profile/bookings')
   } catch (error: any) {
-    console.error("Error in checkout process:", error);
+    console.error('Error in checkout process:', error)
 
-    let errorMessage = "Hubo un error procesando tu reserva.";
+    let errorMessage = 'Hubo un error procesando tu reserva.'
 
     // Handle specific errors
     if (error.data?.message) {
-      if (error.data.message.includes("Not enough available slots")) {
-        errorMessage = "No hay suficientes cupos disponibles para esta fecha.";
-      } else if (error.data.message.includes("not found")) {
-        errorMessage = "El tour seleccionado ya no está disponible.";
+      if (error.data.message.includes('Not enough available slots')) {
+        errorMessage = 'No hay suficientes cupos disponibles para esta fecha.'
+      } else if (error.data.message.includes('not found')) {
+        errorMessage = 'El tour seleccionado ya no está disponible.'
       } else {
-        errorMessage = error.data.message;
+        errorMessage = error.data.message
       }
     }
 
     toast.add({
-      color: "error",
-      title: "Error al crear reserva",
-      description: errorMessage,
-    });
+      color: 'error',
+      title: 'Error al crear reserva',
+      description: errorMessage
+    })
   } finally {
-    isSubmitting.value = false;
+    isSubmitting.value = false
   }
 }
 
 // Format currency
 function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-  }).format(amount);
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP'
+  }).format(amount)
 }
 
 // Calculate totals
-const subtotal = computed(() => cartStore.cart.cartTotal);
-const tax = computed(() => subtotal.value * 0.19);
-const total = computed(() => subtotal.value + tax.value);
+const subtotal = computed(() => cartStore.cart.cartTotal)
+const tax = computed(() => subtotal.value * 0.19)
+const total = computed(() => subtotal.value + tax.value)
 </script>
 
 <template>
@@ -393,7 +393,7 @@ const total = computed(() => subtotal.value + tax.value);
                   :class="[
                     currentStep >= step
                       ? 'bg-primary text-white'
-                      : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400',
+                      : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400'
                   ]"
                 >
                   {{ step }}
@@ -404,7 +404,7 @@ const total = computed(() => subtotal.value + tax.value);
                   :class="[
                     currentStep > step
                       ? 'bg-primary'
-                      : 'bg-neutral-200 dark:bg-neutral-700',
+                      : 'bg-neutral-200 dark:bg-neutral-700'
                   ]"
                 />
               </div>
@@ -466,7 +466,7 @@ const total = computed(() => subtotal.value + tax.value);
                   placeholder="Juan Pérez"
                   class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                   required
-                />
+                >
               </div>
 
               <div>
@@ -481,7 +481,7 @@ const total = computed(() => subtotal.value + tax.value);
                   placeholder="juan@example.com"
                   class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                   required
-                />
+                >
               </div>
 
               <div>
@@ -495,10 +495,18 @@ const total = computed(() => subtotal.value + tax.value);
                     v-model="contactForm.countryCode"
                     class="w-24 px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                   >
-                    <option value="+56">+56</option>
-                    <option value="+55">+55</option>
-                    <option value="+1">+1</option>
-                    <option value="+44">+44</option>
+                    <option value="+56">
+                      +56
+                    </option>
+                    <option value="+55">
+                      +55
+                    </option>
+                    <option value="+1">
+                      +1
+                    </option>
+                    <option value="+44">
+                      +44
+                    </option>
                   </select>
                   <input
                     v-model="contactForm.phone"
@@ -506,13 +514,19 @@ const total = computed(() => subtotal.value + tax.value);
                     placeholder="912345678"
                     class="flex-1 px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
-                  />
+                  >
                 </div>
               </div>
 
-              <div v-if="!authStore.isAuthenticated" class="space-y-4 mt-4">
+              <div
+                v-if="!authStore.isAuthenticated"
+                class="space-y-4 mt-4"
+              >
                 <p class="text-sm text-neutral-600 dark:text-neutral-400">
-                  Crea una cuenta para gestionar tus reservas fácilmente. Si ya tienes una, <NuxtLink to="/auth?redirect=/checkout" class="text-primary font-medium hover:underline">inicia sesión aquí</NuxtLink>.
+                  Crea una cuenta para gestionar tus reservas fácilmente. Si ya tienes una, <NuxtLink
+                    to="/auth?redirect=/checkout"
+                    class="text-primary font-medium hover:underline"
+                  >inicia sesión aquí</NuxtLink>.
                 </p>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -527,7 +541,7 @@ const total = computed(() => subtotal.value + tax.value);
                       placeholder="••••••••"
                       class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                       required
-                    />
+                    >
                   </div>
                   <div>
                     <label
@@ -541,7 +555,7 @@ const total = computed(() => subtotal.value + tax.value);
                       placeholder="••••••••"
                       class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                       required
-                    />
+                    >
                   </div>
                 </div>
               </div>
@@ -561,8 +575,8 @@ const total = computed(() => subtotal.value + tax.value);
                   color="primary"
                   icon="i-lucide-arrow-right"
                   trailing
-                  @click="nextStep"
                   :disabled="!step1Valid"
+                  @click="nextStep"
                 >
                   Continuar
                 </UButton>
@@ -626,8 +640,8 @@ const total = computed(() => subtotal.value + tax.value);
                   color="primary"
                   icon="i-lucide-arrow-right"
                   trailing
-                  @click="nextStep"
                   :disabled="!step2Valid"
+                  @click="nextStep"
                 >
                   Continuar
                 </UButton>
@@ -654,7 +668,7 @@ const total = computed(() => subtotal.value + tax.value);
                 :class="[
                   paymentMethod === 'credit_card'
                     ? 'border-primary bg-primary/10'
-                    : 'border-neutral-200 dark:border-neutral-700 hover:border-primary/50',
+                    : 'border-neutral-200 dark:border-neutral-700 hover:border-primary/50'
                 ]"
                 @click="paymentMethod = 'credit_card'"
               >
@@ -679,7 +693,7 @@ const total = computed(() => subtotal.value + tax.value);
                 :class="[
                   paymentMethod === 'transfer'
                     ? 'border-primary bg-primary/10'
-                    : 'border-neutral-200 dark:border-neutral-700 hover:border-primary/50',
+                    : 'border-neutral-200 dark:border-neutral-700 hover:border-primary/50'
                 ]"
                 @click="paymentMethod = 'transfer'"
               >
@@ -703,7 +717,10 @@ const total = computed(() => subtotal.value + tax.value);
                 class="mt-6 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg"
               >
                 <p class="text-sm text-neutral-600 dark:text-neutral-400">
-                  <UIcon name="i-lucide-info" class="w-4 h-4 inline mr-1" />
+                  <UIcon
+                    name="i-lucide-info"
+                    class="w-4 h-4 inline mr-1"
+                  />
                   Este es un pago de demostración. No se procesará ningún cargo
                   real.
                 </p>

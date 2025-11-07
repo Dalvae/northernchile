@@ -1,22 +1,22 @@
-import type { Ref } from "vue";
+import type { Ref } from 'vue'
 
 interface UploadResponse {
-  key: string;
-  url: string;
-  message: string;
+  key: string
+  url: string
+  message: string
 }
 
 interface PresignedUploadResponse {
-  uploadUrl: string;
-  expiresIn: string;
+  uploadUrl: string
+  expiresIn: string
 }
 
 export const useS3Upload = () => {
-  const config = useRuntimeConfig();
-  const toast = useToast();
+  const config = useRuntimeConfig()
+  const toast = useToast()
 
-  const isUploading: Ref<boolean> = ref(false);
-  const uploadProgress: Ref<number> = ref(0);
+  const isUploading: Ref<boolean> = ref(false)
+  const uploadProgress: Ref<number> = ref(0)
 
   /**
    * Upload a file to S3 via backend API
@@ -26,88 +26,88 @@ export const useS3Upload = () => {
    */
   const uploadFile = async (
     file: File,
-    folder: string = "general"
+    folder: string = 'general'
   ): Promise<UploadResponse | null> => {
     if (!file) {
       toast.add({
-        title: "Error",
-        description: "No file selected",
-        color: "error"
-      });
-      return null;
+        title: 'Error',
+        description: 'No file selected',
+        color: 'error'
+      })
+      return null
     }
 
     // Validate file type (images only)
-    if (!file.type.startsWith("image/")) {
+    if (!file.type.startsWith('image/')) {
       toast.add({
-        title: "Error",
-        description: "Only image files are allowed",
-        color: "error"
-      });
-      return null;
+        title: 'Error',
+        description: 'Only image files are allowed',
+        color: 'error'
+      })
+      return null
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.add({
-        title: "Error",
-        description: "File size must not exceed 5MB",
-        color: "error"
-      });
-      return null;
+        title: 'Error',
+        description: 'File size must not exceed 5MB',
+        color: 'error'
+      })
+      return null
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("folder", folder);
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('folder', folder)
 
     try {
-      isUploading.value = true;
-      uploadProgress.value = 0;
+      isUploading.value = true
+      uploadProgress.value = 0
 
       const response = await $fetch<UploadResponse>(
         `${config.public.apiBase}/api/storage/upload`,
         {
-          method: "POST",
+          method: 'POST',
           body: formData,
           onRequest({ options }) {
             // Add auth token from localStorage
-            const token = process.client ? localStorage.getItem("auth_token") : null;
+            const token = import.meta.client ? localStorage.getItem('auth_token') : null
             if (token) {
               options.headers = {
                 ...options.headers,
                 Authorization: `Bearer ${token}`
-              };
+              }
             }
           },
           onUploadProgress(event) {
             if (event.total) {
-              uploadProgress.value = Math.round((event.loaded / event.total) * 100);
+              uploadProgress.value = Math.round((event.loaded / event.total) * 100)
             }
           }
         }
-      );
+      )
 
       toast.add({
-        title: "Success",
-        description: "File uploaded successfully",
-        color: "success"
-      });
+        title: 'Success',
+        description: 'File uploaded successfully',
+        color: 'success'
+      })
 
-      return response;
+      return response
     } catch (error: any) {
-      console.error("Upload error:", error);
+      console.error('Upload error:', error)
       toast.add({
-        title: "Upload Failed",
-        description: error.data?.error || "Failed to upload file",
-        color: "error"
-      });
-      return null;
+        title: 'Upload Failed',
+        description: error.data?.error || 'Failed to upload file',
+        color: 'error'
+      })
+      return null
     } finally {
-      isUploading.value = false;
-      uploadProgress.value = 0;
+      isUploading.value = false
+      uploadProgress.value = 0
     }
-  };
+  }
 
   /**
    * Get a presigned upload URL for direct client upload to S3
@@ -117,32 +117,34 @@ export const useS3Upload = () => {
    */
   const getPresignedUploadUrl = async (
     filename: string,
-    folder: string = "general"
+    folder: string = 'general'
   ): Promise<string | null> => {
     try {
-      const token = process.client ? localStorage.getItem("auth_token") : null;
+      const token = import.meta.client ? localStorage.getItem('auth_token') : null
       const response = await $fetch<PresignedUploadResponse>(
         `${config.public.apiBase}/api/storage/presigned-upload-url`,
         {
-          method: "GET",
+          method: 'GET',
           query: { filename, folder },
-          headers: token ? {
-            Authorization: `Bearer ${token}`
-          } : {}
+          headers: token
+            ? {
+                Authorization: `Bearer ${token}`
+              }
+            : {}
         }
-      );
+      )
 
-      return response.uploadUrl;
+      return response.uploadUrl
     } catch (error: any) {
-      console.error("Error getting presigned URL:", error);
+      console.error('Error getting presigned URL:', error)
       toast.add({
-        title: "Error",
-        description: "Failed to get upload URL",
-        color: "error"
-      });
-      return null;
+        title: 'Error',
+        description: 'Failed to get upload URL',
+        color: 'error'
+      })
+      return null
     }
-  };
+  }
 
   /**
    * Upload directly to S3 using a presigned URL
@@ -154,42 +156,42 @@ export const useS3Upload = () => {
     presignedUrl: string
   ): Promise<boolean> => {
     try {
-      isUploading.value = true;
-      uploadProgress.value = 0;
+      isUploading.value = true
+      uploadProgress.value = 0
 
       await $fetch(presignedUrl, {
-        method: "PUT",
+        method: 'PUT',
         body: file,
         headers: {
-          "Content-Type": file.type
+          'Content-Type': file.type
         },
         onUploadProgress(event) {
           if (event.total) {
-            uploadProgress.value = Math.round((event.loaded / event.total) * 100);
+            uploadProgress.value = Math.round((event.loaded / event.total) * 100)
           }
         }
-      });
+      })
 
       toast.add({
-        title: "Success",
-        description: "File uploaded successfully",
-        color: "success"
-      });
+        title: 'Success',
+        description: 'File uploaded successfully',
+        color: 'success'
+      })
 
-      return true;
+      return true
     } catch (error) {
-      console.error("Direct upload error:", error);
+      console.error('Direct upload error:', error)
       toast.add({
-        title: "Upload Failed",
-        description: "Failed to upload file to S3",
-        color: "error"
-      });
-      return false;
+        title: 'Upload Failed',
+        description: 'Failed to upload file to S3',
+        color: 'error'
+      })
+      return false
     } finally {
-      isUploading.value = false;
-      uploadProgress.value = 0;
+      isUploading.value = false
+      uploadProgress.value = 0
     }
-  };
+  }
 
   /**
    * Delete a file from S3
@@ -197,33 +199,35 @@ export const useS3Upload = () => {
    */
   const deleteFile = async (key: string): Promise<boolean> => {
     try {
-      const token = process.client ? localStorage.getItem("auth_token") : null;
-      const [folder, filename] = key.split("/");
+      const token = import.meta.client ? localStorage.getItem('auth_token') : null
+      const [folder, filename] = key.split('/')
 
       await $fetch(`${config.public.apiBase}/api/storage/${folder}/${filename}`, {
-        method: "DELETE",
-        headers: token ? {
-          Authorization: `Bearer ${token}`
-        } : {}
-      });
+        method: 'DELETE',
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`
+            }
+          : {}
+      })
 
       toast.add({
-        title: "Success",
-        description: "File deleted successfully",
-        color: "success"
-      });
+        title: 'Success',
+        description: 'File deleted successfully',
+        color: 'success'
+      })
 
-      return true;
+      return true
     } catch (error) {
-      console.error("Delete error:", error);
+      console.error('Delete error:', error)
       toast.add({
-        title: "Delete Failed",
-        description: "Failed to delete file",
-        color: "error"
-      });
-      return false;
+        title: 'Delete Failed',
+        description: 'Failed to delete file',
+        color: 'error'
+      })
+      return false
     }
-  };
+  }
 
   /**
    * Get public URL for an S3 object
@@ -234,17 +238,17 @@ export const useS3Upload = () => {
       const response = await $fetch<{ url: string }>(
         `${config.public.apiBase}/api/storage/url`,
         {
-          method: "GET",
+          method: 'GET',
           query: { key }
         }
-      );
+      )
 
-      return response.url;
+      return response.url
     } catch (error) {
-      console.error("Error getting public URL:", error);
-      return null;
+      console.error('Error getting public URL:', error)
+      return null
     }
-  };
+  }
 
   return {
     isUploading: readonly(isUploading),
@@ -254,5 +258,5 @@ export const useS3Upload = () => {
     uploadToPresignedUrl,
     deleteFile,
     getPublicUrl
-  };
-};
+  }
+}

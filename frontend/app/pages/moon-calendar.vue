@@ -4,7 +4,10 @@
       <!-- Header -->
       <div class="text-center mb-12">
         <div class="inline-block p-4 bg-tertiary/10 rounded-full mb-4">
-          <UIcon name="i-lucide-moon" class="w-12 h-12 text-tertiary" />
+          <UIcon
+            name="i-lucide-moon"
+            class="w-12 h-12 text-tertiary"
+          />
         </div>
         <h1
           class="text-4xl md:text-5xl font-bold text-neutral-900 dark:text-white mb-4"
@@ -45,7 +48,10 @@
       <UCard class="mb-8 bg-tertiary/5 border-tertiary/20">
         <div class="flex items-start gap-4">
           <div class="p-3 bg-tertiary/10 rounded-lg">
-            <UIcon name="i-lucide-moon-star" class="w-6 h-6 text-tertiary" />
+            <UIcon
+              name="i-lucide-moon-star"
+              class="w-6 h-6 text-tertiary"
+            />
           </div>
           <div class="flex-1">
             <h3
@@ -66,7 +72,10 @@
                 <span class="font-medium text-neutral-900 dark:text-white">
                   {{ formatFullDate(moon.date) }}
                 </span>
-                <UBadge color="tertiary" variant="subtle">
+                <UBadge
+                  color="tertiary"
+                  variant="subtle"
+                >
                   {{ moon.illumination }}% {{ t("moon.illumination") }}
                 </UBadge>
               </div>
@@ -76,7 +85,10 @@
       </UCard>
 
       <!-- Loading State -->
-      <div v-if="pending" class="flex justify-center py-12">
+      <div
+        v-if="pending"
+        class="flex justify-center py-12"
+      >
         <UIcon
           name="i-lucide-loader-2"
           class="w-8 h-8 animate-spin text-primary"
@@ -84,7 +96,10 @@
       </div>
 
       <!-- Calendar Grid -->
-      <div v-else class="grid grid-cols-7 gap-2">
+      <div
+        v-else
+        class="grid grid-cols-7 gap-2"
+      >
         <!-- Day Headers -->
         <div
           v-for="day in dayHeaders"
@@ -103,9 +118,9 @@
             day.isToday
               ? 'border-primary bg-primary/5'
               : day.isCurrentMonth
-              ? 'border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-tertiary/50 hover:shadow-lg'
-              : 'border-transparent bg-neutral-100 dark:bg-neutral-800',
-            day.isFullMoon ? 'ring-2 ring-tertiary/50' : '',
+                ? 'border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-tertiary/50 hover:shadow-lg'
+                : 'border-transparent bg-neutral-100 dark:bg-neutral-800',
+            day.isFullMoon ? 'ring-2 ring-tertiary/50' : ''
           ]"
         >
           <div class="h-full flex flex-col items-center justify-center p-2">
@@ -115,8 +130,8 @@
                 day.isToday
                   ? 'text-primary font-bold'
                   : day.isCurrentMonth
-                  ? 'text-neutral-900 dark:text-white'
-                  : 'text-neutral-400 dark:text-neutral-600',
+                    ? 'text-neutral-900 dark:text-white'
+                    : 'text-neutral-400 dark:text-neutral-600'
               ]"
             >
               {{ day.dayNumber }}
@@ -130,8 +145,8 @@
                 day.isFullMoon
                   ? 'text-tertiary'
                   : day.isCurrentMonth
-                  ? 'text-neutral-600 dark:text-neutral-400'
-                  : 'text-neutral-400 dark:text-neutral-600',
+                    ? 'text-neutral-600 dark:text-neutral-400'
+                    : 'text-neutral-400 dark:text-neutral-600'
               ]"
             >
               {{ day.illumination }}%
@@ -142,7 +157,7 @@
                 'text-xs mt-1 text-center leading-tight',
                 day.isCurrentMonth
                   ? 'text-neutral-500 dark:text-neutral-500'
-                  : 'text-neutral-400 dark:text-neutral-600',
+                  : 'text-neutral-400 dark:text-neutral-600'
               ]"
             >
               {{ translatePhaseName(day.phaseName) }}
@@ -210,195 +225,195 @@
 </template>
 
 <script setup lang="ts">
-const { t, locale } = useI18n();
-const config = useRuntimeConfig();
+const { t, locale } = useI18n()
+const config = useRuntimeConfig()
 
 definePageMeta({
-  layout: "default",
-});
+  layout: 'default'
+})
 
 // State
-const currentDate = ref(new Date());
-const pending = ref(false);
-const moonData = ref<any[]>([]);
-const nextFullMoons = ref<any[]>([]);
+const currentDate = ref(new Date())
+const pending = ref(false)
+const moonData = ref<any[]>([])
+const nextFullMoons = ref<any[]>([])
 
 // Computed
 const currentMonthLabel = computed(() => {
   return currentDate.value.toLocaleDateString(locale.value, {
-    month: "long",
-    year: "numeric",
-  });
-});
+    month: 'long',
+    year: 'numeric'
+  })
+})
 
 const dayHeaders = computed(() => {
-  const days = [];
-  const baseDate = new Date(2025, 0, 5); // A Sunday
+  const days = []
+  const baseDate = new Date(2025, 0, 5) // A Sunday
   for (let i = 0; i < 7; i++) {
-    const date = new Date(baseDate);
-    date.setDate(baseDate.getDate() + i);
-    days.push(date.toLocaleDateString(locale.value, { weekday: "short" }));
+    const date = new Date(baseDate)
+    date.setDate(baseDate.getDate() + i)
+    days.push(date.toLocaleDateString(locale.value, { weekday: 'short' }))
   }
-  return days;
-});
+  return days
+})
 
 const calendarDays = computed(() => {
-  if (!moonData.value || moonData.value.length === 0) return [];
+  if (!moonData.value || moonData.value.length === 0) return []
 
-  const year = currentDate.value.getFullYear();
-  const month = currentDate.value.getMonth();
+  const year = currentDate.value.getFullYear()
+  const month = currentDate.value.getMonth()
 
   // First day of month
-  const firstDay = new Date(year, month, 1);
-  const startDayOfWeek = firstDay.getDay(); // 0 = Sunday
+  const firstDay = new Date(year, month, 1)
+  const startDayOfWeek = firstDay.getDay() // 0 = Sunday
 
   // Last day of month
-  const lastDay = new Date(year, month + 1, 0);
-  const daysInMonth = lastDay.getDate();
+  const lastDay = new Date(year, month + 1, 0)
+  const daysInMonth = lastDay.getDate()
 
   // Days from previous month
-  const prevMonthDays = startDayOfWeek;
-  const prevMonthLastDay = new Date(year, month, 0).getDate();
+  const prevMonthDays = startDayOfWeek
+  const prevMonthLastDay = new Date(year, month, 0).getDate()
 
-  const days = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const days = []
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
   // Previous month days
   for (let i = prevMonthDays - 1; i >= 0; i--) {
-    const day = prevMonthLastDay - i;
-    const date = new Date(year, month - 1, day);
-    const dateStr = date.toISOString().split("T")[0];
-    const moonDay = moonData.value.find((d) => d.date === dateStr);
+    const day = prevMonthLastDay - i
+    const date = new Date(year, month - 1, day)
+    const dateStr = date.toISOString().split('T')[0]
+    const moonDay = moonData.value.find(d => d.date === dateStr)
 
     days.push({
       dayNumber: day,
       isCurrentMonth: false,
       isToday: false,
-      ...moonDay,
-    });
+      ...moonDay
+    })
   }
 
   // Current month days
   for (let i = 1; i <= daysInMonth; i++) {
-    const date = new Date(year, month, i);
-    const dateStr = date.toISOString().split("T")[0];
-    const moonDay = moonData.value.find((d) => d.date === dateStr);
-    const isToday = date.getTime() === today.getTime();
+    const date = new Date(year, month, i)
+    const dateStr = date.toISOString().split('T')[0]
+    const moonDay = moonData.value.find(d => d.date === dateStr)
+    const isToday = date.getTime() === today.getTime()
 
     days.push({
       dayNumber: i,
       isCurrentMonth: true,
       isToday,
-      ...moonDay,
-    });
+      ...moonDay
+    })
   }
 
   // Next month days to fill grid
-  const remainingDays = 42 - days.length; // 6 rows * 7 days
+  const remainingDays = 42 - days.length // 6 rows * 7 days
   for (let i = 1; i <= remainingDays; i++) {
-    const date = new Date(year, month + 1, i);
-    const dateStr = date.toISOString().split("T")[0];
-    const moonDay = moonData.value.find((d) => d.date === dateStr);
+    const date = new Date(year, month + 1, i)
+    const dateStr = date.toISOString().split('T')[0]
+    const moonDay = moonData.value.find(d => d.date === dateStr)
 
     days.push({
       dayNumber: i,
       isCurrentMonth: false,
       isToday: false,
-      ...moonDay,
-    });
+      ...moonDay
+    })
   }
 
-  return days;
-});
+  return days
+})
 
 // Methods
 const fetchMoonData = async () => {
-  pending.value = true;
+  pending.value = true
   try {
-    const year = currentDate.value.getFullYear();
-    const month = currentDate.value.getMonth();
+    const year = currentDate.value.getFullYear()
+    const month = currentDate.value.getMonth()
 
     // Get data for previous month, current month, and next month
-    const prevMonth = new Date(year, month - 1, 1);
-    const nextMonth = new Date(year, month + 2, 0);
+    const prevMonth = new Date(year, month - 1, 1)
+    const nextMonth = new Date(year, month + 2, 0)
 
-    const startDate = prevMonth.toISOString().split("T")[0];
-    const endDate = nextMonth.toISOString().split("T")[0];
+    const startDate = prevMonth.toISOString().split('T')[0]
+    const endDate = nextMonth.toISOString().split('T')[0]
 
     const response = await $fetch(
       `${config.public.apiBaseUrl}/lunar/calendar`,
       {
-        params: { startDate, endDate },
+        params: { startDate, endDate }
       }
-    );
+    )
 
-    moonData.value = response;
+    moonData.value = response
   } catch (error) {
-    console.error("Error fetching moon data:", error);
+    console.error('Error fetching moon data:', error)
   } finally {
-    pending.value = false;
+    pending.value = false
   }
-};
+}
 
 const fetchNextFullMoons = async () => {
   try {
     const response = await $fetch(
       `${config.public.apiBaseUrl}/lunar/next-full-moons`,
       {
-        params: { count: 3 },
+        params: { count: 3 }
       }
-    );
-    nextFullMoons.value = response;
+    )
+    nextFullMoons.value = response
   } catch (error) {
-    console.error("Error fetching next full moons:", error);
+    console.error('Error fetching next full moons:', error)
   }
-};
+}
 
 const previousMonth = () => {
   currentDate.value = new Date(
     currentDate.value.getFullYear(),
     currentDate.value.getMonth() - 1,
     1
-  );
-  fetchMoonData();
-};
+  )
+  fetchMoonData()
+}
 
 const nextMonth = () => {
   currentDate.value = new Date(
     currentDate.value.getFullYear(),
     currentDate.value.getMonth() + 1,
     1
-  );
-  fetchMoonData();
-};
+  )
+  fetchMoonData()
+}
 
 const formatFullDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString(locale.value, {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
 
 const translatePhaseName = (phaseName: string) => {
   const phaseMap: Record<string, string> = {
-    "New Moon": t("moon.phases.new_moon"),
-    "Waxing Crescent": t("moon.phases.waxing_crescent"),
-    "First Quarter": t("moon.phases.first_quarter"),
-    "Waxing Gibbous": t("moon.phases.waxing_gibbous"),
-    "Full Moon": t("moon.phases.full_moon"),
-    "Waning Gibbous": t("moon.phases.waning_gibbous"),
-    "Last Quarter": t("moon.phases.last_quarter"),
-    "Waning Crescent": t("moon.phases.waning_crescent"),
-  };
-  return phaseMap[phaseName] || phaseName;
-};
+    'New Moon': t('moon.phases.new_moon'),
+    'Waxing Crescent': t('moon.phases.waxing_crescent'),
+    'First Quarter': t('moon.phases.first_quarter'),
+    'Waxing Gibbous': t('moon.phases.waxing_gibbous'),
+    'Full Moon': t('moon.phases.full_moon'),
+    'Waning Gibbous': t('moon.phases.waning_gibbous'),
+    'Last Quarter': t('moon.phases.last_quarter'),
+    'Waning Crescent': t('moon.phases.waning_crescent')
+  }
+  return phaseMap[phaseName] || phaseName
+}
 
 // Initialize
 onMounted(() => {
-  fetchMoonData();
-  fetchNextFullMoons();
-});
+  fetchMoonData()
+  fetchNextFullMoons()
+})
 </script>

@@ -120,14 +120,16 @@ export const useCalendarData = () => {
    */
   const fetchSchedules = async (startDate: string, endDate: string): Promise<TourSchedule[]> => {
     try {
-      const token = process.client ? localStorage.getItem('auth_token') : null
+      const token = import.meta.client ? localStorage.getItem('auth_token') : null
       const response = await $fetch<TourSchedule[]>(
         `${config.public.apiBase}/api/admin/schedules`,
         {
           params: { start: startDate, end: endDate },
-          headers: token ? {
-            Authorization: `Bearer ${token}`
-          } : {}
+          headers: token
+            ? {
+                Authorization: `Bearer ${token}`
+              }
+            : {}
         }
       )
       return response
@@ -142,11 +144,13 @@ export const useCalendarData = () => {
    */
   const fetchAlerts = async (): Promise<WeatherAlert[]> => {
     try {
-      const token = process.client ? localStorage.getItem('auth_token') : null
+      const token = import.meta.client ? localStorage.getItem('auth_token') : null
       const response = await $fetch<WeatherAlert[]>(`${config.public.apiBase}/api/admin/alerts`, {
-        headers: token ? {
-          Authorization: `Bearer ${token}`
-        } : {}
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`
+            }
+          : {}
       })
       return response
     } catch (error) {
@@ -162,14 +166,16 @@ export const useCalendarData = () => {
   const fetchCalendarData = async (startDate: string, endDate: string) => {
     try {
       // Obtener token si existe
-      const token = process.client ? localStorage.getItem('auth_token') : null
+      const token = import.meta.client ? localStorage.getItem('auth_token') : null
 
       // Llamada combinada al backend: fases lunares + pronóstico meteorológico
       const calendarResponse = await $fetch<any>(`${config.public.apiBase}/api/calendar/data`, {
         params: { startDate, endDate },
-        headers: token ? {
-          Authorization: `Bearer ${token}`
-        } : {}
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`
+            }
+          : {}
       })
 
       // Obtener schedules y alertas (datos que cambian frecuentemente)
@@ -204,7 +210,7 @@ export const useCalendarData = () => {
       // Crear mapa de alertas por schedule ID
       const alertMap = new Map<string, WeatherAlert[]>()
       if (Array.isArray(alerts)) {
-        alerts.forEach(alert => {
+        alerts.forEach((alert) => {
           if (!alertMap.has(alert.scheduleId)) {
             alertMap.set(alert.scheduleId, [])
           }

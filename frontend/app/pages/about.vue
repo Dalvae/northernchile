@@ -1,77 +1,77 @@
 <script setup lang="ts">
-const { t } = useI18n();
+const { t } = useI18n()
 
 useSeoMeta({
-  title: t("about.seo.title"),
-  description: t("about.seo.description"),
-  ogTitle: t("about.seo.og_title"),
-  ogDescription: t("about.seo.og_description"),
-  twitterCard: "summary_large_image",
-});
+  title: t('about.seo.title'),
+  description: t('about.seo.description'),
+  ogTitle: t('about.seo.og_title'),
+  ogDescription: t('about.seo.og_description'),
+  twitterCard: 'summary_large_image'
+})
 
 const teamMembers = [
   {
-    name: "Alex",
-    role: t("about.team.alex.role"),
-    bio: t("about.team.alex.bio"),
-    image: "https://ui-avatars.com/api/?name=Alex&background=10b981&color=fff",
+    name: 'Alex',
+    role: t('about.team.alex.role'),
+    bio: t('about.team.alex.bio'),
+    image: 'https://ui-avatars.com/api/?name=Alex&background=10b981&color=fff',
     credentials: [
-      { icon: "i-lucide-award", text: t("about.team.alex.credentials.award") },
+      { icon: 'i-lucide-award', text: t('about.team.alex.credentials.award') },
       {
-        icon: "i-lucide-mic",
-        text: t("about.team.alex.credentials.voice_over"),
+        icon: 'i-lucide-mic',
+        text: t('about.team.alex.credentials.voice_over')
       },
       {
-        icon: "i-lucide-building",
-        text: t("about.team.alex.credentials.collaborator"),
-      },
-    ],
+        icon: 'i-lucide-building',
+        text: t('about.team.alex.credentials.collaborator')
+      }
+    ]
   },
   {
-    name: "David Gallardo",
-    role: t("about.team.david.role"),
-    bio: t("about.team.david.bio"),
+    name: 'David Gallardo',
+    role: t('about.team.david.role'),
+    bio: t('about.team.david.bio'),
     image:
-      "https://ui-avatars.com/api/?name=David+Gallardo&background=10b981&color=fff",
+      'https://ui-avatars.com/api/?name=David+Gallardo&background=10b981&color=fff',
     credentials: [
       {
-        icon: "i-lucide-camera",
-        text: t("about.team.david.credentials.photographer"),
+        icon: 'i-lucide-camera',
+        text: t('about.team.david.credentials.photographer')
       },
       {
-        icon: "i-lucide-palette",
-        text: t("about.team.david.credentials.art_teacher"),
+        icon: 'i-lucide-palette',
+        text: t('about.team.david.credentials.art_teacher')
       },
       {
-        icon: "i-lucide-star",
-        text: t("about.team.david.credentials.tour_guide"),
-      },
-    ],
-  },
-];
+        icon: 'i-lucide-star',
+        text: t('about.team.david.credentials.tour_guide')
+      }
+    ]
+  }
+]
 
 const values = [
   {
-    icon: "i-lucide-sparkles",
-    title: t("about.values.experience_title"),
-    description: t("about.values.experience_description"),
+    icon: 'i-lucide-sparkles',
+    title: t('about.values.experience_title'),
+    description: t('about.values.experience_description')
   },
   {
-    icon: "i-lucide-telescope",
-    title: t("about.values.equipment_title"),
-    description: t("about.values.equipment_description"),
+    icon: 'i-lucide-telescope',
+    title: t('about.values.equipment_title'),
+    description: t('about.values.equipment_description')
   },
   {
-    icon: "i-lucide-award",
-    title: t("about.values.quality_title"),
-    description: t("about.values.quality_description"),
+    icon: 'i-lucide-award',
+    title: t('about.values.quality_title'),
+    description: t('about.values.quality_description')
   },
   {
-    icon: "i-lucide-mountain",
-    title: t("about.values.auditorium_title"),
-    description: t("about.values.auditorium_description"),
-  },
-];
+    icon: 'i-lucide-mountain',
+    title: t('about.values.auditorium_title'),
+    description: t('about.values.auditorium_description')
+  }
+]
 </script>
 
 <template>
@@ -134,7 +134,11 @@ const values = [
           {{ t("about.valuesTitle") }}
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div v-for="value in values" :key="value.title" class="text-center">
+          <div
+            v-for="value in values"
+            :key="value.title"
+            class="text-center"
+          >
             <div
               class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 mb-4"
             >
@@ -174,7 +178,7 @@ const values = [
               :src="member.image"
               :alt="member.name"
               class="w-40 h-40 rounded-full flex-shrink-0"
-            />
+            >
             <div class="flex-1 text-center md:text-left">
               <h3
                 class="text-2xl font-semibold text-neutral-900 dark:text-white mb-2"

@@ -1,72 +1,72 @@
 <script setup lang="ts">
 const props = defineProps<{
-  booking: any;
-}>();
+  booking: any
+}>()
 
 const emit = defineEmits<{
-  close: [];
-  saved: [];
-}>();
+  close: []
+  saved: []
+}>()
 
-const config = useRuntimeConfig();
-const authStore = useAuthStore();
-const toast = useToast();
+const config = useRuntimeConfig()
+const authStore = useAuthStore()
+const toast = useToast()
 
 // Form state
 const state = ref({
-  specialRequests: props.booking.specialRequests || "",
+  specialRequests: props.booking.specialRequests || '',
   participants: props.booking.participants.map((p: any) => ({
     id: p.id,
     fullName: p.fullName,
-    pickupAddress: p.pickupAddress || "",
-    specialRequirements: p.specialRequirements || "",
-    phoneNumber: p.phoneNumber || "",
-    email: p.email || "",
-  })),
-});
+    pickupAddress: p.pickupAddress || '',
+    specialRequirements: p.specialRequirements || '',
+    phoneNumber: p.phoneNumber || '',
+    email: p.email || ''
+  }))
+})
 
-const saving = ref(false);
+const saving = ref(false)
 
 async function saveChanges() {
-  saving.value = true;
+  saving.value = true
   try {
-    const token = authStore.token;
+    const token = authStore.token
     await $fetch(`${config.public.apiBase}/api/bookings/${props.booking.id}`, {
-      method: "PUT",
+      method: 'PUT',
       headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         specialRequests: state.value.specialRequests,
-        participants: state.value.participants.map((p) => ({
+        participants: state.value.participants.map(p => ({
           id: p.id,
           pickupAddress: p.pickupAddress,
           specialRequirements: p.specialRequirements,
           phoneNumber: p.phoneNumber,
-          email: p.email,
-        })),
-      }),
-    });
+          email: p.email
+        }))
+      })
+    })
 
     toast.add({
-      color: "success",
-      title: "Reserva Actualizada",
-      description: "Los cambios se han guardado exitosamente.",
-    });
+      color: 'success',
+      title: 'Reserva Actualizada',
+      description: 'Los cambios se han guardado exitosamente.'
+    })
 
-    emit("saved");
-    emit("close");
+    emit('saved')
+    emit('close')
   } catch (error: any) {
-    console.error("Error updating booking:", error);
+    console.error('Error updating booking:', error)
     toast.add({
-      color: "error",
-      title: "Error",
+      color: 'error',
+      title: 'Error',
       description:
-        error.data?.message || "No se pudieron guardar los cambios. Por favor, inténtalo de nuevo.",
-    });
+        error.data?.message || 'No se pudieron guardar los cambios. Por favor, inténtalo de nuevo.'
+    })
   } finally {
-    saving.value = false;
+    saving.value = false
   }
 }
 </script>
@@ -127,7 +127,10 @@ async function saveChanges() {
                 class="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg space-y-4"
               >
                 <div class="flex items-center gap-2">
-                  <UIcon name="i-lucide-user" class="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+                  <UIcon
+                    name="i-lucide-user"
+                    class="w-4 h-4 text-neutral-500 dark:text-neutral-400"
+                  />
                   <span class="font-medium text-neutral-900 dark:text-white">
                     {{ participant.fullName }}
                   </span>
@@ -211,8 +214,8 @@ async function saveChanges() {
           color="neutral"
           variant="outline"
           label="Cancelar"
-          @click="emit('close')"
           :disabled="saving"
+          @click="emit('close')"
         />
         <UButton
           color="primary"

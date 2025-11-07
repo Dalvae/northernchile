@@ -1,52 +1,52 @@
 <script setup lang="ts">
-const { fetchAll } = useTours();
-const { data: toursData } = await fetchAll();
+const { fetchAll } = useTours()
+const { data: toursData } = await fetchAll()
 
 // Obtener tours destacados (primeros 6 publicados)
 const featuredTours = computed(() => {
   const published = (toursData.value || []).filter(
-    (t) => t.status === "PUBLISHED"
-  );
-  return published.slice(0, 6);
-});
+    t => t.status === 'PUBLISHED'
+  )
+  return published.slice(0, 6)
+})
 
 // Características de la empresa
 const features = [
   {
-    icon: "i-lucide-telescope",
-    title: "Equipamiento Profesional",
+    icon: 'i-lucide-telescope',
+    title: 'Equipamiento Profesional',
     description:
-      "Telescopios de alta gama y equipos de observación certificados",
+      'Telescopios de alta gama y equipos de observación certificados'
   },
   {
-    icon: "i-lucide-users",
-    title: "Guías Expertos",
-    description: "Astrónomos y guías certificados con años de experiencia",
+    icon: 'i-lucide-users',
+    title: 'Guías Expertos',
+    description: 'Astrónomos y guías certificados con años de experiencia'
   },
   {
-    icon: "i-lucide-star",
-    title: "Cielos Únicos",
-    description: "El mejor lugar del mundo para observación astronómica",
+    icon: 'i-lucide-star',
+    title: 'Cielos Únicos',
+    description: 'El mejor lugar del mundo para observación astronómica'
   },
   {
-    icon: "i-lucide-shield-check",
-    title: "Cancelación Gratis",
-    description: "Cancela sin cargo hasta 24 horas antes",
-  },
-];
+    icon: 'i-lucide-shield-check',
+    title: 'Cancelación Gratis',
+    description: 'Cancela sin cargo hasta 24 horas antes'
+  }
+]
 
 // SEO
-const { t } = useI18n();
+const { t } = useI18n()
 useSeoMeta({
-  title: "Northern Chile - Tours Astronómicos en San Pedro de Atacama",
+  title: 'Northern Chile - Tours Astronómicos en San Pedro de Atacama',
   description:
-    "Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados. Experiencias únicas bajo el cielo más claro del mundo.",
-  ogTitle: "Northern Chile - Tours Astronómicos en San Pedro de Atacama",
+    'Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados. Experiencias únicas bajo el cielo más claro del mundo.',
+  ogTitle: 'Northern Chile - Tours Astronómicos en San Pedro de Atacama',
   ogDescription:
-    "Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados",
-  ogImage: "https://www.northernchile.cl/og-image-homepage.jpg",
-  twitterCard: "summary_large_image",
-});
+    'Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados',
+  ogImage: 'https://www.northernchile.cl/og-image-homepage.jpg',
+  twitterCard: 'summary_large_image'
+})
 </script>
 
 <template>
@@ -125,7 +125,10 @@ useSeoMeta({
               <div
                 class="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center"
               >
-                <UIcon :name="feature.icon" class="w-8 h-8 text-primary" />
+                <UIcon
+                  :name="feature.icon"
+                  class="w-8 h-8 text-primary"
+                />
               </div>
               <h3
                 class="text-xl font-semibold text-neutral-900 dark:text-white"
@@ -147,7 +150,9 @@ useSeoMeta({
     >
       <UContainer>
         <div class="max-w-3xl mx-auto text-center space-y-6">
-          <h2 class="text-4xl font-bold">¿Listo para Explorar el Universo?</h2>
+          <h2 class="text-4xl font-bold">
+            ¿Listo para Explorar el Universo?
+          </h2>
           <p class="text-xl text-neutral-300">
             Reserva tu tour astronómico y vive una experiencia inolvidable bajo
             las estrellas del Atacama

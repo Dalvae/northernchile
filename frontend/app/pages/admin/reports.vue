@@ -1,6 +1,6 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: 'admin',
+  layout: 'admin'
 })
 
 const config = useRuntimeConfig()
@@ -168,8 +168,8 @@ const formatDate = (date: string) => {
           <UButton
             color="primary"
             icon="i-lucide-refresh-cw"
-            @click="refreshOverview"
             :loading="overviewPending"
+            @click="refreshOverview"
           >
             Actualizar
           </UButton>
@@ -178,8 +178,14 @@ const formatDate = (date: string) => {
     </div>
 
     <!-- Loading state -->
-    <div v-if="overviewPending" class="flex justify-center items-center py-12">
-      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+    <div
+      v-if="overviewPending"
+      class="flex justify-center items-center py-12"
+    >
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-8 h-8 animate-spin text-primary"
+      />
     </div>
 
     <!-- Overview Stats -->
@@ -279,10 +285,19 @@ const formatDate = (date: string) => {
         <h3 class="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
           Reservas por Día
         </h3>
-        <div v-if="bookingsByDayPending" class="flex justify-center py-8">
-          <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-primary" />
+        <div
+          v-if="bookingsByDayPending"
+          class="flex justify-center py-8"
+        >
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-6 h-6 animate-spin text-primary"
+          />
         </div>
-        <div v-else-if="bookingsByDay && bookingsByDay.length > 0" class="overflow-x-auto">
+        <div
+          v-else-if="bookingsByDay && bookingsByDay.length > 0"
+          class="overflow-x-auto"
+        >
           <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
             <thead>
               <tr>
@@ -298,7 +313,10 @@ const formatDate = (date: string) => {
               </tr>
             </thead>
             <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
-              <tr v-for="day in bookingsByDay" :key="day.date">
+              <tr
+                v-for="day in bookingsByDay"
+                :key="day.date"
+              >
                 <td class="px-4 py-2 text-sm text-neutral-900 dark:text-white">
                   {{ formatDate(day.date) }}
                 </td>
@@ -312,7 +330,10 @@ const formatDate = (date: string) => {
             </tbody>
           </table>
         </div>
-        <div v-else class="text-center py-8">
+        <div
+          v-else
+          class="text-center py-8"
+        >
           <p class="text-neutral-600 dark:text-neutral-400">
             No hay datos de reservas en este período
           </p>
@@ -324,10 +345,19 @@ const formatDate = (date: string) => {
         <h3 class="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
           Tours Más Populares
         </h3>
-        <div v-if="topToursPending" class="flex justify-center py-8">
-          <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-primary" />
+        <div
+          v-if="topToursPending"
+          class="flex justify-center py-8"
+        >
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-6 h-6 animate-spin text-primary"
+          />
         </div>
-        <div v-else-if="topTours && topTours.length > 0" class="overflow-x-auto">
+        <div
+          v-else-if="topTours && topTours.length > 0"
+          class="overflow-x-auto"
+        >
           <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
             <thead>
               <tr>
@@ -346,7 +376,10 @@ const formatDate = (date: string) => {
               </tr>
             </thead>
             <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
-              <tr v-for="(tour, index) in topTours" :key="index">
+              <tr
+                v-for="(tour, index) in topTours"
+                :key="index"
+              >
                 <td class="px-4 py-2 text-sm text-neutral-900 dark:text-white">
                   <div class="flex items-center gap-2">
                     <UBadge
@@ -371,7 +404,10 @@ const formatDate = (date: string) => {
             </tbody>
           </table>
         </div>
-        <div v-else class="text-center py-8">
+        <div
+          v-else
+          class="text-center py-8"
+        >
           <p class="text-neutral-600 dark:text-neutral-400">
             No hay datos de tours en este período
           </p>

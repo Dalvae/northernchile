@@ -68,117 +68,140 @@
             </template>
 
             <!-- Loading -->
-            <div v-if="isLoading" class="py-12 text-center">
-              <p class="text-neutral-600 dark:text-neutral-400">Cargando...</p>
+            <div
+              v-if="isLoading"
+              class="py-12 text-center"
+            >
+              <p class="text-neutral-600 dark:text-neutral-400">
+                Cargando...
+              </p>
             </div>
 
             <!-- Form -->
-            <form v-else @submit.prevent="saveProfile" class="space-y-5">
-                <!-- Email -->
-                <div>
-                  <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                    Email
-                  </label>
-                  <div class="px-4 py-3 rounded-lg bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700">
-                    <span class="text-neutral-900 dark:text-white">{{ profileForm.email }}</span>
-                  </div>
-                  <p class="text-xs text-neutral-500 mt-1">El email no se puede cambiar</p>
+            <form
+              v-else
+              class="space-y-5"
+              @submit.prevent="saveProfile"
+            >
+              <!-- Email -->
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Email
+                </label>
+                <div class="px-4 py-3 rounded-lg bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700">
+                  <span class="text-neutral-900 dark:text-white">{{ profileForm.email }}</span>
                 </div>
+                <p class="text-xs text-neutral-500 mt-1">
+                  El email no se puede cambiar
+                </p>
+              </div>
 
-                <!-- Full Name -->
-                <div>
-                  <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                    Nombre Completo *
-                  </label>
-                  <input
-                    v-if="isEditing"
-                    v-model="profileForm.fullName"
-                    type="text"
-                    required
-                    class="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                  <div v-else class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
-                    <span class="text-neutral-900 dark:text-white">{{ profileForm.fullName || '-' }}</span>
-                  </div>
-                </div>
-
-                <!-- Nationality -->
-                <div>
-                  <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                    Nacionalidad
-                  </label>
-                  <USelectMenu
-                    v-if="isEditing"
-                    v-model="profileForm.nationality"
-                    :items="countries"
-                    value-attribute="value"
-                    option-attribute="label"
-                    placeholder="Selecciona tu país"
-                    size="lg"
-                    class="w-full"
-                    searchable
-                  />
-                  <div v-else class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
-                    <span class="text-neutral-900 dark:text-white">{{ getCountryLabel(profileForm.nationality) || '-' }}</span>
-                  </div>
-                </div>
-
-                <!-- Phone Number -->
-                <div>
-                  <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                    Teléfono
-                  </label>
-                  <input
-                    v-if="isEditing"
-                    v-model="profileForm.phoneNumber"
-                    type="tel"
-                    placeholder="+56 9 1234 5678"
-                    class="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                  <div v-else class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
-                    <span class="text-neutral-900 dark:text-white">{{ profileForm.phoneNumber || '-' }}</span>
-                  </div>
-                </div>
-
-                <!-- Date of Birth -->
-                <div>
-                  <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                    Fecha de Nacimiento
-                  </label>
-                  <input
-                    v-if="isEditing"
-                    v-model="profileForm.dateOfBirth"
-                    type="date"
-                    class="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  />
-                  <div v-else class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
-                    <span class="text-neutral-900 dark:text-white">{{ profileForm.dateOfBirth || '-' }}</span>
-                  </div>
-                </div>
-
-                <!-- Action buttons (only show when editing) -->
-                <div
+              <!-- Full Name -->
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Nombre Completo *
+                </label>
+                <input
                   v-if="isEditing"
-                  class="flex gap-3 justify-end pt-4 border-t border-neutral-200 dark:border-neutral-700"
+                  v-model="profileForm.fullName"
+                  type="text"
+                  required
+                  class="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
-                  <UButton
-                    type="button"
-                    variant="outline"
-                    color="neutral"
-                    @click="cancelEditing"
-                  >
-                    {{ t("common.cancel") }}
-                  </UButton>
-
-                  <UButton
-                    type="submit"
-                    color="primary"
-                    :disabled="isSaving"
-                  >
-                    {{ isSaving ? 'Guardando...' : 'Guardar' }}
-                  </UButton>
+                <div
+                  v-else
+                  class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
+                >
+                  <span class="text-neutral-900 dark:text-white">{{ profileForm.fullName || '-' }}</span>
                 </div>
-              </form>
+              </div>
+
+              <!-- Nationality -->
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Nacionalidad
+                </label>
+                <USelectMenu
+                  v-if="isEditing"
+                  v-model="profileForm.nationality"
+                  :items="countries"
+                  value-attribute="value"
+                  option-attribute="label"
+                  placeholder="Selecciona tu país"
+                  size="lg"
+                  class="w-full"
+                  searchable
+                />
+                <div
+                  v-else
+                  class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
+                >
+                  <span class="text-neutral-900 dark:text-white">{{ getCountryLabel(profileForm.nationality) || '-' }}</span>
+                </div>
+              </div>
+
+              <!-- Phone Number -->
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Teléfono
+                </label>
+                <input
+                  v-if="isEditing"
+                  v-model="profileForm.phoneNumber"
+                  type="tel"
+                  placeholder="+56 9 1234 5678"
+                  class="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                <div
+                  v-else
+                  class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
+                >
+                  <span class="text-neutral-900 dark:text-white">{{ profileForm.phoneNumber || '-' }}</span>
+                </div>
+              </div>
+
+              <!-- Date of Birth -->
+              <div>
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  Fecha de Nacimiento
+                </label>
+                <input
+                  v-if="isEditing"
+                  v-model="profileForm.dateOfBirth"
+                  type="date"
+                  class="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                >
+                <div
+                  v-else
+                  class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
+                >
+                  <span class="text-neutral-900 dark:text-white">{{ profileForm.dateOfBirth || '-' }}</span>
+                </div>
+              </div>
+
+              <!-- Action buttons (only show when editing) -->
+              <div
+                v-if="isEditing"
+                class="flex gap-3 justify-end pt-4 border-t border-neutral-200 dark:border-neutral-700"
+              >
+                <UButton
+                  type="button"
+                  variant="outline"
+                  color="neutral"
+                  @click="cancelEditing"
+                >
+                  {{ t("common.cancel") }}
+                </UButton>
+
+                <UButton
+                  type="submit"
+                  color="primary"
+                  :disabled="isSaving"
+                >
+                  {{ isSaving ? 'Guardando...' : 'Guardar' }}
+                </UButton>
+              </div>
+            </form>
           </UCard>
 
           <!-- Change Password Tab -->
@@ -191,65 +214,68 @@
               </h2>
             </template>
 
-            <form @submit.prevent="changePassword" class="space-y-6">
-                <UFormField
-                  :label="t('profile.current_password')"
-                  name="currentPassword"
-                  required
-                >
-                  <UInput
-                    v-model="passwordForm.currentPassword"
-                    type="password"
-                    size="lg"
-                    icon="i-lucide-lock"
-                    class="w-full"
-                  />
-                </UFormField>
+            <form
+              class="space-y-6"
+              @submit.prevent="changePassword"
+            >
+              <UFormField
+                :label="t('profile.current_password')"
+                name="currentPassword"
+                required
+              >
+                <UInput
+                  v-model="passwordForm.currentPassword"
+                  type="password"
+                  size="lg"
+                  icon="i-lucide-lock"
+                  class="w-full"
+                />
+              </UFormField>
 
-                <UFormField
-                  :label="t('profile.new_password')"
-                  name="newPassword"
-                  required
-                >
-                  <UInput
-                    v-model="passwordForm.newPassword"
-                    type="password"
-                    size="lg"
-                    icon="i-lucide-lock"
-                    class="w-full"
-                  />
-                  <template #help>
-                    <span class="text-sm text-neutral-500">
-                      {{ t("auth.password_min") }}
-                    </span>
-                  </template>
-                </UFormField>
+              <UFormField
+                :label="t('profile.new_password')"
+                name="newPassword"
+                required
+              >
+                <UInput
+                  v-model="passwordForm.newPassword"
+                  type="password"
+                  size="lg"
+                  icon="i-lucide-lock"
+                  class="w-full"
+                />
+                <template #help>
+                  <span class="text-sm text-neutral-500">
+                    {{ t("auth.password_min") }}
+                  </span>
+                </template>
+              </UFormField>
 
-                <UFormField
-                  :label="t('auth.confirm_password')"
-                  name="confirmPassword"
-                  required
-                >
-                  <UInput
-                    v-model="passwordForm.confirmPassword"
-                    type="password"
-                    size="lg"
-                    icon="i-lucide-lock"
-                    class="w-full"
-                  />
-                </UFormField>
+              <UFormField
+                :label="t('auth.confirm_password')"
+                name="confirmPassword"
+                required
+              >
+                <UInput
+                  v-model="passwordForm.confirmPassword"
+                  type="password"
+                  size="lg"
+                  icon="i-lucide-lock"
+                  class="w-full"
+                />
+              </UFormField>
 
-                <div class="flex justify-end">
-                  <UButton
-                    type="submit"
-                    color="primary"
-                    size="lg"
-                    :loading="isChangingPassword"
-                  >
-                    {{ t("profile.update_password") }}
-                  </UButton>
-                </div>
-              </form>
+              <div class="flex justify-end">
+                <UButton
+                  type="submit"
+                  color="primary"
+                  size="lg"
+                  :loading="isChangingPassword"
+                >
+                  {{ t("profile.update_password") }}
+                </UButton>
+              </div>
+            </form>
           </UCard>
 
           <!-- Bookings Tab -->
@@ -261,121 +287,121 @@
 </template>
 
 <script setup lang="ts">
-const { t } = useI18n();
-const authStore = useAuthStore();
-const toast = useToast();
-const { countries } = useCountries();
+const { t } = useI18n()
+const authStore = useAuthStore()
+const toast = useToast()
+const { countries } = useCountries()
 
 definePageMeta({
-  layout: "default",
-});
+  layout: 'default'
+})
 
 // Helper to get country label
 const getCountryLabel = (code: string) => {
-  return countries.find(c => c.value === code)?.label;
-};
+  return countries.find(c => c.value === code)?.label
+}
 
 // State
-const activeTab = ref("personal");
-const isEditing = ref(false);
-const isSaving = ref(false);
-const isChangingPassword = ref(false);
-const isLoading = ref(true);
+const activeTab = ref('personal')
+const isEditing = ref(false)
+const isSaving = ref(false)
+const isChangingPassword = ref(false)
+const isLoading = ref(true)
 
 // Profile form
 const profileForm = reactive({
-  fullName: "",
-  email: "",
-  nationality: "",
-  dateOfBirth: "",
-  phoneNumber: "",
-});
+  fullName: '',
+  email: '',
+  nationality: '',
+  dateOfBirth: '',
+  phoneNumber: ''
+})
 
 // Load user data on mount
 onMounted(async () => {
-  isLoading.value = true;
-  console.log("[Profile] Mounting, current user:", authStore.user);
+  isLoading.value = true
+  console.log('[Profile] Mounting, current user:', authStore.user)
 
   // Fetch fresh user data from backend
-  await authStore.fetchUser();
+  await authStore.fetchUser()
 
-  console.log("[Profile] After fetch, user:", authStore.user);
+  console.log('[Profile] After fetch, user:', authStore.user)
 
   // Update form with user data
   if (authStore.user) {
-    profileForm.fullName = authStore.user.fullName || "";
-    profileForm.email = authStore.user.email || "";
-    profileForm.nationality = authStore.user.nationality || "";
-    profileForm.dateOfBirth = authStore.user.dateOfBirth || "";
-    profileForm.phoneNumber = authStore.user.phoneNumber || "";
-    console.log("[Profile] Form updated:", profileForm);
+    profileForm.fullName = authStore.user.fullName || ''
+    profileForm.email = authStore.user.email || ''
+    profileForm.nationality = authStore.user.nationality || ''
+    profileForm.dateOfBirth = authStore.user.dateOfBirth || ''
+    profileForm.phoneNumber = authStore.user.phoneNumber || ''
+    console.log('[Profile] Form updated:', profileForm)
   }
 
-  isLoading.value = false;
-});
+  isLoading.value = false
+})
 
 // Password form
 const passwordForm = reactive({
-  currentPassword: "",
-  newPassword: "",
-  confirmPassword: "",
-});
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
 
 // Original values for cancel
-let originalValues: any = null;
+let originalValues: any = null
 
 // Start editing
 function startEditing() {
-  originalValues = { ...profileForm };
-  isEditing.value = true;
+  originalValues = { ...profileForm }
+  isEditing.value = true
 }
 
 // Cancel editing
 function cancelEditing() {
-  Object.assign(profileForm, originalValues);
-  isEditing.value = false;
+  Object.assign(profileForm, originalValues)
+  isEditing.value = false
 }
 
 // Save profile
 async function saveProfile() {
-  isSaving.value = true;
+  isSaving.value = true
 
   try {
-    const config = useRuntimeConfig();
-    const apiBase = config.public.apiBase;
+    const config = useRuntimeConfig()
+    const apiBase = config.public.apiBase
 
     await $fetch(`${apiBase}/api/profile/me`, {
-      method: "PUT",
+      method: 'PUT',
       headers: {
-        Authorization: `Bearer ${authStore.token}`,
-        "Content-Type": "application/json",
+        'Authorization': `Bearer ${authStore.token}`,
+        'Content-Type': 'application/json'
       },
       body: {
         fullName: profileForm.fullName,
         nationality: profileForm.nationality || null,
         phoneNumber: profileForm.phoneNumber || null,
-        dateOfBirth: profileForm.dateOfBirth || null,
-      },
-    });
+        dateOfBirth: profileForm.dateOfBirth || null
+      }
+    })
 
     // Update auth store
-    await authStore.fetchUser();
+    await authStore.fetchUser()
 
     toast.add({
-      title: t("common.success"),
-      description: t("profile.profile_updated_success"),
-      color: "success",
-    });
+      title: t('common.success'),
+      description: t('profile.profile_updated_success'),
+      color: 'success'
+    })
 
-    isEditing.value = false;
+    isEditing.value = false
   } catch (error: any) {
     toast.add({
-      title: t("common.error"),
-      description: error.data?.message || t("profile.profile_update_error"),
-      color: "error",
-    });
+      title: t('common.error'),
+      description: error.data?.message || t('profile.profile_update_error'),
+      color: 'error'
+    })
   } finally {
-    isSaving.value = false;
+    isSaving.value = false
   }
 }
 
@@ -384,53 +410,53 @@ async function changePassword() {
   // Validate passwords match
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
     toast.add({
-      title: t("common.error"),
-      description: t("auth.passwords_dont_match"),
-      color: "error",
-    });
-    return;
+      title: t('common.error'),
+      description: t('auth.passwords_dont_match'),
+      color: 'error'
+    })
+    return
   }
 
   // Validate password length
   if (passwordForm.newPassword.length < 8) {
     toast.add({
-      title: t("common.error"),
-      description: t("auth.password_min"),
-      color: "error",
-    });
-    return;
+      title: t('common.error'),
+      description: t('auth.password_min'),
+      color: 'error'
+    })
+    return
   }
 
-  isChangingPassword.value = true;
+  isChangingPassword.value = true
 
   try {
-    await $fetch("/api/profile/me/password", {
-      method: "PUT",
-      credentials: "include",
+    await $fetch('/api/profile/me/password', {
+      method: 'PUT',
+      credentials: 'include',
       body: {
         currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword,
-      },
-    });
+        newPassword: passwordForm.newPassword
+      }
+    })
 
     toast.add({
-      title: t("common.success"),
-      description: t("profile.password_updated_success"),
-      color: "success",
-    });
+      title: t('common.success'),
+      description: t('profile.password_updated_success'),
+      color: 'success'
+    })
 
     // Reset form
-    passwordForm.currentPassword = "";
-    passwordForm.newPassword = "";
-    passwordForm.confirmPassword = "";
+    passwordForm.currentPassword = ''
+    passwordForm.newPassword = ''
+    passwordForm.confirmPassword = ''
   } catch (error: any) {
     toast.add({
-      title: t("common.error"),
-      description: error.data?.message || t("profile.password_update_error"),
-      color: "error",
-    });
+      title: t('common.error'),
+      description: error.data?.message || t('profile.password_update_error'),
+      color: 'error'
+    })
   } finally {
-    isChangingPassword.value = false;
+    isChangingPassword.value = false
   }
 }
 </script>

@@ -37,15 +37,24 @@ const changeIcon = computed(() => {
         </p>
 
         <!-- Loading state -->
-        <USkeleton v-if="loading" class="h-8 w-24 mt-2" />
+        <USkeleton
+          v-if="loading"
+          class="h-8 w-24 mt-2"
+        />
 
         <!-- Value -->
-        <p v-else class="mt-2 text-3xl font-semibold text-neutral-900 dark:text-white">
+        <p
+          v-else
+          class="mt-2 text-3xl font-semibold text-neutral-900 dark:text-white"
+        >
           {{ formattedValue }}
         </p>
 
         <!-- Cambio vs período anterior -->
-        <div v-if="change !== undefined && !loading" class="mt-2 flex items-center gap-1">
+        <div
+          v-if="change !== undefined && !loading"
+          class="mt-2 flex items-center gap-1"
+        >
           <UIcon
             :name="changeIcon"
             :class="changeColor"

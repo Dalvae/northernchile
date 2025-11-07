@@ -19,7 +19,7 @@ export const useTours = () => {
     // Llama a nuestro endpoint dinámico: /api/tours/{id}
     return useFetch<TourRes>(`/api/tours/${tourId}`)
   }
-  
+
   return {
     fetchAll,
     fetchById

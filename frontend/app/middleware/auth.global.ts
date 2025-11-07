@@ -1,16 +1,16 @@
 export default defineNuxtRouteMiddleware((to, from) => {
-  const authStore = useAuthStore();
-  
+  const authStore = useAuthStore()
+
   // Solo ejecutar en el cliente
-  if (process.client) {
-    authStore.initializeAuth();
+  if (import.meta.client) {
+    authStore.initializeAuth()
   }
-  
+
   // Rutas protegidas que requieren autenticación
-  const protectedRoutes = ['/admin', '/profile', '/bookings'];
-  const isProtectedRoute = protectedRoutes.some(route => to.path.startsWith(route));
-  
-  if (isProtectedRoute && !authStore.isAuthenticated && process.client) {
-    return navigateTo('/auth');
+  const protectedRoutes = ['/admin', '/profile', '/bookings']
+  const isProtectedRoute = protectedRoutes.some(route => to.path.startsWith(route))
+
+  if (isProtectedRoute && !authStore.isAuthenticated && import.meta.client) {
+    return navigateTo('/auth')
   }
-});
+})

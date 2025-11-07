@@ -6,7 +6,10 @@
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
         <div class="flex-shrink-0">
-          <NuxtLink :to="localePath('/')" class="flex items-center gap-2 group">
+          <NuxtLink
+            :to="localePath('/')"
+            class="flex items-center gap-2 group"
+          >
             <UIcon
               name="i-lucide-telescope"
               class="w-6 h-6 text-primary group-hover:rotate-12 transition-transform"
@@ -109,7 +112,10 @@
     </div>
 
     <!-- Mobile Menu Drawer -->
-    <USlideover v-model="mobileMenuOpen" side="right">
+    <USlideover
+      v-model="mobileMenuOpen"
+      side="right"
+    >
       <template #content>
         <div class="p-6 space-y-6">
           <!-- Close Button -->
@@ -230,76 +236,76 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from "~/stores/auth";
+import { useAuthStore } from '~/stores/auth'
 
-const { t } = useI18n();
-const authStore = useAuthStore();
-const cartStore = useCartStore();
-const localePath = useLocalePath();
+const { t } = useI18n()
+const authStore = useAuthStore()
+const cartStore = useCartStore()
+const localePath = useLocalePath()
 
-const mobileMenuOpen = ref(false);
-const isAdmin = computed(() => authStore.isAdmin);
+const mobileMenuOpen = ref(false)
+const isAdmin = computed(() => authStore.isAdmin)
 
 // Cart items count
-const cartItemsCount = computed(() => cartStore.totalItems);
+const cartItemsCount = computed(() => cartStore.totalItems)
 
 // Navigation links
 const links = computed(() => [
   {
-    label: t("nav.tours"),
-    to: localePath("/tours"),
+    label: t('nav.tours'),
+    to: localePath('/tours')
   },
   {
-    label: t("nav.private_tours"),
-    to: localePath("/private-tours"),
+    label: t('nav.private_tours'),
+    to: localePath('/private-tours')
   },
   {
-    label: t("nav.about_us"),
-    to: localePath("/about"),
+    label: t('nav.about_us'),
+    to: localePath('/about')
   },
   {
-    label: t("nav.contact"),
-    to: localePath("/contact"),
-  },
-]);
+    label: t('nav.contact'),
+    to: localePath('/contact')
+  }
+])
 
 // Handle logout
 async function handleLogout() {
-  mobileMenuOpen.value = false;
-  await authStore.logout();
+  mobileMenuOpen.value = false
+  await authStore.logout()
 }
 
 // User menu items
 const userMenuItems = computed(() => [
   [
     {
-      label: t("nav.my_account"),
-      icon: "i-lucide-user",
-      to: localePath("/profile"),
+      label: t('nav.my_account'),
+      icon: 'i-lucide-user',
+      to: localePath('/profile')
     },
     {
-      label: t("nav.bookings"),
-      icon: "i-lucide-book-marked",
-      to: localePath("/profile/bookings"),
-    },
+      label: t('nav.bookings'),
+      icon: 'i-lucide-book-marked',
+      to: localePath('/profile/bookings')
+    }
   ],
   ...(isAdmin.value
     ? [
         [
           {
-            label: t("nav.admin"),
-            icon: "i-lucide-shield-check",
-            to: localePath("/admin"),
-          },
-        ],
+            label: t('nav.admin'),
+            icon: 'i-lucide-shield-check',
+            to: localePath('/admin')
+          }
+        ]
       ]
     : []),
   [
     {
-      label: t("nav.logout"),
-      icon: "i-lucide-log-out",
-      onClick: handleLogout,
-    },
-  ],
-]);
+      label: t('nav.logout'),
+      icon: 'i-lucide-log-out',
+      onClick: handleLogout
+    }
+  ]
+])
 </script>

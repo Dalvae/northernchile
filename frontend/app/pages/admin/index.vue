@@ -23,11 +23,13 @@ const { data: alertsCount } = await useAsyncData(
   'dashboard-alerts-count',
   async () => {
     try {
-      const token = process.client ? localStorage.getItem('auth_token') : null
+      const token = import.meta.client ? localStorage.getItem('auth_token') : null
       const response = await $fetch<{ pending: number }>(`${config.public.apiBase}/api/admin/alerts/count`, {
-        headers: token ? {
-          Authorization: `Bearer ${token}`
-        } : {}
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`
+            }
+          : {}
       })
       return response.pending || 0
     } catch (error) {
@@ -51,7 +53,7 @@ const stats = computed(() => {
   const allTours = Array.isArray(tours.value?.data) ? tours.value.data : []
   const allBookings = Array.isArray(bookingsData.value?.data) ? bookingsData.value.data : []
   const totalBookings = allBookings.length
-  const activeTours = allTours.filter((t) => t.status === 'PUBLISHED').length || 0
+  const activeTours = allTours.filter(t => t.status === 'PUBLISHED').length || 0
 
   // Calcular ingresos del mes actual
   const now = new Date()
@@ -59,11 +61,11 @@ const stats = computed(() => {
   const currentYear = now.getFullYear()
 
   const monthlyRevenue = allBookings
-    .filter(b => {
+    .filter((b) => {
       const bookingDate = new Date(b.createdAt)
-      return bookingDate.getMonth() === currentMonth &&
-             bookingDate.getFullYear() === currentYear &&
-             (b.status === 'CONFIRMED' || b.status === 'COMPLETED')
+      return bookingDate.getMonth() === currentMonth
+        && bookingDate.getFullYear() === currentYear
+        && (b.status === 'CONFIRMED' || b.status === 'COMPLETED')
     })
     .reduce((sum, b) => sum + (b.totalAmount || 0), 0)
 
@@ -115,10 +117,10 @@ const bookingColumns = [
 
 function getStatusColor(status: string) {
   const colors: Record<string, string> = {
-    'CONFIRMED': 'success',
-    'PENDING': 'warning',
-    'CANCELLED': 'error',
-    'COMPLETED': 'info'
+    CONFIRMED: 'success',
+    PENDING: 'warning',
+    CANCELLED: 'error',
+    COMPLETED: 'info'
   }
   return colors[status] || 'neutral'
 }

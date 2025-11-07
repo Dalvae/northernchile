@@ -68,9 +68,9 @@ export const useCurrency = () => {
    */
   const getLocaleCode = (locale: string): string => {
     const localeMap: Record<string, string> = {
-      'es': 'es-CL',
-      'en': 'en-US',
-      'pt': 'pt-BR'
+      es: 'es-CL',
+      en: 'en-US',
+      pt: 'pt-BR'
     }
     return localeMap[locale] || 'es-CL'
   }

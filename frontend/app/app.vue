@@ -7,4 +7,3 @@
     </UApp>
   </div>
 </template>
-

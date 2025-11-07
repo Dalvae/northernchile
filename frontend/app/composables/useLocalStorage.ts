@@ -1,4 +1,4 @@
-import { ref, onMounted, type Ref } from 'vue';
+import { ref, onMounted, type Ref } from 'vue'
 
 /**
  * Un composable de Vue 3 para interactuar con localStorage de forma segura en Nuxt 3 (SSR).
@@ -10,37 +10,37 @@ import { ref, onMounted, type Ref } from 'vue';
  */
 export function useLocalStorage<T>(key: string, initialValue: T): [Ref<T>, (value: T) => void] {
   // Creamos un ref con el valor inicial. Este valor se usará en el servidor.
-  const storedValue: Ref<T> = ref(initialValue) as Ref<T>;
+  const storedValue: Ref<T> = ref(initialValue) as Ref<T>
 
   // La función para actualizar el valor en el estado y en localStorage.
   const setValue = (value: T) => {
     try {
       // Actualizamos el estado reactivo.
-      storedValue.value = value;
+      storedValue.value = value
 
       // Nos aseguramos de escribir en localStorage solo en el cliente.
-      if (process.client) {
-        localStorage.setItem(key, JSON.stringify(value));
+      if (import.meta.client) {
+        localStorage.setItem(key, JSON.stringify(value))
       }
     } catch (error) {
-      console.error(`Error al guardar en localStorage con la clave "${key}":`, error);
+      console.error(`Error al guardar en localStorage con la clave "${key}":`, error)
     }
-  };
+  }
 
   // onMounted se ejecuta únicamente en el lado del cliente después de que el componente se monta.
   // Es el lugar perfecto para leer de localStorage de forma segura.
   onMounted(() => {
     try {
-      const item = localStorage.getItem(key);
+      const item = localStorage.getItem(key)
       if (item !== null) {
         // Si encontramos un valor, lo parseamos y actualizamos nuestro ref.
-        storedValue.value = JSON.parse(item);
+        storedValue.value = JSON.parse(item)
       }
     } catch (error) {
-      console.error(`Error al leer de localStorage con la clave "${key}":`, error);
+      console.error(`Error al leer de localStorage con la clave "${key}":`, error)
     }
-  });
+  })
 
   // Devolvemos el valor reactivo y la función para modificarlo.
-  return [storedValue, setValue];
+  return [storedValue, setValue]
 }

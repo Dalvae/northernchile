@@ -1,22 +1,22 @@
 <script setup lang="ts">
-const { t } = useI18n();
-const route = useRoute();
-const router = useRouter();
+const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 
-const status = route.query.status as string;
-const isSuccess = status === "success";
+const status = route.query.status as string
+const isSuccess = status === 'success'
 
 // Get booking ID from query or generate one
 const bookingId = ref(
   (route.query.bookingId as string) || `NCH-${Date.now().toString().slice(-8)}`
-);
+)
 
 function goToBookings() {
-  router.push("/profile/bookings");
+  router.push('/profile/bookings')
 }
 
 function goToHome() {
-  router.push("/");
+  router.push('/')
 }
 </script>
 
@@ -65,7 +65,10 @@ function goToHome() {
                   <p class="text-neutral-500 dark:text-neutral-400 mb-1">
                     {{ t("common.status") }}
                   </p>
-                  <UBadge color="success" size="lg">
+                  <UBadge
+                    color="success"
+                    size="lg"
+                  >
                     {{ t("payment.callback.status_confirmed") }}
                   </UBadge>
                 </div>
@@ -78,7 +81,7 @@ function goToHome() {
                       new Date().toLocaleDateString("es-CL", {
                         day: "numeric",
                         month: "long",
-                        year: "numeric",
+                        year: "numeric"
                       })
                     }}
                   </p>
@@ -171,7 +174,10 @@ function goToHome() {
             <div
               class="w-20 h-20 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-4"
             >
-              <UIcon name="i-lucide-x-circle" class="w-12 h-12 text-error" />
+              <UIcon
+                name="i-lucide-x-circle"
+                class="w-12 h-12 text-error"
+              />
             </div>
             <h1
               class="text-3xl font-bold text-neutral-900 dark:text-white mb-2"
@@ -197,19 +203,31 @@ function goToHome() {
                   class="space-y-1 text-sm text-neutral-600 dark:text-neutral-400"
                 >
                   <li class="flex items-center gap-2">
-                    <UIcon name="i-lucide-dot" class="w-4 h-4" />
+                    <UIcon
+                      name="i-lucide-dot"
+                      class="w-4 h-4"
+                    />
                     {{ t("payment.callback.reason_insufficient_funds") }}
                   </li>
                   <li class="flex items-center gap-2">
-                    <UIcon name="i-lucide-dot" class="w-4 h-4" />
+                    <UIcon
+                      name="i-lucide-dot"
+                      class="w-4 h-4"
+                    />
                     {{ t("payment.callback.reason_expired_card") }}
                   </li>
                   <li class="flex items-center gap-2">
-                    <UIcon name="i-lucide-dot" class="w-4 h-4" />
+                    <UIcon
+                      name="i-lucide-dot"
+                      class="w-4 h-4"
+                    />
                     {{ t("payment.callback.reason_incorrect_data") }}
                   </li>
                   <li class="flex items-center gap-2">
-                    <UIcon name="i-lucide-dot" class="w-4 h-4" />
+                    <UIcon
+                      name="i-lucide-dot"
+                      class="w-4 h-4"
+                    />
                     {{ t("payment.callback.reason_transaction_limit") }}
                   </li>
                 </ul>

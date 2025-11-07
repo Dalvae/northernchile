@@ -1,132 +1,132 @@
 <script setup lang="ts">
-const route = useRoute();
-const config = useRuntimeConfig();
-const toast = useToast();
+const route = useRoute()
+const config = useRuntimeConfig()
+const toast = useToast()
 
-const scheduleId = route.params.id as string;
+const scheduleId = route.params.id as string
 
 // Fetch participants data
 const {
   data: participantsData,
   pending,
   error,
-  refresh,
+  refresh
 } = await useAsyncData(`schedule-participants-${scheduleId}`, async () => {
   try {
     const response = await $fetch<{
-      scheduleId: string;
-      startDatetime: string;
-      tourName: string;
-      status: string;
-      totalBookings: number;
-      totalParticipants: number;
+      scheduleId: string
+      startDatetime: string
+      tourName: string
+      status: string
+      totalBookings: number
+      totalParticipants: number
       participants: Array<{
-        participantId: string;
-        fullName: string;
-        documentId: string;
-        nationality: string;
-        age: number;
-        type: string;
-        bookingId: string;
-        bookingStatus: string;
-        bookingReference: string;
-        pickupAddress: string;
-      }>;
+        participantId: string
+        fullName: string
+        documentId: string
+        nationality: string
+        age: number
+        type: string
+        bookingId: string
+        bookingStatus: string
+        bookingReference: string
+        pickupAddress: string
+      }>
     }>(
       `${config.public.apiBaseUrl}/admin/schedules/${scheduleId}/participants`,
       {
-        credentials: "include",
+        credentials: 'include'
       }
-    );
-    return response;
+    )
+    return response
   } catch (err) {
-    console.error("Error fetching participants:", err);
+    console.error('Error fetching participants:', err)
     toast.add({
-      color: "error",
-      title: "Error",
-      description: "No se pudieron cargar los participantes",
-    });
-    throw err;
+      color: 'error',
+      title: 'Error',
+      description: 'No se pudieron cargar los participantes'
+    })
+    throw err
   }
-});
+})
 
 // Search and filter
-const searchQuery = ref("");
-const filterByStatus = ref("");
-const filterByType = ref("");
+const searchQuery = ref('')
+const filterByStatus = ref('')
+const filterByType = ref('')
 
 const filteredParticipants = computed(() => {
-  if (!participantsData.value?.participants) return [];
+  if (!participantsData.value?.participants) return []
 
-  let filtered = participantsData.value.participants;
+  let filtered = participantsData.value.participants
 
   // Filter by search query
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
+    const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(
-      (p) =>
-        p.fullName.toLowerCase().includes(query) ||
-        p.documentId.toLowerCase().includes(query) ||
-        p.nationality.toLowerCase().includes(query) ||
-        p.bookingReference.toLowerCase().includes(query)
-    );
+      p =>
+        p.fullName.toLowerCase().includes(query)
+        || p.documentId.toLowerCase().includes(query)
+        || p.nationality.toLowerCase().includes(query)
+        || p.bookingReference.toLowerCase().includes(query)
+    )
   }
 
   // Filter by booking status
   if (filterByStatus.value) {
-    filtered = filtered.filter((p) => p.bookingStatus === filterByStatus.value);
+    filtered = filtered.filter(p => p.bookingStatus === filterByStatus.value)
   }
 
   // Filter by participant type
   if (filterByType.value) {
-    filtered = filtered.filter((p) => p.type === filterByType.value);
+    filtered = filtered.filter(p => p.type === filterByType.value)
   }
 
-  return filtered;
-});
+  return filtered
+})
 
 // Status badge color mapping
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    CONFIRMED: "success",
-    PENDING: "warning",
-    CANCELLED: "error",
-    COMPLETED: "info",
-  };
-  return colors[status] || "neutral";
-};
+    CONFIRMED: 'success',
+    PENDING: 'warning',
+    CANCELLED: 'error',
+    COMPLETED: 'info'
+  }
+  return colors[status] || 'neutral'
+}
 
 // Type badge color mapping
 const getTypeColor = (type: string) => {
-  return type === "ADULT" ? "primary" : "secondary";
-};
+  return type === 'ADULT' ? 'primary' : 'secondary'
+}
 
 // Format datetime
 const formatDateTime = (datetime: string) => {
-  return new Date(datetime).toLocaleString("es-CL", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+  return new Date(datetime).toLocaleString('es-CL', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 
 // Export to CSV
 const exportToCSV = () => {
-  if (!participantsData.value?.participants) return;
+  if (!participantsData.value?.participants) return
 
   const headers = [
-    "Nombre",
-    "Documento",
-    "Nacionalidad",
-    "Edad",
-    "Tipo",
-    "Estado Reserva",
-    "Referencia",
-    "Dirección Pickup",
-  ];
-  const rows = participantsData.value.participants.map((p) => [
+    'Nombre',
+    'Documento',
+    'Nacionalidad',
+    'Edad',
+    'Tipo',
+    'Estado Reserva',
+    'Referencia',
+    'Dirección Pickup'
+  ]
+  const rows = participantsData.value.participants.map(p => [
     p.fullName,
     p.documentId,
     p.nationality,
@@ -134,40 +134,40 @@ const exportToCSV = () => {
     p.type,
     p.bookingStatus,
     p.bookingReference,
-    p.pickupAddress,
-  ]);
+    p.pickupAddress
+  ])
 
   const csvContent = [
-    headers.join(","),
-    ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
-  ].join("\n");
+    headers.join(','),
+    ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+  ].join('\n')
 
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute("download", `participantes-${scheduleId}.csv`);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+  link.setAttribute('href', url)
+  link.setAttribute('download', `participantes-${scheduleId}.csv`)
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
 
 // Status filter options
 const statusOptions = [
-  { label: "Todos los estados", value: "" },
-  { label: "Confirmada", value: "CONFIRMED" },
-  { label: "Pendiente", value: "PENDING" },
-  { label: "Cancelada", value: "CANCELLED" },
-  { label: "Completada", value: "COMPLETED" },
-];
+  { label: 'Todos los estados', value: '' },
+  { label: 'Confirmada', value: 'CONFIRMED' },
+  { label: 'Pendiente', value: 'PENDING' },
+  { label: 'Cancelada', value: 'CANCELLED' },
+  { label: 'Completada', value: 'COMPLETED' }
+]
 
 // Type filter options
 const typeOptions = [
-  { label: "Todos los tipos", value: "" },
-  { label: "Adulto", value: "ADULT" },
-  { label: "Niño", value: "CHILD" },
-];
+  { label: 'Todos los tipos', value: '' },
+  { label: 'Adulto', value: 'ADULT' },
+  { label: 'Niño', value: 'CHILD' }
+]
 </script>
 
 <template>
@@ -186,7 +186,10 @@ const typeOptions = [
         </h1>
       </div>
 
-      <div v-if="participantsData" class="space-y-1">
+      <div
+        v-if="participantsData"
+        class="space-y-1"
+      >
         <p class="text-neutral-600 dark:text-neutral-400">
           <span class="font-medium">Tour:</span> {{ participantsData.tourName }}
         </p>
@@ -209,7 +212,10 @@ const typeOptions = [
     </div>
 
     <!-- Loading state -->
-    <div v-if="pending" class="flex justify-center items-center py-12">
+    <div
+      v-if="pending"
+      class="flex justify-center items-center py-12"
+    >
       <UIcon
         name="i-lucide-loader-2"
         class="w-8 h-8 animate-spin text-primary"
@@ -217,7 +223,10 @@ const typeOptions = [
     </div>
 
     <!-- Error state -->
-    <div v-else-if="error" class="text-center py-12">
+    <div
+      v-else-if="error"
+      class="text-center py-12"
+    >
       <UIcon
         name="i-lucide-alert-circle"
         class="w-12 h-12 text-error mx-auto mb-4"
@@ -225,7 +234,12 @@ const typeOptions = [
       <p class="text-neutral-600 dark:text-neutral-400">
         Error al cargar los participantes
       </p>
-      <UButton color="primary" variant="soft" class="mt-4" @click="refresh">
+      <UButton
+        color="primary"
+        variant="soft"
+        class="mt-4"
+        @click="refresh"
+      >
         Reintentar
       </UButton>
     </div>
@@ -246,7 +260,10 @@ const typeOptions = [
                 {{ participantsData.totalBookings }}
               </p>
             </div>
-            <UIcon name="i-lucide-book-marked" class="w-8 h-8 text-primary" />
+            <UIcon
+              name="i-lucide-book-marked"
+              class="w-8 h-8 text-primary"
+            />
           </div>
         </div>
 
@@ -262,7 +279,10 @@ const typeOptions = [
                 {{ participantsData.totalParticipants }}
               </p>
             </div>
-            <UIcon name="i-lucide-users" class="w-8 h-8 text-success" />
+            <UIcon
+              name="i-lucide-users"
+              class="w-8 h-8 text-success"
+            />
           </div>
         </div>
 
@@ -278,7 +298,10 @@ const typeOptions = [
                 {{ filteredParticipants.length }}
               </p>
             </div>
-            <UIcon name="i-lucide-filter" class="w-8 h-8 text-info" />
+            <UIcon
+              name="i-lucide-filter"
+              class="w-8 h-8 text-info"
+            />
           </div>
         </div>
       </div>
@@ -451,7 +474,10 @@ const typeOptions = [
 
               <!-- Empty state -->
               <tr v-if="filteredParticipants.length === 0">
-                <td colspan="8" class="px-4 py-12 text-center">
+                <td
+                  colspan="8"
+                  class="px-4 py-12 text-center"
+                >
                   <UIcon
                     name="i-lucide-users"
                     class="w-12 h-12 text-neutral-400 mx-auto mb-4"

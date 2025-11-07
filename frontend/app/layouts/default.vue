@@ -19,6 +19,7 @@ useHead({
   meta: i18nHead.value.meta
 })
 </script>
+
 <template>
   <div>
     <LayoutTheHeader />

@@ -1,8 +1,8 @@
 <template>
   <div class="bg-stars">
-    <div class="stars-layer stars-1"></div>
-    <div class="stars-layer stars-2"></div>
-    <div class="stars-layer stars-3"></div>
+    <div class="stars-layer stars-1" />
+    <div class="stars-layer stars-2" />
+    <div class="stars-layer stars-3" />
   </div>
 </template>
 

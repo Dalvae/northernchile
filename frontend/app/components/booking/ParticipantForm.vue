@@ -10,7 +10,11 @@
 
     <div class="space-y-4">
       <!-- Full Name -->
-      <UFormField :label="t('booking.full_name')" name="fullName" required>
+      <UFormField
+        :label="t('booking.full_name')"
+        name="fullName"
+        required
+      >
         <UInput
           :model-value="participant.fullName"
           :placeholder="t('booking.full_name_placeholder')"
@@ -22,7 +26,11 @@
 
       <!-- Document ID and Nationality -->
       <div class="grid md:grid-cols-2 gap-4">
-        <UFormField :label="t('booking.document_id')" name="documentId" required>
+        <UFormField
+          :label="t('booking.document_id')"
+          name="documentId"
+          required
+        >
           <UInput
             :model-value="participant.documentId"
             :placeholder="t('booking.document_id_placeholder')"
@@ -32,7 +40,10 @@
           />
         </UFormField>
 
-        <UFormField :label="t('booking.nationality')" name="nationality">
+        <UFormField
+          :label="t('booking.nationality')"
+          name="nationality"
+        >
           <UInput
             :model-value="participant.nationality"
             :placeholder="t('booking.nationality_placeholder')"
@@ -44,7 +55,10 @@
       </div>
 
       <!-- Age -->
-      <UFormField :label="t('booking.age')" name="age">
+      <UFormField
+        :label="t('booking.age')"
+        name="age"
+      >
         <UInput
           :model-value="participant.age?.toString() || ''"
           type="number"
@@ -72,7 +86,10 @@
       </UFormField>
 
       <!-- Special Requirements -->
-      <UFormField :label="t('booking.special_requirements')" name="specialRequirements">
+      <UFormField
+        :label="t('booking.special_requirements')"
+        name="specialRequirements"
+      >
         <UTextarea
           :model-value="participant.specialRequirements"
           :placeholder="t('booking.special_requirements_placeholder')"

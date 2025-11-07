@@ -16,7 +16,10 @@
         <UCard>
           <div class="flex items-center gap-3">
             <div class="p-2 bg-primary/10 rounded-lg">
-              <UIcon name="i-lucide-file-text" class="w-6 h-6 text-primary" />
+              <UIcon
+                name="i-lucide-file-text"
+                class="w-6 h-6 text-primary"
+              />
             </div>
             <div>
               <p class="text-sm text-neutral-600 dark:text-neutral-400">
@@ -32,7 +35,10 @@
         <UCard>
           <div class="flex items-center gap-3">
             <div class="p-2 bg-success/10 rounded-lg">
-              <UIcon name="i-lucide-plus-circle" class="w-6 h-6 text-success" />
+              <UIcon
+                name="i-lucide-plus-circle"
+                class="w-6 h-6 text-success"
+              />
             </div>
             <div>
               <p class="text-sm text-neutral-600 dark:text-neutral-400">
@@ -48,7 +54,10 @@
         <UCard>
           <div class="flex items-center gap-3">
             <div class="p-2 bg-warning/10 rounded-lg">
-              <UIcon name="i-lucide-edit" class="w-6 h-6 text-warning" />
+              <UIcon
+                name="i-lucide-edit"
+                class="w-6 h-6 text-warning"
+              />
             </div>
             <div>
               <p class="text-sm text-neutral-600 dark:text-neutral-400">
@@ -64,7 +73,10 @@
         <UCard>
           <div class="flex items-center gap-3">
             <div class="p-2 bg-error/10 rounded-lg">
-              <UIcon name="i-lucide-trash-2" class="w-6 h-6 text-error" />
+              <UIcon
+                name="i-lucide-trash-2"
+                class="w-6 h-6 text-error"
+              />
             </div>
             <div>
               <p class="text-sm text-neutral-600 dark:text-neutral-400">
@@ -134,7 +146,10 @@
       </div>
 
       <!-- Audit Logs List -->
-      <div v-if="pending" class="flex justify-center py-12">
+      <div
+        v-if="pending"
+        class="flex justify-center py-12"
+      >
         <UIcon
           name="i-lucide-loader-2"
           class="w-8 h-8 animate-spin text-primary"
@@ -171,7 +186,10 @@
                 <div
                   :class="['p-3 rounded-lg', getActionColorClass(log.action)]"
                 >
-                  <UIcon :name="getActionIcon(log.action)" class="w-5 h-5" />
+                  <UIcon
+                    :name="getActionIcon(log.action)"
+                    class="w-5 h-5"
+                  />
                 </div>
               </div>
 
@@ -196,8 +214,8 @@
                       class="text-lg font-semibold text-neutral-900 dark:text-white"
                     >
                       {{
-                        log.entityDescription ||
-                        `${log.entityType} ${log.entityId}`
+                        log.entityDescription
+                          || `${log.entityType} ${log.entityId}`
                       }}
                     </h3>
                   </div>
@@ -216,13 +234,26 @@
                   class="grid md:grid-cols-2 gap-2 text-sm text-neutral-600 dark:text-neutral-400 mb-3"
                 >
                   <div class="flex items-center gap-2">
-                    <UIcon name="i-lucide-user" class="w-4 h-4" />
+                    <UIcon
+                      name="i-lucide-user"
+                      class="w-4 h-4"
+                    />
                     <span>{{ log.userEmail }}</span>
-                    <UBadge :label="log.userRole" size="xs" variant="subtle" />
+                    <UBadge
+                      :label="log.userRole"
+                      size="xs"
+                      variant="subtle"
+                    />
                   </div>
 
-                  <div v-if="log.ipAddress" class="flex items-center gap-2">
-                    <UIcon name="i-lucide-globe" class="w-4 h-4" />
+                  <div
+                    v-if="log.ipAddress"
+                    class="flex items-center gap-2"
+                  >
+                    <UIcon
+                      name="i-lucide-globe"
+                      class="w-4 h-4"
+                    />
                     <span>{{ log.ipAddress }}</span>
                   </div>
                 </div>
@@ -256,8 +287,7 @@
                         </p>
                         <pre
                           class="text-xs bg-neutral-100 dark:bg-neutral-800 p-3 rounded overflow-x-auto"
-                          >{{ JSON.stringify(log.oldValues, null, 2) }}</pre
-                        >
+                        >{{ JSON.stringify(log.oldValues, null, 2) }}</pre>
                       </div>
 
                       <div
@@ -272,8 +302,7 @@
                         </p>
                         <pre
                           class="text-xs bg-neutral-100 dark:bg-neutral-800 p-3 rounded overflow-x-auto"
-                          >{{ JSON.stringify(log.newValues, null, 2) }}</pre
-                        >
+                        >{{ JSON.stringify(log.newValues, null, 2) }}</pre>
                       </div>
                     </div>
                   </details>
@@ -336,85 +365,85 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: "admin",
-});
+  layout: 'admin'
+})
 
-const config = useRuntimeConfig();
+const config = useRuntimeConfig()
 
 // State
-const pending = ref(false);
-const auditLogs = ref<any[]>([]);
+const pending = ref(false)
+const auditLogs = ref<any[]>([])
 const stats = ref({
   totalLogs: 0,
   createActions: 0,
   updateActions: 0,
-  deleteActions: 0,
-});
+  deleteActions: 0
+})
 
 // Filters
 const filters = ref({
-  action: "",
-  entityType: "",
-  userEmail: "",
-});
+  action: '',
+  entityType: '',
+  userEmail: ''
+})
 
 // Pagination
 const pagination = ref({
   currentPage: 0,
   pageSize: 20,
   totalItems: 0,
-  totalPages: 0,
-});
+  totalPages: 0
+})
 
 const actionFilterOptions = [
-  { value: "", label: "Todas" },
-  { value: "CREATE", label: "Crear" },
-  { value: "UPDATE", label: "Actualizar" },
-  { value: "DELETE", label: "Eliminar" },
-  { value: "RESTORE", label: "Restaurar" },
-];
+  { value: '', label: 'Todas' },
+  { value: 'CREATE', label: 'Crear' },
+  { value: 'UPDATE', label: 'Actualizar' },
+  { value: 'DELETE', label: 'Eliminar' },
+  { value: 'RESTORE', label: 'Restaurar' }
+]
 
 const entityTypeFilterOptions = [
-  { value: "", label: "Todos" },
-  { value: "TOUR", label: "Tours" },
-  { value: "BOOKING", label: "Reservas" },
-  { value: "USER", label: "Usuarios" },
-  { value: "SCHEDULE", label: "Schedules" },
-  { value: "ALERT", label: "Alertas" },
-];
+  { value: '', label: 'Todos' },
+  { value: 'TOUR', label: 'Tours' },
+  { value: 'BOOKING', label: 'Reservas' },
+  { value: 'USER', label: 'Usuarios' },
+  { value: 'SCHEDULE', label: 'Schedules' },
+  { value: 'ALERT', label: 'Alertas' }
+]
 
 // Fetch audit logs
 const fetchAuditLogs = async () => {
-  pending.value = true;
+  pending.value = true
   try {
     const params = new URLSearchParams({
       page: pagination.value.currentPage.toString(),
-      size: pagination.value.pageSize.toString(),
-    });
+      size: pagination.value.pageSize.toString()
+    })
 
-    if (filters.value.action) params.append("action", filters.value.action);
+    if (filters.value.action) params.append('action', filters.value.action)
     if (filters.value.entityType)
-      params.append("entityType", filters.value.entityType);
+      params.append('entityType', filters.value.entityType)
     if (filters.value.userEmail)
-      params.append("userEmail", filters.value.userEmail);
+      params.append('userEmail', filters.value.userEmail)
 
     const response = await $fetch(
       `${config.public.apiBaseUrl}/admin/audit-logs?${params.toString()}`,
       {
-        credentials: "include",
+        credentials: 'include'
       }
-    );
+    )
 
-    auditLogs.value = response.data;
-    pagination.value.totalItems = response.totalItems;
-    pagination.value.totalPages = response.totalPages;
-    pagination.value.currentPage = response.currentPage;
+    auditLogs.value = response.data
+    pagination.value.totalItems = response.totalItems
+    pagination.value.totalPages = response.totalPages
+    pagination.value.currentPage = response.currentPage
   } catch (error) {
-    console.error("Error fetching audit logs:", error);
+    console.error('Error fetching audit logs:', error)
   } finally {
-    pending.value = false;
+    pending.value = false
   }
-};
+}
 
 // Fetch stats
 const fetchStats = async () => {
@@ -422,115 +451,115 @@ const fetchStats = async () => {
     const response = await $fetch(
       `${config.public.apiBaseUrl}/admin/audit-logs/stats`,
       {
-        credentials: "include",
+        credentials: 'include'
       }
-    );
-    stats.value = response;
+    )
+    stats.value = response
   } catch (error) {
-    console.error("Error fetching stats:", error);
+    console.error('Error fetching stats:', error)
   }
-};
+}
 
 // Debounced fetch for email filter
-let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
+let debounceTimeout: ReturnType<typeof setTimeout> | null = null
 const debouncedFetch = () => {
-  if (debounceTimeout) clearTimeout(debounceTimeout);
+  if (debounceTimeout) clearTimeout(debounceTimeout)
   debounceTimeout = setTimeout(() => {
-    resetPaginationAndFetch();
-  }, 500);
-};
+    resetPaginationAndFetch()
+  }, 500)
+}
 
 // Reset pagination and fetch
 const resetPaginationAndFetch = () => {
-  pagination.value.currentPage = 0;
-  fetchAuditLogs();
-};
+  pagination.value.currentPage = 0
+  fetchAuditLogs()
+}
 
 // Go to page
 const goToPage = (page: number) => {
-  pagination.value.currentPage = page;
-  fetchAuditLogs();
-};
+  pagination.value.currentPage = page
+  fetchAuditLogs()
+}
 
 // Computed visible pages for pagination
 const visiblePages = computed(() => {
-  const current = pagination.value.currentPage;
-  const total = pagination.value.totalPages;
-  const pages: number[] = [];
+  const current = pagination.value.currentPage
+  const total = pagination.value.totalPages
+  const pages: number[] = []
 
   if (total <= 7) {
     for (let i = 0; i < total; i++) {
-      pages.push(i);
+      pages.push(i)
     }
   } else {
     if (current <= 3) {
       for (let i = 0; i < 5; i++) {
-        pages.push(i);
+        pages.push(i)
       }
     } else if (current >= total - 4) {
       for (let i = total - 5; i < total; i++) {
-        pages.push(i);
+        pages.push(i)
       }
     } else {
       for (let i = current - 2; i <= current + 2; i++) {
-        pages.push(i);
+        pages.push(i)
       }
     }
   }
 
-  return pages;
-});
+  return pages
+})
 
 // Helper functions
 function getActionColor(action: string): string {
   const colors: Record<string, string> = {
-    CREATE: "success",
-    UPDATE: "warning",
-    DELETE: "error",
-    RESTORE: "info",
-  };
-  return colors[action] || "neutral";
+    CREATE: 'success',
+    UPDATE: 'warning',
+    DELETE: 'error',
+    RESTORE: 'info'
+  }
+  return colors[action] || 'neutral'
 }
 
 function getActionColorClass(action: string): string {
   const classes: Record<string, string> = {
-    CREATE: "bg-success/10 text-success",
-    UPDATE: "bg-warning/10 text-warning",
-    DELETE: "bg-error/10 text-error",
-    RESTORE: "bg-info/10 text-info",
-  };
-  return classes[action] || "bg-neutral/10 text-neutral";
+    CREATE: 'bg-success/10 text-success',
+    UPDATE: 'bg-warning/10 text-warning',
+    DELETE: 'bg-error/10 text-error',
+    RESTORE: 'bg-info/10 text-info'
+  }
+  return classes[action] || 'bg-neutral/10 text-neutral'
 }
 
 function getActionIcon(action: string): string {
   const icons: Record<string, string> = {
-    CREATE: "i-lucide-plus-circle",
-    UPDATE: "i-lucide-edit",
-    DELETE: "i-lucide-trash-2",
-    RESTORE: "i-lucide-rotate-ccw",
-  };
-  return icons[action] || "i-lucide-file";
+    CREATE: 'i-lucide-plus-circle',
+    UPDATE: 'i-lucide-edit',
+    DELETE: 'i-lucide-trash-2',
+    RESTORE: 'i-lucide-rotate-ccw'
+  }
+  return icons[action] || 'i-lucide-file'
 }
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("es-CL", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  return new Date(dateString).toLocaleDateString('es-CL', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
 }
 
 function formatTime(dateString: string): string {
-  return new Date(dateString).toLocaleTimeString("es-CL", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  return new Date(dateString).toLocaleTimeString('es-CL', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
 }
 
 // Initialize
 onMounted(() => {
-  fetchAuditLogs();
-  fetchStats();
-});
+  fetchAuditLogs()
+  fetchStats()
+})
 </script>
