@@ -2,22 +2,10 @@
 import type { BookingRes } from "~/lib/api-client";
 
 const props = defineProps<{
-  open: boolean;
-  booking: BookingRes | null;
-}>();
-
-const emit = defineEmits<{
-  close: [];
-  success: [];
-  "update:open": [value: boolean];
+  booking: BookingRes;
 }>();
 
 const { formatPrice: formatCurrency } = useCurrency();
-
-function handleClose() {
-  emit("update:open", false);
-  emit("close");
-}
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("es-CL", {
@@ -56,9 +44,18 @@ function getStatusLabel(status: string): string {
 </script>
 
 <template>
-  <UModal :model-value="open" @update:model-value="emit('update:open', $event)">
+  <UModal>
+    <!-- Trigger Button -->
+    <UButton
+      icon="i-lucide-eye"
+      color="neutral"
+      variant="ghost"
+      size="sm"
+      aria-label="Ver detalles"
+    />
+
     <template #content>
-      <div v-if="booking" class="p-6">
+      <div class="p-6">
         <!-- Header -->
         <div class="flex justify-between items-start pb-4 border-b border-neutral-200 dark:border-neutral-700">
           <div>
@@ -74,7 +71,7 @@ function getStatusLabel(status: string): string {
             color="neutral"
             variant="ghost"
             size="sm"
-            @click="handleClose"
+            @click="$emit('close')"
           />
         </div>
 
@@ -226,7 +223,7 @@ function getStatusLabel(status: string): string {
             label="Cerrar"
             color="neutral"
             variant="outline"
-            @click="handleClose"
+            @click="$emit('close')"
           />
         </div>
       </div>

@@ -20,8 +20,6 @@ const {
   default: () => [],
 });
 
-const isDetailsModalOpen = ref(false);
-const selectedBooking = ref<BookingRes | null>(null);
 const q = ref("");
 const statusFilter = ref<string>("ALL");
 
@@ -96,21 +94,6 @@ const filteredRows = computed(() => {
 
   return rows;
 });
-
-function openDetailsModal(booking: BookingRes) {
-  selectedBooking.value = booking;
-  isDetailsModalOpen.value = true;
-}
-
-function closeModal() {
-  isDetailsModalOpen.value = false;
-  selectedBooking.value = null;
-}
-
-function onModalSuccess() {
-  closeModal();
-  refresh();
-}
 
 const toast = useToast();
 
@@ -276,14 +259,7 @@ function formatDate(dateString: string): string {
 
           <template #actions-cell="{ row }">
             <div class="flex items-center gap-2">
-              <UButton
-                icon="i-lucide-eye"
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                aria-label="Ver detalles"
-                @click="openDetailsModal(row.original)"
-              />
+              <AdminBookingsBookingDetailsModal :booking="row.original" />
 
               <UDropdownMenu
                 :items="[
@@ -325,13 +301,5 @@ function formatDate(dateString: string): string {
         </UTable>
       </div>
     </div>
-
-    <!-- Details Modal -->
-    <AdminBookingsBookingDetailsModal
-      v-model:open="isDetailsModalOpen"
-      :booking="selectedBooking"
-      @close="closeModal"
-      @success="onModalSuccess"
-    />
   </div>
 </template>

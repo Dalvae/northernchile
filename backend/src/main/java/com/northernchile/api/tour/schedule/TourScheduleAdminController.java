@@ -18,6 +18,7 @@ import com.northernchile.api.util.DateTimeUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -58,6 +59,7 @@ public class TourScheduleAdminController {
      * Obtiene todos los schedules en un rango de fechas (para el calendario)
      */
     @GetMapping
+    @Transactional(readOnly = true)
     public ResponseEntity<List<TourScheduleRes>> getSchedules(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,

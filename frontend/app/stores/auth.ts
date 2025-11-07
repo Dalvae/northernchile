@@ -5,6 +5,10 @@ interface User {
   email: string;
   fullName: string;
   role: string[];
+  nationality?: string;
+  phoneNumber?: string;
+  dateOfBirth?: string;
+  authProvider?: string;
 }
 
 // Función auxiliar para decodificar el payload del JWT de forma segura
@@ -123,6 +127,8 @@ export const useAuthStore = defineStore("auth", {
       email: string;
       password: string;
       fullName: string;
+      phoneNumber?: string | null;
+      nationality?: string | null;
     }) {
       this.loading = true;
       const toast = useToast();
@@ -171,6 +177,43 @@ export const useAuthStore = defineStore("auth", {
         if (!currentPath.startsWith('/auth')) {
           await navigateTo("/auth");
         }
+      }
+    },
+
+    // Cargar datos completos del usuario desde el backend
+    async fetchUser() {
+      if (!this.token) {
+        console.log('[Auth] No token available, cannot fetch user');
+        return;
+      }
+
+      try {
+        const config = useRuntimeConfig();
+        const apiBase = config.public.apiBase;
+
+        const response = await $fetch<any>(`${apiBase}/api/profile/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        });
+
+        if (response) {
+          this.user = {
+            id: response.id,
+            email: response.email,
+            fullName: response.fullName,
+            role: Array.isArray(response.role) ? response.role : [response.role],
+            nationality: response.nationality,
+            phoneNumber: response.phoneNumber,
+            dateOfBirth: response.dateOfBirth,
+            authProvider: response.authProvider,
+          };
+          setToStorage('user', this.user);
+          console.log('[Auth] User profile refreshed:', this.user.email);
+        }
+      } catch (error) {
+        console.error('[Auth] Error fetching user profile:', error);
       }
     },
 

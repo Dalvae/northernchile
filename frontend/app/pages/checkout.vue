@@ -33,6 +33,7 @@ const participants = ref<
     nationality: string;
     documentType: string;
     documentNumber: string;
+    pickupAddress: string;
   }>
 >([]);
 
@@ -46,9 +47,10 @@ function initializeParticipants() {
       fullName: i === 0 ? contactForm.value.fullName : "",
       email: i === 0 ? contactForm.value.email : "",
       phone: i === 0 ? contactForm.value.phone : "",
-      nationality: "CL",
+      nationality: "Chile",
       documentType: "RUT",
       documentNumber: "",
+      pickupAddress: "",
     })
   );
 }
@@ -76,7 +78,7 @@ const step1Valid = computed(() => {
 
 const step2Valid = computed(() => {
   return participants.value.every(
-    (p) => p.fullName && p.email && p.documentNumber
+    (p) => p.fullName && p.email && p.documentNumber && p.nationality
   );
 });
 
@@ -150,6 +152,8 @@ async function submitBooking() {
           email: contactForm.value.email,
           password: contactForm.value.password,
           fullName: contactForm.value.fullName,
+          phoneNumber: contactForm.value.phone ? `${contactForm.value.countryCode}${contactForm.value.phone}` : null,
+          nationality: participants.value[0]?.nationality || null,
         });
 
         // Auto-login after registration
@@ -197,7 +201,7 @@ async function submitBooking() {
         documentId: p.documentNumber,
         nationality: p.nationality,
         age: null,
-        pickupAddress: null,
+        pickupAddress: p.pickupAddress || null,
         specialRequirements: null,
       }));
 
@@ -616,6 +620,22 @@ const total = computed(() => subtotal.value + tax.value);
                     <label
                       class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
                     >
+                      Nacionalidad *
+                    </label>
+                    <CountrySelect
+                      v-model="participant.nationality"
+                      :country="participant.nationality"
+                      topCountry="CL"
+                      class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                      placeholder="Selecciona nacionalidad"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                    >
                       Tipo de Documento *
                     </label>
                     <select
@@ -639,6 +659,20 @@ const total = computed(() => subtotal.value + tax.value);
                       type="text"
                       class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                       required
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                    >
+                      Dirección de Recogida
+                    </label>
+                    <input
+                      v-model="participant.pickupAddress"
+                      type="text"
+                      placeholder="Hotel, hostel o dirección en San Pedro"
+                      class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
                 </div>

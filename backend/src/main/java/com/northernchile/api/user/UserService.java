@@ -3,6 +3,7 @@ package com.northernchile.api.user;
 
 import com.northernchile.api.audit.AuditLogService;
 import com.northernchile.api.model.User;
+import com.northernchile.api.user.dto.ProfileUpdateReq;
 import com.northernchile.api.user.dto.UserCreateReq;
 import com.northernchile.api.user.dto.UserRes;
 import com.northernchile.api.user.dto.UserUpdateReq;
@@ -188,5 +189,48 @@ public class UserService {
                 null,
                 null
         );
+    }
+
+    public UserRes mapToUserRes(User user) {
+        return userMapper.toUserRes(user);
+    }
+
+    @Transactional
+    public UserRes updateUserProfile(User currentUser, ProfileUpdateReq req) {
+        if (currentUser.getDeletedAt() != null) {
+            throw new IllegalStateException("Cannot update a deleted user");
+        }
+
+        Map<String, Object> oldValues = Map.of(
+            "fullName", currentUser.getFullName() != null ? currentUser.getFullName() : "",
+            "nationality", currentUser.getNationality() != null ? currentUser.getNationality() : "",
+            "phoneNumber", currentUser.getPhoneNumber() != null ? currentUser.getPhoneNumber() : "",
+            "dateOfBirth", currentUser.getDateOfBirth() != null ? currentUser.getDateOfBirth().toString() : ""
+        );
+
+        if (req.getFullName() != null) {
+            currentUser.setFullName(req.getFullName());
+        }
+        if (req.getNationality() != null) {
+            currentUser.setNationality(req.getNationality());
+        }
+        if (req.getPhoneNumber() != null) {
+            currentUser.setPhoneNumber(req.getPhoneNumber());
+        }
+        if (req.getDateOfBirth() != null) {
+            currentUser.setDateOfBirth(req.getDateOfBirth());
+        }
+
+        User updatedUser = userRepository.save(currentUser);
+
+        Map<String, Object> newValues = Map.of(
+            "fullName", updatedUser.getFullName() != null ? updatedUser.getFullName() : "",
+            "nationality", updatedUser.getNationality() != null ? updatedUser.getNationality() : "",
+            "phoneNumber", updatedUser.getPhoneNumber() != null ? updatedUser.getPhoneNumber() : "",
+            "dateOfBirth", updatedUser.getDateOfBirth() != null ? updatedUser.getDateOfBirth().toString() : ""
+        );
+        auditLogService.logUpdate(currentUser, "USER", updatedUser.getId(), updatedUser.getEmail(), oldValues, newValues);
+
+        return userMapper.toUserRes(updatedUser);
     }
 }

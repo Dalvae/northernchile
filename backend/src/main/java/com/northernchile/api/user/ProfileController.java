@@ -1,7 +1,10 @@
 package com.northernchile.api.user;
 
+import com.northernchile.api.config.security.annotation.CurrentUser;
 import com.northernchile.api.model.User;
 import com.northernchile.api.user.dto.PasswordChangeReq;
+import com.northernchile.api.user.dto.ProfileUpdateReq;
+import com.northernchile.api.user.dto.UserRes;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,20 @@ public class ProfileController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @GetMapping("/me")
+    public ResponseEntity<UserRes> getCurrentUserProfile(@CurrentUser User currentUser) {
+        UserRes userRes = userService.mapToUserRes(currentUser);
+        return ResponseEntity.ok(userRes);
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserRes> updateCurrentUserProfile(
+            @CurrentUser User currentUser,
+            @Valid @RequestBody ProfileUpdateReq req) {
+        UserRes updatedUser = userService.updateUserProfile(currentUser, req);
+        return ResponseEntity.ok(updatedUser);
+    }
 
     @PutMapping("/me/password")
     public ResponseEntity<Map<String, String>> changePassword(

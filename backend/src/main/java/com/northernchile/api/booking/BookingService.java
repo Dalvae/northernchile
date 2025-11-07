@@ -116,12 +116,14 @@ public class BookingService {
         return bookingMapper.toBookingRes(savedBooking);
     }
 
+    @Transactional(readOnly = true)
     public List<BookingRes> getAllBookingsForAdmin() {
         return bookingRepository.findAllWithDetails().stream()
                 .map(bookingMapper::toBookingRes)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<BookingRes> getBookingsByTourOwner(User owner) {
         return bookingRepository.findAllWithDetails().stream()
                 .filter(booking -> booking.getSchedule().getTour().getOwner().getId().equals(owner.getId()))
@@ -129,6 +131,7 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<BookingRes> getBookingsByUser(User user) {
         return bookingRepository.findAllWithDetails().stream()
                 .filter(booking -> booking.getUser().getId().equals(user.getId()))
@@ -182,6 +185,7 @@ public class BookingService {
         auditLogService.logUpdate(currentUser, "BOOKING", booking.getId(), description, oldValues, newValues);
     }
 
+    @Transactional(readOnly = true)
     public List<BookingRes> getBookingsByUser(UUID userId) {
         List<Booking> bookings = bookingRepository.findAllWithDetails().stream()
                 .filter(b -> b.getUser().getId().equals(userId))

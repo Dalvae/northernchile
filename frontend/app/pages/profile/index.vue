@@ -54,136 +54,132 @@
         <!-- Main Content -->
         <div class="lg:col-span-2">
           <!-- Personal Information Tab -->
-          <UCard v-if="activeTab === 'personal'">
-            <template #header>
-              <div class="flex items-center justify-between">
-                <h2
-                  class="text-xl font-semibold text-neutral-900 dark:text-white"
-                >
-                  {{ t("user.personal_info") }}
-                </h2>
-                <UButton
-                  v-if="!isEditing"
-                  color="primary"
-                  variant="outline"
-                  size="sm"
-                  icon="i-lucide-pencil"
-                  @click="startEditing"
-                >
-                  {{ t("common.edit") }}
-                </UButton>
-              </div>
-            </template>
+          <div v-if="activeTab === 'personal'" class="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-4 mb-6 border-b border-neutral-200 dark:border-neutral-700">
+              <h2 class="text-xl font-semibold text-neutral-900 dark:text-white">
+                Información Personal
+              </h2>
+              <button
+                v-if="!isEditing"
+                type="button"
+                @click="startEditing"
+                class="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+              >
+                Editar
+              </button>
+            </div>
 
-            <template #content>
-              <form @submit.prevent="saveProfile" class="space-y-6">
-                <UFormField
-                  :label="t('auth.full_name')"
-                  name="fullName"
-                  required
-                >
-                  <UInput
+            <!-- Loading -->
+            <div v-if="isLoading" class="py-12 text-center">
+              <p class="text-neutral-600 dark:text-neutral-400">Cargando...</p>
+            </div>
+
+            <!-- Form -->
+            <form v-else @submit.prevent="saveProfile" class="space-y-5">
+                <!-- Email -->
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                    Email
+                  </label>
+                  <div class="px-4 py-3 rounded-lg bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700">
+                    <span class="text-neutral-900 dark:text-white">{{ profileForm.email }}</span>
+                  </div>
+                  <p class="text-xs text-neutral-500 mt-1">El email no se puede cambiar</p>
+                </div>
+
+                <!-- Full Name -->
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                    Nombre Completo *
+                  </label>
+                  <input
+                    v-if="isEditing"
                     v-model="profileForm.fullName"
-                    :disabled="!isEditing"
-                    size="lg"
-                    icon="i-lucide-user"
-                    class="w-full"
+                    type="text"
+                    required
+                    class="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
-                </UFormField>
+                  <div v-else class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+                    <span class="text-neutral-900 dark:text-white">{{ profileForm.fullName || '-' }}</span>
+                  </div>
+                </div>
 
-                <UFormField :label="t('auth.email')" name="email" required>
-                  <UInput
-                    v-model="profileForm.email"
-                    type="email"
-                    disabled
-                    size="lg"
-                    icon="i-lucide-mail"
-                    class="w-full"
-                  />
-                  <template #help>
-                    <span class="text-sm text-neutral-500">
-                      {{ t("profile.email_cannot_change") }}
-                    </span>
-                  </template>
-                </UFormField>
-
-                <UFormField
-                  :label="t('booking.nationality')"
-                  name="nationality"
-                >
-                  <UInput
+                <!-- Nationality -->
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                    Nacionalidad
+                  </label>
+                  <CountrySelect
+                    v-if="isEditing"
                     v-model="profileForm.nationality"
-                    :disabled="!isEditing"
-                    size="lg"
-                    icon="i-lucide-globe"
-                    :placeholder="t('booking.nationality_placeholder')"
-                    class="w-full"
+                    :country="profileForm.nationality"
+                    topCountry="CL"
+                    class="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
+                    placeholder="Selecciona tu país"
                   />
-                </UFormField>
+                  <div v-else class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+                    <span class="text-neutral-900 dark:text-white">{{ profileForm.nationality || '-' }}</span>
+                  </div>
+                </div>
 
-                <UFormField
-                  :label="t('booking.date_of_birth')"
-                  name="dateOfBirth"
-                >
-                  <UInput
+                <!-- Phone Number -->
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                    Teléfono
+                  </label>
+                  <input
+                    v-if="isEditing"
+                    v-model="profileForm.phoneNumber"
+                    type="tel"
+                    placeholder="+56 9 1234 5678"
+                    class="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                  <div v-else class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+                    <span class="text-neutral-900 dark:text-white">{{ profileForm.phoneNumber || '-' }}</span>
+                  </div>
+                </div>
+
+                <!-- Date of Birth -->
+                <div>
+                  <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                    Fecha de Nacimiento
+                  </label>
+                  <input
+                    v-if="isEditing"
                     v-model="profileForm.dateOfBirth"
                     type="date"
-                    :disabled="!isEditing"
-                    size="lg"
-                    icon="i-lucide-calendar"
-                    class="w-full"
+                    class="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
-                </UFormField>
+                  <div v-else class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+                    <span class="text-neutral-900 dark:text-white">{{ profileForm.dateOfBirth || '-' }}</span>
+                  </div>
+                </div>
 
-                <UFormField :label="t('booking.phone')" name="phoneNumber">
-                  <UInput
-                    v-model="profileForm.phoneNumber"
-                    :disabled="!isEditing"
-                    size="lg"
-                    icon="i-lucide-phone"
-                    :placeholder="t('booking.phone_placeholder')"
-                    class="w-full"
-                  />
-                </UFormField>
-
-                <UFormField
-                  :label="t('user.language_preference')"
-                  name="preferredLanguage"
+                <!-- Action buttons (only show when editing) -->
+                <div
+                  v-if="isEditing"
+                  class="flex gap-3 justify-end pt-4 border-t border-neutral-200 dark:border-neutral-700"
                 >
-                  <USelect
-                    v-model="profileForm.preferredLanguage"
-                    :disabled="!isEditing"
-                    :items="languageOptions"
-                    option-attribute="label"
-                    value-attribute="value"
-                    size="lg"
-                    class="w-full"
-                  />
-                </UFormField>
-
-                <div v-if="isEditing" class="flex gap-3 justify-end">
                   <UButton
                     type="button"
                     variant="outline"
                     color="neutral"
-                    size="lg"
                     @click="cancelEditing"
                   >
                     {{ t("common.cancel") }}
                   </UButton>
 
-                  <UButton
+                  <button
                     type="submit"
-                    color="primary"
-                    size="lg"
-                    :loading="isSaving"
+                    class="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
+                    :disabled="isSaving"
                   >
-                    {{ t("common.save") }}
-                  </UButton>
+                    {{ isSaving ? 'Guardando...' : 'Guardar' }}
+                  </button>
                 </div>
               </form>
-            </template>
-          </UCard>
+          </div>
 
           <!-- Change Password Tab -->
           <UCard v-else-if="activeTab === 'security'">
@@ -277,15 +273,38 @@ const activeTab = ref("personal");
 const isEditing = ref(false);
 const isSaving = ref(false);
 const isChangingPassword = ref(false);
+const isLoading = ref(true);
 
 // Profile form
 const profileForm = reactive({
-  fullName: authStore.user?.fullName || "",
-  email: authStore.user?.email || "",
-  nationality: authStore.user?.nationality || "",
-  dateOfBirth: authStore.user?.dateOfBirth || "",
-  phoneNumber: authStore.user?.phoneNumber || "",
-  preferredLanguage: authStore.user?.preferredLanguage || "es",
+  fullName: "",
+  email: "",
+  nationality: "",
+  dateOfBirth: "",
+  phoneNumber: "",
+});
+
+// Load user data on mount
+onMounted(async () => {
+  isLoading.value = true;
+  console.log("[Profile] Mounting, current user:", authStore.user);
+
+  // Fetch fresh user data from backend
+  await authStore.fetchUser();
+
+  console.log("[Profile] After fetch, user:", authStore.user);
+
+  // Update form with user data
+  if (authStore.user) {
+    profileForm.fullName = authStore.user.fullName || "";
+    profileForm.email = authStore.user.email || "";
+    profileForm.nationality = authStore.user.nationality || "";
+    profileForm.dateOfBirth = authStore.user.dateOfBirth || "";
+    profileForm.phoneNumber = authStore.user.phoneNumber || "";
+    console.log("[Profile] Form updated:", profileForm);
+  }
+
+  isLoading.value = false;
 });
 
 // Password form
@@ -294,13 +313,6 @@ const passwordForm = reactive({
   newPassword: "",
   confirmPassword: "",
 });
-
-// Language options
-const languageOptions = [
-  { label: "Español", value: "es" },
-  { label: "English", value: "en" },
-  { label: "Português", value: "pt" },
-];
 
 // Original values for cancel
 let originalValues: any = null;
@@ -322,10 +334,21 @@ async function saveProfile() {
   isSaving.value = true;
 
   try {
-    await $fetch("/api/users/me", {
+    const config = useRuntimeConfig();
+    const apiBase = config.public.apiBase;
+
+    await $fetch(`${apiBase}/api/profile/me`, {
       method: "PUT",
-      credentials: "include",
-      body: profileForm,
+      headers: {
+        Authorization: `Bearer ${authStore.token}`,
+        "Content-Type": "application/json",
+      },
+      body: {
+        fullName: profileForm.fullName,
+        nationality: profileForm.nationality || null,
+        phoneNumber: profileForm.phoneNumber || null,
+        dateOfBirth: profileForm.dateOfBirth || null,
+      },
     });
 
     // Update auth store

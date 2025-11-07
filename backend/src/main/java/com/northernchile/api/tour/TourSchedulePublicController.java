@@ -5,6 +5,7 @@ import com.northernchile.api.tour.dto.TourScheduleRes;
 import com.northernchile.api.util.DateTimeUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -28,6 +29,7 @@ public class TourSchedulePublicController {
      * Public endpoint para obtener schedules de un tour específico
      */
     @GetMapping("/{tourId}/schedules")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<TourScheduleRes>> getTourSchedules(
             @PathVariable UUID tourId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,

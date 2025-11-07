@@ -19,18 +19,10 @@ const {
   default: () => [],
 });
 
-const isModalOpen = ref(false);
-const selectedUser = ref<UserRes | null>(null);
-const isEditMode = ref(false);
 const q = ref("");
 const roleFilter = ref<string>("ALL");
 
 const columns = [
-  {
-    id: "id",
-    accessorKey: "id",
-    header: "ID",
-  },
   {
     id: "email",
     accessorKey: "email",
@@ -47,9 +39,14 @@ const columns = [
     header: "Rol",
   },
   {
-    id: "authProvider",
-    accessorKey: "authProvider",
-    header: "Proveedor Auth",
+    id: "nationality",
+    accessorKey: "nationality",
+    header: "Nacionalidad",
+  },
+  {
+    id: "phoneNumber",
+    accessorKey: "phoneNumber",
+    header: "Teléfono",
   },
   {
     id: "createdAt",
@@ -93,29 +90,6 @@ const filteredRows = computed(() => {
   return rows;
 });
 
-function openCreateModal() {
-  selectedUser.value = null;
-  isEditMode.value = false;
-  isModalOpen.value = true;
-}
-
-function openEditModal(user: UserRes) {
-  selectedUser.value = user;
-  isEditMode.value = true;
-  isModalOpen.value = true;
-}
-
-function closeModal() {
-  isModalOpen.value = false;
-  selectedUser.value = null;
-  isEditMode.value = false;
-}
-
-function onModalSuccess() {
-  closeModal();
-  refresh();
-}
-
 const toast = useToast();
 
 async function handleDelete(user: UserRes) {
@@ -142,9 +116,9 @@ async function handleDelete(user: UserRes) {
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("es-CL", {
+    day: "2-digit",
+    month: "2-digit",
     year: "numeric",
-    month: "short",
-    day: "numeric",
   });
 }
 
@@ -204,13 +178,8 @@ function getRoleBadgeColor(role: string): string {
               value-attribute="value"
               placeholder="Filtrar por rol"
             />
-            <UButton
-              icon="i-lucide-user-plus"
-              color="primary"
-              @click="openCreateModal"
-            >
-              Crear Usuario
-            </UButton>
+            <!-- Create User Modal -->
+            <AdminUsersCreateUserModal @success="refresh" />
           </div>
         </div>
       </div>
@@ -229,14 +198,6 @@ function getRoleBadgeColor(role: string): string {
             label: 'No hay usuarios registrados.',
           }"
         >
-          <template #id-data="{ row }">
-            <span
-              class="font-mono text-xs text-neutral-600 dark:text-neutral-400"
-            >
-              {{ row.getValue("id")?.slice(0, 8) }}...
-            </span>
-          </template>
-
           <template #email-data="{ row }">
             <span class="text-sm font-medium">
               {{ row.getValue("email") }}
@@ -258,28 +219,28 @@ function getRoleBadgeColor(role: string): string {
             </UBadge>
           </template>
 
-          <template #authProvider-data="{ row }">
+          <template #nationality-data="{ row }">
             <span class="text-sm">
-              {{ row.getValue("authProvider") || "LOCAL" }}
+              {{ row.getValue("nationality") || "-" }}
+            </span>
+          </template>
+
+          <template #phoneNumber-data="{ row }">
+            <span class="text-sm">
+              {{ row.getValue("phoneNumber") || "-" }}
             </span>
           </template>
 
           <template #createdAt-data="{ row }">
-            <span class="text-sm">
+            <span class="text-sm text-neutral-600 dark:text-neutral-400">
               {{ formatDate(row.getValue("createdAt")) }}
             </span>
           </template>
 
           <template #actions-cell="{ row }">
             <div class="flex items-center gap-2">
-              <UButton
-                icon="i-lucide-pencil"
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                aria-label="Editar usuario"
-                @click="openEditModal(row.original)"
-              />
+              <!-- Edit User Modal -->
+              <AdminUsersEditUserModal :user="row.original" @success="refresh" />
 
               <UButton
                 icon="i-lucide-trash-2"
@@ -294,14 +255,5 @@ function getRoleBadgeColor(role: string): string {
         </UTable>
       </div>
     </div>
-
-    <!-- User Modal -->
-    <AdminUsersUserModal
-      v-model:open="isModalOpen"
-      :user="selectedUser"
-      :is-edit-mode="isEditMode"
-      @close="closeModal"
-      @success="onModalSuccess"
-    />
   </div>
 </template>
