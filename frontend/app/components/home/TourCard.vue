@@ -11,7 +11,7 @@
     <!-- Imagen -->
     <div class="relative h-48 overflow-hidden">
       <img
-        :src="tour.images?.[0] || '/images/tour-placeholder.jpg'"
+        :src="tour.images?.[0] || '/images/tour-placeholder.svg'"
         :alt="getTourName()"
         class="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
       />

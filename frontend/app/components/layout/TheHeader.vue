@@ -55,44 +55,46 @@
           </UButton>
 
           <!-- Auth Actions -->
-          <template v-if="!authStore.isAuthenticated">
-            <UButton
-              :to="localePath('/auth')"
-              variant="ghost"
-              color="neutral"
-              icon="i-lucide-log-in"
-              class="hidden sm:flex"
-            >
-              {{ t("nav.login") }}
-            </UButton>
-          </template>
-
-          <template v-else>
-            <!-- User Menu -->
-            <UDropdownMenu :items="userMenuItems">
+          <ClientOnly>
+            <template v-if="!authStore.isAuthenticated">
               <UButton
+                :to="localePath('/auth')"
                 variant="ghost"
                 color="neutral"
-                square
+                icon="i-lucide-log-in"
                 class="hidden sm:flex"
               >
-                <div class="flex items-center gap-1">
-                  <div
-                    class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center"
-                  >
+                {{ t("nav.login") }}
+              </UButton>
+            </template>
+
+            <template v-else>
+              <!-- User Menu -->
+              <UDropdownMenu :items="userMenuItems">
+                <UButton
+                  variant="ghost"
+                  color="neutral"
+                  square
+                  class="hidden sm:flex"
+                >
+                  <div class="flex items-center gap-1">
+                    <div
+                      class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center"
+                    >
+                      <UIcon
+                        name="i-lucide-user"
+                        class="w-4 h-4 text-primary-600 dark:text-primary-400"
+                      />
+                    </div>
                     <UIcon
-                      name="i-lucide-user"
-                      class="w-4 h-4 text-primary-600 dark:text-primary-400"
+                      name="i-lucide-chevron-down"
+                      class="w-4 h-4 text-neutral-500 dark:text-neutral-300"
                     />
                   </div>
-                  <UIcon
-                    name="i-lucide-chevron-down"
-                    class="w-4 h-4 text-neutral-500 dark:text-neutral-300"
-                  />
-                </div>
-              </UButton>
-            </UDropdownMenu>
-          </template>
+                </UButton>
+              </UDropdownMenu>
+            </template>
+          </ClientOnly>
 
           <!-- Mobile Menu Button -->
           <UButton
@@ -147,77 +149,79 @@
           <div
             class="space-y-2 pt-4 border-t border-neutral-200 dark:border-neutral-700"
           >
-            <template v-if="!authStore.isAuthenticated">
-              <UButton
-                :to="localePath('/auth')"
-                color="primary"
-                block
-                icon="i-lucide-log-in"
-                @click="mobileMenuOpen = false"
-              >
-                {{ t("nav.login") }}
-              </UButton>
-            </template>
-
-            <template v-else>
-              <!-- User Info -->
-              <div
-                class="p-3 bg-neutral-100 dark:bg-neutral-800/50 rounded-lg mb-4"
-              >
-                <p
-                  class="text-sm font-medium text-neutral-900 dark:text-neutral-50"
+            <ClientOnly>
+              <template v-if="!authStore.isAuthenticated">
+                <UButton
+                  :to="localePath('/auth')"
+                  color="primary"
+                  block
+                  icon="i-lucide-log-in"
+                  @click="mobileMenuOpen = false"
                 >
-                  {{ authStore.user?.fullName }}
-                </p>
-                <p class="text-xs text-neutral-500 dark:text-neutral-300">
-                  {{ authStore.user?.email }}
-                </p>
-              </div>
+                  {{ t("nav.login") }}
+                </UButton>
+              </template>
 
-              <UButton
-                v-if="isAdmin"
-                :to="localePath('/admin')"
-                variant="outline"
-                color="neutral"
-                block
-                icon="i-lucide-shield-check"
-                @click="mobileMenuOpen = false"
-              >
-                {{ t("nav.admin") }}
-              </UButton>
+              <template v-else>
+                <!-- User Info -->
+                <div
+                  class="p-3 bg-neutral-100 dark:bg-neutral-800/50 rounded-lg mb-4"
+                >
+                  <p
+                    class="text-sm font-medium text-neutral-900 dark:text-neutral-50"
+                  >
+                    {{ authStore.user?.fullName }}
+                  </p>
+                  <p class="text-xs text-neutral-500 dark:text-neutral-300">
+                    {{ authStore.user?.email }}
+                  </p>
+                </div>
 
-              <UButton
-                :to="localePath('/profile')"
-                variant="outline"
-                color="neutral"
-                block
-                icon="i-lucide-user"
-                @click="mobileMenuOpen = false"
-              >
-                {{ t("nav.my_account") }}
-              </UButton>
+                <UButton
+                  v-if="isAdmin"
+                  :to="localePath('/admin')"
+                  variant="outline"
+                  color="neutral"
+                  block
+                  icon="i-lucide-shield-check"
+                  @click="mobileMenuOpen = false"
+                >
+                  {{ t("nav.admin") }}
+                </UButton>
 
-              <UButton
-                :to="localePath('/profile/bookings')"
-                variant="outline"
-                color="neutral"
-                block
-                icon="i-lucide-book-marked"
-                @click="mobileMenuOpen = false"
-              >
-                {{ t("nav.bookings") }}
-              </UButton>
+                <UButton
+                  :to="localePath('/profile')"
+                  variant="outline"
+                  color="neutral"
+                  block
+                  icon="i-lucide-user"
+                  @click="mobileMenuOpen = false"
+                >
+                  {{ t("nav.my_account") }}
+                </UButton>
 
-              <UButton
-                variant="outline"
-                color="error"
-                block
-                icon="i-lucide-log-out"
-                @click="handleLogout"
-              >
-                {{ t("nav.logout") }}
-              </UButton>
-            </template>
+                <UButton
+                  :to="localePath('/profile/bookings')"
+                  variant="outline"
+                  color="neutral"
+                  block
+                  icon="i-lucide-book-marked"
+                  @click="mobileMenuOpen = false"
+                >
+                  {{ t("nav.bookings") }}
+                </UButton>
+
+                <UButton
+                  variant="outline"
+                  color="error"
+                  block
+                  icon="i-lucide-log-out"
+                  @click="handleLogout"
+                >
+                  {{ t("nav.logout") }}
+                </UButton>
+              </template>
+            </ClientOnly>
           </div>
         </div>
       </template>
