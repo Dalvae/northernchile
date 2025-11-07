@@ -1,74 +1,71 @@
 <template>
   <div class="min-h-screen bg-neutral-50 dark:bg-neutral-800 py-12">
     <UContainer>
-      <!-- Header -->
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
-          {{ t("user.profile") }}
-        </h1>
-        <p class="text-neutral-600 dark:text-neutral-400">
-          {{ t("profile.profile_description") }}
-        </p>
-      </div>
-
       <div class="grid lg:grid-cols-3 gap-6">
+        <!-- Header spanning full width -->
+        <div class="lg:col-span-3 mb-2">
+          <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
+            {{ t("user.profile") }}
+          </h1>
+          <p class="text-neutral-600 dark:text-neutral-400">
+            {{ t("profile.profile_description") }}
+          </p>
+        </div>
         <!-- Sidebar Navigation -->
         <div class="lg:col-span-1">
           <UCard>
-            <template #content>
-              <nav class="space-y-2">
-                <UButton
-                  :color="activeTab === 'personal' ? 'primary' : 'neutral'"
-                  :variant="activeTab === 'personal' ? 'solid' : 'ghost'"
-                  block
-                  icon="i-lucide-user"
-                  @click="activeTab = 'personal'"
-                >
-                  {{ t("user.personal_info") }}
-                </UButton>
+            <nav class="space-y-2">
+              <UButton
+                :color="activeTab === 'personal' ? 'primary' : 'neutral'"
+                :variant="activeTab === 'personal' ? 'solid' : 'ghost'"
+                block
+                icon="i-lucide-user"
+                @click="activeTab = 'personal'"
+              >
+                {{ t("user.personal_info") }}
+              </UButton>
 
-                <UButton
-                  :color="activeTab === 'bookings' ? 'primary' : 'neutral'"
-                  :variant="activeTab === 'bookings' ? 'solid' : 'ghost'"
-                  block
-                  icon="i-lucide-calendar-check"
-                  to="/profile/bookings"
-                >
-                  {{ t("user.my_bookings") }}
-                </UButton>
+              <UButton
+                :color="activeTab === 'bookings' ? 'primary' : 'neutral'"
+                :variant="activeTab === 'bookings' ? 'solid' : 'ghost'"
+                block
+                icon="i-lucide-calendar-check"
+                @click="activeTab = 'bookings'"
+              >
+                {{ t("user.my_bookings") }}
+              </UButton>
 
-                <UButton
-                  :color="activeTab === 'security' ? 'primary' : 'neutral'"
-                  :variant="activeTab === 'security' ? 'solid' : 'ghost'"
-                  block
-                  icon="i-lucide-lock"
-                  @click="activeTab = 'security'"
-                >
-                  {{ t("user.change_password") }}
-                </UButton>
-              </nav>
-            </template>
+              <UButton
+                :color="activeTab === 'security' ? 'primary' : 'neutral'"
+                :variant="activeTab === 'security' ? 'solid' : 'ghost'"
+                block
+                icon="i-lucide-lock"
+                @click="activeTab = 'security'"
+              >
+                {{ t("user.change_password") }}
+              </UButton>
+            </nav>
           </UCard>
         </div>
 
         <!-- Main Content -->
         <div class="lg:col-span-2">
           <!-- Personal Information Tab -->
-          <div v-if="activeTab === 'personal'" class="bg-white dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700 p-6">
-            <!-- Header -->
-            <div class="flex items-center justify-between pb-4 mb-6 border-b border-neutral-200 dark:border-neutral-700">
-              <h2 class="text-xl font-semibold text-neutral-900 dark:text-white">
-                Información Personal
-              </h2>
-              <button
-                v-if="!isEditing"
-                type="button"
-                @click="startEditing"
-                class="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
-              >
-                Editar
-              </button>
-            </div>
+          <UCard v-if="activeTab === 'personal'">
+            <template #header>
+              <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-neutral-900 dark:text-white">
+                  Información Personal
+                </h2>
+                <UButton
+                  v-if="!isEditing"
+                  color="primary"
+                  @click="startEditing"
+                >
+                  Editar
+                </UButton>
+              </div>
+            </template>
 
             <!-- Loading -->
             <div v-if="isLoading" class="py-12 text-center">
@@ -172,16 +169,16 @@
                     {{ t("common.cancel") }}
                   </UButton>
 
-                  <button
+                  <UButton
                     type="submit"
-                    class="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
+                    color="primary"
                     :disabled="isSaving"
                   >
                     {{ isSaving ? 'Guardando...' : 'Guardar' }}
-                  </button>
+                  </UButton>
                 </div>
               </form>
-          </div>
+          </UCard>
 
           <!-- Change Password Tab -->
           <UCard v-else-if="activeTab === 'security'">
@@ -193,8 +190,7 @@
               </h2>
             </template>
 
-            <template #content>
-              <form @submit.prevent="changePassword" class="space-y-6">
+            <form @submit.prevent="changePassword" class="space-y-6">
                 <UFormField
                   :label="t('profile.current_password')"
                   name="currentPassword"
@@ -253,8 +249,10 @@
                   </UButton>
                 </div>
               </form>
-            </template>
           </UCard>
+
+          <!-- Bookings Tab -->
+          <ProfileBookingsList v-else-if="activeTab === 'bookings'" />
         </div>
       </div>
     </UContainer>
