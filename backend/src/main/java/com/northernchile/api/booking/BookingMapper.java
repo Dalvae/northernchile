@@ -9,6 +9,7 @@ import org.mapstruct.Mapping;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
@@ -18,9 +19,11 @@ public interface BookingMapper {
 
     @Mapping(source = "schedule.tour.nameTranslations", target = "tourName")
     @Mapping(source = "schedule.startDatetime", target = "tourDate")
+    @Mapping(source = "schedule.startDatetime", target = "tourStartTime")
     @Mapping(source = "schedule.id", target = "scheduleId")
     @Mapping(source = "user.id", target = "userId")
     @Mapping(source = "user.fullName", target = "userFullName")
+    @Mapping(source = "user.phoneNumber", target = "userPhoneNumber")
     BookingRes toBookingRes(Booking booking);
 
     List<BookingRes> toBookingResList(List<Booking> bookings);
@@ -35,5 +38,9 @@ public interface BookingMapper {
 
     default LocalDate mapInstantToLocalDate(Instant instant) {
         return instant != null ? LocalDate.ofInstant(instant, ZoneOffset.UTC) : null;
+    }
+
+    default LocalTime mapInstantToLocalTime(Instant instant) {
+        return instant != null ? LocalTime.ofInstant(instant, ZoneOffset.UTC) : null;
     }
 }

@@ -163,14 +163,15 @@ async function handleSubmit() {
 
           <!-- Nationality -->
           <UFormField label="Nacionalidad" name="nationality">
-            <USelect
+            <USelectMenu
               v-model="state.nationality"
               :items="countries"
-              option-attribute="label"
               value-attribute="value"
+              option-attribute="label"
               placeholder="Selecciona nacionalidad"
               size="lg"
               class="w-full"
+              searchable
             />
           </UFormField>
 

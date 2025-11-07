@@ -15,17 +15,21 @@ public class ParticipantReq {
     private Integer age;
     private String pickupAddress;
     private String specialRequirements;
+    private String phoneNumber;
+    private String email;
 
     public ParticipantReq() {
     }
 
-    public ParticipantReq(String fullName, String documentId, String nationality, Integer age, String pickupAddress, String specialRequirements) {
+    public ParticipantReq(String fullName, String documentId, String nationality, Integer age, String pickupAddress, String specialRequirements, String phoneNumber, String email) {
         this.fullName = fullName;
         this.documentId = documentId;
         this.nationality = nationality;
         this.age = age;
         this.pickupAddress = pickupAddress;
         this.specialRequirements = specialRequirements;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
     }
 
     public String getFullName() {
@@ -76,17 +80,33 @@ public class ParticipantReq {
         this.specialRequirements = specialRequirements;
     }
 
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ParticipantReq that = (ParticipantReq) o;
-        return Objects.equals(fullName, that.fullName) && Objects.equals(documentId, that.documentId) && Objects.equals(nationality, that.nationality) && Objects.equals(age, that.age) && Objects.equals(pickupAddress, that.pickupAddress) && Objects.equals(specialRequirements, that.specialRequirements);
+        return Objects.equals(fullName, that.fullName) && Objects.equals(documentId, that.documentId) && Objects.equals(nationality, that.nationality) && Objects.equals(age, that.age) && Objects.equals(pickupAddress, that.pickupAddress) && Objects.equals(specialRequirements, that.specialRequirements) && Objects.equals(phoneNumber, that.phoneNumber) && Objects.equals(email, that.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fullName, documentId, nationality, age, pickupAddress, specialRequirements);
+        return Objects.hash(fullName, documentId, nationality, age, pickupAddress, specialRequirements, phoneNumber, email);
     }
 
     @Override
@@ -98,6 +118,8 @@ public class ParticipantReq {
                 ", age=" + age +
                 ", pickupAddress='" + pickupAddress + '\'' +
                 ", specialRequirements='" + specialRequirements + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", email='" + email + '\'' +
                 '}';
     }
 }

@@ -4,6 +4,7 @@ package com.northernchile.api.booking.dto;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -12,9 +13,11 @@ public class BookingRes {
     private UUID id;
     private UUID userId;
     private String userFullName;
+    private String userPhoneNumber;
     private UUID scheduleId;
     private String tourName;
     private LocalDate tourDate;
+    private LocalTime tourStartTime;
     private String status;
     private BigDecimal subtotal;
     private BigDecimal taxAmount;
@@ -27,13 +30,15 @@ public class BookingRes {
     public BookingRes() {
     }
 
-    public BookingRes(UUID id, UUID userId, String userFullName, UUID scheduleId, String tourName, LocalDate tourDate, String status, BigDecimal subtotal, BigDecimal taxAmount, BigDecimal totalAmount, String languageCode, String specialRequests, Instant createdAt, List<ParticipantRes> participants) {
+    public BookingRes(UUID id, UUID userId, String userFullName, String userPhoneNumber, UUID scheduleId, String tourName, LocalDate tourDate, LocalTime tourStartTime, String status, BigDecimal subtotal, BigDecimal taxAmount, BigDecimal totalAmount, String languageCode, String specialRequests, Instant createdAt, List<ParticipantRes> participants) {
         this.id = id;
         this.userId = userId;
         this.userFullName = userFullName;
+        this.userPhoneNumber = userPhoneNumber;
         this.scheduleId = scheduleId;
         this.tourName = tourName;
         this.tourDate = tourDate;
+        this.tourStartTime = tourStartTime;
         this.status = status;
         this.subtotal = subtotal;
         this.taxAmount = taxAmount;
@@ -68,6 +73,14 @@ public class BookingRes {
         this.userFullName = userFullName;
     }
 
+    public String getUserPhoneNumber() {
+        return userPhoneNumber;
+    }
+
+    public void setUserPhoneNumber(String userPhoneNumber) {
+        this.userPhoneNumber = userPhoneNumber;
+    }
+
     public UUID getScheduleId() {
         return scheduleId;
     }
@@ -90,6 +103,14 @@ public class BookingRes {
 
     public void setTourDate(LocalDate tourDate) {
         this.tourDate = tourDate;
+    }
+
+    public LocalTime getTourStartTime() {
+        return tourStartTime;
+    }
+
+    public void setTourStartTime(LocalTime tourStartTime) {
+        this.tourStartTime = tourStartTime;
     }
 
     public String getStatus() {
@@ -161,12 +182,12 @@ public class BookingRes {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BookingRes that = (BookingRes) o;
-        return Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(userFullName, that.userFullName) && Objects.equals(scheduleId, that.scheduleId) && Objects.equals(tourName, that.tourName) && Objects.equals(tourDate, that.tourDate) && Objects.equals(status, that.status) && Objects.equals(subtotal, that.subtotal) && Objects.equals(taxAmount, that.taxAmount) && Objects.equals(totalAmount, that.totalAmount) && Objects.equals(languageCode, that.languageCode) && Objects.equals(specialRequests, that.specialRequests) && Objects.equals(createdAt, that.createdAt) && Objects.equals(participants, that.participants);
+        return Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(userFullName, that.userFullName) && Objects.equals(userPhoneNumber, that.userPhoneNumber) && Objects.equals(scheduleId, that.scheduleId) && Objects.equals(tourName, that.tourName) && Objects.equals(tourDate, that.tourDate) && Objects.equals(tourStartTime, that.tourStartTime) && Objects.equals(status, that.status) && Objects.equals(subtotal, that.subtotal) && Objects.equals(taxAmount, that.taxAmount) && Objects.equals(totalAmount, that.totalAmount) && Objects.equals(languageCode, that.languageCode) && Objects.equals(specialRequests, that.specialRequests) && Objects.equals(createdAt, that.createdAt) && Objects.equals(participants, that.participants);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, userId, userFullName, scheduleId, tourName, tourDate, status, subtotal, taxAmount, totalAmount, languageCode, specialRequests, createdAt, participants);
+        return Objects.hash(id, userId, userFullName, userPhoneNumber, scheduleId, tourName, tourDate, tourStartTime, status, subtotal, taxAmount, totalAmount, languageCode, specialRequests, createdAt, participants);
     }
 
     @Override
@@ -175,9 +196,11 @@ public class BookingRes {
                 "id=" + id +
                 ", userId=" + userId +
                 ", userFullName='" + userFullName + '\'' +
+                ", userPhoneNumber='" + userPhoneNumber + '\'' +
                 ", scheduleId=" + scheduleId +
                 ", tourName='" + tourName + '\'' +
                 ", tourDate=" + tourDate +
+                ", tourStartTime=" + tourStartTime +
                 ", status='" + status + '\'' +
                 ", subtotal=" + subtotal +
                 ", taxAmount=" + taxAmount +

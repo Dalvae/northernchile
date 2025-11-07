@@ -37,13 +37,19 @@ public class Participant {
     @Column(name = "special_requirements", columnDefinition = "TEXT")
     private String specialRequirements;
 
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
+
+    @Column(length = 255)
+    private String email;
+
     @CreationTimestamp
     private Instant createdAt;
 
     public Participant() {
     }
 
-    public Participant(UUID id, Booking booking, String fullName, String documentId, String nationality, Integer age, String pickupAddress, String specialRequirements, Instant createdAt) {
+    public Participant(UUID id, Booking booking, String fullName, String documentId, String nationality, Integer age, String pickupAddress, String specialRequirements, String phoneNumber, String email, Instant createdAt) {
         this.id = id;
         this.booking = booking;
         this.fullName = fullName;
@@ -52,6 +58,8 @@ public class Participant {
         this.age = age;
         this.pickupAddress = pickupAddress;
         this.specialRequirements = specialRequirements;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
         this.createdAt = createdAt;
     }
 
@@ -119,6 +127,22 @@ public class Participant {
         this.specialRequirements = specialRequirements;
     }
 
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -132,12 +156,12 @@ public class Participant {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Participant that = (Participant) o;
-        return Objects.equals(id, that.id) && Objects.equals(booking, that.booking) && Objects.equals(fullName, that.fullName) && Objects.equals(documentId, that.documentId) && Objects.equals(nationality, that.nationality) && Objects.equals(age, that.age) && Objects.equals(pickupAddress, that.pickupAddress) && Objects.equals(specialRequirements, that.specialRequirements) && Objects.equals(createdAt, that.createdAt);
+        return Objects.equals(id, that.id) && Objects.equals(booking, that.booking) && Objects.equals(fullName, that.fullName) && Objects.equals(documentId, that.documentId) && Objects.equals(nationality, that.nationality) && Objects.equals(age, that.age) && Objects.equals(pickupAddress, that.pickupAddress) && Objects.equals(specialRequirements, that.specialRequirements) && Objects.equals(phoneNumber, that.phoneNumber) && Objects.equals(email, that.email) && Objects.equals(createdAt, that.createdAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, booking, fullName, documentId, nationality, age, pickupAddress, specialRequirements, createdAt);
+        return Objects.hash(id, booking, fullName, documentId, nationality, age, pickupAddress, specialRequirements, phoneNumber, email, createdAt);
     }
 
     @Override
@@ -151,6 +175,8 @@ public class Participant {
                 ", age=" + age +
                 ", pickupAddress='" + pickupAddress + '\'' +
                 ", specialRequirements='" + specialRequirements + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", email='" + email + '\'' +
                 ", createdAt=" + createdAt +
                 '}';
     }

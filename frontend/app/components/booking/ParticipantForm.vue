@@ -78,9 +78,45 @@
           :placeholder="t('booking.special_requirements_placeholder')"
           :rows="3"
           size="lg"
+          class="w-full"
           @update:model-value="emit('update', { specialRequirements: $event })"
         />
       </UFormField>
+
+      <!-- Phone and Email -->
+      <div class="grid md:grid-cols-2 gap-4">
+        <UFormField
+          :label="t('booking.phone')"
+          name="phoneNumber"
+          help="Opcional. Para contactarte y enviarte fotos del tour"
+        >
+          <UInput
+            :model-value="participant.phoneNumber"
+            type="tel"
+            placeholder="+56 9 1234 5678"
+            size="lg"
+            icon="i-lucide-phone"
+            class="w-full"
+            @update:model-value="emit('update', { phoneNumber: $event })"
+          />
+        </UFormField>
+
+        <UFormField
+          :label="t('booking.email')"
+          name="email"
+          help="Opcional. Para enviarte fotos del tour"
+        >
+          <UInput
+            :model-value="participant.email"
+            type="email"
+            placeholder="tu@email.com"
+            size="lg"
+            icon="i-lucide-mail"
+            class="w-full"
+            @update:model-value="emit('update', { email: $event })"
+          />
+        </UFormField>
+      </div>
     </div>
   </UCard>
 </template>
@@ -96,6 +132,8 @@ defineProps<{
     age: number | null
     pickupAddress: string
     specialRequirements: string
+    phoneNumber: string
+    email: string
   }
   index: number
   totalParticipants: number
@@ -109,6 +147,8 @@ const emit = defineEmits<{
     age: number | null
     pickupAddress: string
     specialRequirements: string
+    phoneNumber: string
+    email: string
   }>]
 }>()
 </script>

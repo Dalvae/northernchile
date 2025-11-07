@@ -82,12 +82,15 @@
                   :label="t('booking.nationality')"
                   name="nationality"
                 >
-                  <UInput
+                  <USelectMenu
                     v-model="state.nationality"
+                    :items="countries"
+                    value-attribute="value"
+                    option-attribute="label"
                     :placeholder="t('booking.nationality_placeholder')"
                     size="lg"
-                    icon="i-lucide-globe"
                     class="w-full"
+                    searchable
                   />
                 </UFormField>
 
@@ -205,6 +208,7 @@ const { t } = useI18n();
 const authStore = useAuthStore();
 const router = useRouter();
 const toast = useToast();
+const { countries } = useCountries();
 
 // Estado
 const isLogin = ref(true);

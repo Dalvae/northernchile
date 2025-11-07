@@ -107,15 +107,16 @@
                   <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                     Nacionalidad
                   </label>
-                  <USelect
+                  <USelectMenu
                     v-if="isEditing"
                     v-model="profileForm.nationality"
                     :items="countries"
-                    option-attribute="label"
                     value-attribute="value"
+                    option-attribute="label"
                     placeholder="Selecciona tu país"
                     size="lg"
                     class="w-full"
+                    searchable
                   />
                   <div v-else class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
                     <span class="text-neutral-900 dark:text-white">{{ getCountryLabel(profileForm.nationality) || '-' }}</span>

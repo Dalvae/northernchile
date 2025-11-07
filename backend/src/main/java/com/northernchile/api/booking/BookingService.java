@@ -1,6 +1,7 @@
 package com.northernchile.api.booking;
 
 import com.northernchile.api.audit.AuditLogService;
+import com.northernchile.api.booking.dto.BookingClientUpdateReq;
 import com.northernchile.api.booking.dto.BookingCreateReq;
 import com.northernchile.api.booking.dto.BookingRes;
 import com.northernchile.api.booking.dto.ParticipantRes;
@@ -99,6 +100,8 @@ public class BookingService {
             participant.setAge(participantReq.getAge());
             participant.setPickupAddress(participantReq.getPickupAddress());
             participant.setSpecialRequirements(participantReq.getSpecialRequirements());
+            participant.setPhoneNumber(participantReq.getPhoneNumber());
+            participant.setEmail(participantReq.getEmail());
             participants.add(participant);
         }
         booking.setParticipants(participants);
@@ -216,5 +219,46 @@ public class BookingService {
         auditLogService.logUpdate(currentUser, "BOOKING", booking.getId(), description, oldValues, newValues);
 
         return bookingMapper.toBookingRes(confirmedBooking);
+    }
+
+    @Transactional
+    public BookingRes updateBookingDetails(UUID bookingId, BookingClientUpdateReq req, User currentUser) {
+        Booking booking = bookingRepository.findByIdWithDetails(bookingId)
+                .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
+
+        // Verify ownership
+        if (!booking.getUser().getId().equals(currentUser.getId())) {
+            throw new SecurityException("You can only update your own bookings");
+        }
+
+        // Only allow updates for PENDING or CONFIRMED bookings
+        if (!"PENDING".equals(booking.getStatus()) && !"CONFIRMED".equals(booking.getStatus())) {
+            throw new IllegalStateException("Cannot update booking with status: " + booking.getStatus());
+        }
+
+        // Update special requests at booking level
+        booking.setSpecialRequests(req.getSpecialRequests());
+
+        // Update participants
+        for (BookingClientUpdateReq.ParticipantUpdateReq participantReq : req.getParticipants()) {
+            Participant participant = booking.getParticipants().stream()
+                    .filter(p -> p.getId().equals(participantReq.getId()))
+                    .findFirst()
+                    .orElseThrow(() -> new EntityNotFoundException("Participant not found with id: " + participantReq.getId()));
+
+            participant.setPickupAddress(participantReq.getPickupAddress());
+            participant.setSpecialRequirements(participantReq.getSpecialRequirements());
+            participant.setPhoneNumber(participantReq.getPhoneNumber());
+            participant.setEmail(participantReq.getEmail());
+        }
+
+        Booking updatedBooking = bookingRepository.save(booking);
+
+        // Audit log
+        String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
+        String description = tourName + " - " + booking.getUser().getFullName() + " (Updated details)";
+        auditLogService.logUpdate(currentUser, "BOOKING", booking.getId(), description, null, null);
+
+        return bookingMapper.toBookingRes(updatedBooking);
     }
 }

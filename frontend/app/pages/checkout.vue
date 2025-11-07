@@ -29,12 +29,13 @@ const contactForm = ref({
 const participants = ref<
   Array<{
     fullName: string;
-    email: string;
-    phone: string;
+    documentId: string;
     nationality: string;
-    documentType: string;
-    documentNumber: string;
+    age: number | null;
     pickupAddress: string;
+    specialRequirements: string;
+    phoneNumber: string;
+    email: string;
   }>
 >([]);
 
@@ -46,12 +47,13 @@ function initializeParticipants() {
     { length: totalParticipants.value },
     (_, i) => ({
       fullName: i === 0 ? contactForm.value.fullName : "",
-      email: i === 0 ? contactForm.value.email : "",
-      phone: i === 0 ? contactForm.value.phone : "",
-      nationality: "Chile",
-      documentType: "RUT",
-      documentNumber: "",
+      documentId: "",
+      nationality: "CL",
+      age: null,
       pickupAddress: "",
+      specialRequirements: "",
+      phoneNumber: i === 0 ? contactForm.value.phone : "",
+      email: i === 0 ? contactForm.value.email : "",
     })
   );
 }
@@ -79,7 +81,7 @@ const step1Valid = computed(() => {
 
 const step2Valid = computed(() => {
   return participants.value.every(
-    (p) => p.fullName && p.email && p.documentNumber && p.nationality
+    (p) => p.fullName && p.documentId && p.nationality
   );
 });
 
@@ -124,8 +126,16 @@ function cloneContactToParticipant() {
   if (participants.value.length > 0) {
     participants.value[0].fullName = contactForm.value.fullName;
     participants.value[0].email = contactForm.value.email;
-    participants.value[0].phone = contactForm.value.phone;
+    participants.value[0].phoneNumber = contactForm.value.phone;
   }
+}
+
+// Update participant data
+function updateParticipant(index: number, data: Partial<typeof participants.value[0]>) {
+  participants.value[index] = {
+    ...participants.value[index],
+    ...data,
+  };
 }
 
 // Submit booking
@@ -199,11 +209,13 @@ async function submitBooking() {
       // Map to backend format
       const participantReqs = bookingParticipants.map((p) => ({
         fullName: p.fullName,
-        documentId: p.documentNumber,
+        documentId: p.documentId,
         nationality: p.nationality,
-        age: null,
+        age: p.age,
         pickupAddress: p.pickupAddress || null,
-        specialRequirements: null,
+        specialRequirements: p.specialRequirements || null,
+        phoneNumber: p.phoneNumber || null,
+        email: p.email || null,
       }));
 
       // Create booking (will be PENDING)
@@ -576,109 +588,27 @@ const total = computed(() => subtotal.value + tax.value);
               <div
                 v-for="(participant, index) in participants"
                 :key="index"
-                class="p-4 rounded-lg border border-neutral-200 dark:border-neutral-700"
               >
-                <h3 class="font-medium text-neutral-900 dark:text-white mb-4">
-                  Participante {{ index + 1 }}
-                  <span
-                    v-if="index === 0"
-                    class="text-sm text-neutral-500 dark:text-neutral-400 font-normal ml-2"
-                  >
-                    (Contacto principal)
-                  </span>
-                </h3>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                    >
-                      Nombre Completo *
-                    </label>
-                    <input
-                      v-model="participant.fullName"
-                      type="text"
-                      class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                    >
-                      Email *
-                    </label>
-                    <input
-                      v-model="participant.email"
-                      type="email"
-                      class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                    >
-                      Nacionalidad *
-                    </label>
-                    <USelect
-                      v-model="participant.nationality"
-                      :items="countries"
-                      option-attribute="label"
-                      value-attribute="value"
-                      placeholder="Selecciona nacionalidad"
-                      size="lg"
-                      required
-                      class="w-full"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                    >
-                      Tipo de Documento *
-                    </label>
-                    <select
-                      v-model="participant.documentType"
-                      class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                    >
-                      <option value="RUT">RUT</option>
-                      <option value="DNI">DNI</option>
-                      <option value="PASSPORT">Pasaporte</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                    >
-                      Número de Documento *
-                    </label>
-                    <input
-                      v-model="participant.documentNumber"
-                      type="text"
-                      class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                    >
-                      Dirección de Recogida
-                    </label>
-                    <input
-                      v-model="participant.pickupAddress"
-                      type="text"
-                      placeholder="Hotel, hostel o dirección en San Pedro"
-                      class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                    />
-                  </div>
-                </div>
+                <BookingParticipantForm
+                  :participant="participant"
+                  :index="index"
+                  :total-participants="totalParticipants"
+                  @update="(data) => updateParticipant(index, data)"
+                >
+                  <template #header>
+                    <div class="flex items-center justify-between">
+                      <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
+                        Participante {{ index + 1 }}
+                        <span
+                          v-if="index === 0"
+                          class="text-sm text-neutral-500 dark:text-neutral-400 font-normal ml-2"
+                        >
+                          (Contacto principal)
+                        </span>
+                      </h3>
+                    </div>
+                  </template>
+                </BookingParticipantForm>
               </div>
             </div>
 

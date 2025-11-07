@@ -1,5 +1,6 @@
 package com.northernchile.api.booking;
 
+import com.northernchile.api.booking.dto.BookingClientUpdateReq;
 import com.northernchile.api.booking.dto.BookingCreateReq;
 import com.northernchile.api.booking.dto.BookingRes;
 import com.northernchile.api.booking.dto.BookingUpdateReq;
@@ -60,6 +61,16 @@ public class BookingController {
                                                         @CurrentUser User currentUser) {
         BookingRes confirmedBooking = bookingService.confirmBookingAfterMockPayment(bookingId, currentUser);
         return new ResponseEntity<>(confirmedBooking, HttpStatus.OK);
+    }
+
+    @PutMapping("/bookings/{bookingId}")
+    @PreAuthorize("@bookingSecurityService.isBookingUser(authentication, #bookingId)")
+    public ResponseEntity<BookingRes> updateBookingDetails(
+            @PathVariable UUID bookingId,
+            @Valid @RequestBody BookingClientUpdateReq req,
+            @CurrentUser User currentUser) {
+        BookingRes updated = bookingService.updateBookingDetails(bookingId, req, currentUser);
+        return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 
     @GetMapping("/admin/bookings")

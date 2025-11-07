@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { h } from "vue";
+import { h, resolveComponent } from "vue";
 import type { BookingRes } from "~/lib/api-client";
+import { getGroupedRowModel } from "@tanstack/vue-table";
+import type { GroupingOptions } from "@tanstack/vue-table";
 
 definePageMeta({
   layout: "admin",
 });
 
-const { fetchAdminBookings, updateAdminBooking, deleteAdminBooking } =
-  useAdminData();
+const UBadge = resolveComponent("UBadge");
+
+const { fetchAdminBookings } = useAdminData();
 const { formatPrice: formatCurrency } = useCurrency();
 
 const {
@@ -21,133 +24,153 @@ const {
 });
 
 const q = ref("");
-const statusFilter = ref<string>("ALL");
+const activeTab = ref<"upcoming" | "past">("upcoming");
 
-const columns = [
-  {
-    id: "id",
-    accessorKey: "id",
-    header: "ID Reserva",
-  },
-  {
-    id: "tourDate",
-    accessorKey: "tourDate",
-    header: "Fecha Tour",
-  },
-  {
-    id: "tourName",
-    accessorKey: "tourName",
-    header: "Tour",
-  },
-  {
-    id: "userFullName",
-    accessorKey: "userFullName",
-    header: "Cliente",
-  },
-  {
-    id: "participantsCount",
-    header: "Participantes",
-  },
-  {
-    id: "totalAmount",
-    accessorKey: "totalAmount",
-    header: "Total",
-  },
-  {
-    id: "status",
-    accessorKey: "status",
-    header: "Estado",
-  },
-  {
-    id: "actions",
-    header: "Acciones",
-  },
-];
+// Transform bookings into participant rows
+type ParticipantRow = {
+  scheduleId: string;
+  tourName: string;
+  tourDate: string;
+  tourStartTime: string;
+  participantName: string;
+  documentId: string;
+  nationality: string;
+  age: number;
+  pickupAddress: string;
+  specialRequirements: string;
+  participantPhone: string;
+  participantEmail: string;
+  bookingUserName: string;
+  bookingUserPhone: string;
+  bookingId: string;
+};
 
-const statusOptions = [
-  { label: "Todas", value: "ALL" },
-  { label: "Pendientes", value: "PENDING" },
-  { label: "Confirmadas", value: "CONFIRMED" },
-  { label: "Canceladas", value: "CANCELLED" },
-];
-
-const filteredRows = computed(() => {
+const participantRows = computed<ParticipantRow[]>(() => {
   if (!bookings.value || bookings.value.length === 0) return [];
 
-  let rows = bookings.value;
+  const rows: ParticipantRow[] = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  // Filter by search query
-  if (q.value) {
-    const query = q.value.toLowerCase();
-    rows = rows.filter(
-      (booking) =>
-        booking.userFullName?.toLowerCase().includes(query) ||
-        booking.tourName?.toLowerCase().includes(query) ||
-        booking.id?.toLowerCase().includes(query)
-    );
-  }
+  for (const booking of bookings.value) {
+    // Only show CONFIRMED bookings
+    if (booking.status !== "CONFIRMED") {
+      continue;
+    }
 
-  // Filter by status
-  if (statusFilter.value && statusFilter.value !== "ALL") {
-    rows = rows.filter((booking) => booking.status === statusFilter.value);
+    if (!booking.participants || booking.participants.length === 0) {
+      continue;
+    }
+
+    // Filter by date based on active tab
+    const tourDate = new Date(booking.tourDate);
+    if (activeTab.value === "upcoming" && tourDate < today) {
+      continue;
+    }
+    if (activeTab.value === "past" && tourDate >= today) {
+      continue;
+    }
+
+    for (const participant of booking.participants) {
+      // Filter by search query
+      if (q.value) {
+        const query = q.value.toLowerCase();
+        const matchesSearch =
+          participant.fullName?.toLowerCase().includes(query) ||
+          booking.tourName?.toLowerCase().includes(query) ||
+          booking.userFullName?.toLowerCase().includes(query) ||
+          participant.documentId?.toLowerCase().includes(query);
+
+        if (!matchesSearch) continue;
+      }
+
+      rows.push({
+        scheduleId: booking.scheduleId,
+        tourName: booking.tourName,
+        tourDate: booking.tourDate,
+        tourStartTime: booking.tourStartTime,
+        participantName: participant.fullName,
+        documentId: participant.documentId,
+        nationality: participant.nationality,
+        age: participant.age,
+        pickupAddress: participant.pickupAddress,
+        specialRequirements: participant.specialRequirements,
+        participantPhone: participant.phoneNumber,
+        participantEmail: participant.email,
+        bookingUserName: booking.userFullName,
+        bookingUserPhone: booking.userPhoneNumber,
+        bookingId: booking.id,
+      });
+    }
   }
 
   return rows;
 });
 
-const toast = useToast();
+const columns = [
+  {
+    id: "title",
+    header: "Tour",
+  },
+  {
+    id: "scheduleId",
+    accessorKey: "scheduleId",
+  },
+  {
+    accessorKey: "participantName",
+    header: "Participante",
+    cell: ({ row }) =>
+      row.getIsGrouped()
+        ? `${row.getValue("participantName")} participantes`
+        : row.getValue("participantName"),
+    aggregationFn: "count",
+  },
+  {
+    accessorKey: "documentId",
+    header: "Documento",
+  },
+  {
+    accessorKey: "nationality",
+    header: "Nacionalidad",
+  },
+  {
+    accessorKey: "age",
+    header: "Edad",
+  },
+  {
+    accessorKey: "pickupAddress",
+    header: "Dirección Recogida",
+    meta: {
+      class: {
+        td: "w-full",
+      },
+    },
+  },
+  {
+    accessorKey: "bookingUserName",
+    header: "Contacto",
+  },
+];
 
-async function handleStatusChange(booking: BookingRes, newStatus: string) {
-  try {
-    await updateAdminBooking(booking.id, { status: newStatus });
-    toast.add({
-      title: "Estado actualizado",
-      color: "success",
-      icon: "i-lucide-check-circle",
-    });
-    await refresh();
-  } catch (e: any) {
-    toast.add({
-      title: "Error al actualizar",
-      description: e.message || "Error desconocido",
-      color: "error",
-      icon: "i-lucide-x-circle",
-    });
-  }
-}
+const groupingOptions = ref<GroupingOptions>({
+  groupedColumnMode: "remove",
+  getGroupedRowModel: getGroupedRowModel(),
+});
 
-async function handleCancel(booking: BookingRes) {
-  const clientName = booking.userFullName || "este cliente";
-  if (
-    confirm(
-      `¿Estás seguro de que quieres cancelar la reserva de "${clientName}"?`
-    )
-  ) {
-    try {
-      await deleteAdminBooking(booking.id);
-      toast.add({
-        title: "Reserva cancelada",
-        color: "success",
-        icon: "i-lucide-check-circle",
-      });
-      await refresh();
-    } catch (e: any) {
-      toast.add({
-        title: "Error al cancelar",
-        description: e.message || "Error desconocido",
-        color: "error",
-        icon: "i-lucide-x-circle",
-      });
-    }
-  }
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("es-CL", {
+function formatDateTime(dateString: string, timeString: string): string {
+  const date = new Date(dateString);
+  const dateFormatted = date.toLocaleDateString("es-CL", {
+    weekday: "long",
     year: "numeric",
-    month: "short",
+    month: "long",
     day: "numeric",
   });
+
+  if (timeString) {
+    return `${dateFormatted} - ${timeString}`;
+  }
+
+  return dateFormatted;
 }
 </script>
 
@@ -157,30 +180,41 @@ function formatDate(dateString: string): string {
       class="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-800"
     >
       <div class="px-6 py-4">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between mb-4">
           <div>
             <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">
               Gestión de Reservas
             </h1>
             <p class="text-neutral-600 dark:text-neutral-400 mt-1">
-              Administra todas las reservas del sistema
+              Administra todas las reservas confirmadas del sistema
             </p>
           </div>
           <div class="flex items-center gap-3">
             <UInput
               v-model="q"
               icon="i-lucide-search"
-              placeholder="Buscar reserva..."
+              placeholder="Buscar participante..."
               class="w-80"
             />
-            <USelectMenu
-              v-model="statusFilter"
-              :options="statusOptions"
-              option-attribute="label"
-              value-attribute="value"
-              placeholder="Filtrar por estado"
-            />
           </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex gap-2">
+          <UButton
+            :variant="activeTab === 'upcoming' ? 'solid' : 'ghost'"
+            :color="activeTab === 'upcoming' ? 'primary' : 'neutral'"
+            @click="activeTab = 'upcoming'"
+          >
+            Próximas
+          </UButton>
+          <UButton
+            :variant="activeTab === 'past' ? 'solid' : 'ghost'"
+            :color="activeTab === 'past' ? 'primary' : 'neutral'"
+            @click="activeTab = 'past'"
+          >
+            Anteriores
+          </UButton>
         </div>
       </div>
     </div>
@@ -190,112 +224,110 @@ function formatDate(dateString: string): string {
         class="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 overflow-hidden"
       >
         <UTable
-          :data="filteredRows"
+          :data="participantRows"
           :columns="columns"
           :loading="pending"
+          :grouping="['scheduleId']"
+          :grouping-options="groupingOptions"
           :empty-state="{
             icon: 'i-lucide-calendar-x',
-            label: 'No hay reservas registradas.',
+            label: 'No hay participantes registrados.',
+          }"
+          :ui="{
+            root: 'min-w-full',
+            td: 'empty:p-0',
           }"
         >
-          <template #id-data="{ row }">
-            <span
-              class="font-mono text-xs text-neutral-600 dark:text-neutral-400"
-            >
-              {{ row.getValue("id")?.slice(0, 8) }}...
+          <template #title-cell="{ row }">
+            <div v-if="row.getIsGrouped()" class="flex items-center">
+              <UButton
+                variant="outline"
+                color="neutral"
+                class="mr-3"
+                size="xs"
+                :icon="row.getIsExpanded() ? 'i-lucide-minus' : 'i-lucide-plus'"
+                @click="row.toggleExpanded()"
+              />
+
+              <!-- Schedule Group -->
+              <div class="flex flex-col">
+                <strong class="text-neutral-900 dark:text-white">
+                  {{ row.original.tourName }}
+                </strong>
+                <span class="text-sm text-neutral-600 dark:text-neutral-400">
+                  {{
+                    formatDateTime(
+                      row.original.tourDate,
+                      row.original.tourStartTime
+                    )
+                  }}
+                </span>
+              </div>
+            </div>
+          </template>
+
+          <template #participantName-data="{ row }">
+            <span class="font-medium text-neutral-900 dark:text-white">
+              {{ row.getValue("participantName") }}
             </span>
           </template>
 
-          <template #tourDate-data="{ row }">
-            <span class="font-medium">
-              {{ formatDate(row.getValue("tourDate")) }}
+          <template #documentId-data="{ row }">
+            <span class="text-sm text-neutral-600 dark:text-neutral-400">
+              {{ row.getValue("documentId") || "-" }}
             </span>
           </template>
 
-          <template #tourName-data="{ row }">
-            <span class="text-sm">
-              {{ row.getValue("tourName") || "Sin nombre" }}
+          <template #nationality-data="{ row }">
+            <span class="text-sm text-neutral-600 dark:text-neutral-400">
+              {{ row.getValue("nationality") || "-" }}
             </span>
           </template>
 
-          <template #userFullName-data="{ row }">
-            <span class="font-medium">
-              {{ row.getValue("userFullName") || "Sin nombre" }}
+          <template #age-data="{ row }">
+            <span class="text-sm text-neutral-600 dark:text-neutral-400">
+              {{ row.getValue("age") || "-" }}
             </span>
           </template>
 
-          <template #participantsCount-cell="{ row }">
-            <span class="font-semibold">
-              {{ row.original.participants?.length || 0 }}
-            </span>
+          <template #pickupAddress-data="{ row }">
+            <div class="flex items-start gap-1.5">
+              <UIcon
+                v-if="row.getValue('pickupAddress')"
+                name="i-lucide-map-pin"
+                class="w-4 h-4 text-neutral-500 dark:text-neutral-400 mt-0.5"
+              />
+              <span class="text-sm text-neutral-600 dark:text-neutral-400">
+                {{ row.getValue("pickupAddress") || "-" }}
+              </span>
+            </div>
           </template>
 
-          <template #totalAmount-data="{ row }">
-            <span class="font-semibold">
-              {{ formatCurrency(row.getValue("totalAmount")) }}
-            </span>
-          </template>
+          <template #bookingUserName-data="{ row }">
+            <div class="flex flex-col gap-1">
+              <!-- Teléfono: mostrar del participante si existe, sino del usuario que reservó -->
+              <div v-if="row.original.participantPhone || row.original.bookingUserPhone" class="flex items-center gap-1.5">
+                <UIcon name="i-lucide-phone" class="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
+                <span class="text-sm text-neutral-900 dark:text-white">
+                  {{ row.original.participantPhone || row.original.bookingUserPhone }}
+                </span>
+                <span v-if="!row.original.participantPhone" class="text-xs text-neutral-500 dark:text-neutral-400">
+                  (contacto)
+                </span>
+              </div>
 
-          <template #status-data="{ row }">
-            <UBadge
-              :color="
-                row.getValue('status') === 'CONFIRMED'
-                  ? 'success'
-                  : row.getValue('status') === 'PENDING'
-                  ? 'warning'
-                  : 'error'
-              "
-              variant="subtle"
-            >
-              {{
-                row.getValue("status") === "CONFIRMED"
-                  ? "Confirmada"
-                  : row.getValue("status") === "PENDING"
-                  ? "Pendiente"
-                  : "Cancelada"
-              }}
-            </UBadge>
-          </template>
+              <!-- Email: mostrar del participante si existe -->
+              <div v-if="row.original.participantEmail" class="flex items-center gap-1.5">
+                <UIcon name="i-lucide-mail" class="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
+                <span class="text-xs text-neutral-600 dark:text-neutral-400">
+                  {{ row.original.participantEmail }}
+                </span>
+              </div>
 
-          <template #actions-cell="{ row }">
-            <div class="flex items-center gap-2">
-              <AdminBookingsBookingDetailsModal :booking="row.original" />
-
-              <UDropdownMenu
-                :items="[
-                  [
-                    {
-                      label: 'Confirmar',
-                      icon: 'i-lucide-check',
-                      disabled: row.original.status === 'CONFIRMED',
-                      click: () =>
-                        handleStatusChange(row.original, 'CONFIRMED'),
-                    },
-                    {
-                      label: 'Marcar Pendiente',
-                      icon: 'i-lucide-clock',
-                      disabled: row.original.status === 'PENDING',
-                      click: () => handleStatusChange(row.original, 'PENDING'),
-                    },
-                  ],
-                  [
-                    {
-                      label: 'Cancelar',
-                      icon: 'i-lucide-x-circle',
-                      disabled: row.original.status === 'CANCELLED',
-                      click: () => handleCancel(row.original),
-                    },
-                  ],
-                ]"
-              >
-                <UButton
-                  icon="i-lucide-more-vertical"
-                  color="neutral"
-                  variant="ghost"
-                  size="sm"
-                  aria-label="Más opciones"
-                />
-              </UDropdownMenu>
+              <!-- Si no hay ninguno, mostrar el nombre del contacto -->
+              <span v-if="!row.original.participantPhone && !row.original.bookingUserPhone" class="text-sm text-neutral-600 dark:text-neutral-400">
+                Contacto: {{ row.original.bookingUserName }}
+              </span>
             </div>
           </template>
         </UTable>

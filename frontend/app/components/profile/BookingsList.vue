@@ -8,6 +8,7 @@ const localePath = useLocalePath();
 // Load bookings from backend
 const bookings = ref<any[]>([]);
 const loading = ref(true);
+const editingBooking = ref<any | null>(null);
 
 async function fetchBookings() {
   if (!authStore.isAuthenticated) {
@@ -47,17 +48,25 @@ function formatCurrency(amount: number) {
   }).format(amount);
 }
 
-// Format date
-function formatDate(dateString: string) {
+// Format date and time
+function formatDateTime(dateString: string, timeString: string) {
+  if (!dateString) return "-";
+
+  // Parse date
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat(locale.value, {
+  const dateFormatted = new Intl.DateTimeFormat(locale.value, {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
   }).format(date);
+
+  // If we have time, append it
+  if (timeString) {
+    return `${dateFormatted} - ${timeString}`;
+  }
+
+  return dateFormatted;
 }
 
 // Status colors
@@ -124,48 +133,61 @@ async function cancelBooking(bookingId: string) {
     loading.value = false;
   }
 }
+
+function openEditModal(booking: any) {
+  editingBooking.value = booking;
+}
+
+function closeEditModal() {
+  editingBooking.value = null;
+}
+
+async function handleBookingSaved() {
+  await fetchBookings();
+}
 </script>
 
 <template>
-  <!-- Loading State -->
-  <div v-if="loading" class="flex justify-center py-12">
-    <UIcon
-      name="i-lucide-loader-2"
-      class="w-8 h-8 animate-spin text-primary"
-    />
-  </div>
-
-  <!-- Empty State -->
-  <UCard v-else-if="!bookings || bookings.length === 0">
-    <div class="text-center py-12">
-      <div
-        class="w-20 h-20 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-4"
-      >
-        <UIcon
-          name="i-lucide-calendar-x"
-          class="w-12 h-12 text-neutral-400"
-        />
-      </div>
-      <h3 class="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-        No tienes reservas
-      </h3>
-      <p class="text-neutral-600 dark:text-neutral-400 mb-6">
-        Aún no has realizado ninguna reserva. Explora nuestros tours y
-        comienza tu aventura.
-      </p>
-      <UButton
-        color="primary"
-        size="lg"
-        icon="i-lucide-telescope"
-        :to="localePath('/tours')"
-      >
-        Explorar Tours
-      </UButton>
+  <div>
+    <!-- Loading State -->
+    <div v-if="loading" class="flex justify-center py-12">
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-8 h-8 animate-spin text-primary"
+      />
     </div>
-  </UCard>
 
-  <!-- Bookings List -->
-  <div v-else class="space-y-6">
+    <!-- Empty State -->
+    <UCard v-else-if="!bookings || bookings.length === 0">
+      <div class="text-center py-12">
+        <div
+          class="w-20 h-20 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-4"
+        >
+          <UIcon
+            name="i-lucide-calendar-x"
+            class="w-12 h-12 text-neutral-400"
+          />
+        </div>
+        <h3 class="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+          No tienes reservas
+        </h3>
+        <p class="text-neutral-600 dark:text-neutral-400 mb-6">
+          Aún no has realizado ninguna reserva. Explora nuestros tours y
+          comienza tu aventura.
+        </p>
+        <UButton
+          color="primary"
+          size="lg"
+          icon="i-lucide-telescope"
+          :to="localePath('/tours')"
+        >
+          Explorar Tours
+        </UButton>
+      </div>
+    </UCard>
+
+    <!-- Bookings List -->
+    <div v-else class="space-y-6">
     <UCard v-for="booking in bookings" :key="booking.id">
       <template #header>
         <div class="flex justify-between items-start">
@@ -191,7 +213,7 @@ async function cancelBooking(bookingId: string) {
           <div class="space-y-2 text-sm text-neutral-600 dark:text-neutral-400">
             <p class="flex items-center gap-2">
               <UIcon name="i-lucide-calendar" class="w-4 h-4" />
-              {{ formatDate(booking.tourStartDatetime) }}
+              {{ formatDateTime(booking.tourDate, booking.tourStartTime) }}
             </p>
             <p class="flex items-center gap-2">
               <UIcon name="i-lucide-users" class="w-4 h-4" />
@@ -208,14 +230,32 @@ async function cancelBooking(bookingId: string) {
           >
             Participantes
           </h4>
-          <div class="space-y-2">
+          <div class="space-y-3">
             <div
               v-for="participant in booking.participants"
               :key="participant.id"
-              class="text-sm text-neutral-600 dark:text-neutral-400 flex items-center gap-2"
+              class="p-3 bg-neutral-100/50 dark:bg-neutral-900/50 rounded-lg"
             >
-              <UIcon name="i-lucide-user" class="w-4 h-4" />
-              {{ participant.fullName }} ({{ participant.documentId }})
+              <div class="flex items-start gap-2 text-sm">
+                <UIcon name="i-lucide-user" class="w-4 h-4 mt-0.5 flex-shrink-0 text-neutral-500 dark:text-neutral-400" />
+                <div class="flex-1">
+                  <p class="font-medium text-neutral-900 dark:text-white">
+                    {{ participant.fullName }}
+                  </p>
+                  <p class="text-neutral-600 dark:text-neutral-400 text-xs mt-0.5">
+                    {{ participant.documentId }}
+                    <span v-if="participant.nationality"> • {{ participant.nationality }}</span>
+                  </p>
+                  <div v-if="participant.pickupAddress" class="flex items-start gap-1.5 mt-2 text-xs text-neutral-600 dark:text-neutral-400">
+                    <UIcon name="i-lucide-map-pin" class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                    <span>{{ participant.pickupAddress }}</span>
+                  </div>
+                  <div v-if="participant.specialRequirements" class="flex items-start gap-1.5 mt-2 text-xs text-neutral-600 dark:text-neutral-400">
+                    <UIcon name="i-lucide-info" class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                    <span>{{ participant.specialRequirements }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -264,6 +304,16 @@ async function cancelBooking(bookingId: string) {
             </UButton>
             <UButton
               v-if="booking.status === 'CONFIRMED' || booking.status === 'PENDING'"
+              color="primary"
+              variant="outline"
+              size="sm"
+              icon="i-lucide-pencil"
+              @click="openEditModal(booking)"
+            >
+              Editar
+            </UButton>
+            <UButton
+              v-if="booking.status === 'CONFIRMED' || booking.status === 'PENDING'"
               color="error"
               variant="soft"
               size="sm"
@@ -276,5 +326,14 @@ async function cancelBooking(bookingId: string) {
         </div>
       </template>
     </UCard>
+    </div>
+
+    <!-- Edit Booking Modal -->
+    <ProfileEditBookingModal
+      v-if="editingBooking"
+      :booking="editingBooking"
+      @close="closeEditModal"
+      @saved="handleBookingSaved"
+    />
   </div>
 </template>

@@ -1,13 +1,14 @@
 <template>
-  <UCard
-    :ui="{
-      body: { padding: 'p-0' },
-      rounded: 'rounded-xl',
-      shadow: 'shadow-lg hover:shadow-xl',
-      ring: 'ring-1 ring-neutral-300',
-    }"
-    class="overflow-hidden transition-all duration-300 hover:-translate-y-1"
-  >
+  <NuxtLink :to="`/tours/${tour.slug || tour.id}`" class="block">
+    <UCard
+      :ui="{
+        body: { padding: 'p-0' },
+        rounded: 'rounded-xl',
+        shadow: 'shadow-lg hover:shadow-xl',
+        ring: 'ring-1 ring-neutral-300',
+      }"
+      class="overflow-hidden transition-all duration-300 hover:-translate-y-1"
+    >
     <!-- Imagen -->
     <div class="relative h-48 overflow-hidden">
       <img
@@ -74,27 +75,16 @@
         </div>
       </div>
 
-      <!-- Precio y CTA -->
-      <div
-        class="flex items-center justify-between pt-4 border-t border-neutral-700"
-      >
-        <div>
-          <p class="text-xs text-neutral-400">{{ t("tours.price_from") }}</p>
-          <p class="text-2xl font-bold text-neutral-50">
-            {{ formatPrice(tour.price) }}
-          </p>
-        </div>
-        <UButton
-          :to="`/tours/${tour.slug || tour.id}`"
-          color="primary"
-          icon="i-lucide-arrow-right"
-          trailing
-        >
-          {{ t("tours.view_tour") }}
-        </UButton>
+      <!-- Precio -->
+      <div class="pt-4 border-t border-neutral-700">
+        <p class="text-xs text-neutral-400">{{ t("tours.price_from") }}</p>
+        <p class="text-2xl font-bold text-neutral-50">
+          {{ formatPrice(tour.price) }}
+        </p>
       </div>
     </div>
   </UCard>
+  </NuxtLink>
 </template>
 
 <script setup lang="ts">
