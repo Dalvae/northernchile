@@ -117,26 +117,29 @@
               </div>
 
               <!-- Nationality -->
-              <div>
+              <CountrySelect
+                v-if="isEditing"
+                v-model="profileForm.nationality"
+                label="Nacionalidad"
+                placeholder="Selecciona tu país"
+                size="lg"
+              />
+              <div v-else>
                 <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                   Nacionalidad
                 </label>
-                <USelectMenu
-                  v-if="isEditing"
-                  v-model="profileForm.nationality"
-                  :items="countries"
-                  value-attribute="value"
-                  option-attribute="label"
-                  placeholder="Selecciona tu país"
-                  size="lg"
-                  class="w-full"
-                  searchable
-                />
-                <div
-                  v-else
-                  class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
-                >
-                  <span class="text-neutral-900 dark:text-white">{{ getCountryLabel(profileForm.nationality) || '-' }}</span>
+                <div class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+                  <div
+                    v-if="profileForm.nationality"
+                    class="flex items-center gap-2"
+                  >
+                    <span class="text-xl">{{ getCountryFlag(profileForm.nationality) }}</span>
+                    <span class="text-neutral-900 dark:text-white">{{ getCountryLabel(profileForm.nationality) }}</span>
+                  </div>
+                  <span
+                    v-else
+                    class="text-neutral-900 dark:text-white"
+                  >-</span>
                 </div>
               </div>
 
@@ -290,16 +293,11 @@
 const { t } = useI18n()
 const authStore = useAuthStore()
 const toast = useToast()
-const { countries } = useCountries()
+const { getCountryLabel, getCountryFlag } = useCountries()
 
 definePageMeta({
   layout: 'default'
 })
-
-// Helper to get country label
-const getCountryLabel = (code: string) => {
-  return countries.find(c => c.value === code)?.label
-}
 
 // State
 const activeTab = ref('personal')

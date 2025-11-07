@@ -6,6 +6,7 @@ const props = defineProps<{
 }>()
 
 const { formatPrice: formatCurrency } = useCurrency()
+const { getCountryLabel, getCountryFlag } = useCountries()
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('es-CL', {
@@ -149,8 +150,9 @@ function getStatusLabel(status: string): string {
                   </div>
                   <div v-if="participant.nationality">
                     <span class="text-neutral-600 dark:text-neutral-400">Nacionalidad:</span>
-                    <span class="ml-2 text-neutral-900 dark:text-white">
-                      {{ participant.nationality }}
+                    <span class="ml-2 text-neutral-900 dark:text-white inline-flex items-center gap-1.5">
+                      <span class="text-lg">{{ getCountryFlag(participant.nationality) }}</span>
+                      {{ getCountryLabel(participant.nationality) || participant.nationality }}
                     </span>
                   </div>
                   <div v-if="participant.age">

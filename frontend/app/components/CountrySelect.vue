@@ -4,17 +4,22 @@ const props = defineProps<{
   label?: string
   placeholder?: string
   required?: boolean
+  size?: 'sm' | 'md' | 'lg' | 'xl'
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: string | null]
 }>()
 
-const { countries } = useCountries()
+const { countries, getCountryLabel, getCountryFlag } = useCountries()
 
 const selected = computed({
   get: () => props.modelValue || null,
-  set: value => emit('update:modelValue', value)
+  set: (value) => {
+    // Si value es un objeto, extraer solo el código
+    const code = typeof value === 'object' && value !== null ? (value as any).value : value
+    emit('update:modelValue', code)
+  }
 })
 </script>
 
@@ -30,31 +35,34 @@ const selected = computed({
       value-attribute="value"
       option-attribute="label"
       :placeholder="placeholder || 'Selecciona un país'"
+      :size="size || 'md'"
       searchable
       by="value"
-      return-object="false"
       class="w-full"
     >
       <template #label>
-        <div class="flex items-center gap-2">
-          <span
-            v-if="selected"
-            class="text-xl"
-          >
-            {{ selected?.toUpperCase() === 'CL' ? '🇨🇱' : '' }}
+        <div
+          v-if="selected"
+          class="flex items-center gap-2"
+        >
+          <span class="text-xl leading-none">
+            {{ getCountryFlag(selected) }}
           </span>
           <span>
-            {{ countries.find(c => c.value === selected)?.label || placeholder || 'Selecciona un país' }}
+            {{ getCountryLabel(selected) }}
           </span>
         </div>
+        <span v-else>
+          {{ placeholder || 'Selecciona un país' }}
+        </span>
       </template>
 
-      <template #item="{ option }">
+      <template #item="{ item }">
         <div class="flex items-center gap-2">
-          <span class="text-xl">
-            {{ option.value === 'CL' ? '🇨🇱' : '' }}
+          <span class="text-xl leading-none">
+            {{ getCountryFlag(item.value) }}
           </span>
-          <span>{{ option.label }}</span>
+          <span>{{ item.label }}</span>
         </div>
       </template>
     </USelectMenu>

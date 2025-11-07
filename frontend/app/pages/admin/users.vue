@@ -8,6 +8,7 @@ definePageMeta({
 
 const { fetchAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser }
   = useAdminData()
+const { getCountryLabel, getCountryFlag } = useCountries()
 
 const {
   data: users,
@@ -41,7 +42,17 @@ const columns = [
   {
     id: 'nationality',
     accessorKey: 'nationality',
-    header: 'Nacionalidad'
+    header: 'Nacionalidad',
+    cell: ({ row }: any) => {
+      const code = row.getValue('nationality')
+      if (!code) return '-'
+      const flag = getCountryFlag(code)
+      const label = getCountryLabel(code)
+      return h('div', { class: 'flex items-center gap-1.5' }, [
+        h('span', { class: 'text-lg' }, flag),
+        h('span', { class: 'text-sm' }, label)
+      ])
+    }
   },
   {
     id: 'phoneNumber',
@@ -217,12 +228,6 @@ function getRoleBadgeColor(role: string): string {
             >
               {{ getRoleLabel(row.getValue("role")) }}
             </UBadge>
-          </template>
-
-          <template #nationality-data="{ row }">
-            <span class="text-sm">
-              {{ row.getValue("nationality") || "-" }}
-            </span>
           </template>
 
           <template #phoneNumber-data="{ row }">

@@ -2,7 +2,6 @@
 import { z } from 'zod'
 
 const { t } = useI18n()
-const { countries } = useCountries()
 
 // Role options for select
 const roleOptions = [
@@ -172,21 +171,11 @@ async function handleSubmit() {
           </UFormField>
 
           <!-- Nationality -->
-          <UFormField
+          <CountrySelect
+            v-model="state.nationality"
             label="Nacionalidad"
-            name="nationality"
-          >
-            <USelectMenu
-              v-model="state.nationality"
-              :items="countries"
-              value-attribute="value"
-              option-attribute="label"
-              placeholder="Selecciona nacionalidad"
-              size="lg"
-              class="w-full"
-              searchable
-            />
-          </UFormField>
+            placeholder="Selecciona nacionalidad"
+          />
 
           <!-- Phone Number -->
           <UFormField

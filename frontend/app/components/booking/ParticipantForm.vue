@@ -40,18 +40,13 @@
           />
         </UFormField>
 
-        <UFormField
+        <CountrySelect
+          :model-value="participant.nationality"
           :label="t('booking.nationality')"
-          name="nationality"
-        >
-          <UInput
-            :model-value="participant.nationality"
-            :placeholder="t('booking.nationality_placeholder')"
-            size="lg"
-            icon="i-lucide-globe"
-            @update:model-value="emit('update', { nationality: $event })"
-          />
-        </UFormField>
+          :placeholder="t('booking.nationality_placeholder')"
+          size="lg"
+          @update:model-value="emit('update', { nationality: $event })"
+        />
       </div>
 
       <!-- Age -->

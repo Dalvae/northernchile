@@ -12,6 +12,7 @@ const UBadge = resolveComponent('UBadge')
 
 const { fetchAdminBookings } = useAdminData()
 const { formatPrice: formatCurrency } = useCurrency()
+const { getCountryLabel, getCountryFlag } = useCountries()
 
 const {
   data: bookings,
@@ -138,7 +139,17 @@ const columns = [
   },
   {
     accessorKey: 'nationality',
-    header: 'Nacionalidad'
+    header: 'Nacionalidad',
+    cell: ({ row }: any) => {
+      const code = row.getValue('nationality')
+      if (!code) return '-'
+      const flag = getCountryFlag(code)
+      const label = getCountryLabel(code)
+      return h('div', { class: 'flex items-center gap-1.5' }, [
+        h('span', { class: 'text-lg' }, flag),
+        h('span', { class: 'text-sm' }, label)
+      ])
+    }
   },
   {
     accessorKey: 'age',
@@ -285,12 +296,6 @@ function formatDateTime(dateString: string, timeString: string): string {
           <template #documentId-data="{ row }">
             <span class="text-sm text-neutral-600 dark:text-neutral-400">
               {{ row.getValue("documentId") || "-" }}
-            </span>
-          </template>
-
-          <template #nationality-data="{ row }">
-            <span class="text-sm text-neutral-600 dark:text-neutral-400">
-              {{ row.getValue("nationality") || "-" }}
             </span>
           </template>
 

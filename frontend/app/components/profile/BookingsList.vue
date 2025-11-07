@@ -4,6 +4,7 @@ const authStore = useAuthStore()
 const config = useRuntimeConfig()
 const toast = useToast()
 const localePath = useLocalePath()
+const { getCountryLabel, getCountryFlag } = useCountries()
 
 // Load bookings from backend
 const bookings = ref<any[]>([])
@@ -263,9 +264,13 @@ async function handleBookingSaved() {
                     <p class="font-medium text-neutral-900 dark:text-white">
                       {{ participant.fullName }}
                     </p>
-                    <p class="text-neutral-600 dark:text-neutral-400 text-xs mt-0.5">
-                      {{ participant.documentId }}
-                      <span v-if="participant.nationality"> • {{ participant.nationality }}</span>
+                    <p class="text-neutral-600 dark:text-neutral-400 text-xs mt-0.5 flex items-center gap-1">
+                      <span>{{ participant.documentId }}</span>
+                      <span v-if="participant.nationality" class="flex items-center gap-1">
+                        <span>•</span>
+                        <span class="text-base">{{ getCountryFlag(participant.nationality) }}</span>
+                        <span>{{ getCountryLabel(participant.nationality) }}</span>
+                      </span>
                     </p>
                     <div
                       v-if="participant.pickupAddress"

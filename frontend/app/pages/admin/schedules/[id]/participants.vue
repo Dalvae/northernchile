@@ -2,6 +2,7 @@
 const route = useRoute()
 const config = useRuntimeConfig()
 const toast = useToast()
+const { getCountryLabel, getCountryFlag } = useCountries()
 
 const scheduleId = route.params.id as string
 
@@ -431,8 +432,18 @@ const typeOptions = [
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
-                  <div class="text-sm text-neutral-600 dark:text-neutral-400">
-                    {{ participant.nationality }}
+                  <div
+                    v-if="participant.nationality"
+                    class="text-sm text-neutral-600 dark:text-neutral-400 inline-flex items-center gap-1.5"
+                  >
+                    <span class="text-lg">{{ getCountryFlag(participant.nationality) }}</span>
+                    {{ getCountryLabel(participant.nationality) }}
+                  </div>
+                  <div
+                    v-else
+                    class="text-sm text-neutral-400"
+                  >
+                    -
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
