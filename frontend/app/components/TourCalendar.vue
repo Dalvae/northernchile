@@ -281,22 +281,25 @@ function renderEventContent(arg: any) {
     const availableSpots = arg.event.extendedProps.availableSpots
     const maxParticipants = arg.event.extendedProps.maxParticipants
 
+    // Extract just the tour name (remove time since it's shown separately)
+    const titleParts = arg.event.title.split(' - ')
+    const tourName = titleParts[0]
+
     return {
       html: `
-        <div class="fc-event-main-frame" style="padding: 2px 4px;">
-          <div class="fc-event-time">${arg.timeText}</div>
-          <div class="fc-event-title-container">
-            <div class="fc-event-title fc-sticky">${arg.event.title}</div>
-            <div class="fc-event-spots" style="font-size: 0.75rem; opacity: 0.9;">
-              ${availableSpots}/${maxParticipants} ${t("tours.max_participants_label").toLowerCase()}
-            </div>
+        <div class="fc-event-main-frame" style="padding: 1px 3px; font-size: 0.7rem; line-height: 1.2;">
+          <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            ${arg.timeText} • ${tourName}
+          </div>
+          <div style="font-size: 0.65rem; opacity: 0.85; white-space: nowrap;">
+            ${availableSpots}/${maxParticipants} cupos
           </div>
         </div>
       `
     }
   }
 
-  return { html: `<div>${arg.timeText} ${arg.event.title}</div>` }
+  return { html: `<div style="font-size: 0.7rem; padding: 1px;">${arg.timeText} ${arg.event.title}</div>` }
 }
 
 // Handle event click
@@ -508,13 +511,24 @@ defineExpose({
 .tour-calendar-container .fc .fc-event {
   cursor: pointer;
   border-radius: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-  margin-bottom: 2px;
+  padding: 2px 4px;
+  font-size: 0.7rem;
+  margin-bottom: 1px;
+  line-height: 1.2;
+  min-height: auto;
 }
 
 .tour-calendar-container .fc .fc-event:hover {
   opacity: 0.8;
+}
+
+/* Prevent events from growing too tall */
+.tour-calendar-container .fc .fc-daygrid-event-harness {
+  margin-top: 1px;
+}
+
+.tour-calendar-container .fc .fc-event-main {
+  padding: 0;
 }
 
 /* Background events (lunar, weather) */

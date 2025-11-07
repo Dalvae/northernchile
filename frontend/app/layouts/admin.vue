@@ -98,6 +98,11 @@ const navigationLinks = [
   },
 ];
 
+// Handle logout
+async function handleLogout() {
+  await authStore.logout();
+}
+
 // User menu items
 const userMenuItems = [
   [
@@ -111,7 +116,7 @@ const userMenuItems = [
     {
       label: "Cerrar Sesión",
       icon: "i-lucide-log-out",
-      click: () => authStore.logout(),
+      onClick: handleLogout,
     },
   ],
 ];

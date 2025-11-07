@@ -20,6 +20,8 @@ const contactForm = ref({
   fullName: authStore.user?.fullName || "",
   phone: "",
   countryCode: "+56",
+  password: "",
+  confirmPassword: "",
 });
 
 // Step 2: Participants
@@ -56,11 +58,20 @@ const paymentMethod = ref("credit_card");
 
 // Validation
 const step1Valid = computed(() => {
-  return (
+  const baseValidation = 
     contactForm.value.email &&
     contactForm.value.fullName &&
-    contactForm.value.phone.length >= 8
-  );
+    contactForm.value.phone.length >= 8;
+
+  if (authStore.isAuthenticated) {
+    return baseValidation;
+  }
+
+  const passwordValidation = 
+    contactForm.value.password.length >= 8 &&
+    contactForm.value.password === contactForm.value.confirmPassword;
+
+  return baseValidation && passwordValidation;
 });
 
 const step2Valid = computed(() => {
@@ -115,43 +126,210 @@ function cloneContactToParticipant() {
 }
 
 // Submit booking
+const isSubmitting = ref(false);
+
 async function submitBooking() {
-  // For now, simulate payment and redirect to success
-  toast.add({
-    color: "success",
-    title: "Procesando pago...",
-    description: "Redirigiendo a la pasarela de pago",
-  });
+  if (isSubmitting.value) return;
+  isSubmitting.value = true;
 
-  // Simulate payment delay
-  setTimeout(() => {
-    // Create booking record
-    const booking = {
-      id: `NCH-${Date.now().toString().slice(-8)}`,
-      bookingDate: new Date().toISOString(),
-      status: "CONFIRMED",
-      contact: contactForm.value,
-      participants: participants.value,
-      items: cartStore.cart.items,
-      subtotal: subtotal.value,
-      tax: tax.value,
-      total: total.value,
-      paymentMethod: paymentMethod.value,
-    };
+  const config = useRuntimeConfig();
+  const createdBookingIds: string[] = [];
 
-    // Save to localStorage
-    const existingBookings = JSON.parse(
-      localStorage.getItem("local_bookings") || "[]"
-    );
-    existingBookings.push(booking);
-    localStorage.setItem("local_bookings", JSON.stringify(existingBookings));
+  try {
+    // Step 1: Ensure user is authenticated
+    if (!authStore.isAuthenticated) {
+      toast.add({
+        color: "info",
+        title: "Creando cuenta...",
+        description: "Estamos registrando tu información",
+      });
 
-    // Clear cart
+      // Register and login the new user
+      try {
+        await authStore.register({
+          email: contactForm.value.email,
+          password: contactForm.value.password,
+          fullName: contactForm.value.fullName,
+        });
+
+        // Auto-login after registration
+        await authStore.login({
+          email: contactForm.value.email,
+          password: contactForm.value.password,
+        });
+      } catch (error: any) {
+        if (error.statusCode === 409) {
+          toast.add({
+            color: "warning",
+            title: "Cuenta existente",
+            description: "Ya tienes una cuenta. Por favor inicia sesión.",
+          });
+          router.push("/auth");
+          return;
+        }
+        throw error;
+      }
+    }
+
+    const token = authStore.token;
+
+    // Step 2: Create all bookings (status: PENDING)
+    toast.add({
+      color: "info",
+      title: "Procesando reservas...",
+      description: "Creando tus reservas",
+    });
+
+    let participantIndex = 0;
+
+    for (const item of cartStore.cart.items) {
+      // Assign participants to this booking
+      const numParticipantsForThisItem = item.numParticipants;
+      const bookingParticipants = participants.value.slice(
+        participantIndex,
+        participantIndex + numParticipantsForThisItem
+      );
+      participantIndex += numParticipantsForThisItem;
+
+      // Map to backend format
+      const participantReqs = bookingParticipants.map((p) => ({
+        fullName: p.fullName,
+        documentId: p.documentNumber,
+        nationality: p.nationality,
+        age: null,
+        pickupAddress: null,
+        specialRequirements: null,
+      }));
+
+      // Create booking (will be PENDING)
+      const bookingReq = {
+        scheduleId: item.scheduleId,
+        participants: participantReqs,
+        languageCode: locale.value,
+        specialRequests: null,
+      };
+
+      try {
+        const bookingRes = await $fetch<any>(`${config.public.apiBase}/api/bookings`, {
+          method: "POST",
+          body: bookingReq,
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        createdBookingIds.push(bookingRes.id);
+      } catch (error: any) {
+        // If booking creation fails, rollback by cancelling already created bookings
+        console.error("Error creating booking:", error);
+
+        // Rollback: Cancel all previously created bookings
+        for (const bookingId of createdBookingIds) {
+          try {
+            await $fetch(`${config.public.apiBase}/api/admin/bookings/${bookingId}`, {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+          } catch (e) {
+            console.error("Error rolling back booking:", e);
+          }
+        }
+
+        throw error;
+      }
+    }
+
+    // Step 3: Simulate payment processing
+    toast.add({
+      color: "info",
+      title: "Procesando pago...",
+      description: "Simulando pasarela de pago",
+    });
+
+    // Wait 1.5 seconds to simulate payment gateway
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Step 4: Confirm all bookings (PENDING -> CONFIRMED)
+    toast.add({
+      color: "info",
+      title: "Confirmando reservas...",
+      description: "Finalizando tu compra",
+    });
+
+    for (const bookingId of createdBookingIds) {
+      try {
+        await $fetch(`${config.public.apiBase}/api/bookings/${bookingId}/confirm-mock`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } catch (error: any) {
+        console.error("Error confirming booking:", error);
+
+        // If confirmation fails, the bookings remain PENDING
+        // Admin can manually review them
+        toast.add({
+          color: "warning",
+          title: "Advertencia",
+          description: "Algunas reservas quedaron pendientes de confirmación. Contacta a soporte.",
+        });
+      }
+    }
+
+    // Step 5: Clear cart (silently)
+    const itemsToRemove = [...cartStore.cart.items];
+    for (const item of itemsToRemove) {
+      try {
+        await $fetch(`${config.public.apiBase}/api/cart/items/${item.itemId}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+      } catch (e) {
+        // Cart cleanup is not critical, ignore errors
+        console.warn("Could not remove cart item:", e);
+      }
+    }
+
+    // Clear local cart state
     cartStore.clearCart();
 
-    // Redirect to confirmation with booking ID
-    router.push(`/payment/callback?status=success&bookingId=${booking.id}`);
-  }, 1500);
+    // Success!
+    toast.add({
+      color: "success",
+      title: "¡Reservas confirmadas!",
+      description: `Se confirmaron ${createdBookingIds.length} reserva(s) exitosamente`,
+    });
+
+    // Redirect to bookings page
+    router.push("/profile/bookings");
+  } catch (error: any) {
+    console.error("Error in checkout process:", error);
+
+    let errorMessage = "Hubo un error procesando tu reserva.";
+
+    // Handle specific errors
+    if (error.data?.message) {
+      if (error.data.message.includes("Not enough available slots")) {
+        errorMessage = "No hay suficientes cupos disponibles para esta fecha.";
+      } else if (error.data.message.includes("not found")) {
+        errorMessage = "El tour seleccionado ya no está disponible.";
+      } else {
+        errorMessage = error.data.message;
+      }
+    }
+
+    toast.add({
+      color: "error",
+      title: "Error al crear reserva",
+      description: errorMessage,
+    });
+  } finally {
+    isSubmitting.value = false;
+  }
 }
 
 // Format currency
@@ -312,6 +490,42 @@ const total = computed(() => subtotal.value + tax.value);
                     class="flex-1 px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
                   />
+                </div>
+              </div>
+
+              <div v-if="!authStore.isAuthenticated" class="space-y-4 mt-4">
+                <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                  Crea una cuenta para gestionar tus reservas fácilmente. Si ya tienes una, <NuxtLink to="/auth?redirect=/checkout" class="text-primary font-medium hover:underline">inicia sesión aquí</NuxtLink>.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                    >
+                      Contraseña *
+                    </label>
+                    <input
+                      v-model="contactForm.password"
+                      type="password"
+                      placeholder="••••••••"
+                      class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                    >
+                      Confirmar Contraseña *
+                    </label>
+                    <input
+                      v-model="contactForm.confirmPassword"
+                      type="password"
+                      placeholder="••••••••"
+                      class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -542,10 +756,12 @@ const total = computed(() => subtotal.value + tax.value);
                 <UButton
                   color="primary"
                   size="lg"
-                  icon="i-lucide-lock"
+                  :icon="isSubmitting ? 'i-lucide-loader-2' : 'i-lucide-lock'"
+                  :loading="isSubmitting"
+                  :disabled="isSubmitting"
                   @click="submitBooking"
                 >
-                  Pagar {{ formatCurrency(total) }}
+                  {{ isSubmitting ? 'Procesando...' : `Pagar ${formatCurrency(total)}` }}
                 </UButton>
               </div>
             </template>

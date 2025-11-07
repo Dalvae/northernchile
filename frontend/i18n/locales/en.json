@@ -441,8 +441,17 @@
   },
   "schedule": {
     "error_loading_tour": "Error loading tour",
+    "error_adding_to_cart": "Error adding to cart",
     "select_date": "Select a date",
     "info_text": "Click on an available date to book your spot.",
+    "select_participants": "Select number of participants",
+    "selected_date": "Selected date",
+    "start_time": "Start time",
+    "number_of_participants": "Number of participants",
+    "available_spots": "Available spots",
+    "total_price": "Total price",
+    "add_to_cart": "Add to cart",
+    "added_to_cart": "Added to cart",
     "cart": {
       "added_title": "Added to cart",
       "added_description": "{count} person | {count} people for {tourName}"

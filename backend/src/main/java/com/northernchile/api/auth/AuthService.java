@@ -61,10 +61,12 @@ public class AuthService {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String jwt = jwtUtil.generateToken(userDetails);
 
         User user = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found after authentication"));
+
+        // Generate JWT with userId and fullName included
+        String jwt = jwtUtil.generateToken(userDetails, user.getId().toString(), user.getFullName());
 
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("id", user.getId());

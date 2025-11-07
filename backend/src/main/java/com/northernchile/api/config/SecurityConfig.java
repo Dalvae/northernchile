@@ -61,6 +61,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/error"
                         ).permitAll()
+                        // Permitir acceso público al carrito (guest carts)
+                        .requestMatchers("/api/cart/**").permitAll()
                         // Proteger todas las rutas de administración
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_PARTNER_ADMIN")
                         .anyRequest().authenticated()

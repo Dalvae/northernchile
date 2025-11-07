@@ -198,7 +198,7 @@
               </UButton>
 
               <UButton
-                :to="localePath('/bookings')"
+                :to="localePath('/profile/bookings')"
                 variant="outline"
                 color="neutral"
                 block
@@ -230,13 +230,14 @@ import { useAuthStore } from "~/stores/auth";
 
 const { t } = useI18n();
 const authStore = useAuthStore();
+const cartStore = useCartStore();
 const localePath = useLocalePath();
 
 const mobileMenuOpen = ref(false);
 const isAdmin = computed(() => authStore.isAdmin);
 
-// Cart items count (TODO: connect to actual cart store)
-const cartItemsCount = ref(0);
+// Cart items count
+const cartItemsCount = computed(() => cartStore.totalItems);
 
 // Navigation links
 const links = computed(() => [
@@ -258,6 +259,12 @@ const links = computed(() => [
   },
 ]);
 
+// Handle logout
+async function handleLogout() {
+  mobileMenuOpen.value = false;
+  await authStore.logout();
+}
+
 // User menu items
 const userMenuItems = computed(() => [
   [
@@ -269,7 +276,7 @@ const userMenuItems = computed(() => [
     {
       label: t("nav.bookings"),
       icon: "i-lucide-book-marked",
-      to: localePath("/bookings"),
+      to: localePath("/profile/bookings"),
     },
   ],
   ...(isAdmin.value
@@ -287,13 +294,8 @@ const userMenuItems = computed(() => [
     {
       label: t("nav.logout"),
       icon: "i-lucide-log-out",
-      click: () => authStore.logout(),
+      onClick: handleLogout,
     },
   ],
 ]);
-
-function handleLogout() {
-  mobileMenuOpen.value = false;
-  authStore.logout();
-}
 </script>

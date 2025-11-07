@@ -49,13 +49,15 @@ public class CartService {
                 if (cartId.isPresent()) {
                     mergeCarts(cartId.get(), userCart);
                 }
-                return userCart;
+                // Reload with details to avoid lazy loading issues
+                return cartRepository.findByIdWithDetails(userCart.getId()).orElse(userCart);
             }
         }
 
         // Guest user or logged-in user without a cart
         if (cartId.isPresent()) {
-            return cartRepository.findById(cartId.get()).orElseGet(this::createNewCart);
+            return cartRepository.findByIdWithDetails(cartId.get())
+                    .orElseGet(this::createNewCart);
         }
 
         return createNewCart();
@@ -99,14 +101,18 @@ public class CartService {
         }
         cart.getItems().add(newItem);
 
-        return cartRepository.save(cart);
+        Cart savedCart = cartRepository.save(cart);
+
+        // Reload cart with all relationships to avoid LazyInitializationException
+        return cartRepository.findByIdWithDetails(savedCart.getId())
+                .orElse(savedCart);
     }
 
     @Transactional
     public Cart removeItemFromCart(Cart cart, UUID itemId) {
         cartItemRepository.deleteById(itemId);
-        // Refresh cart from DB to reflect removed item
-        return cartRepository.findById(cart.getId()).orElseThrow();
+        // Refresh cart from DB to reflect removed item with all relationships loaded
+        return cartRepository.findByIdWithDetails(cart.getId()).orElseThrow();
     }
 
     private Cart createNewCart() {
@@ -129,6 +135,7 @@ public class CartService {
         });
     }
 
+    @Transactional(readOnly = true)
     public CartRes toCartRes(Cart cart) {
         CartRes res = new CartRes();
         res.setCartId(cart.getId());

@@ -1,23 +1,45 @@
 <script setup lang="ts">
+import { useAuthStore } from "~/stores/auth";
+
 const { locale } = useI18n();
 const router = useRouter();
+const authStore = useAuthStore();
+const config = useRuntimeConfig();
+const toast = useToast();
 
-// Load bookings from localStorage
+// Load bookings from backend
 const bookings = ref<any[]>([]);
 const loading = ref(true);
 
-onMounted(() => {
-  if (process.client) {
-    const stored = localStorage.getItem("local_bookings");
-    if (stored) {
-      try {
-        bookings.value = JSON.parse(stored);
-      } catch (e) {
-        console.error("Failed to parse bookings:", e);
-      }
-    }
+async function fetchBookings() {
+  if (!authStore.isAuthenticated) {
+    router.push("/auth");
+    return;
   }
-  loading.value = false;
+
+  loading.value = true;
+  try {
+    const token = authStore.token;
+    const response = await $fetch<any[]>(`${config.public.apiBase}/api/bookings`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    bookings.value = response;
+  } catch (error: any) {
+    console.error("Error fetching bookings:", error);
+    toast.add({
+      color: "error",
+      title: "Error",
+      description: "No se pudieron cargar las reservas",
+    });
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => {
+  fetchBookings();
 });
 
 // Format currency
@@ -70,6 +92,49 @@ function getStatusLabel(status: string) {
     COMPLETED: "Completada",
   };
   return labels[status] || status;
+}
+
+function downloadBooking(booking: any) {
+  toast.add({
+    color: "info",
+    title: "En desarrollo",
+    description: "La descarga de la reserva en PDF estará disponible próximamente.",
+  });
+}
+
+async function cancelBooking(bookingId: string) {
+  if (!confirm("¿Estás seguro de que quieres cancelar esta reserva?")) {
+    return;
+  }
+
+  loading.value = true;
+  try {
+    const token = authStore.token;
+    await $fetch(`${config.public.apiBase}/api/bookings/${bookingId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // Refresh bookings list
+    await fetchBookings();
+
+    toast.add({
+      color: "success",
+      title: "Reserva Cancelada",
+      description: "La reserva ha sido cancelada exitosamente.",
+    });
+  } catch (error: any) {
+    console.error("Error cancelling booking:", error);
+    toast.add({
+      color: "error",
+      title: "Error",
+      description: "No se pudo cancelar la reserva. Por favor, inténtalo de nuevo.",
+    });
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 
@@ -131,12 +196,12 @@ function getStatusLabel(status: string) {
             <div class="flex justify-between items-start">
               <div>
                 <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                  Reserva #{{ booking.id }}
+                  Reserva #{{ booking.id.substring(0, 8) }}
                 </p>
                 <p
                   class="text-lg font-semibold text-neutral-900 dark:text-white mt-1"
                 >
-                  {{ formatShortDate(booking.bookingDate) }}
+                  {{ booking.tourName }}
                 </p>
               </div>
               <UBadge :color="getStatusColor(booking.status)" size="lg">
@@ -146,81 +211,36 @@ function getStatusLabel(status: string) {
           </template>
 
           <div class="space-y-4">
-            <!-- Items -->
-            <div class="space-y-3">
-              <div
-                v-for="item in booking.items"
-                :key="item.itemId"
-                class="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg"
-              >
-                <div class="flex justify-between items-start">
-                  <div class="flex-1">
-                    <p class="font-medium text-neutral-900 dark:text-white">
-                      {{ item.tourName }}
-                    </p>
-                    <div
-                      class="mt-2 space-y-1 text-sm text-neutral-600 dark:text-neutral-400"
-                    >
-                      <p
-                        v-if="item.startDatetime"
-                        class="flex items-center gap-2"
-                      >
-                        <UIcon name="i-lucide-calendar" class="w-4 h-4" />
-                        {{ formatDate(item.startDatetime) }}
-                      </p>
-                      <p class="flex items-center gap-2">
-                        <UIcon name="i-lucide-users" class="w-4 h-4" />
-                        {{ item.numParticipants }}
-                        {{
-                          item.numParticipants === 1 ? "persona" : "personas"
-                        }}
-                      </p>
-                      <p
-                        v-if="item.durationHours"
-                        class="flex items-center gap-2"
-                      >
-                        <UIcon name="i-lucide-clock" class="w-4 h-4" />
-                        {{ item.durationHours }} horas
-                      </p>
-                    </div>
-                  </div>
-                  <div class="text-right ml-4">
-                    <p
-                      class="text-lg font-bold text-neutral-900 dark:text-white"
-                    >
-                      {{ formatCurrency(item.itemTotal) }}
-                    </p>
-                  </div>
-                </div>
+            <!-- Tour Info -->
+            <div class="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+              <div class="space-y-2 text-sm text-neutral-600 dark:text-neutral-400">
+                <p class="flex items-center gap-2">
+                  <UIcon name="i-lucide-calendar" class="w-4 h-4" />
+                  {{ formatDate(booking.tourStartDatetime) }}
+                </p>
+                <p class="flex items-center gap-2">
+                  <UIcon name="i-lucide-users" class="w-4 h-4" />
+                  {{ booking.participants?.length || 0 }}
+                  {{ booking.participants?.length === 1 ? "participante" : "participantes" }}
+                </p>
               </div>
             </div>
 
-            <!-- Contact Info -->
-            <UDivider />
-            <div>
+            <!-- Participants -->
+            <div v-if="booking.participants && booking.participants.length > 0">
               <h4
                 class="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
               >
-                Información de Contacto
+                Participantes
               </h4>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div class="space-y-2">
                 <div
-                  class="flex items-center gap-2 text-neutral-600 dark:text-neutral-400"
+                  v-for="participant in booking.participants"
+                  :key="participant.id"
+                  class="text-sm text-neutral-600 dark:text-neutral-400 flex items-center gap-2"
                 >
                   <UIcon name="i-lucide-user" class="w-4 h-4" />
-                  {{ booking.contact.fullName }}
-                </div>
-                <div
-                  class="flex items-center gap-2 text-neutral-600 dark:text-neutral-400"
-                >
-                  <UIcon name="i-lucide-mail" class="w-4 h-4" />
-                  {{ booking.contact.email }}
-                </div>
-                <div
-                  class="flex items-center gap-2 text-neutral-600 dark:text-neutral-400"
-                >
-                  <UIcon name="i-lucide-phone" class="w-4 h-4" />
-                  {{ booking.contact.countryCode }} {{ booking.contact.phone }}
+                  {{ participant.fullName }} ({{ participant.documentId }})
                 </div>
               </div>
             </div>
@@ -238,13 +258,13 @@ function getStatusLabel(status: string) {
                 class="flex justify-between text-sm text-neutral-600 dark:text-neutral-400"
               >
                 <span>IVA (19%)</span>
-                <span>{{ formatCurrency(booking.tax) }}</span>
+                <span>{{ formatCurrency(booking.taxAmount) }}</span>
               </div>
               <div
                 class="flex justify-between text-lg font-bold text-neutral-900 dark:text-white pt-2 border-t border-neutral-200 dark:border-neutral-700"
               >
                 <span>Total</span>
-                <span>{{ formatCurrency(booking.total) }}</span>
+                <span>{{ formatCurrency(booking.totalAmount) }}</span>
               </div>
             </div>
           </div>
@@ -263,15 +283,17 @@ function getStatusLabel(status: string) {
                   variant="outline"
                   size="sm"
                   icon="i-lucide-download"
+                  @click="downloadBooking(booking)"
                 >
                   Descargar
                 </UButton>
                 <UButton
-                  v-if="booking.status === 'CONFIRMED'"
+                  v-if="booking.status === 'CONFIRMED' || booking.status === 'PENDING'"
                   color="error"
                   variant="soft"
                   size="sm"
                   icon="i-lucide-x"
+                  @click="cancelBooking(booking.id)"
                 >
                   Cancelar
                 </UButton>

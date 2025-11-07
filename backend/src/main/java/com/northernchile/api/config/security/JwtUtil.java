@@ -53,6 +53,18 @@ public class JwtUtil {
         return createToken(claims, userDetails.getUsername());
     }
 
+    // Overloaded method to include additional user information
+    public String generateToken(UserDetails userDetails, String userId, String fullName) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("roles", userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList()));
+        claims.put("email", userDetails.getUsername());
+        claims.put("userId", userId);
+        claims.put("fullName", fullName);
+        return createToken(claims, userDetails.getUsername());
+    }
+
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))

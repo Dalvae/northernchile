@@ -62,9 +62,8 @@ async function addToCart() {
 
   try {
     await cartStore.addItem({
-      tourScheduleId: selectedSchedule.value.id,
-      adultCount: participantCount.value,
-      childCount: 0,
+      scheduleId: selectedSchedule.value.id,
+      numParticipants: participantCount.value,
     })
 
     toast.add({
@@ -319,12 +318,12 @@ useSeoMeta({
                     variant="outline"
                     icon="i-lucide-plus"
                     size="lg"
-                    :disabled="participantCount >= (selectedSchedule?.maxParticipants || 20)"
+                    :disabled="participantCount >= (selectedSchedule?.availableSpots || selectedSchedule?.maxParticipants || 20)"
                     @click="participantCount++"
                   />
                 </div>
                 <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
-                  {{ t("schedule.available_spots") }}: {{ selectedSchedule?.maxParticipants || 0 }}
+                  {{ t("schedule.available_spots") }}: {{ selectedSchedule?.availableSpots || selectedSchedule?.maxParticipants || 0 }}
                 </p>
               </div>
 
@@ -335,7 +334,7 @@ useSeoMeta({
                     {{ t("schedule.total_price") }}
                   </span>
                   <span class="text-2xl font-bold text-primary">
-                    ${{ ((tour.basePrice || 0) * participantCount).toLocaleString() }}
+                    ${{ ((tour.price || tour.basePrice || 0) * participantCount).toLocaleString() }}
                   </span>
                 </div>
               </div>

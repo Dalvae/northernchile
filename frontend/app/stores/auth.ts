@@ -1,5 +1,4 @@
 import { defineStore } from "pinia";
-import { useLocalStorage } from "@vueuse/core"; // Importa el composable
 
 interface User {
   id: string;
@@ -22,13 +21,34 @@ function decodeJwtPayload(token: string): any | null {
   }
 }
 
+// Helper functions for localStorage (solo en cliente)
+function getFromStorage(key: string): any {
+  if (typeof window === 'undefined') return null;
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setToStorage(key: string, value: any): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (value === null) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+  } catch (error) {
+    console.error('Error saving to localStorage:', error);
+  }
+}
+
 export const useAuthStore = defineStore("auth", {
-  // --- PASO 1: Refactorizar el `state` ---
-  // En lugar de usar refs normales, usamos useLocalStorage.
-  // Esto sincroniza automáticamente el estado con localStorage.
   state: () => ({
-    token: useLocalStorage<string | null>('auth_token', null),
-    user: useLocalStorage<User | null>('user', null),
+    token: null as string | null,
+    user: null as User | null,
     loading: true,
   }),
 
@@ -62,17 +82,19 @@ export const useAuthStore = defineStore("auth", {
         
         if (response && response.token) {
           const payload = decodeJwtPayload(response.token);
-          
-          // ¡MAGIA! Simplemente asigna los valores.
-          // useLocalStorage se encargará de guardarlos en localStorage.
+
+          // Guardar en el state y en localStorage
           this.token = response.token;
+          setToStorage('auth_token', response.token);
+
           if (payload) {
             this.user = {
-              id: payload.sub,
+              id: payload.userId || payload.sub,
               email: payload.email,
-              fullName: payload.fullName,
+              fullName: payload.fullName || '',
               role: payload.roles || []
             };
+            setToStorage('user', this.user);
           }
 
           toast.add({
@@ -137,32 +159,82 @@ export const useAuthStore = defineStore("auth", {
     },
 
     async logout() {
-      // Simplemente establece los valores a null.
-      // useLocalStorage se encargará de eliminarlos de localStorage.
+      // Limpiar state y localStorage
       this.token = null;
       this.user = null;
-      
-      await navigateTo("/auth");
-    },
+      setToStorage('auth_token', null);
+      setToStorage('user', null);
 
-    // --- PASO 5: Reemplazar `checkAuth` con una inicialización más simple ---
-    // Esta función solo necesita verificar la expiración del token al inicio.
-    initializeAuth() {
-      this.loading = true;
-      if (this.token) {
-        const payload = decodeJwtPayload(this.token);
-        if (payload && payload.exp) {
-          const currentTime = Math.floor(Date.now() / 1000);
-          if (payload.exp < currentTime) {
-            // Si el token está expirado, simplemente cerramos sesión.
-            this.logout();
-          }
-        } else {
-          // Si el token es inválido, cerramos sesión.
-          this.logout();
+      // Solo redirigir si estamos en el cliente y no estamos ya en /auth
+      if (process.client) {
+        const currentPath = window.location.pathname;
+        if (!currentPath.startsWith('/auth')) {
+          await navigateTo("/auth");
         }
       }
-      this.loading = false;
+    },
+
+    // Inicializar desde localStorage al cargar la app
+    initializeAuth() {
+      this.loading = true;
+      try {
+        // Cargar desde localStorage si está disponible
+        const savedToken = getFromStorage('auth_token');
+        const savedUser = getFromStorage('user');
+
+        if (savedToken) {
+          const payload = decodeJwtPayload(savedToken);
+          if (payload && payload.exp) {
+            const currentTime = Math.floor(Date.now() / 1000);
+            if (payload.exp < currentTime) {
+              // Token expirado
+              console.log('[Auth] Token expired, clearing session');
+              this.token = null;
+              this.user = null;
+              setToStorage('auth_token', null);
+              setToStorage('user', null);
+            } else {
+              // Token válido
+              this.token = savedToken;
+
+              // Sincronizar user desde localStorage o decodificar del token
+              if (savedUser && savedUser.role && savedUser.role.length > 0) {
+                this.user = savedUser;
+                console.log('[Auth] User loaded from localStorage:', savedUser.email, 'Role:', savedUser.role);
+              } else {
+                // Reconstruir desde el token si no hay user en localStorage
+                console.log('[Auth] Reconstructing user from token');
+                this.user = {
+                  id: payload.userId || payload.sub,
+                  email: payload.email,
+                  fullName: payload.fullName || '',
+                  role: payload.roles || []
+                };
+                setToStorage('user', this.user);
+              }
+
+              console.log('[Auth] User authenticated:', this.user?.email, 'Role:', this.user?.role);
+            }
+          } else {
+            // Token inválido
+            console.log('[Auth] Invalid token, clearing session');
+            this.token = null;
+            this.user = null;
+            setToStorage('auth_token', null);
+            setToStorage('user', null);
+          }
+        } else {
+          console.log('[Auth] No token found in localStorage');
+        }
+      } catch (error) {
+        console.error('[Auth] Error in initializeAuth:', error);
+        this.token = null;
+        this.user = null;
+        setToStorage('auth_token', null);
+        setToStorage('user', null);
+      } finally {
+        this.loading = false;
+      }
     },
   },
 });

@@ -441,8 +441,17 @@
   },
   "schedule": {
     "error_loading_tour": "Erro ao carregar tour",
+    "error_adding_to_cart": "Erro ao adicionar ao carrinho",
     "select_date": "Selecione uma data",
     "info_text": "Clique em uma data disponível para reservar seu lugar.",
+    "select_participants": "Selecione o número de participantes",
+    "selected_date": "Data selecionada",
+    "start_time": "Hora de início",
+    "number_of_participants": "Número de participantes",
+    "available_spots": "Vagas disponíveis",
+    "total_price": "Preço total",
+    "add_to_cart": "Adicionar ao carrinho",
+    "added_to_cart": "Adicionado ao carrinho",
     "cart": {
       "added_title": "Adicionado ao carrinho",
       "added_description": "{count} pessoa | {count} pessoas para {tourName}"
