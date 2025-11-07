@@ -4,6 +4,7 @@ const authStore = useAuthStore();
 const router = useRouter();
 const toast = useToast();
 const { locale } = useI18n();
+const { countries } = useCountries();
 
 // Redirect if cart is empty
 if (cartStore.cart.items.length === 0) {
@@ -622,13 +623,15 @@ const total = computed(() => subtotal.value + tax.value);
                     >
                       Nacionalidad *
                     </label>
-                    <CountrySelect
+                    <USelect
                       v-model="participant.nationality"
-                      :country="participant.nationality"
-                      topCountry="CL"
-                      class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                      :items="countries"
+                      option-attribute="label"
+                      value-attribute="value"
                       placeholder="Selecciona nacionalidad"
+                      size="lg"
                       required
+                      class="w-full"
                     />
                   </div>
 

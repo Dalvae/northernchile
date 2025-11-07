@@ -12,6 +12,7 @@ const emit = defineEmits<{
 
 const { updateAdminUser, resetAdminUserPassword } = useAdminData();
 const toast = useToast();
+const { countries } = useCountries();
 
 // Role options for select
 const roleOptions = [
@@ -182,12 +183,14 @@ async function handleSubmit() {
 
           <!-- Nationality -->
           <UFormField label="Nacionalidad" name="nationality">
-            <CountrySelect
+            <USelect
               v-model="state.nationality"
-              :country="state.nationality"
-              topCountry="CL"
-              class="w-full px-3 py-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              :items="countries"
+              option-attribute="label"
+              value-attribute="value"
               placeholder="Selecciona nacionalidad"
+              size="lg"
+              class="w-full"
             />
           </UFormField>
 

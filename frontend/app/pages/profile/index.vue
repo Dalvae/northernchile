@@ -110,16 +110,18 @@
                   <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                     Nacionalidad
                   </label>
-                  <CountrySelect
+                  <USelect
                     v-if="isEditing"
                     v-model="profileForm.nationality"
-                    :country="profileForm.nationality"
-                    topCountry="CL"
-                    class="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white"
+                    :items="countries"
+                    option-attribute="label"
+                    value-attribute="value"
                     placeholder="Selecciona tu país"
+                    size="lg"
+                    class="w-full"
                   />
                   <div v-else class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
-                    <span class="text-neutral-900 dark:text-white">{{ profileForm.nationality || '-' }}</span>
+                    <span class="text-neutral-900 dark:text-white">{{ getCountryLabel(profileForm.nationality) || '-' }}</span>
                   </div>
                 </div>
 
@@ -263,10 +265,16 @@
 const { t } = useI18n();
 const authStore = useAuthStore();
 const toast = useToast();
+const { countries } = useCountries();
 
 definePageMeta({
   layout: "default",
 });
+
+// Helper to get country label
+const getCountryLabel = (code: string) => {
+  return countries.find(c => c.value === code)?.label;
+};
 
 // State
 const activeTab = ref("personal");
