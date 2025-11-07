@@ -117,20 +117,20 @@ public class BookingService {
     }
 
     public List<BookingRes> getAllBookingsForAdmin() {
-        return bookingRepository.findAll().stream()
+        return bookingRepository.findAllWithDetails().stream()
                 .map(bookingMapper::toBookingRes)
                 .collect(Collectors.toList());
     }
 
     public List<BookingRes> getBookingsByTourOwner(User owner) {
-        return bookingRepository.findAll().stream()
+        return bookingRepository.findAllWithDetails().stream()
                 .filter(booking -> booking.getSchedule().getTour().getOwner().getId().equals(owner.getId()))
                 .map(bookingMapper::toBookingRes)
                 .collect(Collectors.toList());
     }
 
     public List<BookingRes> getBookingsByUser(User user) {
-        return bookingRepository.findAll().stream()
+        return bookingRepository.findAllWithDetails().stream()
                 .filter(booking -> booking.getUser().getId().equals(user.getId()))
                 .map(bookingMapper::toBookingRes)
                 .collect(Collectors.toList());
@@ -138,7 +138,7 @@ public class BookingService {
 
     @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId) or @bookingSecurityService.isBookingUser(authentication, #bookingId)")
     public Optional<BookingRes> getBookingById(UUID bookingId, User currentUser) {
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findByIdWithDetails(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
 
         return Optional.of(bookingMapper.toBookingRes(booking));
@@ -147,7 +147,7 @@ public class BookingService {
     @Transactional
     @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId)")
     public BookingRes updateBookingStatus(UUID bookingId, String newStatus, User currentUser) {
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findByIdWithDetails(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
 
         String oldStatus = booking.getStatus();
@@ -167,7 +167,7 @@ public class BookingService {
     @Transactional
     @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId)")
     public void cancelBooking(UUID bookingId, User currentUser) {
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findByIdWithDetails(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
 
         String oldStatus = booking.getStatus();
@@ -183,7 +183,7 @@ public class BookingService {
     }
 
     public List<BookingRes> getBookingsByUser(UUID userId) {
-        List<Booking> bookings = bookingRepository.findAll().stream()
+        List<Booking> bookings = bookingRepository.findAllWithDetails().stream()
                 .filter(b -> b.getUser().getId().equals(userId))
                 .collect(Collectors.toList());
         return bookings.stream()
@@ -194,7 +194,7 @@ public class BookingService {
     @Transactional
     @PreAuthorize("@bookingSecurityService.isBookingUser(authentication, #bookingId)")
     public BookingRes confirmBookingAfterMockPayment(UUID bookingId, User currentUser) {
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findByIdWithDetails(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
 
         if (!"PENDING".equals(booking.getStatus())) {

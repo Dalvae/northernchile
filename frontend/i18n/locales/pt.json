@@ -215,7 +215,7 @@
     "forgot_password": "Esqueceu sua senha?",
     "reset_password": "Redefinir Senha",
     "email": "Email",
-    "email_placeholder": "exemplo: usuario@email.com",
+    "email_placeholder": "exemplo: usuario{'@'}email.com",
     "email_invalid": "Email inválido",
     "password": "Senha",
     "password_placeholder": "••••••••",
