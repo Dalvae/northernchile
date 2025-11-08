@@ -101,13 +101,14 @@
                 <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                   Nombre Completo *
                 </label>
-                <input
+                <UInput
                   v-if="isEditing"
                   v-model="profileForm.fullName"
                   type="text"
+                  size="lg"
                   required
-                  class="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                >
+                  class="w-full"
+                />
                 <div
                   v-else
                   class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
@@ -148,13 +149,14 @@
                 <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                   Teléfono
                 </label>
-                <input
+                <UInput
                   v-if="isEditing"
                   v-model="profileForm.phoneNumber"
                   type="tel"
+                  size="lg"
                   placeholder="+56 9 1234 5678"
-                  class="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                >
+                  class="w-full"
+                />
                 <div
                   v-else
                   class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
@@ -168,12 +170,13 @@
                 <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                   Fecha de Nacimiento
                 </label>
-                <input
+                <UInput
                   v-if="isEditing"
                   v-model="profileForm.dateOfBirth"
                   type="date"
-                  class="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                >
+                  size="lg"
+                  class="w-full"
+                />
                 <div
                   v-else
                   class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
