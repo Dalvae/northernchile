@@ -99,9 +99,17 @@ export const useAdminData = () => {
         body: { newPassword },
         headers: headers.value
       }),
-    fetchAdminAlertsCount: () =>
-      $fetch<{ pending: number }>('/api/admin/alerts/count', {
-        headers: headers.value
-      })
+     fetchAdminAlertsCount: () =>
+       $fetch<{ pending: number }>('/api/admin/alerts/count', {
+         headers: headers.value
+       }),
+     fetchAdminSettings: () =>
+       $fetch('/api/admin/settings', { headers: headers.value }),
+     updateAdminSettings: (settings: any) =>
+       $fetch('/api/admin/settings', {
+         method: 'PUT',
+         body: settings,
+         headers: headers.value
+       })
   }
 }

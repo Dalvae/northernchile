@@ -3,52 +3,14 @@ definePageMeta({
   layout: 'admin'
 })
 
-const config = useRuntimeConfig()
 const toast = useToast()
+const { fetchAdminSettings, updateAdminSettings } = useAdminData()
 
-// Fetch settings
 const { data: settings, pending, error, refresh } = await useAsyncData(
   'system-settings',
   async () => {
     try {
-      const response = await $fetch<{
-        weatherAlerts: {
-          windThreshold: number
-          cloudCoverThreshold: number
-          rainProbabilityThreshold: number
-          checkFrequency: number
-        }
-        bookingSettings: {
-          cancellationWindowHours: number
-          maxAdvanceBookingDays: number
-          minAdvanceBookingHours: number
-          autoConfirmBookings: boolean
-        }
-        astronomicalTours: {
-          moonIlluminationThreshold: number
-          autoBlockFullMoon: boolean
-          scheduleGenerationDaysAhead: number
-        }
-        notifications: {
-          emailEnabled: boolean
-          smsEnabled: boolean
-          sendBookingConfirmation: boolean
-          sendCancellationNotice: boolean
-          sendWeatherAlerts: boolean
-        }
-        payments: {
-          mockPaymentMode: boolean
-          currency: string
-          taxRate: number
-          depositPercentage: number
-        }
-      }>(`${config.public.apiBase}/api/admin/settings`, {
-        headers: import.meta.client && localStorage.getItem('auth_token')
-          ? {
-              Authorization: `Bearer ${localStorage.getItem('auth_token')}`
-            }
-          : {}
-      })
+      const response = await fetchAdminSettings()
       return response
     } catch (err) {
       console.error('Error fetching settings:', err)
@@ -113,16 +75,7 @@ const saveSettings = async () => {
   try {
     saving.value = true
 
-    const token = import.meta.client ? localStorage.getItem('auth_token') : null
-    await $fetch(`${config.public.apiBase}/api/admin/settings`, {
-      method: 'PUT',
-      body: settingsForm.value,
-      headers: token
-        ? {
-            Authorization: `Bearer ${token}`
-          }
-        : {}
-    })
+    await updateAdminSettings(settingsForm.value)
 
     toast.add({
       color: 'success',
