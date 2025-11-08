@@ -28,15 +28,15 @@ const contactForm = ref({
 // Step 2: Participants
 const participants = ref<
   Array<{
-    fullName: string
-    documentId: string
-    nationality: string
-    age: number | null
-    pickupAddress: string
-    specialRequirements: string
-    phoneNumber: string
-    email: string
-  }>
+     fullName: string
+     documentId: string
+     nationality: string
+     dateOfBirth: string | null
+     pickupAddress: string
+     specialRequirements: string
+     phoneNumber: string
+     email: string
+   }>
 >([])
 
 // Initialize participants based on total count
@@ -48,9 +48,9 @@ function initializeParticipants() {
     (_, i) => ({
       fullName: i === 0 ? contactForm.value.fullName : '',
       documentId: '',
-      nationality: 'CL',
-      age: null,
-      pickupAddress: '',
+       nationality: 'CL',
+       dateOfBirth: null,
+       pickupAddress: '',
       specialRequirements: '',
       phoneNumber: i === 0 ? contactForm.value.phone : '',
       email: i === 0 ? contactForm.value.email : ''
@@ -208,14 +208,14 @@ async function submitBooking() {
 
       // Map to backend format
       const participantReqs = bookingParticipants.map(p => ({
-        fullName: p.fullName,
-        documentId: p.documentId,
-        nationality: p.nationality,
-        age: p.age,
-        pickupAddress: p.pickupAddress || null,
-        specialRequirements: p.specialRequirements || null,
-        phoneNumber: p.phoneNumber || null,
-        email: p.email || null
+         fullName: p.fullName,
+         documentId: p.documentId,
+         nationality: p.nationality,
+         dateOfBirth: p.dateOfBirth || null,
+         pickupAddress: p.pickupAddress || null,
+         specialRequirements: p.specialRequirements || null,
+         phoneNumber: p.phoneNumber || null,
+         email: p.email || null
       }))
 
       // Create booking (will be PENDING)

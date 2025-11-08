@@ -359,9 +359,11 @@ const bookingState = reactive({
     fullName: string
     documentId: string
     nationality: string
-    age: number | null
+    dateOfBirth: string | null
     pickupAddress: string
     specialRequirements: string
+    phoneNumber: string
+    email: string
   }>
 })
 
@@ -382,9 +384,11 @@ function createEmptyParticipant() {
     fullName: '',
     documentId: '',
     nationality: '',
-    age: null,
+    dateOfBirth: null,
     pickupAddress: '',
-    specialRequirements: ''
+    specialRequirements: '',
+    phoneNumber: '',
+    email: ''
   }
 }
 
@@ -407,7 +411,7 @@ function copyUserDataToFirstParticipant() {
     ...bookingState.participants[0],
     fullName: user.fullName || '',
     nationality: user.nationality || '',
-    age: user.dateOfBirth ? calculateAge(user.dateOfBirth) : null
+    dateOfBirth: user.dateOfBirth || null
   }
 
   toast.add({
@@ -415,20 +419,6 @@ function copyUserDataToFirstParticipant() {
     description: t('booking.copy_user_data_help'),
     color: 'success'
   })
-}
-
-function calculateAge(dateOfBirth: string): number {
-  const today = new Date()
-  const birthDate = new Date(dateOfBirth)
-  let age = today.getFullYear() - birthDate.getFullYear()
-  const monthDiff = today.getMonth() - birthDate.getMonth()
-  if (
-    monthDiff < 0
-    || (monthDiff === 0 && today.getDate() < birthDate.getDate())
-  ) {
-    age--
-  }
-  return age
 }
 
 function getTourName(tour: any): string {
@@ -500,14 +490,16 @@ async function handleMockPayment() {
     // Step 1: Create the booking with PENDING status
     const bookingPayload = {
       scheduleId: bookingState.scheduleId,
-      participants: bookingState.participants.map(p => ({
-        fullName: p.fullName,
-        documentId: p.documentId,
-        nationality: p.nationality,
-        age: p.age,
-        pickupAddress: p.pickupAddress,
-        specialRequirements: p.specialRequirements
-      })),
+        participants: bookingState.participants.map(p => ({
+          fullName: p.fullName,
+          documentId: p.documentId,
+          nationality: p.nationality,
+          dateOfBirth: p.dateOfBirth,
+          pickupAddress: p.pickupAddress,
+          specialRequirements: p.specialRequirements,
+          phoneNumber: p.phoneNumber,
+          email: p.email
+        })),
       languageCode: locale.value,
       specialRequests: ''
     }

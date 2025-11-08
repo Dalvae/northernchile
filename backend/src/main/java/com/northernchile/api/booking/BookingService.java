@@ -97,7 +97,15 @@ public class BookingService {
             participant.setFullName(participantReq.getFullName());
             participant.setDocumentId(participantReq.getDocumentId());
             participant.setNationality(participantReq.getNationality());
-            participant.setAge(participantReq.getAge());
+
+            // Set dateOfBirth if provided (will auto-calculate age)
+            if (participantReq.getDateOfBirth() != null) {
+                participant.setDateOfBirth(participantReq.getDateOfBirth());
+            } else if (participantReq.getAge() != null) {
+                // Fallback: if only age is provided (backward compatibility)
+                participant.setAge(participantReq.getAge());
+            }
+
             participant.setPickupAddress(participantReq.getPickupAddress());
             participant.setSpecialRequirements(participantReq.getSpecialRequirements());
             participant.setPhoneNumber(participantReq.getPhoneNumber());

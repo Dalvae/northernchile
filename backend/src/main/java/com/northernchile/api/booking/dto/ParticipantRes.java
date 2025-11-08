@@ -1,6 +1,7 @@
 
 package com.northernchile.api.booking.dto;
 
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -9,6 +10,7 @@ public class ParticipantRes {
     private String fullName;
     private String documentId;
     private String nationality;
+    private LocalDate dateOfBirth;
     private Integer age;
     private String pickupAddress;
     private String specialRequirements;
@@ -18,11 +20,12 @@ public class ParticipantRes {
     public ParticipantRes() {
     }
 
-    public ParticipantRes(UUID id, String fullName, String documentId, String nationality, Integer age, String pickupAddress, String specialRequirements, String phoneNumber, String email) {
+    public ParticipantRes(UUID id, String fullName, String documentId, String nationality, LocalDate dateOfBirth, Integer age, String pickupAddress, String specialRequirements, String phoneNumber, String email) {
         this.id = id;
         this.fullName = fullName;
         this.documentId = documentId;
         this.nationality = nationality;
+        this.dateOfBirth = dateOfBirth;
         this.age = age;
         this.pickupAddress = pickupAddress;
         this.specialRequirements = specialRequirements;
@@ -60,6 +63,14 @@ public class ParticipantRes {
 
     public void setNationality(String nationality) {
         this.nationality = nationality;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
     }
 
     public Integer getAge() {
@@ -107,12 +118,12 @@ public class ParticipantRes {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ParticipantRes that = (ParticipantRes) o;
-        return Objects.equals(id, that.id) && Objects.equals(fullName, that.fullName) && Objects.equals(documentId, that.documentId) && Objects.equals(nationality, that.nationality) && Objects.equals(age, that.age) && Objects.equals(pickupAddress, that.pickupAddress) && Objects.equals(specialRequirements, that.specialRequirements) && Objects.equals(phoneNumber, that.phoneNumber) && Objects.equals(email, that.email);
+        return Objects.equals(id, that.id) && Objects.equals(fullName, that.fullName) && Objects.equals(documentId, that.documentId) && Objects.equals(nationality, that.nationality) && Objects.equals(dateOfBirth, that.dateOfBirth) && Objects.equals(age, that.age) && Objects.equals(pickupAddress, that.pickupAddress) && Objects.equals(specialRequirements, that.specialRequirements) && Objects.equals(phoneNumber, that.phoneNumber) && Objects.equals(email, that.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, fullName, documentId, nationality, age, pickupAddress, specialRequirements, phoneNumber, email);
+        return Objects.hash(id, fullName, documentId, nationality, dateOfBirth, age, pickupAddress, specialRequirements, phoneNumber, email);
     }
 
     @Override
@@ -122,6 +133,7 @@ public class ParticipantRes {
                 ", fullName='" + fullName + '\'' +
                 ", documentId='" + documentId + '\'' +
                 ", nationality='" + nationality + '\'' +
+                ", dateOfBirth=" + dateOfBirth +
                 ", age=" + age +
                 ", pickupAddress='" + pickupAddress + '\'' +
                 ", specialRequirements='" + specialRequirements + '\'' +

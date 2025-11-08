@@ -49,18 +49,19 @@
         />
       </div>
 
-      <!-- Age -->
+      <!-- Date of Birth -->
       <UFormField
-        :label="t('booking.age')"
-        name="age"
+        :label="t('booking.date_of_birth') || 'Fecha de Nacimiento'"
+        name="dateOfBirth"
+        help="Usada para calcular la edad"
       >
         <UInput
-          :model-value="participant.age?.toString() || ''"
-          type="number"
-          :placeholder="t('booking.age_placeholder')"
+          :model-value="participant.dateOfBirth || ''"
+          type="date"
+          placeholder="YYYY-MM-DD"
           size="lg"
           icon="i-lucide-calendar"
-          @update:model-value="emit('update', { age: $event ? parseInt($event) : null })"
+          @update:model-value="emit('update', { dateOfBirth: $event })"
         />
       </UFormField>
 
@@ -141,7 +142,7 @@ defineProps<{
     fullName: string
     documentId: string
     nationality: string
-    age: number | null
+    dateOfBirth: string | null
     pickupAddress: string
     specialRequirements: string
     phoneNumber: string
@@ -156,7 +157,7 @@ const emit = defineEmits<{
     fullName: string
     documentId: string
     nationality: string
-    age: number | null
+    dateOfBirth: string | null
     pickupAddress: string
     specialRequirements: string
     phoneNumber: string
