@@ -3,7 +3,7 @@ import { useAuthStore } from '~/stores/auth'
 
 const authStore = useAuthStore()
 const route = useRoute()
-const config = useRuntimeConfig()
+const { fetchAdminAlertsCount } = useAdminData()
 
 // Sidebar state (mobile)
 const sidebarOpen = ref(false)
@@ -21,17 +21,7 @@ const { data: alertsCount, refresh: refreshAlertsCount } = await useAsyncData(
   'pending-alerts-count',
   async () => {
     try {
-      const token = import.meta.client ? localStorage.getItem('auth_token') : null
-      const response = await $fetch<{ pending: number }>(
-        `${config.public.apiBase}/api/admin/alerts/count`,
-        {
-          headers: token
-            ? {
-                Authorization: `Bearer ${token}`
-              }
-            : {}
-        }
-      )
+      const response = await fetchAdminAlertsCount()
       return response.pending || 0
     } catch (error) {
       console.error('Error fetching alerts count:', error)

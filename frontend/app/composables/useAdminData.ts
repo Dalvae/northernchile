@@ -98,6 +98,10 @@ export const useAdminData = () => {
         method: 'PUT',
         body: { newPassword },
         headers: headers.value
+      }),
+    fetchAdminAlertsCount: () =>
+      $fetch<{ pending: number }>('/api/admin/alerts/count', {
+        headers: headers.value
       })
   }
 }

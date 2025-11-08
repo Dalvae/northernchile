@@ -101,11 +101,11 @@ export const useAuthStore = defineStore('auth', {
             setToStorage('user', this.user)
           }
 
-          toast.add({
-            title: '¡Bienvenido!',
-            description: 'Has iniciado sesión correctamente.',
-            color: 'green'
-          })
+           toast.add({
+             title: '¡Bienvenido!',
+             description: 'Has iniciado sesión correctamente.',
+             color: 'success'
+           })
         }
       } catch (error: any) {
         let errorMessage = error.data?.message || 'Error en el login'
@@ -153,11 +153,11 @@ export const useAuthStore = defineStore('auth', {
         if (error.statusCode === 409) {
           errorMessage = 'El correo electrónico ya está en uso.'
         }
-        toast.add({
-          title: 'Error de Registro',
-          description: errorMessage,
-          color: 'red'
-        })
+         toast.add({
+           title: 'Error de Registro',
+           description: errorMessage,
+           color: 'error'
+         })
         throw error
       } finally {
         this.loading = false
@@ -182,9 +182,8 @@ export const useAuthStore = defineStore('auth', {
 
     // Cargar datos completos del usuario desde el backend
     async fetchUser() {
-      if (!this.token) {
-        console.log('[Auth] No token available, cannot fetch user')
-        return
+         if (!this.token) {
+         return
       }
 
       try {
@@ -209,9 +208,8 @@ export const useAuthStore = defineStore('auth', {
             dateOfBirth: response.dateOfBirth,
             authProvider: response.authProvider
           }
-          setToStorage('user', this.user)
-          console.log('[Auth] User profile refreshed:', this.user.email)
-        }
+           setToStorage('user', this.user)
+         }
       } catch (error) {
         console.error('[Auth] Error fetching user profile:', error)
       }
@@ -221,17 +219,16 @@ export const useAuthStore = defineStore('auth', {
     initializeAuth() {
       this.loading = true
       try {
-        // Cargar desde localStorage si está disponible
-        const savedToken = getFromStorage('auth_token')
-        const savedUser = getFromStorage('user')
+         // Cargar desde localStorage si está disponible
+         const savedToken = getFromStorage('auth_token')
+         const savedUser = getFromStorage('user')
 
         if (savedToken) {
           const payload = decodeJwtPayload(savedToken)
           if (payload && payload.exp) {
             const currentTime = Math.floor(Date.now() / 1000)
-            if (payload.exp < currentTime) {
-              // Token expirado
-              console.log('[Auth] Token expired, clearing session')
+               if (payload.exp < currentTime) {
+                 // Token expirado
               this.token = null
               this.user = null
               setToStorage('auth_token', null)
@@ -243,10 +240,10 @@ export const useAuthStore = defineStore('auth', {
               // Sincronizar user desde localStorage o decodificar del token
               if (savedUser && savedUser.role && savedUser.role.length > 0) {
                 this.user = savedUser
-                console.log('[Auth] User loaded from localStorage:', savedUser.email, 'Role:', savedUser.role)
+
               } else {
                 // Reconstruir desde el token si no hay user en localStorage
-                console.log('[Auth] Reconstructing user from token')
+
                 this.user = {
                   id: payload.userId || payload.sub,
                   email: payload.email,
@@ -256,18 +253,16 @@ export const useAuthStore = defineStore('auth', {
                 setToStorage('user', this.user)
               }
 
-              console.log('[Auth] User authenticated:', this.user?.email, 'Role:', this.user?.role)
+
             }
-          } else {
-            // Token inválido
-            console.log('[Auth] Invalid token, clearing session')
+           } else {
+             // Token inválido
             this.token = null
             this.user = null
             setToStorage('auth_token', null)
             setToStorage('user', null)
           }
         } else {
-          console.log('[Auth] No token found in localStorage')
         }
       } catch (error) {
         console.error('[Auth] Error in initializeAuth:', error)

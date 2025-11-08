@@ -19,21 +19,14 @@ const { data: tours, pending: pendingTours } = await useAsyncData('tours', () =>
   fetchAdminTours()
 )
 
-// Fetch alerts count
+// Fetch alerts count (reuse admin data + proxy)
 const { data: alertsCount } = await useAsyncData(
   'dashboard-alerts-count',
   async () => {
     try {
-      const token = import.meta.client ? localStorage.getItem('auth_token') : null
-      const response = await $fetch<{ pending: number }>(`${config.public.apiBase}/api/admin/alerts/count`, {
-        headers: token
-          ? {
-              Authorization: `Bearer ${token}`
-            }
-          : {}
-      })
+      const response = await fetchAdminAlertsCount()
       return response.pending || 0
-    } catch (error) {
+    } catch {
       return 0
     }
   },
@@ -45,7 +38,6 @@ const { data: alertsCount } = await useAsyncData(
 
 const latestBookings = computed<BookingRes[]>(() => {
   const items = bookingsData.value || []
-  console.log('admin.index latestBookings raw items:', items)
   if (!Array.isArray(items) || items.length === 0) return []
   return [...items]
     .filter(b => b.status === 'CONFIRMED')
@@ -119,7 +111,12 @@ const bookingColumns = [
       const date = row.original.tourDate || row.getValue('tourDate')
       const time = row.original.tourStartTime
       if (!date) return ''
-      const formattedDate = format(new Date(date), 'EEEE, dd MMMM yyyy')
+      const formattedDate = new Date(date).toLocaleDateString('es-CL', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
       return `${formattedDate}${time ? ` - ${time.slice(0, 5)}` : ''}`
     }
   },
