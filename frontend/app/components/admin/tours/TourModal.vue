@@ -197,13 +197,13 @@ const statusOptions = [
     <template #content>
       <div class="flex flex-col h-full">
         <div
-          class="flex items-center justify-between p-5 pb-4 border-b border-neutral-200 dark:border-neutral-700 flex-shrink-0"
+          class="flex items-center justify-between p-5 pb-4 border-b border-default flex-shrink-0"
         >
           <div>
-            <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
+            <h3 class="text-lg font-semibold text-default">
               {{ isEditing ? "Editar Tour" : "Crear Nuevo Tour" }}
             </h3>
-            <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+            <p class="text-sm text-muted mt-1">
               {{
                 isEditing
                   ? "Modifica la información del tour"
@@ -233,7 +233,7 @@ const statusOptions = [
               >
                 <div class="space-y-6">
                   <h4
-                    class="text-base font-semibold text-neutral-900 dark:text-white border-b border-neutral-200 dark:border-neutral-700 pb-2"
+                     class="text-base font-semibold text-default border-b border-default pb-2"
                   >
                     Información Básica
                   </h4>
@@ -368,7 +368,7 @@ const statusOptions = [
                           <img
                             :src="url"
                             :alt="`Tour image ${index + 1}`"
-                            class="w-full h-32 object-cover rounded-lg border border-neutral-700"
+                             class="w-full h-32 object-cover rounded-lg border border-default"
                           >
                           <UButton
                             icon="i-heroicons-x-mark"
@@ -387,7 +387,7 @@ const statusOptions = [
                       />
                     </div>
                     <template #help>
-                      <p class="text-xs text-neutral-500 mt-1">
+                       <p class="text-xs text-muted mt-1">
                         Sube imágenes del tour. Máximo 5MB por imagen.
                       </p>
                     </template>
@@ -395,7 +395,7 @@ const statusOptions = [
                 </div>
                 <div class="space-y-4">
                   <h4
-                    class="text-base font-semibold text-neutral-900 dark:text-white border-b border-neutral-200 dark:border-neutral-700 pb-2"
+                     class="text-base font-semibold text-default border-b border-default pb-2"
                   >
                     Condiciones Meteorológicas
                   </h4>
@@ -419,7 +419,7 @@ const statusOptions = [
                 </div>
                 <div class="space-y-4">
                   <h4
-                    class="text-base font-semibold text-neutral-900 dark:text-white border-b border-neutral-200 dark:border-neutral-700 pb-2"
+                     class="text-base font-semibold text-default border-b border-default pb-2"
                   >
                     Clasificación
                   </h4>
@@ -458,7 +458,7 @@ const statusOptions = [
                 </div>
                 <div class="space-y-4">
                   <h4
-                    class="text-base font-semibold text-neutral-900 dark:text-white border-b border-neutral-200 dark:border-neutral-700 pb-2"
+                     class="text-base font-semibold text-default border-b border-default pb-2"
                   >
                     Precios (CLP)
                   </h4>
@@ -481,7 +481,7 @@ const statusOptions = [
                 </div>
                 <div class="space-y-4">
                   <h4
-                    class="text-base font-semibold text-neutral-900 dark:text-white border-b border-neutral-200 dark:border-neutral-700 pb-2"
+                     class="text-base font-semibold text-default border-b border-default pb-2"
                   >
                     Configuración
                   </h4>
@@ -522,10 +522,10 @@ const statusOptions = [
             </div>
           </div>
         </div>
-        <div
-          class="flex justify-between items-center p-5 pt-4 border-t border-neutral-200 dark:border-neutral-700 flex-shrink-0"
+         <div
+          class="flex justify-between items-center p-5 pt-4 border-t border-default flex-shrink-0"
         >
-          <div class="text-sm text-neutral-500 dark:text-neutral-400">
+           <div class="text-sm text-muted">
             {{
               isEditing ? "Modificando tour existente" : "Creando nuevo tour"
             }}

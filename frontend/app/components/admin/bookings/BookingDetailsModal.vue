@@ -58,12 +58,12 @@ function getStatusLabel(status: string): string {
     <template #content>
       <div class="p-6">
         <!-- Header -->
-        <div class="flex justify-between items-start pb-4 border-b border-neutral-200 dark:border-neutral-700">
+        <div class="flex justify-between items-start pb-4 border-b border-default">
           <div>
-            <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">
+            <h3 class="text-xl font-semibold text-default">
               Detalle de Reserva
             </h3>
-            <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-1 font-mono">
+            <p class="text-sm text-muted mt-1 font-mono">
               ID: {{ booking.id?.slice(0, 8) }}...
             </p>
           </div>
@@ -97,18 +97,18 @@ function getStatusLabel(status: string): string {
           <!-- Tour Info -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+             <label class="text-sm font-medium text-default">
                 Tour
               </label>
-              <p class="mt-1 text-neutral-900 dark:text-white">
+               <p class="mt-1 text-default">
                 {{ booking.tourName || "Sin nombre" }}
               </p>
             </div>
             <div>
-              <label class="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+             <label class="text-sm font-medium text-default">
                 Fecha del Tour
               </label>
-              <p class="mt-1 text-neutral-900 dark:text-white">
+               <p class="mt-1 text-default">
                 {{ formatDate(booking.tourDate) }}
               </p>
             </div>
@@ -133,7 +133,7 @@ function getStatusLabel(status: string): string {
               <div
                 v-for="(participant, index) in booking.participants"
                 :key="participant.id"
-                class="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700"
+                class="p-4 bg-elevated rounded-lg border border-default"
               >
                 <div class="flex items-start justify-between mb-3">
                   <h4 class="font-medium text-neutral-900 dark:text-white">
@@ -143,8 +143,8 @@ function getStatusLabel(status: string): string {
 
                 <div class="grid grid-cols-2 gap-3 text-sm">
                   <div v-if="participant.documentId">
-                    <span class="text-neutral-600 dark:text-neutral-400">Documento:</span>
-                    <span class="ml-2 text-neutral-900 dark:text-white">
+                     <span class="text-muted">Documento:</span>
+                     <span class="ml-2 text-default">
                       {{ participant.documentId }}
                     </span>
                   </div>
@@ -157,13 +157,13 @@ function getStatusLabel(status: string): string {
                   </div>
                   <div v-if="participant.age">
                     <span class="text-neutral-600 dark:text-neutral-400">Edad:</span>
-                    <span class="ml-2 text-neutral-900 dark:text-white">
+                     <span class="ml-2 text-default">
                       {{ participant.age }} años
                     </span>
                   </div>
                   <div v-if="participant.pickupAddress">
                     <span class="text-neutral-600 dark:text-neutral-400">Dirección:</span>
-                    <span class="ml-2 text-neutral-900 dark:text-white">
+                     <span class="ml-2 text-default">
                       {{ participant.pickupAddress }}
                     </span>
                   </div>
@@ -171,9 +171,9 @@ function getStatusLabel(status: string): string {
 
                 <div
                   v-if="participant.specialRequirements"
-                  class="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700"
+                  class="mt-3 pt-3 border-t border-default"
                 >
-                  <span class="text-neutral-600 dark:text-neutral-400 text-sm">Requerimientos especiales:</span>
+                  <span class="text-muted text-sm">Requerimientos especiales:</span>
                   <p class="mt-1 text-sm text-neutral-900 dark:text-white">
                     {{ participant.specialRequirements }}
                   </p>
@@ -193,22 +193,22 @@ function getStatusLabel(status: string): string {
           </div>
 
           <!-- Pricing -->
-          <div class="pt-4 border-t border-neutral-200 dark:border-neutral-700">
+          <div class="pt-4 border-t border-default">
             <div class="space-y-2">
               <div class="flex justify-between text-sm">
-                <span class="text-neutral-600 dark:text-neutral-400">Subtotal:</span>
+                 <span class="text-muted">Subtotal:</span>
                 <span class="text-neutral-900 dark:text-white font-medium">
                   {{ formatCurrency(booking.subtotal) }}
                 </span>
               </div>
               <div class="flex justify-between text-sm">
-                <span class="text-neutral-600 dark:text-neutral-400">IVA (19%):</span>
+                 <span class="text-muted">IVA (19%):</span>
                 <span class="text-neutral-900 dark:text-white font-medium">
                   {{ formatCurrency(booking.taxAmount) }}
                 </span>
               </div>
               <div class="flex justify-between text-lg font-semibold pt-2 border-t border-neutral-200 dark:border-neutral-700">
-                <span class="text-neutral-900 dark:text-white">Total:</span>
+                 <span class="text-default">Total:</span>
                 <span class="text-primary">
                   {{ formatCurrency(booking.totalAmount) }}
                 </span>
@@ -217,13 +217,13 @@ function getStatusLabel(status: string): string {
           </div>
 
           <!-- Created At -->
-          <div class="text-xs text-neutral-500 dark:text-neutral-400">
+          <div class="text-xs text-muted">
             <span>Creada: {{ new Date(booking.createdAt).toLocaleString("es-CL") }}</span>
           </div>
         </div>
 
         <!-- Footer -->
-        <div class="flex justify-end pt-4 border-t border-neutral-200 dark:border-neutral-700">
+        <div class="flex justify-end pt-4 border-t border-default">
           <UButton
             label="Cerrar"
             color="neutral"

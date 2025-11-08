@@ -2,10 +2,10 @@
   <div class="p-6">
     <div class="flex justify-between items-center mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">
+         <h1 class="text-2xl font-bold text-default">
           Calendario de Tours
         </h1>
-        <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+         <p class="mt-1 text-sm text-muted">
           Gestiona schedules con información climática y lunar
         </p>
       </div>
@@ -35,11 +35,11 @@
     </div>
 
     <!-- Leyenda -->
-    <div class="mb-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+     <div class="p-4 mb-4 rounded-lg bg-elevated border border-default">
       <div class="flex flex-wrap gap-4 text-sm">
         <div class="flex items-center gap-2">
           <span class="text-lg">🌑🌒🌓🌔🌕🌖🌗🌘</span>
-          <span class="text-neutral-700 dark:text-neutral-300">Fases lunares</span>
+           <span class="text-default">Fases lunares</span>
         </div>
         <div class="flex items-center gap-2">
           <UBadge
@@ -49,7 +49,7 @@
           >
             💨 Viento
           </UBadge>
-          <span class="text-neutral-700 dark:text-neutral-300">&gt;25 nudos</span>
+          <span class="text-muted">&gt;25 nudos</span>
         </div>
         <div class="flex items-center gap-2">
           <UBadge
@@ -59,7 +59,7 @@
           >
             ☁️ Nublado
           </UBadge>
-          <span class="text-neutral-700 dark:text-neutral-300">&gt;80%</span>
+           <span class="text-muted">&gt;80%</span>
         </div>
         <div class="flex items-center gap-2">
           <UBadge
@@ -69,13 +69,13 @@
           >
             🌧️ Lluvia
           </UBadge>
-          <span class="text-neutral-700 dark:text-neutral-300">Probabilidad &gt;50%</span>
+           <span class="text-muted">Probabilidad &gt;50%</span>
         </div>
       </div>
     </div>
 
     <!-- Calendario -->
-    <div class="bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-4">
+      <div class="p-4 rounded-lg bg-elevated border border-default">
       <FullCalendar
         v-if="calendarOptions"
         :options="calendarOptions"
@@ -85,14 +85,14 @@
     <!-- Modal de schedule (crear/editar) -->
     <UModal v-model:open="showScheduleModal">
       <template #content>
-        <div class="p-6">
+  <div class="p-6 bg-default min-h-screen">
           <!-- Header -->
           <div
-            class="flex justify-between items-center pb-4 border-b border-neutral-200 dark:border-neutral-700"
+            class="flex items-center justify-between pb-4 border-b border-default"
           >
             <div class="flex items-center gap-3">
               <h3
-                class="text-xl font-semibold text-neutral-900 dark:text-white"
+                class="text-xl font-semibold text-default"
               >
                 {{ isEditMode ? "Editar Schedule" : "Crear Schedule" }}
               </h3>
@@ -151,7 +151,7 @@
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                  class="block text-sm font-medium text-default mb-2"
                 >
                   Fecha <span class="text-error">*</span>
                 </label>
@@ -170,7 +170,7 @@
               </div>
               <div>
                 <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                  class="block text-sm font-medium text-default mb-2"
                 >
                   Hora <span class="text-error">*</span>
                 </label>
@@ -233,7 +233,7 @@
 
           <!-- Footer -->
           <div
-            class="flex justify-end gap-2 pt-4 border-t border-neutral-200 dark:border-neutral-700"
+            class="flex justify-end gap-2 pt-4 border-t border-default"
           >
             <UButton
               color="neutral"
@@ -580,7 +580,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
           end.setHours(start.getHours() + (schedule.tourDurationHours || 2))
 
           // Color según status (PRIORIDAD: cancelado > cerrado > alertas > activo)
-          let backgroundColor = '#10b981' // green (ACTIVE por defecto)
+          let backgroundColor = 'var(--color-atacama-dorado-500)'
 
           // Verificar si tiene alertas críticas
           const scheduleAlerts = alerts.get(schedule.id) || []
@@ -589,16 +589,16 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
           )
 
           if (hasCriticalAlert) {
-            backgroundColor = '#f59e0b' // orange/amber para alertas
+            backgroundColor = 'var(--color-atacama-dorado-500)'
           }
 
           // El estado CLOSED y CANCELLED tiene prioridad sobre alertas
           if (schedule.status === 'CLOSED') {
-            backgroundColor = '#6b7280' // gray
+            backgroundColor = 'var(--color-atacama-oxide-500)'
           }
 
           if (schedule.status === 'CANCELLED') {
-            backgroundColor = '#ef4444' // red - siempre rojo si está cancelado
+            backgroundColor = 'var(--ui-error)'
           }
 
           return {
@@ -633,7 +633,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
       // Número del día
       const dayNumber = document.createElement('div')
       dayNumber.className
-        = 'text-right font-semibold text-neutral-900 dark:text-white mb-1'
+        = 'text-right font-semibold text-default mb-1'
       dayNumber.textContent = arg.dayNumberText
       container.appendChild(dayNumber)
 
@@ -647,7 +647,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
         moonDiv.className = 'flex items-center gap-1'
         moonDiv.innerHTML = `
           <span class="text-lg">${moonPhase.icon}</span>
-          <span class="text-xs text-neutral-600 dark:text-neutral-400">${moonPhase.illumination}%</span>
+          <span class="text-xs text-muted">${moonPhase.illumination}%</span>
         `
         infoContainer.appendChild(moonDiv)
       }
@@ -660,7 +660,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
           <span class="text-base">${getWeatherIcon(
             dayWeather.weather[0]?.main
           )}</span>
-          <span class="text-xs text-neutral-700 dark:text-neutral-300">
+          <span class="text-xs text-muted">
             ${Math.round(dayWeather.temp.max)}°/${Math.round(
               dayWeather.temp.min
             )}°
@@ -708,32 +708,25 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
 <style>
 /* Estilos para FullCalendar */
 .fc {
-  --fc-border-color: #e4e4e7;
-  --fc-button-bg-color: #10b981;
-  --fc-button-border-color: #10b981;
-  --fc-button-hover-bg-color: #059669;
-  --fc-button-hover-border-color: #059669;
-  --fc-button-active-bg-color: #047857;
-  --fc-button-active-border-color: #047857;
-  --fc-today-bg-color: #ecfdf5;
+  --fc-border-color: var(--ui-border-muted);
+  --fc-button-bg-color: var(--ui-primary);
+  --fc-button-border-color: var(--ui-primary);
+  --fc-button-hover-bg-color: color-mix(in srgb, var(--ui-primary) 85%, var(--ui-bg) 15%);
+  --fc-button-hover-border-color: var(--ui-primary);
+  --fc-button-active-bg-color: color-mix(in srgb, var(--ui-primary) 70%, var(--ui-bg) 30%);
+  --fc-button-active-border-color: var(--ui-primary);
+  --fc-today-bg-color: var(--ui-bg-muted);
 }
 
-.dark .fc {
-  --fc-border-color: #3f3f46;
-  --fc-today-bg-color: rgba(6, 78, 59, 0.2);
-}
 
 /* Header background (toolbar with prev/next/today buttons) */
 .fc .fc-toolbar {
-  background-color: rgb(14 165 233);
+  background-color: var(--ui-primary);
   padding: 1rem;
   border-radius: 0.5rem 0.5rem 0 0;
   margin-bottom: 0;
 }
 
-.dark .fc .fc-toolbar {
-  background-color: rgb(3 105 161);
-}
 
 /* Header text color (title and buttons) */
 .fc .fc-toolbar-title,
@@ -755,16 +748,12 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
 
 /* Header de días (lun, mar, mié, etc.) */
 .fc-col-header-cell {
-  background-color: rgb(14 165 233) !important;
-  border-color: rgb(2 132 199) !important;
+  background-color: var(--ui-primary) !important;
+  border-color: var(--ui-primary) !important;
   padding: 0.75rem 0.5rem !important;
   font-weight: 600 !important;
 }
 
-.dark .fc-col-header-cell {
-  background-color: rgb(3 105 161) !important;
-  border-color: rgb(7 89 133) !important;
-}
 
 .fc-col-header-cell-cushion {
   color: white !important;

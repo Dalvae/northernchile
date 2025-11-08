@@ -172,7 +172,7 @@ const typeOptions = [
 </script>
 
 <template>
-  <div class="p-6">
+  <div class="min-h-screen p-6 bg-default">
     <!-- Header -->
     <div class="mb-6">
       <div class="flex items-center gap-2 mb-2">
@@ -182,7 +182,7 @@ const typeOptions = [
           variant="ghost"
           to="/admin/calendar"
         />
-        <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">
+        <h1 class="text-2xl font-bold text-default">
           Participantes del Tour
         </h1>
       </div>
@@ -191,14 +191,14 @@ const typeOptions = [
         v-if="participantsData"
         class="space-y-1"
       >
-        <p class="text-neutral-600 dark:text-neutral-400">
+        <p class="text-muted">
           <span class="font-medium">Tour:</span> {{ participantsData.tourName }}
         </p>
-        <p class="text-neutral-600 dark:text-neutral-400">
+        <p class="text-muted">
           <span class="font-medium">Fecha:</span>
           {{ formatDateTime(participantsData.startDatetime) }}
         </p>
-        <p class="text-neutral-600 dark:text-neutral-400">
+        <p class="text-muted">
           <span class="font-medium">Estado:</span>
           <UBadge
             :color="getStatusColor(participantsData.status)"
@@ -232,7 +232,7 @@ const typeOptions = [
         name="i-lucide-alert-circle"
         class="w-12 h-12 text-error mx-auto mb-4"
       />
-      <p class="text-neutral-600 dark:text-neutral-400">
+       <p class="text-muted">
         Error al cargar los participantes
       </p>
       <UButton
@@ -250,7 +250,7 @@ const typeOptions = [
       <!-- Stats Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div
-          class="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700"
+           class="bg-elevated rounded-lg p-4 border border-default"
         >
           <div class="flex items-center justify-between">
             <div>
@@ -269,7 +269,7 @@ const typeOptions = [
         </div>
 
         <div
-          class="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700"
+           class="bg-elevated rounded-lg p-4 border border-default"
         >
           <div class="flex items-center justify-between">
             <div>
@@ -288,7 +288,7 @@ const typeOptions = [
         </div>
 
         <div
-          class="bg-white dark:bg-neutral-800 rounded-lg p-4 border border-neutral-200 dark:border-neutral-700"
+           class="bg-elevated rounded-lg p-4 border border-default"
         >
           <div class="flex items-center justify-between">
             <div>
@@ -309,7 +309,7 @@ const typeOptions = [
 
       <!-- Filters and Search -->
       <div
-        class="bg-white dark:bg-neutral-800 rounded-lg p-4 mb-6 border border-neutral-200 dark:border-neutral-700"
+        class="bg-elevated rounded-lg p-4 mb-6 border border-default"
       >
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <!-- Search -->
@@ -361,93 +361,93 @@ const typeOptions = [
 
       <!-- Participants Table -->
       <div
-        class="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden"
+        class="bg-elevated rounded-lg border border-default overflow-hidden"
       >
         <div class="overflow-x-auto">
           <table
-            class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700"
+            class="min-w-full divide-y divide-default"
           >
-            <thead class="bg-neutral-50 dark:bg-neutral-800">
+            <thead class="bg-elevated">
               <tr>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                   class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Nombre Completo
                 </th>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                   class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Documento
                 </th>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                   class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Nacionalidad
                 </th>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                   class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Edad
                 </th>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                   class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Tipo
                 </th>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                   class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Estado Reserva
                 </th>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                   class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Referencia
                 </th>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                   class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Pickup
                 </th>
               </tr>
             </thead>
             <tbody
-              class="bg-white dark:bg-neutral-800 divide-y divide-neutral-200 dark:divide-neutral-700"
+              class="bg-elevated divide-y divide-default"
             >
               <tr
                 v-for="participant in filteredParticipants"
                 :key="participant.participantId"
-                class="hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                class="hover:bg-muted transition-colors"
               >
                 <td class="px-4 py-3 whitespace-nowrap">
                   <div
-                    class="text-sm font-medium text-neutral-900 dark:text-white"
+                    class="text-sm font-medium text-default"
                   >
                     {{ participant.fullName }}
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
-                  <div class="text-sm text-neutral-600 dark:text-neutral-400">
+                  <div class="text-sm text-default">
                     {{ participant.documentId }}
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
                   <div
                     v-if="participant.nationality"
-                    class="text-sm text-neutral-600 dark:text-neutral-400 inline-flex items-center gap-1.5"
+                    class="text-sm text-muted inline-flex items-center gap-1.5"
                   >
                     <span class="text-lg">{{ getCountryFlag(participant.nationality) }}</span>
                     {{ getCountryLabel(participant.nationality) }}
                   </div>
                   <div
                     v-else
-                    class="text-sm text-neutral-400"
+                    class="text-sm text-muted"
                   >
                     -
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
-                  <div class="text-sm text-neutral-600 dark:text-neutral-400">
+                  <div class="text-sm text-default">
                     {{ participant.age }}
                   </div>
                 </td>
@@ -470,13 +470,13 @@ const typeOptions = [
                   </UBadge>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
-                  <div class="text-sm text-neutral-600 dark:text-neutral-400">
+                  <div class="text-sm text-default">
                     {{ participant.bookingReference }}
                   </div>
                 </td>
                 <td class="px-4 py-3">
                   <div
-                    class="text-sm text-neutral-600 dark:text-neutral-400 max-w-xs truncate"
+                    class="text-sm text-default max-w-xs truncate"
                   >
                     {{ participant.pickupAddress }}
                   </div>
@@ -490,14 +490,14 @@ const typeOptions = [
                   class="px-4 py-12 text-center"
                 >
                   <UIcon
-                    name="i-lucide-users"
-                    class="w-12 h-12 text-neutral-400 mx-auto mb-4"
+                     name="i-lucide-users"
+                    class="w-12 h-12 text-muted mx-auto mb-4"
                   />
-                  <p class="text-neutral-600 dark:text-neutral-400">
+                  <p class="text-muted">
                     No se encontraron participantes
                   </p>
                   <p
-                    class="text-sm text-neutral-500 dark:text-neutral-500 mt-2"
+                    class="text-sm text-muted mt-2"
                   >
                     {{
                       searchQuery || filterByStatus || filterByType

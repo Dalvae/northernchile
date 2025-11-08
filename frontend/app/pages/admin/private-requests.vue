@@ -203,13 +203,13 @@ const { formatCurrency } = useCurrency()
 </script>
 
 <template>
-  <div class="p-6">
+  <div class="p-6 bg-default min-h-screen">
     <!-- Header -->
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">
+      <h1 class="text-2xl font-bold text-default">
         Solicitudes de Tours Privados
       </h1>
-      <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+      <p class="text-sm text-muted mt-1">
         Gestiona las solicitudes de tours personalizados
       </p>
     </div>
@@ -273,7 +273,7 @@ const { formatCurrency } = useCurrency()
         name="i-lucide-alert-circle"
         class="w-12 h-12 text-error mx-auto mb-4"
       />
-      <p class="text-neutral-600 dark:text-neutral-400">
+      <p class="text-muted">
         Error al cargar las solicitudes
       </p>
       <UButton
@@ -290,7 +290,7 @@ const { formatCurrency } = useCurrency()
     <div v-else>
       <!-- Filters -->
       <div
-        class="bg-white dark:bg-neutral-800 rounded-lg p-4 mb-6 border border-neutral-200 dark:border-neutral-700"
+        class="bg-elevated rounded-lg p-4 mb-6 border border-default"
       >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <UInput
@@ -313,85 +313,81 @@ const { formatCurrency } = useCurrency()
 
       <!-- Requests Table -->
       <div
-        class="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden"
+        class="bg-elevated rounded-lg border border-default overflow-hidden"
       >
         <div class="overflow-x-auto">
-          <table
-            class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700"
-          >
-            <thead class="bg-neutral-50 dark:bg-neutral-800">
+          <table class="min-w-full divide-y divide-default">
+            <thead class="bg-elevated">
               <tr>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                  class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Cliente
                 </th>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                  class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Tipo de Tour
                 </th>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                  class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Fecha Solicitada
                 </th>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                  class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Participantes
                 </th>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                  class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Estado
                 </th>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                  class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Cotización
                 </th>
                 <th
-                  class="px-4 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider"
+                  class="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider"
                 >
                   Acciones
                 </th>
               </tr>
             </thead>
-            <tbody
-              class="bg-white dark:bg-neutral-800 divide-y divide-neutral-200 dark:divide-neutral-700"
-            >
+            <tbody class="bg-elevated divide-y divide-default">
               <tr
                 v-for="request in filteredRequests"
                 :key="request.id"
-                class="hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+                 class="transition-colors hover:bg-muted"
               >
                 <td class="px-4 py-3 whitespace-nowrap">
                   <div>
-                    <div
-                      class="text-sm font-medium text-neutral-900 dark:text-white"
+                     <div
+                       class="text-sm font-medium text-default"
                     >
                       {{ request.customerName }}
                     </div>
-                    <div class="text-sm text-neutral-500 dark:text-neutral-400">
+                     <div class="text-sm text-muted">
                       {{ request.customerEmail }}
                     </div>
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
-                  <div class="text-sm text-neutral-600 dark:text-neutral-400">
+                  <div class="text-sm text-default">
                     {{ request.requestedTourType }}
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
-                  <div class="text-sm text-neutral-600 dark:text-neutral-400">
+                  <div class="text-sm text-default">
                     {{ formatDateTime(request.requestedDatetime) }}
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
-                  <div class="text-sm text-neutral-600 dark:text-neutral-400">
-                    {{ request.numAdults }} adultos,
-                    {{ request.numChildren }} niños
+                   <div class="text-sm text-default">
+                     {{ request.numAdults }} adultos,
+                     {{ request.numChildren }} niños
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
@@ -404,12 +400,12 @@ const { formatCurrency } = useCurrency()
                   </UBadge>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
-                  <div class="text-sm text-neutral-600 dark:text-neutral-400">
-                    {{
-                      request.quotedPrice
-                        ? formatCurrency(request.quotedPrice)
-                        : "-"
-                    }}
+                   <div class="text-sm text-default">
+                     {{
+                       request.quotedPrice
+                         ? formatCurrency(request.quotedPrice)
+                         : "-"
+                     }}
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
@@ -433,9 +429,9 @@ const { formatCurrency } = useCurrency()
                 >
                   <UIcon
                     name="i-lucide-inbox"
-                    class="w-12 h-12 text-neutral-400 mx-auto mb-4"
+                    class="w-12 h-12 text-muted mx-auto mb-4"
                   />
-                  <p class="text-neutral-600 dark:text-neutral-400">
+                  <p class="text-muted">
                     No se encontraron solicitudes
                   </p>
                 </td>
@@ -455,9 +451,9 @@ const { formatCurrency } = useCurrency()
         >
           <!-- Header -->
           <div
-            class="flex justify-between items-center pb-4 border-b border-neutral-200 dark:border-neutral-700"
+            class="flex justify-between items-center pb-4 border-b border-default"
           >
-            <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">
+             <h3 class="text-xl font-semibold text-default">
               Detalles de Solicitud
             </h3>
             <UButton
@@ -474,29 +470,29 @@ const { formatCurrency } = useCurrency()
             <!-- Customer Info -->
             <div>
               <h4
-                class="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                class="text-sm font-medium text-default mb-2"
               >
                 Información del Cliente
               </h4>
               <div
-                class="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-3 space-y-2"
+                class="bg-elevated rounded-lg p-3 space-y-2"
               >
                 <div class="flex justify-between">
-                  <span class="text-sm text-neutral-600 dark:text-neutral-400">Nombre:</span>
+                  <span class="text-sm text-muted">Nombre:</span>
                   <span
-                    class="text-sm font-medium text-neutral-900 dark:text-white"
+                    class="text-sm font-medium text-default"
                   >{{ selectedRequest.customerName }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-neutral-600 dark:text-neutral-400">Email:</span>
+                  <span class="text-sm text-muted">Email:</span>
                   <span
-                    class="text-sm font-medium text-neutral-900 dark:text-white"
+                    class="text-sm font-medium text-default"
                   >{{ selectedRequest.customerEmail }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-neutral-600 dark:text-neutral-400">Teléfono:</span>
+                  <span class="text-sm text-muted">Teléfono:</span>
                   <span
-                    class="text-sm font-medium text-neutral-900 dark:text-white"
+                    class="text-sm font-medium text-default"
                   >{{ selectedRequest.customerPhone }}</span>
                 </div>
               </div>
@@ -505,37 +501,37 @@ const { formatCurrency } = useCurrency()
             <!-- Tour Info -->
             <div>
               <h4
-                class="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                class="text-sm font-medium text-default mb-2"
               >
                 Información del Tour
               </h4>
               <div
-                class="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-3 space-y-2"
+                class="bg-elevated rounded-lg p-3 space-y-2"
               >
                 <div class="flex justify-between">
-                  <span class="text-sm text-neutral-600 dark:text-neutral-400">Tipo:</span>
+                  <span class="text-sm text-muted">Tipo:</span>
                   <span
-                    class="text-sm font-medium text-neutral-900 dark:text-white"
+                    class="text-sm font-medium text-default"
                   >{{ selectedRequest.requestedTourType }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-neutral-600 dark:text-neutral-400">Fecha:</span>
+                  <span class="text-sm text-muted">Fecha:</span>
                   <span
-                    class="text-sm font-medium text-neutral-900 dark:text-white"
+                    class="text-sm font-medium text-default"
                   >{{
                     formatDateTime(selectedRequest.requestedDatetime)
                   }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-neutral-600 dark:text-neutral-400">Adultos:</span>
+                  <span class="text-sm text-muted">Adultos:</span>
                   <span
-                    class="text-sm font-medium text-neutral-900 dark:text-white"
+                    class="text-sm font-medium text-default"
                   >{{ selectedRequest.numAdults }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-neutral-600 dark:text-neutral-400">Niños:</span>
+                  <span class="text-sm text-muted">Niños:</span>
                   <span
-                    class="text-sm font-medium text-neutral-900 dark:text-white"
+                    class="text-sm font-medium text-default"
                   >{{ selectedRequest.numChildren }}</span>
                 </div>
               </div>
@@ -544,12 +540,12 @@ const { formatCurrency } = useCurrency()
             <!-- Special Requests -->
             <div v-if="selectedRequest.specialRequests">
               <h4
-                class="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                class="text-sm font-medium text-default mb-2"
               >
                 Requisitos Especiales
               </h4>
-              <div class="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-3">
-                <p class="text-sm text-neutral-900 dark:text-white">
+              <div class="bg-elevated rounded-lg p-3">
+                <p class="text-sm text-default">
                   {{ selectedRequest.specialRequests }}
                 </p>
               </div>
@@ -558,7 +554,7 @@ const { formatCurrency } = useCurrency()
             <!-- Status Update Form -->
             <div>
               <h4
-                class="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                class="text-sm font-medium text-default mb-2"
               >
                 Actualizar Estado
               </h4>
@@ -584,7 +580,7 @@ const { formatCurrency } = useCurrency()
 
           <!-- Footer -->
           <div
-            class="flex justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-700"
+            class="flex justify-end gap-3 pt-4 border-t border-default"
           >
             <UButton
               color="neutral"

@@ -151,13 +151,13 @@ function getMoonEmoji(phaseName: string): string {
 // Get tour color
 function getTourColor(tourId: string): string {
   const colors = [
-    '#10b981', // green
-    '#3b82f6', // blue
-    '#f59e0b', // amber
-    '#ef4444', // red
-    '#8b5cf6', // purple
-    '#ec4899', // pink
-    '#14b8a6' // teal
+    'var(--color-atacama-copper-500)',
+    'var(--color-atacama-sky-500)',
+    'var(--color-atacama-dorado-500)',
+    'var(--color-atacama-copper-700)',
+    'var(--color-atacama-shadow-500)',
+    'var(--color-atacama-lagoon-500)',
+    'var(--color-atacama-oxide-500)'
   ]
 
   const index = props.tours.findIndex(t => t.id === tourId)
@@ -185,7 +185,7 @@ const calendarEvents = computed(() => {
       allDay: false,
       backgroundColor: getTourColor(schedule.tour?.id),
       borderColor: getTourColor(schedule.tour?.id),
-      textColor: '#ffffff',
+      textColor: 'var(--color-atacama-oxide-50)',
       extendedProps: {
         type: 'schedule',
         schedule: schedule,
@@ -205,8 +205,9 @@ const calendarEvents = computed(() => {
       start: lunar.date,
       allDay: true,
       display: 'background',
-      backgroundColor: 'transparent',
-      textColor: '#6b7280',
+       backgroundColor: 'transparent',
+       textColor: 'var(--color-atacama-shadow-500)',
+
       extendedProps: {
         type: 'lunar',
         phase: lunar.phaseName,
@@ -232,8 +233,9 @@ const calendarEvents = computed(() => {
         start: weather.date,
         allDay: true,
         display: 'background',
-        backgroundColor: 'transparent',
-        textColor: '#ef4444',
+         backgroundColor: 'transparent',
+         textColor: 'var(--color-atacama-copper-700)',
+
         extendedProps: {
           type: 'weather',
           wind: weather.maxWindKph,
@@ -430,24 +432,20 @@ defineExpose({
 <style>
 /* FullCalendar custom styles */
 .tour-calendar-container .fc {
-  --fc-border-color: rgb(229 231 235);
-  --fc-button-bg-color: rgb(14 165 233);
-  --fc-button-border-color: rgb(14 165 233);
-  --fc-button-hover-bg-color: rgb(2 132 199);
-  --fc-button-hover-border-color: rgb(2 132 199);
-  --fc-button-active-bg-color: rgb(3 105 161);
-  --fc-button-active-border-color: rgb(3 105 161);
-  --fc-today-bg-color: rgb(224 242 254);
+  --fc-border-color: var(--ui-border-muted);
+  --fc-button-bg-color: var(--ui-primary);
+  --fc-button-border-color: var(--ui-primary);
+  --fc-button-hover-bg-color: color-mix(in srgb, var(--ui-primary) 85%, var(--ui-bg) 15%);
+  --fc-button-hover-border-color: var(--ui-primary);
+  --fc-button-active-bg-color: color-mix(in srgb, var(--ui-primary) 70%, var(--ui-bg) 30%);
+  --fc-button-active-border-color: var(--ui-primary);
+  --fc-today-bg-color: var(--ui-bg-muted);
 }
 
-.dark .tour-calendar-container .fc {
-  --fc-border-color: rgb(64 64 64);
-  --fc-today-bg-color: rgb(23 37 84);
-}
 
 /* Header background (toolbar with prev/next/today buttons) */
 .tour-calendar-container .fc .fc-toolbar {
-  background-color: rgb(14 165 233);
+  background-color: var(--ui-primary);
   padding: 1rem;
   border-radius: 0.5rem 0.5rem 0 0;
   margin-bottom: 0;
@@ -463,9 +461,6 @@ defineExpose({
   text-align: center;
 }
 
-.dark .tour-calendar-container .fc .fc-toolbar {
-  background-color: rgb(3 105 161);
-}
 
 /* Header text color (title and buttons) */
 .tour-calendar-container .fc .fc-toolbar-title,
@@ -487,15 +482,11 @@ defineExpose({
 
 /* Day names header (lun, mar, mié, etc.) */
 .tour-calendar-container .fc .fc-col-header-cell {
-  background-color: rgb(14 165 233);
-  border-color: rgb(2 132 199);
+  background-color: var(--ui-primary);
+  border-color: var(--ui-primary);
   padding: 0.75rem 0.5rem;
 }
 
-.dark .tour-calendar-container .fc .fc-col-header-cell {
-  background-color: rgb(3 105 161);
-  border-color: rgb(7 89 133);
-}
 
 .tour-calendar-container .fc .fc-col-header-cell-cushion {
   color: white !important;
@@ -505,23 +496,17 @@ defineExpose({
 
 /* Day cells */
 .tour-calendar-container .fc .fc-daygrid-day {
-  background-color: white;
+  background-color: var(--ui-bg);
 }
 
-.dark .tour-calendar-container .fc .fc-daygrid-day {
-  background-color: rgb(38 38 38);
-}
 
 /* Day numbers */
 .tour-calendar-container .fc .fc-daygrid-day-number {
-  color: rgb(64 64 64);
+  color: var(--ui-text);
   padding: 0.5rem;
   font-weight: 500;
 }
 
-.dark .tour-calendar-container .fc .fc-daygrid-day-number {
-  color: rgb(212 212 212);
-}
 
 /* Events */
 .tour-calendar-container .fc .fc-event {

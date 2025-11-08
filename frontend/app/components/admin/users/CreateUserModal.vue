@@ -84,12 +84,12 @@ async function handleSubmit() {
     <template #content>
       <div class="p-6">
         <!-- Header -->
-        <div class="flex justify-between items-start pb-4 border-b border-neutral-200 dark:border-neutral-700">
+        <div class="flex justify-between items-start pb-4 border-b border-default">
           <div>
-            <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">
+            <h3 class="text-xl font-semibold text-default">
               Crear Usuario
             </h3>
-            <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+            <p class="text-sm text-muted mt-1">
               Completa los datos del nuevo usuario
             </p>
           </div>
@@ -193,7 +193,7 @@ async function handleSubmit() {
         </UForm>
 
         <!-- Footer -->
-        <div class="flex justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-700">
+        <div class="flex justify-end gap-3 pt-4 border-t border-default">
           <UButton
             label="Cancelar"
             color="neutral"

@@ -193,17 +193,17 @@ function formatDateTime(dateString: string, timeString: string): string {
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-800">
+  <div class="min-h-screen bg-default">
     <div
-      class="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-800"
+       class="border-b border-default bg-elevated"
     >
       <div class="px-6 py-4">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">
+             <h1 class="text-2xl font-bold text-default">
               Gestión de Reservas
             </h1>
-            <p class="text-neutral-600 dark:text-neutral-400 mt-1">
+             <p class="text-default text-sm mt-1">
               Administra todas las reservas confirmadas del sistema
             </p>
           </div>
@@ -239,7 +239,7 @@ function formatDateTime(dateString: string, timeString: string): string {
 
     <div class="p-6">
       <div
-        class="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 overflow-hidden"
+        class="bg-elevated rounded-lg shadow-sm border border-default overflow-hidden"
       >
         <UTable
           :data="participantRows"
@@ -253,7 +253,7 @@ function formatDateTime(dateString: string, timeString: string): string {
           }"
           :ui="{
             root: 'min-w-full',
-            td: 'empty:p-0'
+            td: 'p-4 text-sm text-default whitespace-nowrap empty:p-0 [&:has([role=checkbox])]:pe-0'
           }"
         >
           <template #title-cell="{ row }">
@@ -272,10 +272,10 @@ function formatDateTime(dateString: string, timeString: string): string {
 
               <!-- Schedule Group -->
               <div class="flex flex-col">
-                <strong class="text-neutral-900 dark:text-white">
+                <strong class="text-default">
                   {{ row.original.tourName }}
                 </strong>
-                <span class="text-sm text-neutral-600 dark:text-neutral-400">
+                 <span class="text-sm text-default">
                   {{
                     formatDateTime(
                       row.original.tourDate,
@@ -288,19 +288,19 @@ function formatDateTime(dateString: string, timeString: string): string {
           </template>
 
           <template #participantName-data="{ row }">
-            <span class="font-medium text-neutral-900 dark:text-white">
+             <span class="font-medium text-default">
               {{ row.getValue("participantName") }}
             </span>
           </template>
 
-          <template #documentId-data="{ row }">
-            <span class="text-sm text-neutral-600 dark:text-neutral-400">
+           <template #documentId-data="{ row }">
+            <span class="text-sm text-default">
               {{ row.getValue("documentId") || "-" }}
             </span>
           </template>
 
-          <template #age-data="{ row }">
-            <span class="text-sm text-neutral-600 dark:text-neutral-400">
+           <template #age-data="{ row }">
+            <span class="text-sm text-default">
               {{ row.getValue("age") || "-" }}
             </span>
           </template>
@@ -310,9 +310,9 @@ function formatDateTime(dateString: string, timeString: string): string {
               <UIcon
                 v-if="row.getValue('pickupAddress')"
                 name="i-lucide-map-pin"
-                class="w-4 h-4 text-neutral-500 dark:text-neutral-400 mt-0.5"
+                 class="w-4 h-4 text-muted mt-0.5"
               />
-              <span class="text-sm text-neutral-600 dark:text-neutral-400">
+               <span class="text-sm text-default">
                 {{ row.getValue("pickupAddress") || "-" }}
               </span>
             </div>
@@ -326,7 +326,7 @@ function formatDateTime(dateString: string, timeString: string): string {
               >
                 <UIcon
                   name="i-lucide-phone"
-                  class="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400"
+                   class="w-3.5 h-3.5 text-muted"
                 />
                 <span class="text-sm text-neutral-900 dark:text-white">
                   {{ row.original.participantPhone || row.original.bookingUserPhone }}
@@ -345,7 +345,7 @@ function formatDateTime(dateString: string, timeString: string): string {
               >
                 <UIcon
                   name="i-lucide-mail"
-                  class="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400"
+                   class="w-3.5 h-3.5 text-muted"
                 />
                 <span class="text-xs text-neutral-600 dark:text-neutral-400">
                   {{ row.original.participantEmail }}
@@ -354,7 +354,7 @@ function formatDateTime(dateString: string, timeString: string): string {
 
               <span
                 v-if="!row.original.participantPhone && !row.original.bookingUserPhone && !row.original.participantEmail"
-                class="text-sm text-neutral-600 dark:text-neutral-400"
+                 class="text-sm text-default"
               >
                 Sin información de contacto
               </span>

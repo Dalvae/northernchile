@@ -161,17 +161,17 @@ function getRoleBadgeColor(role: string): string {
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-800">
+  <div class="min-h-screen bg-default">
     <div
-      class="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-800"
+      class="border-b border-default bg-elevated"
     >
       <div class="px-6 py-4">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">
+             <h1 class="text-2xl font-bold text-default">
               Gestión de Usuarios
             </h1>
-            <p class="text-neutral-600 dark:text-neutral-400 mt-1">
+             <p class="text-default text-sm mt-1">
               Administra todos los usuarios del sistema
             </p>
           </div>
@@ -198,7 +198,7 @@ function getRoleBadgeColor(role: string): string {
 
     <div class="p-6">
       <div
-        class="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 overflow-hidden"
+        class="bg-elevated rounded-lg shadow-sm border border-default overflow-hidden"
       >
         <UTable
           :data="filteredRows"
@@ -207,6 +207,9 @@ function getRoleBadgeColor(role: string): string {
           :empty-state="{
             icon: 'i-lucide-users',
             label: 'No hay usuarios registrados.'
+          }"
+          :ui="{
+            td: 'p-4 text-sm text-default whitespace-nowrap [&:has([role=checkbox])]:pe-0'
           }"
         >
           <template #email-data="{ row }">
@@ -237,7 +240,7 @@ function getRoleBadgeColor(role: string): string {
           </template>
 
           <template #createdAt-data="{ row }">
-            <span class="text-sm text-neutral-600 dark:text-neutral-400">
+             <span class="text-sm text-default">
               {{ formatDate(row.getValue("createdAt")) }}
             </span>
           </template>

@@ -1,6 +1,6 @@
 <template>
   <header
-    class="sticky top-0 z-50 bg-neutral-80 backdrop-blur-sm border-b border-neutral"
+    class="sticky top-0 z-50 bg-gradient-to-b from-bg-elevated/90 to-bg-default/95 backdrop-blur-sm border-b border-default"
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
@@ -39,6 +39,11 @@
           <!-- Language Switcher -->
           <LanguageSwitcher />
 
+          <!-- Theme Switcher -->
+          <ClientOnly>
+            <ThemeSwitcher />
+          </ClientOnly>
+
           <!-- Cart Button -->
           <UButton
             :to="localePath('/cart')"
@@ -60,13 +65,13 @@
           <!-- Auth Actions -->
           <ClientOnly>
             <template v-if="!authStore.isAuthenticated">
-              <UButton
-                :to="localePath('/auth')"
-                variant="ghost"
-                color="neutral"
-                icon="i-lucide-log-in"
-                class="hidden sm:flex"
-              >
+                    <UButton
+                      :to="localePath('/auth')"
+                      variant="ghost"
+                      color="neutral"
+                      icon="i-lucide-log-in"
+                      class="hidden sm:flex"
+                    >
                 {{ t("nav.login") }}
               </UButton>
             </template>
@@ -82,11 +87,11 @@
                 >
                   <div class="flex items-center gap-1">
                     <div
-                      class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center"
+                       class="w-8 h-8 rounded-full bg-accented/10 flex items-center justify-center"
                     >
                       <UIcon
                         name="i-lucide-user"
-                        class="w-4 h-4 text-primary-600 dark:text-primary-400"
+                         class="w-4 h-4 text-primary"
                       />
                     </div>
                     <UIcon
@@ -120,7 +125,7 @@
         <div class="p-6 space-y-6">
           <!-- Close Button -->
           <div
-            class="flex justify-between items-center pb-4 border-b border-neutral-200 dark:border-neutral-700"
+             class="flex justify-between items-center pb-4 border-b border-default"
           >
             <h2
               class="text-lg font-semibold text-neutral-900 dark:text-neutral-50"
@@ -153,7 +158,7 @@
 
           <!-- Auth Actions -->
           <div
-            class="space-y-2 pt-4 border-t border-neutral-200 dark:border-neutral-700"
+             class="space-y-2 pt-4 border-t border-default"
           >
             <ClientOnly>
               <template v-if="!authStore.isAuthenticated">
@@ -174,11 +179,11 @@
                   class="p-3 bg-neutral-100 dark:bg-neutral-800/50 rounded-lg mb-4"
                 >
                   <p
-                    class="text-sm font-medium text-neutral-900 dark:text-neutral-50"
+                     class="text-sm font-medium text-default"
                   >
                     {{ authStore.user?.fullName }}
                   </p>
-                  <p class="text-xs text-neutral-500 dark:text-neutral-300">
+                   <p class="text-xs text-muted">
                     {{ authStore.user?.email }}
                   </p>
                 </div>

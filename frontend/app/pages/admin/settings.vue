@@ -113,10 +113,10 @@ const resetSettings = () => {
   <div class="p-6">
     <!-- Header -->
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">
+       <h1 class="text-2xl font-bold text-default">
         Configuración del Sistema
       </h1>
-      <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+       <p class="text-sm text-muted mt-1">
         Ajusta los parámetros operacionales del sistema
       </p>
     </div>
@@ -141,7 +141,7 @@ const resetSettings = () => {
         name="i-lucide-alert-circle"
         class="w-12 h-12 text-error mx-auto mb-4"
       />
-      <p class="text-neutral-600 dark:text-neutral-400">
+       <p class="text-default">
         Error al cargar las configuraciones
       </p>
       <UButton
@@ -160,19 +160,19 @@ const resetSettings = () => {
       class="space-y-6"
     >
       <!-- Weather Alerts -->
-      <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 border border-neutral-200 dark:border-neutral-700">
+       <div class="bg-elevated rounded-lg p-6 border border-default">
         <div class="flex items-center gap-3 mb-4">
           <UIcon
             name="i-lucide-cloud"
             class="w-5 h-5 text-info"
           />
-          <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
+           <h3 class="text-lg font-semibold text-default">
             Alertas Climáticas
           </h3>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+             <label class="block text-sm font-medium text-default mb-2">
               Umbral de Viento (nudos)
             </label>
             <UInput
@@ -180,12 +180,12 @@ const resetSettings = () => {
               type="number"
               size="lg"
             />
-            <p class="text-xs text-neutral-500 mt-1">
+             <p class="text-xs text-muted mt-1">
               Se genera alerta si el viento supera este valor
             </p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+             <label class="block text-sm font-medium text-default mb-2">
               Umbral de Cobertura Nubosa (%)
             </label>
             <UInput
@@ -193,12 +193,12 @@ const resetSettings = () => {
               type="number"
               size="lg"
             />
-            <p class="text-xs text-neutral-500 mt-1">
+             <p class="text-xs text-muted mt-1">
               Se genera alerta si las nubes superan este porcentaje
             </p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+             <label class="block text-sm font-medium text-default mb-2">
               Umbral de Probabilidad de Lluvia (%)
             </label>
             <UInput
@@ -208,7 +208,7 @@ const resetSettings = () => {
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+             <label class="block text-sm font-medium text-default mb-2">
               Frecuencia de Verificación (horas)
             </label>
             <UInput
@@ -221,19 +221,19 @@ const resetSettings = () => {
       </div>
 
       <!-- Booking Settings -->
-      <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 border border-neutral-200 dark:border-neutral-700">
+       <div class="bg-elevated rounded-lg p-6 border border-default">
         <div class="flex items-center gap-3 mb-4">
           <UIcon
             name="i-lucide-book-marked"
             class="w-5 h-5 text-primary"
           />
-          <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
+           <h3 class="text-lg font-semibold text-default">
             Configuración de Reservas
           </h3>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+             <label class="block text-sm font-medium text-default mb-2">
               Ventana de Cancelación (horas)
             </label>
             <UInput
@@ -241,12 +241,12 @@ const resetSettings = () => {
               type="number"
               size="lg"
             />
-            <p class="text-xs text-neutral-500 mt-1">
+             <p class="text-xs text-muted mt-1">
               Horas antes del tour para permitir cancelación
             </p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+             <label class="block text-sm font-medium text-default mb-2">
               Reserva Máxima Adelantada (días)
             </label>
             <UInput
@@ -256,7 +256,7 @@ const resetSettings = () => {
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+             <label class="block text-sm font-medium text-default mb-2">
               Anticipación Mínima (horas)
             </label>
             <UInput
@@ -264,7 +264,7 @@ const resetSettings = () => {
               type="number"
               size="lg"
             />
-            <p class="text-xs text-neutral-500 mt-1">
+             <p class="text-xs text-muted mt-1">
               Horas mínimas de anticipación para reservar
             </p>
           </div>
@@ -278,19 +278,19 @@ const resetSettings = () => {
       </div>
 
       <!-- Astronomical Tours -->
-      <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 border border-neutral-200 dark:border-neutral-700">
+       <div class="bg-elevated rounded-lg p-6 border border-default">
         <div class="flex items-center gap-3 mb-4">
           <UIcon
             name="i-lucide-moon"
             class="w-5 h-5 text-tertiary"
           />
-          <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
+           <h3 class="text-lg font-semibold text-default">
             Tours Astronómicos
           </h3>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+             <label class="block text-sm font-medium text-default mb-2">
               Umbral de Iluminación Lunar (%)
             </label>
             <UInput
@@ -298,12 +298,12 @@ const resetSettings = () => {
               type="number"
               size="lg"
             />
-            <p class="text-xs text-neutral-500 mt-1">
+             <p class="text-xs text-muted mt-1">
               No se crean tours astronómicos si supera este valor
             </p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+             <label class="block text-sm font-medium text-default mb-2">
               Días de Generación Adelantada
             </label>
             <UInput
@@ -322,13 +322,13 @@ const resetSettings = () => {
       </div>
 
       <!-- Notifications -->
-      <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 border border-neutral-200 dark:border-neutral-700">
+       <div class="bg-elevated rounded-lg p-6 border border-default">
         <div class="flex items-center gap-3 mb-4">
           <UIcon
             name="i-lucide-bell"
             class="w-5 h-5 text-warning"
           />
-          <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
+           <h3 class="text-lg font-semibold text-default">
             Notificaciones
           </h3>
         </div>
@@ -367,13 +367,13 @@ const resetSettings = () => {
       </div>
 
       <!-- Payments -->
-      <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 border border-neutral-200 dark:border-neutral-700">
+       <div class="bg-elevated rounded-lg p-6 border border-default">
         <div class="flex items-center gap-3 mb-4">
           <UIcon
             name="i-lucide-credit-card"
             class="w-5 h-5 text-success"
           />
-          <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
+           <h3 class="text-lg font-semibold text-default">
             Pagos
           </h3>
         </div>
@@ -385,7 +385,7 @@ const resetSettings = () => {
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+             <label class="block text-sm font-medium text-default mb-2">
               Moneda
             </label>
             <UInput
@@ -395,7 +395,7 @@ const resetSettings = () => {
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+             <label class="block text-sm font-medium text-default mb-2">
               Tasa de Impuesto (%)
             </label>
             <UInput
@@ -403,12 +403,12 @@ const resetSettings = () => {
               type="number"
               size="lg"
             />
-            <p class="text-xs text-neutral-500 mt-1">
+             <p class="text-xs text-muted mt-1">
               IVA aplicado a todas las reservas
             </p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+             <label class="block text-sm font-medium text-default mb-2">
               Depósito Inicial (%)
             </label>
             <UInput
@@ -416,7 +416,7 @@ const resetSettings = () => {
               type="number"
               size="lg"
             />
-            <p class="text-xs text-neutral-500 mt-1">
+             <p class="text-xs text-muted mt-1">
               Porcentaje a pagar al momento de reservar (0 = pago completo)
             </p>
           </div>
@@ -454,7 +454,7 @@ const resetSettings = () => {
             <p class="text-sm font-medium text-warning mb-1">
               Nota de Implementación
             </p>
-            <p class="text-sm text-neutral-700 dark:text-neutral-300">
+            <p class="text-sm text-default">
               Esta es una interfaz básica de configuración. En producción, estos valores deberían persistirse en base de datos
               y aplicarse dinámicamente en el sistema. Actualmente, algunas configuraciones requieren reiniciar la aplicación
               para tener efecto completo.

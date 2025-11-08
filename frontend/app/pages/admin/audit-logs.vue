@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-800 py-6">
+  <div class="min-h-screen bg-default py-6">
     <UContainer>
       <!-- Header -->
       <div class="mb-6">
-        <h1 class="text-3xl font-bold text-neutral-900 dark:text-white">
+         <h1 class="text-3xl font-bold text-default">
           Registro de Auditoría
         </h1>
-        <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+         <p class="mt-1 text-sm text-muted">
           Historial completo de acciones administrativas
         </p>
       </div>
@@ -22,7 +22,7 @@
               />
             </div>
             <div>
-              <p class="text-sm text-neutral-600 dark:text-neutral-400">
+              <p class="text-sm text-muted">
                 Total
               </p>
               <p class="text-2xl font-bold text-neutral-900 dark:text-white">
@@ -41,7 +41,7 @@
               />
             </div>
             <div>
-              <p class="text-sm text-neutral-600 dark:text-neutral-400">
+              <p class="text-sm text-muted">
                 Creados
               </p>
               <p class="text-2xl font-bold text-neutral-900 dark:text-white">
@@ -60,7 +60,7 @@
               />
             </div>
             <div>
-              <p class="text-sm text-neutral-600 dark:text-neutral-400">
+              <p class="text-sm text-muted">
                 Actualizados
               </p>
               <p class="text-2xl font-bold text-neutral-900 dark:text-white">
@@ -79,7 +79,7 @@
               />
             </div>
             <div>
-              <p class="text-sm text-neutral-600 dark:text-neutral-400">
+              <p class="text-sm text-muted">
                 Eliminados
               </p>
               <p class="text-2xl font-bold text-neutral-900 dark:text-white">
@@ -91,11 +91,11 @@
       </div>
 
       <!-- Filters -->
-      <div class="bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-4 mb-6">
+       <div class="bg-elevated rounded-lg shadow-sm p-4 mb-6 border border-default">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label
-              class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+             <label
+              class="block mb-2 text-sm font-medium text-default"
             >
               Acción
             </label>
@@ -111,8 +111,8 @@
           </div>
 
           <div>
-            <label
-              class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+             <label
+              class="block mb-2 text-sm font-medium text-default"
             >
               Tipo de Entidad
             </label>
@@ -128,8 +128,8 @@
           </div>
 
           <div>
-            <label
-              class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+             <label
+              class="block mb-2 text-sm font-medium text-default"
             >
               Email Usuario
             </label>
@@ -156,18 +156,18 @@
         />
       </div>
 
-      <div
+       <div
         v-else-if="!auditLogs || auditLogs.length === 0"
-        class="text-center py-12 bg-white dark:bg-neutral-800 rounded-lg"
+        class="text-center py-12 bg-elevated rounded-lg border border-default"
       >
-        <UIcon
+         <UIcon
           name="i-lucide-file-search"
-          class="w-16 h-16 mx-auto text-neutral-400 mb-4"
+          class="w-16 h-16 mx-auto mb-4 text-muted"
         />
-        <h3 class="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+         <h3 class="mb-2 text-xl font-semibold text-default">
           No hay registros
         </h3>
-        <p class="text-neutral-600 dark:text-neutral-400">
+         <p class="text-muted">
           No se encontraron registros de auditoría con los filtros seleccionados
         </p>
       </div>
@@ -211,7 +211,7 @@
                       />
                     </div>
                     <h3
-                      class="text-lg font-semibold text-neutral-900 dark:text-white"
+                      class="text-lg font-semibold text-default"
                     >
                       {{
                         log.entityDescription
@@ -221,7 +221,7 @@
                   </div>
 
                   <div class="text-right flex-shrink-0">
-                    <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                    <p class="text-sm text-muted">
                       {{ formatDate(log.createdAt) }}
                     </p>
                     <p class="text-xs text-neutral-500 dark:text-neutral-500">
@@ -231,7 +231,7 @@
                 </div>
 
                 <div
-                  class="grid md:grid-cols-2 gap-2 text-sm text-neutral-600 dark:text-neutral-400 mb-3"
+                  class="grid md:grid-cols-2 gap-2 text-sm text-muted mb-3"
                 >
                   <div class="flex items-center gap-2">
                     <UIcon
@@ -261,11 +261,11 @@
                 <!-- Old/New Values -->
                 <div
                   v-if="log.oldValues || log.newValues"
-                  class="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700"
+                  class="mt-3 pt-3 border-t border-default"
                 >
                   <details class="group">
                     <summary
-                      class="cursor-pointer text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:text-primary transition-colors"
+                      class="cursor-pointer text-sm font-medium text-default hover:text-primary transition-colors"
                     >
                       Ver detalles
                       <UIcon
@@ -281,12 +281,12 @@
                         "
                       >
                         <p
-                          class="text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1"
+                          class="text-xs font-medium text-muted mb-1"
                         >
                           Valores Anteriores:
                         </p>
                         <pre
-                          class="text-xs bg-neutral-100 dark:bg-neutral-800 p-3 rounded overflow-x-auto"
+                          class="text-xs bg-muted p-3 rounded overflow-x-auto"
                         >{{ JSON.stringify(log.oldValues, null, 2) }}</pre>
                       </div>
 
@@ -296,12 +296,12 @@
                         "
                       >
                         <p
-                          class="text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1"
+                          class="text-xs font-medium text-muted mb-1"
                         >
                           Valores Nuevos:
                         </p>
                         <pre
-                          class="text-xs bg-neutral-100 dark:bg-neutral-800 p-3 rounded overflow-x-auto"
+                          class="text-xs bg-muted p-3 rounded overflow-x-auto"
                         >{{ JSON.stringify(log.newValues, null, 2) }}</pre>
                       </div>
                     </div>
@@ -314,9 +314,9 @@
 
         <!-- Pagination -->
         <div
-          class="flex items-center justify-between mt-6 bg-white dark:bg-neutral-800 rounded-lg p-4"
+          class="flex items-center justify-between mt-6 bg-elevated rounded-lg p-4 border border-default"
         >
-          <div class="text-sm text-neutral-600 dark:text-neutral-400">
+          <div class="text-sm text-muted">
             Mostrando {{ pagination.currentPage * pagination.pageSize + 1 }} -
             {{
               Math.min(
@@ -528,7 +528,7 @@ function getActionColorClass(action: string): string {
     DELETE: 'bg-error/10 text-error',
     RESTORE: 'bg-info/10 text-info'
   }
-  return classes[action] || 'bg-neutral/10 text-neutral'
+  return classes[action] || 'bg-muted text-default'
 }
 
 function getActionIcon(action: string): string {

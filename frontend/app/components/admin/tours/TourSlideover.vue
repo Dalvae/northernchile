@@ -189,8 +189,8 @@ const statusOptions = [
   >
     <template #content>
       <!-- Header con botón de cerrar personalizado -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
-        <h3 class="text-base font-semibold leading-6 text-neutral-900 dark:text-white">
+       <div class="flex items-center justify-between px-6 py-4 border-b border-default">
+         <h3 class="text-base font-semibold leading-6 text-default">
           {{ isEditing ? "Editar Tour" : "Crear Nuevo Tour" }}
         </h3>
         <UButton
@@ -203,7 +203,7 @@ const statusOptions = [
       </div>
 
       <!-- Body con el formulario -->
-      <div class="flex-1 overflow-y-auto px-6 py-4">
+       <div class="flex-1 overflow-y-auto px-6 py-4 bg-default">
         <UForm
           :schema="schema"
           :state="state"
@@ -269,7 +269,7 @@ const statusOptions = [
                   <img
                     :src="url"
                     :alt="`Tour image ${index + 1}`"
-                    class="w-full h-32 object-cover rounded-lg border border-neutral-700"
+                     class="w-full h-32 object-cover rounded-lg border border-default"
                   >
                   <UButton
                     icon="i-heroicons-x-mark"
@@ -337,7 +337,7 @@ const statusOptions = [
             />
           </UFormGroup>
 
-          <div class="flex justify-end gap-3 pt-4">
+          <div class="flex justify-end gap-3 pt-4 border-t border-default">
             <UButton
               label="Cancelar"
               color="neutral"

@@ -3,41 +3,11 @@
 @import "@nuxt/ui";
 @import "./theme.css";
 @import "./themes/atacama-nocturna.css";
-
-/* 2. Mapeo semántico para Nuxt UI - ATACAMA NOCTURNA OKLCH */
-.dark {
-  /* FONDO: Espacial profundo con valores OKLCH */
-  --ui-bg: oklch(0.15 0.02 260);
-
-  /* TARJETAS: Contraste armonioso */
-  --ui-bg-elevated: oklch(0.2 0.03 260);
-  --ui-bg-muted: oklch(0.18 0.025 260);
-
-  /* BORDES: Óxido mineral OKLCH */
-  --ui-border: oklch(0.43 0.14 45);
-  --ui-border-muted: oklch(0.35 0.12 45);
-  --ui-border-accented: oklch(0.5 0.16 55);
-
-  /* COLORES SEMÁNTICOS: Tierra-cielo atacameño OKLCH corregido */
-  --ui-primary: #b56b45; /* Cobre rojizo medio (NO amarillo) */
-  --ui-primary-hover: oklch(0.6 0.14 38); /* Cobre vivo desértico */
-  --ui-primary-active: oklch(0.48 0.1 30); /* Cobre oscuro mineral */
-  --ui-secondary: oklch(0.55 0.11 247); /* Azul cielo intenso */
-  --ui-tertiary: oklch(0.6 0.06 230); /* Azul laguna */
-  --ui-accent: oklch(0.74 0.14 70); /* Dorado desértico */
-  --ui-success: oklch(0.74 0.14 70); /* Dorado para éxito */
-  --ui-info: oklch(0.55 0.11 247); /* Azul cielo */
-  --ui-warning: oklch(0.74 0.14 70); /* Dorado desértico */
-  --ui-error: oklch(0.52 0.11 28); /* Cobre oxidado para error */
-
-  /* TEXTOS: Tonos espaciales OKLCH */
-  --ui-text: oklch(0.9 0.02 260);
-  --ui-text-highlighted: oklch(0.95 0.01 260);
-  --ui-text-toned: oklch(0.8 0.03 260);
-  --ui-text-muted: oklch(0.65 0.04 260);
-  --ui-text-dimmed: oklch(0.5 0.05 330);
-  --ui-text-inverted: oklch(0.15 0.02 260);
-}
+@import "./themes/atacama-cobre-lunar.css";
+@import "./themes/aurora.css";
+@import "./themes/atacama.css";
+@import "./themes/cosmic.css";
+@import "./themes/atacama-cosmic-desert.css";
 
 /* 3. Configuración global */
 :root {
@@ -45,11 +15,7 @@
 }
 
 body {
-  background: linear-gradient(
-    135deg,
-    oklch(0.15 0.02 260) 0%,
-    oklch(0.2 0.03 260) 100%
-  );
+  @apply antialiased text-default bg-default;
   min-height: 100vh;
 }
 

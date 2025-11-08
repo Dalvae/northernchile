@@ -1,5 +1,9 @@
- @theme {
-  /* Paleta Cobre (Acento) en Oklch */
+/* ===================================
+   Tema Atacama Classic - Northern Chile
+   =================================== */
+
+@theme {
+  /* Cobre */
   --color-copper-50: oklch(95% 0.03 70);
   --color-copper-100: oklch(90% 0.06 70);
   --color-copper-200: oklch(85% 0.09 70);
@@ -12,7 +16,7 @@
   --color-copper-900: oklch(50% 0.06 65);
   --color-copper-950: oklch(45% 0.03 65);
 
-  /* Paleta Sand (Primario) en Oklch */
+  /* Sand */
   --color-sand-50: oklch(97.2% 0.024 93);
   --color-sand-100: oklch(94.5% 0.032 93);
   --color-sand-200: oklch(88.8% 0.048 93);
@@ -25,7 +29,7 @@
   --color-sand-900: oklch(41.6% 0.06 88);
   --color-sand-950: oklch(29.8% 0.045 88);
 
-  /* Paleta Earth (Gris/Neutral) en Oklch */
+  /* Earth */
   --color-earth-50: oklch(95.8% 0.012 90);
   --color-earth-100: oklch(89.5% 0.019 90);
   --color-earth-200: oklch(83.3% 0.026 90);
@@ -36,9 +40,9 @@
   --color-earth-700: oklch(49.2% 0.038 90);
   --color-earth-800: oklch(41.0% 0.032 90);
   --color-earth-900: oklch(32.8% 0.026 90);
-  --color-earth-950: oklch(20% 0.015 90); /* Más oscuro para fondos */
+  --color-earth-950: oklch(20% 0.015 90);
 
-  /* Paleta Celeste (Secundario) en Oklch */
+  /* Celeste */
   --color-celeste-50: oklch(96.9% 0.02 230);
   --color-celeste-100: oklch(94.2% 0.04 230);
   --color-celeste-200: oklch(88.6% 0.08 230);
@@ -50,8 +54,111 @@
   --color-celeste-800: oklch(46.5% 0.11 245);
   --color-celeste-900: oklch(37.8% 0.08 250);
   --color-celeste-950: oklch(29% 0.05 255);
+}
 
-  /* Fuentes personalizadas */
-  --font-display: 'Playfair Display', serif;
-  --font-body: 'Inter', sans-serif;
+/* Mapeo de colores semánticos de Nuxt UI */
+.atacama-classic {
+  /* Primary = copper */
+  --ui-color-primary-50: var(--color-copper-50);
+  --ui-color-primary-100: var(--color-copper-100);
+  --ui-color-primary-200: var(--color-copper-200);
+  --ui-color-primary-300: var(--color-copper-300);
+  --ui-color-primary-400: var(--color-copper-400);
+  --ui-color-primary-500: var(--color-copper-500);
+  --ui-color-primary-600: var(--color-copper-600);
+  --ui-color-primary-700: var(--color-copper-700);
+  --ui-color-primary-800: var(--color-copper-800);
+  --ui-color-primary-900: var(--color-copper-900);
+  --ui-color-primary-950: var(--color-copper-950);
+
+  /* Secondary = sand */
+  --ui-color-secondary-50: var(--color-sand-50);
+  --ui-color-secondary-100: var(--color-sand-100);
+  --ui-color-secondary-200: var(--color-sand-200);
+  --ui-color-secondary-300: var(--color-sand-300);
+  --ui-color-secondary-400: var(--color-sand-400);
+  --ui-color-secondary-500: var(--color-sand-500);
+  --ui-color-secondary-600: var(--color-sand-600);
+  --ui-color-secondary-700: var(--color-sand-700);
+  --ui-color-secondary-800: var(--color-sand-800);
+  --ui-color-secondary-900: var(--color-sand-900);
+  --ui-color-secondary-950: var(--color-sand-950);
+
+  /* Tertiary = celeste */
+  --ui-color-tertiary-50: var(--color-celeste-50);
+  --ui-color-tertiary-100: var(--color-celeste-100);
+  --ui-color-tertiary-200: var(--color-celeste-200);
+  --ui-color-tertiary-300: var(--color-celeste-300);
+  --ui-color-tertiary-400: var(--color-celeste-400);
+  --ui-color-tertiary-500: var(--color-celeste-500);
+  --ui-color-tertiary-600: var(--color-celeste-600);
+  --ui-color-tertiary-700: var(--color-celeste-700);
+  --ui-color-tertiary-800: var(--color-celeste-800);
+  --ui-color-tertiary-900: var(--color-celeste-900);
+  --ui-color-tertiary-950: var(--color-celeste-950);
+
+  /* Neutral = earth */
+  --ui-color-neutral-50: var(--color-earth-50);
+  --ui-color-neutral-100: var(--color-earth-100);
+  --ui-color-neutral-200: var(--color-earth-200);
+  --ui-color-neutral-300: var(--color-earth-300);
+  --ui-color-neutral-400: var(--color-earth-400);
+  --ui-color-neutral-500: var(--color-earth-500);
+  --ui-color-neutral-600: var(--color-earth-600);
+  --ui-color-neutral-700: var(--color-earth-700);
+  --ui-color-neutral-800: var(--color-earth-800);
+  --ui-color-neutral-900: var(--color-earth-900);
+  --ui-color-neutral-950: var(--color-earth-950);
+
+  /* Success = celeste */
+  --ui-color-success-50: var(--color-celeste-50);
+  --ui-color-success-100: var(--color-celeste-100);
+  --ui-color-success-200: var(--color-celeste-200);
+  --ui-color-success-300: var(--color-celeste-300);
+  --ui-color-success-400: var(--color-celeste-400);
+  --ui-color-success-500: var(--color-celeste-500);
+  --ui-color-success-600: var(--color-celeste-600);
+  --ui-color-success-700: var(--color-celeste-700);
+  --ui-color-success-800: var(--color-celeste-800);
+  --ui-color-success-900: var(--color-celeste-900);
+  --ui-color-success-950: var(--color-celeste-950);
+
+  /* Info = celeste */
+  --ui-color-info-50: var(--color-celeste-50);
+  --ui-color-info-100: var(--color-celeste-100);
+  --ui-color-info-200: var(--color-celeste-200);
+  --ui-color-info-300: var(--color-celeste-300);
+  --ui-color-info-400: var(--color-celeste-400);
+  --ui-color-info-500: var(--color-celeste-500);
+  --ui-color-info-600: var(--color-celeste-600);
+  --ui-color-info-700: var(--color-celeste-700);
+  --ui-color-info-800: var(--color-celeste-800);
+  --ui-color-info-900: var(--color-celeste-900);
+  --ui-color-info-950: var(--color-celeste-950);
+
+  /* Warning = copper */
+  --ui-color-warning-50: var(--color-copper-50);
+  --ui-color-warning-100: var(--color-copper-100);
+  --ui-color-warning-200: var(--color-copper-200);
+  --ui-color-warning-300: var(--color-copper-300);
+  --ui-color-warning-400: var(--color-copper-400);
+  --ui-color-warning-500: var(--color-copper-500);
+  --ui-color-warning-600: var(--color-copper-600);
+  --ui-color-warning-700: var(--color-copper-700);
+  --ui-color-warning-800: var(--color-copper-800);
+  --ui-color-warning-900: var(--color-copper-900);
+  --ui-color-warning-950: var(--color-copper-950);
+
+  /* Error = copper */
+  --ui-color-error-50: var(--color-copper-50);
+  --ui-color-error-100: var(--color-copper-100);
+  --ui-color-error-200: var(--color-copper-200);
+  --ui-color-error-300: var(--color-copper-300);
+  --ui-color-error-400: var(--color-copper-400);
+  --ui-color-error-500: var(--color-copper-500);
+  --ui-color-error-600: var(--color-copper-600);
+  --ui-color-error-700: var(--color-copper-700);
+  --ui-color-error-800: var(--color-copper-800);
+  --ui-color-error-900: var(--color-copper-900);
+  --ui-color-error-950: var(--color-copper-950);
 }

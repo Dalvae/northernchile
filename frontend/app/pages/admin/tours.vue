@@ -120,17 +120,17 @@ async function handleDelete(tour: TourRes) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-neutral-50 dark:bg-neutral-800">
+  <div class="min-h-screen bg-default">
     <div
-      class="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-800"
+      class="border-b border-default bg-elevated"
     >
       <div class="px-6 py-4">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">
+            <h1 class="text-2xl font-bold text-default">
               Gestión de Tours
             </h1>
-            <p class="text-neutral-600 dark:text-neutral-400 mt-1">
+            <p class="mt-1 text-muted">
               Administra y crea nuevos tours
             </p>
           </div>
@@ -155,9 +155,12 @@ async function handleDelete(tour: TourRes) {
 
     <div class="p-6">
       <div
-        class="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 overflow-hidden"
+        class="bg-elevated rounded-lg shadow-sm border border-default overflow-hidden"
       >
-        <UTable
+         <UTable
+          :ui="{
+            td: 'p-4 text-sm text-default whitespace-nowrap [&:has([role=checkbox])]:pe-0'
+          }"
           :data="filteredRows"
           :columns="columns"
           :loading="pending"
@@ -174,7 +177,7 @@ async function handleDelete(tour: TourRes) {
 
           <template #description-data="{ row }">
             <span
-              class="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2"
+               class="text-sm text-default line-clamp-2"
             >
               {{ row.getValue("description") || "Sin descripción" }}
             </span>

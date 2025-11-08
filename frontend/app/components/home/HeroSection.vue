@@ -1,10 +1,10 @@
 <template>
-  <section class="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
+  <section class="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden bg-default">
     <!-- Fondo animado de estrellas -->
     <UiBgStars />
 
     <!-- Overlay gradient -->
-    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-neutral-900/50 to-neutral-900" />
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-[var(--ui-bg-soft)] to-[var(--ui-bg-strong)]" />
 
     <!-- Content -->
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -26,13 +26,13 @@
         </UBadge>
 
         <!-- Título principal -->
-        <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
+        <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-default mb-6">
           <span class="block">{{ t('hero.title1') }}</span>
           <span class="block text-primary mt-2">{{ t('hero.title2') }}</span>
         </h1>
 
         <!-- Subtítulo -->
-        <p class="text-lg sm:text-xl md:text-2xl text-neutral-200 mb-8 max-w-3xl mx-auto">
+        <p class="text-lg sm:text-xl md:text-2xl text-muted mb-8 max-w-3xl mx-auto">
           {{ t('hero.subtitle') }}
         </p>
 
@@ -62,7 +62,7 @@
           <div
             v-for="feature in quickFeatures"
             :key="feature.label"
-            class="flex flex-col items-center gap-2 text-white"
+            class="flex flex-col items-center gap-2 text-default"
           >
             <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
               <UIcon
@@ -80,7 +80,7 @@
     <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
       <button
         type="button"
-        class="flex flex-col items-center gap-2 text-white/80 hover:text-white transition-colors"
+        class="flex flex-col items-center gap-2 text-muted hover:text-default transition-colors"
         @click="scrollToContent"
       >
         <span class="text-sm">{{ t('hero.discoverMore') }}</span>

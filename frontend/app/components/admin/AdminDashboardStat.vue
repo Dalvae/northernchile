@@ -32,7 +32,7 @@ const changeIcon = computed(() => {
   <UCard>
     <div class="flex items-start justify-between">
       <div class="flex-1">
-        <p class="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+        <p class="text-sm font-medium text-muted">
           {{ label }}
         </p>
 
@@ -45,7 +45,7 @@ const changeIcon = computed(() => {
         <!-- Value -->
         <p
           v-else
-          class="mt-2 text-3xl font-semibold text-neutral-900 dark:text-white"
+          class="mt-2 text-3xl font-semibold text-default"
         >
           {{ formattedValue }}
         </p>
@@ -66,7 +66,7 @@ const changeIcon = computed(() => {
           >
             {{ Math.abs(change) }}%
           </span>
-          <span class="text-xs text-neutral-500">vs período anterior</span>
+          <span class="text-xs text-muted">vs período anterior</span>
         </div>
       </div>
 

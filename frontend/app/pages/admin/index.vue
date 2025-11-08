@@ -150,10 +150,10 @@ const actions = (row: BookingRes) => [
   <div class="space-y-6">
     <!-- Header -->
     <div>
-      <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">
+       <h1 class="text-2xl font-bold text-default">
         Dashboard
       </h1>
-      <p class="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+       <p class="mt-1 text-sm text-muted">
         Vista general del sistema de administración
       </p>
     </div>
@@ -173,11 +173,13 @@ const actions = (row: BookingRes) => [
       />
     </div>
 
-    <!-- Latest Bookings Card -->
-    <UCard>
+     <!-- Latest Bookings Card -->
+     <UCard
+       class="bg-elevated rounded-lg shadow-sm border border-default overflow-hidden"
+     >
       <template #header>
         <div class="flex justify-between items-center">
-          <h2 class="font-semibold text-lg text-neutral-900 dark:text-white">
+           <h2 class="font-semibold text-lg text-default">
             Últimas Reservas
           </h2>
           <UButton
@@ -194,19 +196,22 @@ const actions = (row: BookingRes) => [
          :data="latestBookings"
          :columns="bookingColumns"
          :loading="pendingBookings"
+          :ui="{
+            td: 'p-4 text-sm text-default whitespace-nowrap [&:has([role=checkbox])]:pe-0'
+          }"
        >
          <template #tourName-data="{ row }">
            <div class="flex flex-col">
              <span class="font-medium">
                {{ row.getValue('tourName') }}
              </span>
-             <span class="text-xs text-neutral-500">
+              <span class="text-xs text-default">
                {{ format(new Date(row.original.tourDate), 'EEEE, dd MMMM yyyy') }}
                <span v-if="row.original.tourStartTime">
                  - {{ row.original.tourStartTime }}
                </span>
              </span>
-           </div>
+            </div>
           </template>
            <template #status-data="{ row }">
              <UBadge
@@ -219,7 +224,7 @@ const actions = (row: BookingRes) => [
            <template #totalAmount-data="{ row }">
              <span>{{ formatCurrency(row.original.totalAmount) }}</span>
            </template>
-        </UTable>
-    </UCard>
+         </UTable>
+     </UCard>
   </div>
 </template>
