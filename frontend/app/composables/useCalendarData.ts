@@ -69,6 +69,22 @@ export const useCalendarData = () => {
   const { locale } = useI18n()
 
   /**
+   * Helper to get auth token from store or localStorage
+   */
+  const getAuthToken = (): string | null => {
+    if (import.meta.client) {
+      // Try to get from localStorage and parse it (it's stored as JSON)
+      try {
+        const storedToken = localStorage.getItem('auth_token')
+        return storedToken ? JSON.parse(storedToken) : null
+      } catch {
+        return null
+      }
+    }
+    return null
+  }
+
+  /**
    * Obtiene fase lunar para un rango de fechas
    */
   const fetchMoonPhases = async (startDate: string, endDate: string): Promise<MoonPhase[]> => {
@@ -120,7 +136,7 @@ export const useCalendarData = () => {
    */
   const fetchSchedules = async (startDate: string, endDate: string): Promise<TourSchedule[]> => {
     try {
-      const token = import.meta.client ? localStorage.getItem('auth_token') : null
+      const token = getAuthToken()
       const response = await $fetch<TourSchedule[]>(
         `${config.public.apiBase}/api/admin/schedules`,
         {
@@ -144,7 +160,7 @@ export const useCalendarData = () => {
    */
   const fetchAlerts = async (): Promise<WeatherAlert[]> => {
     try {
-      const token = import.meta.client ? localStorage.getItem('auth_token') : null
+      const token = getAuthToken()
       const response = await $fetch<WeatherAlert[]>(`${config.public.apiBase}/api/admin/alerts`, {
         headers: token
           ? {
@@ -166,7 +182,7 @@ export const useCalendarData = () => {
   const fetchCalendarData = async (startDate: string, endDate: string) => {
     try {
       // Obtener token si existe
-      const token = import.meta.client ? localStorage.getItem('auth_token') : null
+      const token = getAuthToken()
 
       // Llamada combinada al backend: fases lunares + pronóstico meteorológico
       const calendarResponse = await $fetch<any>(`${config.public.apiBase}/api/calendar/data`, {

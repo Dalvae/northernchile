@@ -74,6 +74,52 @@ public class TourScheduleService {
     }
 
     @Transactional
+    public TourScheduleRes updateSchedule(UUID scheduleId, TourScheduleCreateReq req, User currentUser) {
+        TourSchedule schedule = tourScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new EntityNotFoundException("TourSchedule not found with id: " + scheduleId));
+
+        Tour tour = schedule.getTour();
+
+        // Check ownership for non-super-admins
+        if (!"ROLE_SUPER_ADMIN".equals(currentUser.getRole()) &&
+            !tour.getOwner().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You do not have permission to update this schedule.");
+        }
+
+        // Capture old values for audit
+        Map<String, Object> oldValues = Map.of(
+            "startDatetime", schedule.getStartDatetime().toString(),
+            "maxParticipants", schedule.getMaxParticipants(),
+            "status", schedule.getStatus()
+        );
+
+        // Update fields
+        if (req.getStartDatetime() != null) {
+            schedule.setStartDatetime(req.getStartDatetime());
+        }
+        if (req.getMaxParticipants() != null) {
+            schedule.setMaxParticipants(req.getMaxParticipants());
+        }
+        if (req.getStatus() != null) {
+            schedule.setStatus(req.getStatus());
+        }
+
+        TourSchedule savedSchedule = tourScheduleRepository.save(schedule);
+
+        // Audit log
+        String tourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String description = tourName + " - " + savedSchedule.getStartDatetime().toString();
+        Map<String, Object> newValues = Map.of(
+            "startDatetime", savedSchedule.getStartDatetime().toString(),
+            "maxParticipants", savedSchedule.getMaxParticipants(),
+            "status", savedSchedule.getStatus()
+        );
+        auditLogService.logUpdate(currentUser, "SCHEDULE", schedule.getId(), description, oldValues, newValues);
+
+        return toTourScheduleRes(savedSchedule);
+    }
+
+    @Transactional
     public TourScheduleRes cancelScheduledTour(UUID scheduleId, User currentUser) {
         TourSchedule schedule = tourScheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("TourSchedule not found with id: " + scheduleId));

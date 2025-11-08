@@ -213,24 +213,6 @@
               </p>
             </div>
 
-            <!-- Guide Selection (Optional) -->
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
-              >
-                Guía Asignado (Opcional)
-              </label>
-              <USelect
-                v-model="scheduleForm.assignedGuideId"
-                :items="guideOptions"
-                option-attribute="label"
-                value-attribute="value"
-                placeholder="Sin guía asignado"
-                size="lg"
-                class="w-full"
-              />
-            </div>
-
             <!-- Status (only in edit mode) -->
             <div v-if="isEditMode">
               <label
@@ -293,6 +275,7 @@ definePageMeta({
 const config = useRuntimeConfig()
 const { locale } = useI18n()
 const toast = useToast()
+const authStore = useAuthStore()
 
 const { fetchCalendarData, hasAdverseConditions, getWeatherIcon }
   = useCalendarData()
@@ -313,8 +296,7 @@ const scheduleForm = ref({
   date: '',
   time: '',
   maxParticipants: 10,
-  assignedGuideId: null as string | null,
-  status: 'ACTIVE'
+  status: 'OPEN'
 })
 
 const formErrors = ref<Record<string, string>>({})
@@ -343,13 +325,8 @@ const tourOptions = computed(() => {
     }))
 })
 
-const guideOptions = computed(() => [
-  { value: null, label: 'Sin guía asignado' }
-  // TODO: Fetch actual guides from API
-])
-
 const statusOptions = [
-  { value: 'ACTIVE', label: 'Activo' },
+  { value: 'OPEN', label: 'Abierto' },
   { value: 'CANCELLED', label: 'Cancelado' },
   { value: 'CLOSED', label: 'Cerrado' }
 ]
@@ -391,12 +368,21 @@ const loadCalendarData = async () => {
   }
 }
 
+// Helper para obtener headers con autenticación
+const getAuthHeaders = () => {
+  return {
+    'Content-Type': 'application/json',
+    ...(authStore.token ? { Authorization: `Bearer ${authStore.token}` } : {})
+  }
+}
+
 // Generar schedules
 const generateSchedules = async () => {
   try {
     generating.value = true
-    await $fetch(`${config.public.apiBaseUrl}/admin/schedules/generate`, {
-      method: 'POST'
+    await $fetch(`${config.public.apiBase}/api/admin/schedules/generate`, {
+      method: 'POST',
+      headers: getAuthHeaders()
     })
 
     toast.add({
@@ -412,7 +398,7 @@ const generateSchedules = async () => {
     toast.add({
       title: 'Error',
       description: 'No se pudieron generar los schedules',
-      color: 'red'
+      color: 'error'
     })
   } finally {
     generating.value = false
@@ -431,7 +417,6 @@ const handleEventClick = (info: EventClickArg) => {
     date: scheduleDate.toISOString().split('T')[0],
     time: scheduleDate.toTimeString().slice(0, 5),
     maxParticipants: schedule.maxParticipants,
-    assignedGuideId: schedule.assignedGuideId || null,
     status: schedule.status
   }
 
@@ -449,8 +434,7 @@ const handleDateClick = (info: DateClickArg) => {
     date: clickedDate,
     time: '20:00', // Default time for astronomical tours
     maxParticipants: 10,
-    assignedGuideId: null,
-    status: 'ACTIVE'
+    status: 'OPEN'
   }
 
   showScheduleModal.value = true
@@ -466,8 +450,7 @@ const closeScheduleModal = () => {
     date: '',
     time: '',
     maxParticipants: 10,
-    assignedGuideId: null,
-    status: 'ACTIVE'
+    status: 'OPEN'
   }
 }
 
@@ -510,21 +493,23 @@ const saveSchedule = async () => {
     )
     const isoDatetime = datetime.toISOString()
 
-    const payload = {
+    const payload: any = {
       tourId: scheduleForm.value.tourId,
       startDatetime: isoDatetime,
-      maxParticipants: scheduleForm.value.maxParticipants,
-      assignedGuideId: scheduleForm.value.assignedGuideId || null
+      maxParticipants: scheduleForm.value.maxParticipants
     }
 
+    // En modo edición, incluir el status
     if (isEditMode.value) {
+      payload.status = scheduleForm.value.status
+
       // Update existing schedule
       await $fetch(
-        `${config.public.apiBaseUrl}/admin/schedules/${selectedSchedule.value.id}`,
+        `${config.public.apiBase}/api/admin/schedules/${selectedSchedule.value.id}`,
         {
           method: 'PATCH',
-          body: payload,
-          credentials: 'include'
+          headers: getAuthHeaders(),
+          body: payload
         }
       )
 
@@ -535,10 +520,10 @@ const saveSchedule = async () => {
       })
     } else {
       // Create new schedule
-      await $fetch(`${config.public.apiBaseUrl}/admin/schedules`, {
+      await $fetch(`${config.public.apiBase}/api/admin/schedules`, {
         method: 'POST',
-        body: payload,
-        credentials: 'include'
+        headers: getAuthHeaders(),
+        body: payload
       })
 
       toast.add({
@@ -594,12 +579,10 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
           const end = new Date(start)
           end.setHours(start.getHours() + (schedule.tourDurationHours || 2))
 
-          // Color según status
-          let backgroundColor = '#10b981' // green
-          if (schedule.status === 'CANCELLED') backgroundColor = '#ef4444' // red
-          if (schedule.status === 'CLOSED') backgroundColor = '#6b7280' // gray
+          // Color según status (PRIORIDAD: cancelado > cerrado > alertas > activo)
+          let backgroundColor = '#10b981' // green (ACTIVE por defecto)
 
-          // Verificar si tiene alertas
+          // Verificar si tiene alertas críticas
           const scheduleAlerts = alerts.get(schedule.id) || []
           const hasCriticalAlert = scheduleAlerts.some(
             (a: any) => a.severity === 'CRITICAL' && a.status === 'PENDING'
@@ -607,6 +590,15 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
 
           if (hasCriticalAlert) {
             backgroundColor = '#f59e0b' // orange/amber para alertas
+          }
+
+          // El estado CLOSED y CANCELLED tiene prioridad sobre alertas
+          if (schedule.status === 'CLOSED') {
+            backgroundColor = '#6b7280' // gray
+          }
+
+          if (schedule.status === 'CANCELLED') {
+            backgroundColor = '#ef4444' // red - siempre rojo si está cancelado
           }
 
           return {

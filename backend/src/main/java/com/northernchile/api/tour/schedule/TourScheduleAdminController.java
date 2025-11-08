@@ -101,13 +101,15 @@ public class TourScheduleAdminController {
 
     /**
      * PATCH /api/admin/schedules/{id}
-     * Edita un schedule existente (cambiar hora, cupos, etc.)
+     * Edita un schedule existente (cambiar hora, cupos, status, etc.)
      */
     @PatchMapping("/{id}")
     public ResponseEntity<TourScheduleRes> updateSchedule(
             @PathVariable String id,
-            @RequestBody TourScheduleCreateReq request) {
-        return ResponseEntity.ok().build();
+            @RequestBody TourScheduleCreateReq request,
+            @CurrentUser User currentUser) {
+        TourScheduleRes updated = tourScheduleService.updateSchedule(UUID.fromString(id), request, currentUser);
+        return ResponseEntity.ok(updated);
     }
 
     /**

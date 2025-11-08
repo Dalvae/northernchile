@@ -10,6 +10,7 @@ public class TourScheduleCreateReq {
     private Instant startDatetime;
     private Integer maxParticipants;
     private UUID assignedGuideId;
+    private String status;
 
     public TourScheduleCreateReq() {
     }
@@ -19,6 +20,14 @@ public class TourScheduleCreateReq {
         this.startDatetime = startDatetime;
         this.maxParticipants = maxParticipants;
         this.assignedGuideId = assignedGuideId;
+    }
+
+    public TourScheduleCreateReq(UUID tourId, Instant startDatetime, Integer maxParticipants, UUID assignedGuideId, String status) {
+        this.tourId = tourId;
+        this.startDatetime = startDatetime;
+        this.maxParticipants = maxParticipants;
+        this.assignedGuideId = assignedGuideId;
+        this.status = status;
     }
 
     public UUID getTourId() {
@@ -53,17 +62,25 @@ public class TourScheduleCreateReq {
         this.assignedGuideId = assignedGuideId;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TourScheduleCreateReq that = (TourScheduleCreateReq) o;
-        return Objects.equals(tourId, that.tourId) && Objects.equals(startDatetime, that.startDatetime) && Objects.equals(maxParticipants, that.maxParticipants) && Objects.equals(assignedGuideId, that.assignedGuideId);
+        return Objects.equals(tourId, that.tourId) && Objects.equals(startDatetime, that.startDatetime) && Objects.equals(maxParticipants, that.maxParticipants) && Objects.equals(assignedGuideId, that.assignedGuideId) && Objects.equals(status, that.status);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tourId, startDatetime, maxParticipants, assignedGuideId);
+        return Objects.hash(tourId, startDatetime, maxParticipants, assignedGuideId, status);
     }
 
     @Override
@@ -73,6 +90,7 @@ public class TourScheduleCreateReq {
                 ", startDatetime=" + startDatetime +
                 ", maxParticipants=" + maxParticipants +
                 ", assignedGuideId=" + assignedGuideId +
+                ", status='" + status + '\'' +
                 '}';
     }
 }
