@@ -11,8 +11,8 @@ export default defineNuxtConfig({
   ],
 
   devtools: {
-    enabled: false
-  },
+     enabled: false
+   },
   app: {
     head: {
       link: [

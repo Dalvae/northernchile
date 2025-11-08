@@ -11,8 +11,9 @@ const { formatPrice: formatCurrency } = useCurrency()
 const config = useRuntimeConfig()
 
 const { data: bookingsData, pending: pendingBookings } = await useAsyncData(
-  'bookings',
-  () => fetchAdminBookings()
+  'admin-bookings-dashboard',
+  () => fetchAdminBookings(),
+  { server: false, lazy: true, default: () => [] }
 )
 const { data: tours, pending: pendingTours } = await useAsyncData('tours', () =>
   fetchAdminTours()
@@ -42,16 +43,20 @@ const { data: alertsCount } = await useAsyncData(
   }
 )
 
-const latestBookings = computed(() =>
-  Array.isArray(bookingsData.value?.data)
-    ? bookingsData.value.data.slice(0, 5)
-    : []
-)
-
-// Stats calculados con datos reales
-const stats = computed(() => {
-  const allTours = Array.isArray(tours.value?.data) ? tours.value.data : []
-  const allBookings = Array.isArray(bookingsData.value?.data) ? bookingsData.value.data : []
+const latestBookings = computed<BookingRes[]>(() => {
+  const items = bookingsData.value || []
+  console.log('admin.index latestBookings raw items:', items)
+  if (!Array.isArray(items) || items.length === 0) return []
+  return [...items]
+    .filter(b => b.status === 'CONFIRMED')
+    .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
+    .slice(0, 5)
+})
+ 
+ // Stats calculados con datos reales
+ const stats = computed(() => {
+   const allTours = Array.isArray(tours.value) ? tours.value : []
+   const allBookings = Array.isArray(bookingsData.value) ? bookingsData.value : []
   const totalBookings = allBookings.length
   const activeTours = allTours.filter(t => t.status === 'PUBLISHED').length || 0
 
@@ -106,13 +111,21 @@ const stats = computed(() => {
 })
 
 const bookingColumns = [
-  { key: 'id', id: 'id', label: 'ID' },
-  { key: 'userFullName', id: 'userFullName', label: 'Cliente' },
-  { key: 'tourName', id: 'tourName', label: 'Tour' },
-  { key: 'status', id: 'status', label: 'Estado' },
-  { key: 'totalAmount', id: 'totalAmount', label: 'Monto' },
-  { key: 'createdAt', id: 'createdAt', label: 'Fecha Creación' },
-  { key: 'actions', id: 'actions', label: 'Acciones' }
+  { accessorKey: 'tourName', header: 'Tour' },
+  {
+    accessorKey: 'tourDate',
+    header: 'Fecha/Hora',
+    cell: ({ row }: any) => {
+      const date = row.original.tourDate || row.getValue('tourDate')
+      const time = row.original.tourStartTime
+      if (!date) return ''
+      const formattedDate = format(new Date(date), 'EEEE, dd MMMM yyyy')
+      return `${formattedDate}${time ? ` - ${time.slice(0, 5)}` : ''}`
+    }
+  },
+  { accessorKey: 'userFullName', header: 'Cliente' },
+  { accessorKey: 'status', header: 'Estado' },
+  { accessorKey: 'totalAmount', header: 'Monto' }
 ]
 
 function getStatusColor(status: string) {
@@ -180,37 +193,36 @@ const actions = (row: BookingRes) => [
         </div>
       </template>
 
-      <UTable
-        :rows="latestBookings"
-        :columns="bookingColumns"
-        :loading="pendingBookings"
-      >
-        <template #status-data="{ row }">
-          <UBadge
-            :color="getStatusColor(row.status)"
-            variant="subtle"
-          >
-            {{ row.status }}
-          </UBadge>
-        </template>
-        <template #totalAmount-data="{ row }">
-          <span>{{ formatCurrency(row.totalAmount) }}</span>
-        </template>
-        <template #createdAt-data="{ row }">
-          <span>{{
-            format(new Date(row.createdAt), 'dd MMM yyyy, HH:mm')
-          }}</span>
-        </template>
-        <template #actions-data="{ row }">
-          <UDropdownMenu :items="actions(row)">
-            <UButton
-              color="neutral"
-              variant="ghost"
-              icon="i-lucide-more-horizontal"
-            />
-          </UDropdownMenu>
-        </template>
-      </UTable>
+       <UTable
+         :data="latestBookings"
+         :columns="bookingColumns"
+         :loading="pendingBookings"
+       >
+         <template #tourName-data="{ row }">
+           <div class="flex flex-col">
+             <span class="font-medium">
+               {{ row.getValue('tourName') }}
+             </span>
+             <span class="text-xs text-neutral-500">
+               {{ format(new Date(row.original.tourDate), 'EEEE, dd MMMM yyyy') }}
+               <span v-if="row.original.tourStartTime">
+                 - {{ row.original.tourStartTime }}
+               </span>
+             </span>
+           </div>
+          </template>
+           <template #status-data="{ row }">
+             <UBadge
+               :color="getStatusColor(row.original.status)"
+               variant="subtle"
+             >
+               {{ row.original.status }}
+             </UBadge>
+           </template>
+           <template #totalAmount-data="{ row }">
+             <span>{{ formatCurrency(row.original.totalAmount) }}</span>
+           </template>
+        </UTable>
     </UCard>
   </div>
 </template>
