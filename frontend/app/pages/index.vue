@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TourCard from '~/components/tour/TourCard.vue'
+
 const { fetchAll } = useTours()
 const { data: toursData } = await fetchAll()
 
@@ -70,11 +72,12 @@ useSeoMeta({
           v-if="featuredTours.length > 0"
           class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
-          <HomeTourCard
-            v-for="tour in featuredTours"
-            :key="tour.id"
-            :tour="tour"
-          />
+<TourCard
+             v-for="tour in featuredTours"
+             :key="tour.id"
+             :tour="tour"
+             variant="home"
+           />
         </div>
 
         <div

@@ -1,60 +1,224 @@
+<template>
+  <NuxtLink
+    :to="linkTo"
+    class="block"
+  >
+    <UCard
+      :ui="cardUi"
+      class="overflow-hidden transition-all duration-300 hover:-translate-y-1 h-full"
+    >
+      <div
+        class="relative overflow-hidden"
+        :class="imageWrapperClass"
+      >
+        <img
+          :src="imageSrc"
+          :alt="title"
+          class="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+        >
+
+        <div
+          v-if="showCategory && categoryLabel"
+          class="absolute top-3 left-3"
+        >
+          <UBadge
+            :color="categoryColor"
+            variant="solid"
+            size="md"
+          >
+            {{ categoryLabel }}
+          </UBadge>
+        </div>
+
+        <div
+          v-if="showSensitivityBadges && (tour.moonSensitive || tour.windSensitive)"
+          class="absolute top-3 right-3 flex gap-1"
+        >
+          <UTooltip
+            v-if="tour.moonSensitive"
+            :text="$t('tours.sensitive.moon')"
+          >
+            <UBadge
+              color="tertiary"
+              variant="solid"
+              size="sm"
+            >
+              <UIcon
+                name="i-lucide-moon"
+                class="w-3 h-3"
+              />
+            </UBadge>
+          </UTooltip>
+          <UTooltip
+            v-if="tour.windSensitive"
+            :text="$t('tours.sensitive.wind')"
+          >
+            <UBadge
+              color="info"
+              variant="solid"
+              size="sm"
+            >
+              <UIcon
+                name="i-lucide-wind"
+                class="w-3 h-3"
+              />
+            </UBadge>
+          </UTooltip>
+        </div>
+      </div>
+
+      <div class="p-5 space-y-3 flex flex-col h-full">
+        <div>
+          <h3
+            class="font-semibold line-clamp-2"
+            :class="titleClass"
+          >
+            {{ title }}
+          </h3>
+          <p
+            v-if="showDescription && description"
+            class="mt-1 text-sm line-clamp-2"
+            :class="descriptionClass"
+          >
+            {{ description }}
+          </p>
+        </div>
+
+        <div
+          v-if="showMeta"
+          class="flex items-center gap-4 text-sm"
+          :class="metaClass"
+        >
+          <div
+            v-if="tour.durationHours"
+            class="flex items-center gap-1"
+          >
+            <UIcon name="i-lucide-clock" class="w-4 h-4" />
+            <span>{{ $t('tours.duration_hours', { hours: tour.durationHours }) }}</span>
+          </div>
+
+          <div
+            v-if="tour.maxParticipants"
+            class="flex items-center gap-1"
+          >
+            <UIcon name="i-lucide-users" class="w-4 h-4" />
+            <span>{{ $t('tours.max_participants', { count: tour.maxParticipants }) }}</span>
+          </div>
+
+          <div
+            v-if="tour.rating && showRating"
+            class="flex items-center gap-1"
+          >
+            <UIcon name="i-lucide-star" class="w-4 h-4 text-warning" />
+            <span>{{ tour.rating }}</span>
+          </div>
+        </div>
+
+        <div
+          v-if="showPrice"
+          class="pt-3 mt-auto flex flex-col"
+        >
+          <p class="text-xs text-neutral-400">
+            {{ $t('tours.price_from') }}
+          </p>
+          <p class="text-xl font-semibold">
+            {{ formatPrice(tour.price) }}
+          </p>
+        </div>
+      </div>
+    </UCard>
+  </NuxtLink>
+</template>
+
 <script setup lang="ts">
 import type { TourRes } from '~/lib/api-client'
-import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{ tour: TourRes }>()
+const props = withDefaults(defineProps<{
+  tour: TourRes
+  variant?: 'home' | 'list'
+  showCategory?: boolean
+  showSensitivityBadges?: boolean
+  showDescription?: boolean
+  showMeta?: boolean
+  showRating?: boolean
+  showPrice?: boolean
+}>(), {
+  variant: 'home',
+  showCategory: true,
+  showSensitivityBadges: true,
+  showDescription: true,
+  showMeta: true,
+  showRating: true,
+  showPrice: true
+})
+
 const localePath = useLocalePath()
 const { locale } = useI18n()
 const { formatPrice } = useCurrency()
 
-const translatedName = computed(() =>
-  props.tour.nameTranslations?.[locale.value] || props.tour.nameTranslations?.['es']
+const linkTo = computed(() => localePath(`/tours/${props.tour.slug || props.tour.id}`))
+
+const title = computed(() =>
+  props.tour.nameTranslations?.[locale.value]
+  || props.tour.nameTranslations?.es
+  || 'Tour'
 )
 
-const heroImage = computed(() =>
-  props.tour.images?.find(img => img.isHeroImage)?.imageUrl || props.tour.images?.[0]?.imageUrl || 'https://source.unsplash.com/random/800x600?desert,stars'
+const description = computed(() =>
+  props.tour.descriptionTranslations?.[locale.value]
+  || props.tour.descriptionTranslations?.es
+  || ''
+)
+
+const imageSrc = computed(() => {
+  const hero = props.tour.images?.find(img => (img as any).isHeroImage)?.imageUrl
+  const first = props.tour.images?.[0]?.imageUrl || (props.tour as any).images?.[0]
+
+  return hero || first || '/images/tour-placeholder.svg'
+})
+
+const categoryColor = computed(() => {
+  const map: Record<string, string> = {
+    ASTRONOMICAL: 'tertiary',
+    REGULAR: 'primary',
+    SPECIAL: 'warning',
+    PRIVATE: 'secondary'
+  }
+  return map[props.tour.category as string] || 'neutral'
+})
+
+const categoryLabel = computed(() =>
+  (useI18n().t(`tours.category.${props.tour.category}`, props.tour.category) as string)
+)
+
+const cardUi = computed(() => ({
+  body: { padding: 'p-0' },
+  rounded: 'rounded-xl',
+  shadow: 'shadow-lg hover:shadow-xl',
+  ring: 'ring-1 ring-neutral-300'
+}))
+
+const imageWrapperClass = computed(() =>
+  props.variant === 'list'
+    ? 'relative h-40'
+    : 'relative h-48'
+)
+
+const titleClass = computed(() =>
+  props.variant === 'list'
+    ? 'text-lg text-neutral-900 dark:text-neutral-50'
+    : 'text-lg text-neutral-50'
+)
+
+const descriptionClass = computed(() =>
+  props.variant === 'list'
+    ? 'text-neutral-600 dark:text-neutral-300'
+    : 'text-neutral-300'
+)
+
+const metaClass = computed(() =>
+  props.variant === 'list'
+    ? 'text-neutral-600 dark:text-neutral-300'
+    : 'text-neutral-300'
 )
 </script>
-
-<template>
-  <UCard
-    :ui="{
-      body: { padding: 'p-0 sm:p-0' },
-      header: { padding: 'p-0 sm:p-0' },
-      footer: { padding: 'p-0 sm:p-0' },
-      base: 'overflow-hidden transform hover:scale-105 transition-transform duration-300'
-    }"
-  >
-    <template #header>
-      <div class="aspect-w-16 aspect-h-9">
-        <img
-          class="w-full h-48 object-cover"
-          :src="heroImage"
-          :alt="translatedName"
-        >
-      </div>
-    </template>
-
-    <div class="p-4">
-      <h3 class="text-xl font-bold mb-2 h-14 text-ellipsis overflow-hidden font-display text-gray-900 dark:text-white">
-        {{ translatedName }}
-      </h3>
-    </div>
-
-    <template #footer>
-      <div class="flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-900/50">
-        <span class="text-2xl font-bold text-primary-400">{{ formatPrice(props.tour.price) }}</span>
-        <UButton
-          :to="localePath(`/tours/${props.tour.id}`)"
-          icon="i-lucide-arrow-right"
-          size="md"
-          trailing
-          color="accent"
-          variant="solid"
-        >
-          {{ $t('tours.view_details') }}
-        </UButton>
-      </div>
-    </template>
-  </UCard>
-</template>

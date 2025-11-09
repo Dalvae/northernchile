@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TourRes } from '~/lib/api-client'
+import TourCard from '~/components/tour/TourCard.vue'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -113,10 +114,11 @@ useSeoMeta({
         class="space-y-8 mb-12"
       >
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <HomeTourCard
+          <TourCard
             v-for="tour in paginatedTours"
             :key="tour.id"
             :tour="tour"
+            variant="list"
           />
         </div>
 
