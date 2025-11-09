@@ -6,7 +6,7 @@ import type { CalendarOptions, EventClickArg } from '@fullcalendar/core'
 import esLocale from '@fullcalendar/core/locales/es'
 import ptLocale from '@fullcalendar/core/locales/pt'
 import enLocale from '@fullcalendar/core/locales/en-gb'
-import type { TourRes } from '~/lib/api-client'
+import type { TourRes } from 'api-client'
 
 interface Props {
   tours: TourRes[]
@@ -161,7 +161,7 @@ function getTourColor(tourId: string): string {
   ]
 
   const index = props.tours.findIndex(t => t.id === tourId)
-  return colors[index % colors.length]
+  return colors[index % colors.length]!
 }
 
 // Convert schedules to FullCalendar events
@@ -371,7 +371,7 @@ defineExpose({
               >
                 <div
                   class="w-4 h-4 rounded"
-                  :style="{ backgroundColor: getTourColor(tour.id) }"
+                  :style="{ backgroundColor: getTourColor(tour.id!) }"
                 />
                 <span class="text-sm text-neutral-700 dark:text-neutral-300">
                   {{ tour.nameTranslations?.[locale] || tour.nameTranslations?.es }}

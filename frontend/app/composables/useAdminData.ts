@@ -1,6 +1,19 @@
 // frontend/app/composables/useAdminData.ts
-import { useAuthStore } from '~/stores/auth'
 import { computed } from 'vue'
+import { useAuthStore } from '~/stores/auth'
+import type {
+  TourCreateReq,
+  TourUpdateReq,
+  TourRes,
+  TourScheduleCreateReq,
+  TourScheduleRes,
+  BookingRes,
+  BookingUpdateReq,
+  UserCreateReq,
+  UserUpdateReq,
+  UserRes,
+  AdminPasswordChangeReq
+} from 'api-client'
 
 export const useAdminData = () => {
   const authStore = useAuthStore()
@@ -19,10 +32,10 @@ export const useAdminData = () => {
 
   return {
     fetchAdminTours: () =>
-      $fetch('/api/admin/tours', { headers: headers.value }),
+      $fetch<TourRes[]>('/api/admin/tours', { headers: headers.value }),
     createAdminTour: (tourData: any) =>
       $fetch('/api/admin/tours', {
-        method: 'POST',
+        method: 'POST' as const,
         body: tourData,
         headers: headers.value
       }),
@@ -42,7 +55,7 @@ export const useAdminData = () => {
       $fetch('/api/admin/schedules', { params, headers: headers.value }),
     createAdminSchedule: (scheduleData: any) =>
       $fetch('/api/admin/schedules', {
-        method: 'POST',
+        method: 'POST' as const,
         body: scheduleData,
         headers: headers.value
       }),
@@ -57,8 +70,8 @@ export const useAdminData = () => {
         method: 'DELETE',
         headers: headers.value
       }),
-    fetchAdminBookings: (params?: any) =>
-      $fetch<any>('/api/admin/bookings', { params, headers: headers.value }),
+     fetchAdminBookings: (params?: any) =>
+       $fetch<BookingRes[]>('/api/admin/bookings', { params, headers: headers.value }),
     fetchAdminBookingById: (id: string) =>
       $fetch(`/api/admin/bookings/${id}`, { headers: headers.value }),
     updateAdminBooking: (id: string, bookingData: any) =>
@@ -77,7 +90,7 @@ export const useAdminData = () => {
     fetchAdminUserById: (id: string) =>
       $fetch(`/api/admin/users/${id}`, { headers: headers.value }),
     createAdminUser: (userData: any) =>
-      $fetch('/api/admin/users', {
+      $fetch<any>('/api/admin/users', {
         method: 'POST',
         body: userData,
         headers: headers.value

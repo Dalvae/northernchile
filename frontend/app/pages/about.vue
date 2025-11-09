@@ -229,7 +229,8 @@ const values = [
           <UButton
             to="/tours"
             size="xl"
-            color="white"
+            color="neutral"
+            variant="solid"
             icon="i-lucide-telescope"
           >
             {{ t("about.cta.button") }}

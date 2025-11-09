@@ -341,7 +341,7 @@ const fetchMoonData = async () => {
     const startDate = prevMonth.toISOString().split('T')[0]
     const endDate = nextMonth.toISOString().split('T')[0]
 
-    const response = await $fetch(
+    const response = await $fetch<any[]>(
       `${config.public.apiBaseUrl}/lunar/calendar`,
       {
         params: { startDate, endDate }
@@ -358,7 +358,7 @@ const fetchMoonData = async () => {
 
 const fetchNextFullMoons = async () => {
   try {
-    const response = await $fetch(
+    const response = await $fetch<any[]>(
       `${config.public.apiBaseUrl}/lunar/next-full-moons`,
       {
         params: { count: 3 }

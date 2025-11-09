@@ -70,9 +70,12 @@ function formatDateTime(dateString: string, timeString: string) {
   return dateFormatted
 }
 
+// Badge color type
+type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
+
 // Status colors
-function getStatusColor(status: string) {
-  const colors: Record<string, string> = {
+function getStatusColor(status: string): BadgeColor {
+  const colors: Record<string, BadgeColor> = {
     CONFIRMED: 'success',
     PENDING: 'warning',
     CANCELLED: 'error',
@@ -108,7 +111,7 @@ async function cancelBooking(bookingId: string) {
   loading.value = true
   try {
     const token = authStore.token
-    await $fetch(`${config.public.apiBase}/api/bookings/${bookingId}`, {
+    await $fetch<void>(`${config.public.apiBase}/api/bookings/${bookingId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`

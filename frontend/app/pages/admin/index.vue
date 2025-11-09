@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
-import type { BookingRes } from '~/lib/api-client'
+import type { BookingRes } from 'api-client'
 
 definePageMeta({
   layout: 'admin'
 })
 
-const { fetchAdminBookings, fetchAdminTours } = useAdminData()
+const { fetchAdminBookings, fetchAdminTours, fetchAdminAlertsCount } = useAdminData()
 const { formatPrice: formatCurrency } = useCurrency()
 const config = useRuntimeConfig()
 
@@ -59,6 +59,7 @@ const latestBookings = computed<BookingRes[]>(() => {
 
   const monthlyRevenue = allBookings
     .filter((b) => {
+      if (!b.createdAt) return false
       const bookingDate = new Date(b.createdAt)
       return bookingDate.getMonth() === currentMonth
         && bookingDate.getFullYear() === currentYear
@@ -125,8 +126,10 @@ const bookingColumns = [
   { accessorKey: 'totalAmount', header: 'Monto' }
 ]
 
-function getStatusColor(status: string) {
-  const colors: Record<string, string> = {
+type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
+
+function getStatusColor(status: string): BadgeColor {
+  const colors: Record<string, BadgeColor> = {
     CONFIRMED: 'success',
     PENDING: 'warning',
     CANCELLED: 'error',
@@ -166,7 +169,6 @@ const actions = (row: BookingRes) => [
         :label="stat.label"
         :value="stat.value"
         :icon="stat.icon"
-        :change="stat.change"
         :icon-color="stat.iconColor"
         :icon-text-color="stat.iconTextColor"
         :loading="stat.loading"
@@ -205,7 +207,7 @@ const actions = (row: BookingRes) => [
              <span class="font-medium">
                {{ row.getValue('tourName') }}
              </span>
-              <span class="text-xs text-default">
+              <span v-if="row.original.tourDate" class="text-xs text-default">
                {{ format(new Date(row.original.tourDate), 'EEEE, dd MMMM yyyy') }}
                <span v-if="row.original.tourStartTime">
                  - {{ row.original.tourStartTime }}
@@ -215,7 +217,7 @@ const actions = (row: BookingRes) => [
           </template>
            <template #status-data="{ row }">
              <UBadge
-               :color="getStatusColor(row.original.status)"
+                :color="getStatusColor(row.original.status || 'PENDING')"
                variant="subtle"
              >
                {{ row.original.status }}

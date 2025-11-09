@@ -179,8 +179,10 @@ const updateRequestStatus = async () => {
   }
 }
 
-const getStatusColor = (status: string) => {
-  const colors: Record<string, string> = {
+type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
+
+const getStatusColor = (status: string): BadgeColor => {
+  const colors: Record<string, BadgeColor> = {
     PENDING: 'warning',
     QUOTED: 'info',
     CONFIRMED: 'success',
@@ -199,7 +201,8 @@ const formatDateTime = (datetime: string) => {
   })
 }
 
-const { formatCurrency } = useCurrency()
+const { formatPrice } = useCurrency()
+const formatCurrency = (value: number | null | undefined) => value != null ? formatPrice(value) : '-' as string
 </script>
 
 <template>
@@ -280,7 +283,7 @@ const { formatCurrency } = useCurrency()
         color="primary"
         variant="soft"
         class="mt-4"
-        @click="refresh"
+        @click="() => refresh()"
       >
         Reintentar
       </UButton>
@@ -403,7 +406,7 @@ const { formatCurrency } = useCurrency()
                    <div class="text-sm text-default">
                      {{
                        request.quotedPrice
-                         ? formatCurrency(request.quotedPrice)
+                          ? formatCurrency(request.quotedPrice || 0)
                          : "-"
                      }}
                   </div>

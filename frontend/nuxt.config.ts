@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import viteTsconfigPaths from "vite-tsconfig-paths";
 
 export default defineNuxtConfig({
@@ -43,14 +44,15 @@ export default defineNuxtConfig({
         "info",
         "warning",
         "error",
-        "neutral"
-      ]
-    }
+        "neutral",
+      ],
+    },
   },
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:8080",
+      apiBase:
+        import.meta.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:8080",
     },
   },
 
@@ -87,16 +89,23 @@ export default defineNuxtConfig({
     },
   },
 
+  alias: {
+    "api-client": fileURLToPath(new URL("./lib/api-client", import.meta.url)),
+  },
+
   i18n: {
     locales: [
       { code: "es", iso: "es-CL", name: "Español", file: "es.json" },
       { code: "en", iso: "en-US", name: "English", file: "en.json" },
       { code: "pt", iso: "pt-BR", name: "Português", file: "pt.json" },
     ],
-    lazy: true,
     defaultLocale: "es",
     strategy: "prefix_except_default",
-    baseUrl: process.env.NUXT_PUBLIC_BASE_URL || "http://localhost:3000",
-    exclude: ["/admin/*"],
+    baseUrl: import.meta.env.NUXT_PUBLIC_BASE_URL || "http://localhost:3000",
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: "i18n_redirected",
+      redirectOn: "root",
+    },
   },
 });

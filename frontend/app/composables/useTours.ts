@@ -1,4 +1,4 @@
-import type { TourRes } from '~/lib/api-client'
+import type { TourRes } from 'api-client'
 
 export const useTours = () => {
   /**

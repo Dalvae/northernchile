@@ -74,17 +74,19 @@ export const useS3Upload = () => {
             // Add auth token from localStorage
             const token = import.meta.client ? localStorage.getItem('auth_token') : null
             if (token) {
+              const existingHeaders = options.headers as any || {}
               options.headers = {
-                ...options.headers,
+                ...(typeof existingHeaders === 'object' ? existingHeaders : {}),
                 Authorization: `Bearer ${token}`
-              }
-            }
-          },
-          onUploadProgress(event) {
-            if (event.total) {
-              uploadProgress.value = Math.round((event.loaded / event.total) * 100)
+              } as any
             }
           }
+          // Note: $fetch doesn't support onUploadProgress
+          // onUploadProgress(event: any) {
+          //   if (event.total) {
+          //     uploadProgress.value = Math.round((event.loaded / event.total) * 100)
+          //   }
+          // }
         }
       )
 
@@ -164,12 +166,13 @@ export const useS3Upload = () => {
         body: file,
         headers: {
           'Content-Type': file.type
-        },
-        onUploadProgress(event) {
-          if (event.total) {
-            uploadProgress.value = Math.round((event.loaded / event.total) * 100)
-          }
         }
+        // Note: $fetch doesn't support onUploadProgress
+        // onUploadProgress(event: any) {
+        //   if (event.total) {
+        //     uploadProgress.value = Math.round((event.loaded / event.total) * 100)
+        //   }
+        // }
       })
 
       toast.add({

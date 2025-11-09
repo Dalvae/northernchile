@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
-  modelValue: string | null | undefined
+  modelValue?: string | null
   label?: string
   placeholder?: string
   required?: boolean
@@ -13,13 +13,21 @@ const emit = defineEmits<{
 
 const { countries, getCountryLabel, getCountryFlag } = useCountries()
 
-const selected = computed({
-  get: () => props.modelValue || null,
+const selected = computed<{ value: string; label: string } | undefined>({
+  get: () => {
+    if (!props.modelValue) return undefined
+    const country = countries.find(c => c.value === props.modelValue)
+    return country
+  },
   set: (value) => {
-    // Si value es un objeto, extraer solo el código
-    const code = typeof value === 'object' && value !== null ? (value as any).value : value
+    const code = value ? value.value : null
     emit('update:modelValue', code)
   }
+})
+
+const displayValue = computed(() => {
+  if (!selected.value) return props.placeholder || 'Selecciona un país'
+  return `${getCountryFlag(selected.value.value)} ${selected.value.label}`
 })
 </script>
 
@@ -40,23 +48,6 @@ const selected = computed({
       by="value"
       class="w-full"
     >
-      <template #label>
-        <div
-          v-if="selected"
-          class="flex items-center gap-2"
-        >
-          <span class="text-xl leading-none">
-            {{ getCountryFlag(selected) }}
-          </span>
-          <span>
-            {{ getCountryLabel(selected) }}
-          </span>
-        </div>
-        <span v-else>
-          {{ placeholder || 'Selecciona un país' }}
-        </span>
-      </template>
-
       <template #item="{ item }">
         <div class="flex items-center gap-2">
           <span class="text-xl leading-none">

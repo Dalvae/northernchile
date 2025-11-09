@@ -111,7 +111,7 @@ export const useCalendarData = () => {
 
       if (response?.daily) {
         for (const day of response.daily) {
-          const date = new Date(day.dt * 1000).toISOString().split('T')[0]
+          const date = new Date(day.dt * 1000).toISOString().split('T')[0]!
           weatherMap.set(date, {
             date,
             temp: day.temp,
@@ -210,7 +210,7 @@ export const useCalendarData = () => {
       const weatherMap = new Map<string, DailyWeather>()
       if (calendarResponse.weather?.daily) {
         for (const day of calendarResponse.weather.daily) {
-          const date = new Date(day.dt * 1000).toISOString().split('T')[0]
+          const date = new Date(day.dt * 1000).toISOString().split('T')[0]!
           weatherMap.set(date, {
             date,
             temp: day.temp,
@@ -308,7 +308,9 @@ export const useCalendarData = () => {
   /**
    * Obtiene color de severidad para alertas
    */
-  const getAlertColor = (severity: string): string => {
+  type AlertColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
+
+  const getAlertColor = (severity: string): AlertColor => {
     return severity === 'CRITICAL' ? 'error' : 'warning'
   }
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent, FormErrorEvent, FormError } from '@nuxt/ui'
-import type { TourRes, TourCreateReq, TourUpdateReq } from '~/lib/api-client'
+import type { TourRes, TourCreateReq, TourUpdateReq } from 'api-client'
 
 const props = defineProps<{
   tour?: TourRes | null
@@ -54,7 +54,16 @@ const schema = z.object({
   contentKey: z.string().min(1, 'La clave de contenido es requerida')
 })
 
-type Schema = z.output<typeof schema>
+type Schema = z.output<typeof schema> & Pick<TourCreateReq,
+  'nameTranslations' |
+  'descriptionTranslations' |
+  'category' |
+  'price' |
+  'defaultMaxParticipants' |
+  'durationHours' |
+  'status' |
+  'contentKey'
+>
 
 const initialState: Schema = {
   nameTranslations: { es: '', en: '', pt: '' },
@@ -100,7 +109,7 @@ watch(
           tour.nameTranslations || initialState.nameTranslations,
         descriptionTranslations:
           tour.descriptionTranslations || initialState.descriptionTranslations,
-        imageUrls: tour.images?.map(img => img.imageUrl) || [],
+         imageUrls: tour.images?.map((img) => img.imageUrl || '').filter(Boolean) || [],
         moonSensitive: tour.moonSensitive || false,
         windSensitive: tour.windSensitive || false,
         cloudSensitive: tour.cloudSensitive || false,
@@ -138,17 +147,24 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   formErrors.value = [] // Limpiar errores al intentar enviar
   loading.value = true
   try {
-    const payload = { ...event.data }
+    const basePayload: TourCreateReq = {
+      ...event.data,
+      imageUrls:
+        event.data.imageUrls && event.data.imageUrls.length > 0
+          ? event.data.imageUrls
+          : undefined
+    }
 
     if (isEditing.value && props.tour?.id) {
-      await updateAdminTour(props.tour.id, payload as TourUpdateReq)
+      const updatePayload: TourUpdateReq = { ...basePayload }
+      await updateAdminTour(props.tour.id, updatePayload)
       toast.add({
         title: 'Tour actualizado con éxito',
         color: 'success',
         icon: 'i-heroicons-check-circle'
       })
     } else {
-      await createAdminTour(payload as TourCreateReq)
+      await createAdminTour(basePayload)
       toast.add({
         title: 'Tour creado con éxito',
         color: 'success',
@@ -156,9 +172,19 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       })
     }
     emit('success')
-  } catch (error: any) {
-    const description
-      = error.data?.message || error.message || 'No se pudo guardar el tour'
+  } catch (error: unknown) {
+    let description = 'No se pudo guardar el tour'
+
+    if (typeof error === 'string') {
+      description = error
+    } else if (error && typeof error === 'object') {
+      const anyError = error as { data?: any; message?: string }
+      description
+        = anyError.data?.message
+        || anyError.message
+        || description
+    }
+
     toast.add({
       title: 'Error al guardar',
       description,
@@ -176,7 +202,7 @@ function handleSubmit() {
 
 // Función para encontrar el error de un campo específico
 const findError = (path: string) =>
-  formErrors.value.find(e => e.path === path)?.message
+  formErrors.value.find(e => (e as any).path === path)?.message
 
 const categoryOptions = [
   { label: 'Astronómico', value: 'ASTRONOMICAL' },

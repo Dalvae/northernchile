@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BookingRes } from '~/lib/api-client'
+import type { BookingRes } from 'api-client'
 
 const props = defineProps<{
   booking: BookingRes
@@ -14,7 +14,9 @@ function formatDate(dateString: string): string {
   return formatDateTime(dateString)
 }
 
-function getStatusBadgeColor(status: string): string {
+type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
+
+function getStatusBadgeColor(status: string): BadgeColor {
   switch (status) {
     case 'CONFIRMED':
       return 'success'
@@ -82,11 +84,11 @@ function getStatusLabel(status: string): string {
             </label>
             <div class="mt-1">
               <UBadge
-                :color="getStatusBadgeColor(booking.status)"
+                :color="getStatusBadgeColor(booking.status || 'PENDING')"
                 variant="subtle"
                 size="lg"
               >
-                {{ getStatusLabel(booking.status) }}
+                {{ getStatusLabel(booking.status || 'PENDING') }}
               </UBadge>
             </div>
           </div>
@@ -106,7 +108,7 @@ function getStatusLabel(status: string): string {
                 Fecha del Tour
               </label>
                <p class="mt-1 text-default">
-                {{ formatDate(booking.tourDate) }}
+                {{ formatDate(booking.tourDate || '') }}
               </p>
             </div>
           </div>
@@ -215,7 +217,7 @@ function getStatusLabel(status: string): string {
 
           <!-- Created At -->
           <div class="text-xs text-muted">
-            <span>Creada: {{ new Date(booking.createdAt).toLocaleString("es-CL") }}</span>
+            <span>Creada: {{ booking.createdAt ? new Date(booking.createdAt).toLocaleString("es-CL") : 'N/A' }}</span>
           </div>
         </div>
 

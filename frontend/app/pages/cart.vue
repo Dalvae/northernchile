@@ -37,7 +37,7 @@ function formatCurrency(amount: number) {
 
 function formatDate(datetime: string) {
   const date = new Date(datetime)
-  return new Intl.DateTimeFormat(locale, {
+  return new Intl.DateTimeFormat(locale.value, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',

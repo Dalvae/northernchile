@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { UserRes } from '~/lib/api-client'
+import type { UserRes, UserUpdateReq, AdminPasswordChangeReq } from 'api-client'
 import { z } from 'zod'
 
 const props = defineProps<{
@@ -8,6 +8,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   success: []
+  close: []
 }>()
 
 const { updateAdminUser, resetAdminUserPassword } = useAdminData()
@@ -22,7 +23,7 @@ const roleOptions = [
 ]
 
 // Form state - initialize with user data
-const state = reactive({
+const state = reactive<UserUpdateReq>({
   fullName: props.user.fullName || '',
   role: props.user.role || 'ROLE_CLIENT',
   nationality: props.user.nationality || '',
@@ -59,7 +60,7 @@ async function handlePasswordReset() {
 
   isResettingPassword.value = true
   try {
-    await resetAdminUserPassword(props.user.id, newPassword.value)
+    await resetAdminUserPassword(props.user.id!, newPassword.value)
     toast.add({
       title: 'Contraseña restablecida',
       description: 'La contraseña del usuario ha sido actualizada correctamente',
@@ -68,10 +69,22 @@ async function handlePasswordReset() {
     })
     newPassword.value = ''
     showPasswordReset.value = false
-  } catch (e: any) {
+  } catch (error: unknown) {
+    let description = 'Error desconocido'
+
+    if (typeof error === 'string') {
+      description = error
+    } else if (error && typeof error === 'object') {
+      const anyError = error as { data?: any; message?: string }
+      description
+        = anyError.data?.message
+        || anyError.message
+        || description
+    }
+
     toast.add({
       title: 'Error al restablecer contraseña',
-      description: e.message || 'Error desconocido',
+      description,
       color: 'error',
       icon: 'i-lucide-x-circle'
     })
@@ -83,22 +96,36 @@ async function handlePasswordReset() {
 async function handleSubmit() {
   isSubmitting.value = true
   try {
-    await updateAdminUser(props.user.id, {
+    const payload: UserUpdateReq = {
       fullName: state.fullName,
       role: state.role,
-      nationality: state.nationality || null,
-      phoneNumber: state.phoneNumber || null
-    })
+      nationality: state.nationality || undefined,
+      phoneNumber: state.phoneNumber || undefined
+    }
+
+    await updateAdminUser(props.user.id!, payload)
     toast.add({
       title: 'Usuario actualizado',
       color: 'success',
       icon: 'i-lucide-check-circle'
     })
     emit('success')
-  } catch (e: any) {
+  } catch (error: unknown) {
+    let description = 'Error desconocido'
+
+    if (typeof error === 'string') {
+      description = error
+    } else if (error && typeof error === 'object') {
+      const anyError = error as { data?: any; message?: string }
+      description
+        = anyError.data?.message
+        || anyError.message
+        || description
+    }
+
     toast.add({
       title: 'Error al actualizar',
-      description: e.message || 'Error desconocido',
+      description,
       color: 'error',
       icon: 'i-lucide-x-circle'
     })

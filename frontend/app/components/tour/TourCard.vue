@@ -97,20 +97,20 @@
             <span>{{ $t('tours.duration_hours', { hours: tour.durationHours }) }}</span>
           </div>
 
-          <div
-            v-if="tour.maxParticipants"
+           <div
+            v-if="(tour as any).maxParticipants != null"
             class="flex items-center gap-1"
-          >
+           >
             <UIcon name="i-lucide-users" class="w-4 h-4" />
-            <span>{{ $t('tours.max_participants', { count: tour.maxParticipants }) }}</span>
+            <span>{{ $t('tours.max_participants', { count: (tour as any).maxParticipants }) }}</span>
           </div>
 
           <div
-            v-if="tour.rating && showRating"
+            v-if="(tour as any).rating && showRating"
             class="flex items-center gap-1"
           >
             <UIcon name="i-lucide-star" class="w-4 h-4 text-warning" />
-            <span>{{ tour.rating }}</span>
+             <span>{{ (tour as any).rating }}</span>
           </div>
         </div>
 
@@ -131,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TourRes } from '~/lib/api-client'
+import type { TourRes } from 'api-client'
 
 const props = withDefaults(defineProps<{
   tour: TourRes
@@ -177,8 +177,10 @@ const imageSrc = computed(() => {
   return hero || first || '/images/tour-placeholder.svg'
 })
 
-const categoryColor = computed(() => {
-  const map: Record<string, string> = {
+type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
+
+const categoryColor = computed((): BadgeColor => {
+  const map: Record<string, BadgeColor> = {
     ASTRONOMICAL: 'tertiary',
     REGULAR: 'primary',
     SPECIAL: 'warning',
@@ -188,14 +190,12 @@ const categoryColor = computed(() => {
 })
 
 const categoryLabel = computed(() =>
-  (useI18n().t(`tours.category.${props.tour.category}`, props.tour.category) as string)
+  (useI18n().t(`tours.category.${props.tour.category}`, props.tour.category || 'REGULAR') as string)
 )
 
 const cardUi = computed(() => ({
-  body: { padding: 'p-0' },
-  rounded: 'rounded-xl',
-  shadow: 'shadow-lg hover:shadow-xl',
-  ring: 'ring-1 ring-neutral-300'
+  root: 'overflow-hidden rounded-xl shadow-lg hover:shadow-xl ring-1 ring-neutral-300',
+  body: 'p-0'
 }))
 
 const imageWrapperClass = computed(() =>

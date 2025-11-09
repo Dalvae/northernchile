@@ -1,11 +1,13 @@
-export default defineEventHandler(async (event) => {
+import type { UserRes } from 'api-client'
+
+export default defineEventHandler(async (event): Promise<UserRes[]> => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
   const authToken = getHeader(event, 'Authorization')
   const query = getQuery(event)
 
   try {
-    const users = await $fetch(`${backendUrl}/api/users`, {
+    const users = await $fetch<UserRes[]>(`${backendUrl}/api/users`, {
       headers: { Authorization: authToken || '' },
       query: query
     })

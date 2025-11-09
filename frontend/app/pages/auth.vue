@@ -301,7 +301,7 @@ async function handleSubmit(event: FormSubmitEvent<any>) {
         fullName: state.fullName,
         nationality: state.nationality || undefined,
         phoneNumber: state.phoneNumber || undefined,
-        dateOfBirth: state.dateOfBirth || undefined
+        // dateOfBirth currently not in RegisterReq schema, omit for now
       })
 
       toast.add({

@@ -31,7 +31,7 @@ async function saveChanges() {
   saving.value = true
   try {
     const token = authStore.token
-    await $fetch(`${config.public.apiBase}/api/bookings/${props.booking.id}`, {
+    await $fetch<void>(`${config.public.apiBase}/api/bookings/${props.booking.id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -39,7 +39,7 @@ async function saveChanges() {
       },
       body: JSON.stringify({
         specialRequests: state.value.specialRequests,
-        participants: state.value.participants.map(p => ({
+        participants: state.value.participants.map((p: any) => ({
           id: p.id,
           pickupAddress: p.pickupAddress,
           specialRequirements: p.specialRequirements,
@@ -107,7 +107,7 @@ async function saveChanges() {
             <UTextarea
               v-model="state.specialRequests"
               placeholder="Agregar cualquier solicitud especial para el tour..."
-              rows="3"
+              :rows="3"
               size="lg"
               class="w-full"
             />
@@ -159,7 +159,7 @@ async function saveChanges() {
                   <UTextarea
                     v-model="participant.specialRequirements"
                     placeholder="Ej: Restricciones alimentarias, necesidades de movilidad, etc."
-                    rows="2"
+                    :rows="2"
                     size="lg"
                     class="w-full"
                   />

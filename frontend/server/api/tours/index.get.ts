@@ -1,4 +1,6 @@
-export default defineEventHandler(async (event) => {
+import type { TourRes } from 'api-client'
+
+export default defineEventHandler(async (event): Promise<TourRes[]> => {
   // Obtenemos la URL secreta del backend desde la configuración
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase

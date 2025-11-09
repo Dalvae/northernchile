@@ -123,7 +123,10 @@ function prevStep() {
 
 // Clone contact info to first participant
 function cloneContactToParticipant() {
-  if (participants.value.length > 0) {
+  if (participants.value.length === 0) {
+    initializeParticipants()
+  }
+  if (participants.value[0]) {
     participants.value[0].fullName = contactForm.value.fullName
     participants.value[0].email = contactForm.value.email
     participants.value[0].phoneNumber = contactForm.value.phone
@@ -131,9 +134,20 @@ function cloneContactToParticipant() {
 }
 
 // Update participant data
-function updateParticipant(index: number, data: Partial<typeof participants.value[0]>) {
+function updateParticipant(index: number, data: Partial<{
+  fullName: string
+  documentId: string
+  nationality: string
+  dateOfBirth: string | null
+  pickupAddress: string
+  specialRequirements: string
+  phoneNumber: string
+  email: string
+}>) {
+  const current = participants.value[index]
+  if (!current) return
   participants.value[index] = {
-    ...participants.value[index],
+    ...current,
     ...data
   }
 }

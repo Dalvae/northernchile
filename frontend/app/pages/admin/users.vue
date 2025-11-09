@@ -2,7 +2,7 @@
 import { h } from 'vue'
 import AdminStatusBadge from '~/components/admin/StatusBadge.vue'
 import AdminCountryCell from '~/components/admin/CountryCell.vue'
-import type { UserRes } from '~/lib/api-client'
+import type { UserRes } from 'api-client'
 
 definePageMeta({
   layout: 'admin'
@@ -16,7 +16,7 @@ const {
   data: users,
   pending,
   refresh
-} = useAsyncData('admin-users', () => fetchAdminUsers(), {
+} = useAsyncData<UserRes[]>('admin-users', () => fetchAdminUsers() as Promise<UserRes[]>, {
   server: false,
   lazy: true,
   default: () => []
@@ -25,7 +25,7 @@ const {
 const q = ref('')
 const roleFilter = ref<string>('ALL')
 
-const columns = [
+const columns: Array<{ id: string; accessorKey?: keyof UserRes; header: string; cell?: (ctx: { row: { original: UserRes; getValue: (key: keyof UserRes | string) => unknown } }) => ReturnType<typeof h> }> = [
   {
     id: 'email',
     accessorKey: 'email',
@@ -40,14 +40,14 @@ const columns = [
     id: 'role',
     accessorKey: 'role',
     header: 'Rol',
-    cell: ({ row }: any) => h(AdminStatusBadge, { type: 'user', status: row.getValue('role') })
+    cell: ({ row }) => h(AdminStatusBadge, { type: 'user', status: row.getValue('role') as string })
   },
-{
-      id: 'nationality',
-      accessorKey: 'nationality',
-      header: 'Nacionalidad',
-      cell: ({ row }: any) => h(AdminCountryCell, { code: row.getValue('nationality') })
-    },
+  {
+    id: 'nationality',
+    accessorKey: 'nationality',
+    header: 'Nacionalidad',
+    cell: ({ row }) => h(AdminCountryCell, { code: row.getValue('nationality') as string | null | undefined })
+  },
   {
     id: 'phoneNumber',
     accessorKey: 'phoneNumber',
@@ -101,6 +101,7 @@ async function handleDelete(user: UserRes) {
   const userName = user.fullName || user.email || 'este usuario'
   if (confirm(`¿Estás seguro de que quieres eliminar a "${userName}"?`)) {
     try {
+      if (!user.id) throw new Error('Missing user id')
       await deleteAdminUser(user.id)
       toast.add({
         title: 'Usuario eliminado',

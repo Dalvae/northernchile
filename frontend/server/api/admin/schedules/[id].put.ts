@@ -1,4 +1,6 @@
-export default defineEventHandler(async (event) => {
+import type { TourScheduleRes } from 'api-client'
+
+export default defineEventHandler(async (event): Promise<TourScheduleRes> => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
   const authToken = getHeader(event, 'Authorization')
@@ -6,7 +8,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
   try {
-    const updatedSchedule = await $fetch(`${backendUrl}/api/tour-schedules/${scheduleId}`, {
+    const updatedSchedule = await $fetch<TourScheduleRes>(`${backendUrl}/api/tour-schedules/${scheduleId}`, {
       method: 'PUT',
       headers: { 'Authorization': authToken || '', 'Content-Type': 'application/json' },
       body: body

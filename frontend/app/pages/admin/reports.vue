@@ -169,7 +169,7 @@ const formatDate = (date: string) => {
             color="primary"
             icon="i-lucide-refresh-cw"
             :loading="overviewPending"
-            @click="refreshOverview"
+            @click="() => refreshOverview()"
           >
             Actualizar
           </UButton>

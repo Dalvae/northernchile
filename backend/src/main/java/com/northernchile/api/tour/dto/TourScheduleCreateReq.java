@@ -1,13 +1,21 @@
 
 package com.northernchile.api.tour.dto;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
 public class TourScheduleCreateReq {
+    @NotNull
     private UUID tourId;
+
+    @NotNull
     private Instant startDatetime;
+
+    @NotNull
+    @Min(1)
     private Integer maxParticipants;
     private UUID assignedGuideId;
     private String status;

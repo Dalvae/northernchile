@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const updatedBooking = await $fetch(`${backendUrl}/api/bookings/${bookingId}`, {
-      method: 'PUT',
+      method: 'PUT' as any,
       headers: { 'Authorization': authToken || '', 'Content-Type': 'application/json' },
       body: body
     })

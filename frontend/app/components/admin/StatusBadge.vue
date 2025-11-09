@@ -9,19 +9,22 @@
 </template>
 
 <script setup lang="ts">
+type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
+type BadgeVariant = 'solid' | 'subtle' | 'soft' | 'outline'
+
 const props = withDefaults(defineProps<{
   type: 'booking' | 'tour' | 'user'
   status: string
-  variant?: 'solid' | 'subtle' | 'soft'
+  variant?: BadgeVariant
 }>(), {
   variant: 'subtle'
 })
 
-const badgeColor = computed(() => {
+const badgeColor = computed<BadgeColor>(() => {
   const s = props.status
 
   if (props.type === 'booking') {
-    const map: Record<string, string> = {
+    const map: Record<string, BadgeColor> = {
       CONFIRMED: 'success',
       PENDING: 'warning',
       CANCELLED: 'error'
@@ -30,7 +33,7 @@ const badgeColor = computed(() => {
   }
 
   if (props.type === 'tour') {
-    const map: Record<string, string> = {
+    const map: Record<string, BadgeColor> = {
       PUBLISHED: 'success',
       DRAFT: 'warning',
       ARCHIVED: 'neutral'
@@ -39,7 +42,7 @@ const badgeColor = computed(() => {
   }
 
   if (props.type === 'user') {
-    const map: Record<string, string> = {
+    const map: Record<string, BadgeColor> = {
       ROLE_SUPER_ADMIN: 'error',
       ROLE_PARTNER_ADMIN: 'warning',
       ROLE_CLIENT: 'info'

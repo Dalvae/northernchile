@@ -69,8 +69,8 @@
                   <span>{{ formatScheduleDate(schedule.startDatetime) }}</span>
                 </div>
                 <UBadge
-                  v-if="schedule.availableSlots"
-                  :label="`${schedule.availableSlots} disponibles`"
+                  v-if="schedule.availableSpots"
+                  :label="`${schedule.availableSpots} disponibles`"
                   color="success"
                 />
               </UButton>
@@ -128,9 +128,9 @@
                 >
                   <span>{{ bookingState.totalParticipants }} x
                     {{ t("booking.participant") }}</span>
-                  <span>${{
-                    formatPrice(tour.price * bookingState.totalParticipants)
-                  }}</span>
+                   <span>${{
+                     formatCurrency((tour?.price || 0) * bookingState.totalParticipants)
+                   }}</span>
                 </div>
                 <UDivider />
                 <div
@@ -200,9 +200,9 @@
                 >
                   <span>{{ bookingState.totalParticipants }} x
                     {{ t("booking.participant") }}</span>
-                  <span>${{
-                    formatPrice(tour.price * bookingState.totalParticipants)
-                  }}</span>
+                   <span>${{
+                     formatCurrency((tour?.price || 0) * bookingState.totalParticipants)
+                   }}</span>
                 </div>
                 <UDivider />
                 <div
@@ -328,12 +328,11 @@ const { formatPrice: formatCurrency } = useCurrency()
 const tourId = computed(() => route.params.id as string)
 
 // Fetch tour data
-const { data: tour } = await useFetch(`/api/tours/${tourId.value}`)
+import type { TourRes, BookingCreateReq, BookingRes, TourScheduleRes } from 'api-client'
+const { data: tour } = await useFetch<TourRes>(`/api/tours/${tourId.value}`)
 
 // Fetch available schedules
-const { data: schedules } = await useFetch(
-  `/api/tours/${tourId.value}/schedules`
-)
+const { data: schedules } = await useFetch<TourScheduleRes[]>(`/api/tours/${tourId.value}/schedules`)
 
 // Steps configuration
 const steps = computed(() => [
@@ -392,14 +391,27 @@ function createEmptyParticipant() {
   }
 }
 
-function selectSchedule(schedule: any) {
+function selectSchedule(schedule: TourScheduleRes) {
+  if (!schedule.id) return
   bookingState.scheduleId = schedule.id
 }
 
-function updateParticipant(index: number, data: any) {
-  bookingState.participants[index] = {
-    ...bookingState.participants[index],
-    ...data
+type BookingParticipant = BookingCreateReq['participants'][number]
+
+function updateParticipant(index: number, data: Partial<BookingParticipant>) {
+  const current = bookingState.participants[index]
+  if (current) {
+    bookingState.participants[index] = {
+      fullName: current.fullName || '',
+      documentId: current.documentId || '',
+      nationality: current.nationality || '',
+      dateOfBirth: current.dateOfBirth || null,
+      pickupAddress: current.pickupAddress || '',
+      specialRequirements: current.specialRequirements || '',
+      phoneNumber: current.phoneNumber || '',
+      email: current.email || '',
+      ...data
+    }
   }
 }
 
@@ -407,11 +419,22 @@ function copyUserDataToFirstParticipant() {
   if (!authStore.user || bookingState.participants.length === 0) return
 
   const user = authStore.user
-  bookingState.participants[0] = {
-    ...bookingState.participants[0],
-    fullName: user.fullName || '',
-    nationality: user.nationality || '',
-    dateOfBirth: user.dateOfBirth || null
+  if (!bookingState.participants[0]) {
+    bookingState.participants.push(createEmptyParticipant())
+  }
+  const firstParticipant = bookingState.participants[0]
+  if (firstParticipant) {
+    bookingState.participants[0] = {
+      ...firstParticipant,
+      fullName: user.fullName || '',
+      nationality: user.nationality || '',
+      dateOfBirth: user.dateOfBirth || null,
+      documentId: firstParticipant.documentId || '',
+      pickupAddress: firstParticipant.pickupAddress || '',
+      specialRequirements: firstParticipant.specialRequirements || '',
+      phoneNumber: firstParticipant.phoneNumber || '',
+      email: firstParticipant.email || ''
+    }
   }
 
   toast.add({
@@ -427,7 +450,8 @@ function getTourName(tour: any): string {
   return name
 }
 
-function formatScheduleDate(datetime: string): string {
+function formatScheduleDate(datetime: string | undefined): string {
+  if (!datetime) return ''
   const date = new Date(datetime)
   return date.toLocaleDateString(locale.value, {
     weekday: 'long',
@@ -439,7 +463,7 @@ function formatScheduleDate(datetime: string): string {
 
 function calculateTotal(): string {
   if (!tour.value) return formatCurrency(0)
-  const total = tour.value.price * bookingState.totalParticipants
+  const total = (tour.value.price || 0) * bookingState.totalParticipants
   return formatCurrency(total)
 }
 
@@ -488,32 +512,32 @@ async function handleMockPayment() {
 
   try {
     // Step 1: Create the booking with PENDING status
-    const bookingPayload = {
-      scheduleId: bookingState.scheduleId,
-        participants: bookingState.participants.map(p => ({
-          fullName: p.fullName,
-          documentId: p.documentId,
-          nationality: p.nationality,
-          dateOfBirth: p.dateOfBirth,
-          pickupAddress: p.pickupAddress,
-          specialRequirements: p.specialRequirements,
-          phoneNumber: p.phoneNumber,
-          email: p.email
-        })),
+    const bookingPayload: BookingCreateReq = {
+      scheduleId: bookingState.scheduleId!,
+      participants: bookingState.participants.map(p => ({
+        fullName: p.fullName,
+        documentId: p.documentId,
+        nationality: p.nationality,
+        dateOfBirth: p.dateOfBirth || undefined,
+        pickupAddress: p.pickupAddress,
+        specialRequirements: p.specialRequirements || undefined,
+        phoneNumber: p.phoneNumber || undefined,
+        email: p.email || undefined
+      })),
       languageCode: locale.value,
       specialRequests: ''
     }
 
-    const { data: createdBooking, error: createError } = await $fetch(
+    const createdBooking = await $fetch<BookingRes>(
       '/api/bookings',
       {
-        method: 'POST',
+        method: 'post',
         body: bookingPayload
       }
-    ).catch(err => ({ data: null, error: err }))
+    )
 
-    if (createError || !createdBooking) {
-      throw new Error(createError?.message || 'Failed to create booking')
+    if (!createdBooking) {
+      throw new Error('Failed to create booking')
     }
 
     toast.add({
@@ -523,18 +547,18 @@ async function handleMockPayment() {
     })
 
     // Step 2: Confirm the booking with mock payment
-    const { data: confirmed, error: confirmError } = await $fetch(
+    const confirmed = await $fetch<BookingRes>(
       `/api/bookings/${createdBooking.id}/confirm-mock`,
       {
-        method: 'POST'
+        method: 'post'
       }
-    ).catch(err => ({ data: null, error: err }))
+    )
 
-    if (confirmError || !confirmed) {
-      throw new Error(confirmError?.message || 'Failed to confirm booking')
+    if (!confirmed) {
+      throw new Error('Failed to confirm booking')
     }
 
-    confirmedBooking.value = confirmed
+    confirmedBooking.value = confirmed as BookingRes
 
     toast.add({
       title: t('booking.payment_success'),
@@ -544,11 +568,15 @@ async function handleMockPayment() {
 
     // Step 3: Move to confirmation step
     currentStep.value = 4
-  } catch (error: any) {
+  } catch (error) {
     console.error('Payment error:', error)
+    const message =
+      typeof error === 'object' && error && 'message' in error && typeof error.message === 'string'
+        ? error.message
+        : 'An unexpected error occurred'
     toast.add({
       title: t('booking.payment_error'),
-      description: error.message || 'An unexpected error occurred',
+      description: message,
       color: 'error'
     })
   } finally {

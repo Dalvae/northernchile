@@ -1,4 +1,4 @@
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<any> => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
 

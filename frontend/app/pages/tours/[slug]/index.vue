@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { TourRes } from '~/lib/api-client'
+import type { TourRes } from 'api-client'
 
 const route = useRoute()
 const { locale } = useI18n()

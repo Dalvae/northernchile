@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TourRes } from '~/lib/api-client'
+import type { TourRes } from 'api-client'
 import TourCard from '~/components/tour/TourCard.vue'
 
 const router = useRouter()
@@ -33,10 +33,10 @@ const filteredTours = computed(() => {
   }
 
   // Ordenar
-  if (sortBy.value === 'price-asc') {
-    tours = tours.sort((a, b) => (a.basePrice || 0) - (b.basePrice || 0))
-  } else if (sortBy.value === 'price-desc') {
-    tours = tours.sort((a, b) => (b.basePrice || 0) - (a.basePrice || 0))
+    if (sortBy.value === 'price-asc') {
+      tours = tours.sort((a, b) => (a.price || 0) - (b.price || 0))
+    } else if (sortBy.value === 'price-desc') {
+      tours = tours.sort((a, b) => (b.price || 0) - (a.price || 0))
   } else if (sortBy.value === 'duration') {
     tours = tours.sort((a, b) => (a.durationHours || 0) - (b.durationHours || 0))
   } else {

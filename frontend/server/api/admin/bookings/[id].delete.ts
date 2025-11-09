@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     await $fetch(`${backendUrl}/api/bookings/${bookingId}`, {
-      method: 'DELETE',
+      method: 'DELETE' as any,
       headers: { Authorization: authToken || '' }
     })
     return { status: 'success', message: 'Reserva eliminada correctamente' }

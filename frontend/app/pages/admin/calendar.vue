@@ -260,11 +260,10 @@
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
-import interactionPlugin from '@fullcalendar/interaction'
+import interactionPlugin, { type DateClickArg } from '@fullcalendar/interaction'
 import type {
   CalendarOptions,
-  EventClickArg,
-  DateClickArg
+  EventClickArg
 } from '@fullcalendar/core'
 import esLocale from '@fullcalendar/core/locales/es'
 
@@ -313,8 +312,8 @@ const { data: toursData } = await useAsyncData(
 
 // Computed options for selects
 const tourOptions = computed(() => {
-  if (!toursData.value?.data) return []
-  return toursData.value.data
+  const list = Array.isArray(toursData.value) ? toursData.value : (toursData.value as any)?.data || []
+  return list
     .filter((tour: any) => tour.status === 'PUBLISHED')
     .map((tour: any) => ({
       value: tour.id,
@@ -340,12 +339,12 @@ const endDate = ref('')
 // Inicializar fechas
 onMounted(() => {
   const today = new Date()
-  startDate.value = today.toISOString().split('T')[0]
+  startDate.value = today.toISOString().split('T')[0]!
 
   // Mostrar próximos 60 días (máximo para tours astronómicos)
   const end = new Date(today)
   end.setDate(end.getDate() + 60)
-  endDate.value = end.toISOString().split('T')[0]
+  endDate.value = end.toISOString().split('T')[0]!
 
   loadCalendarData()
 })
@@ -380,7 +379,7 @@ const getAuthHeaders = () => {
 const generateSchedules = async () => {
   try {
     generating.value = true
-    await $fetch(`${config.public.apiBase}/api/admin/schedules/generate`, {
+    await $fetch<void>(`${config.public.apiBase}/api/admin/schedules/generate`, {
       method: 'POST',
       headers: getAuthHeaders()
     })
@@ -414,7 +413,7 @@ const handleEventClick = (info: EventClickArg) => {
   const scheduleDate = new Date(schedule.startDatetime)
   scheduleForm.value = {
     tourId: schedule.tourId,
-    date: scheduleDate.toISOString().split('T')[0],
+    date: scheduleDate.toISOString().split('T')[0]!,
     time: scheduleDate.toTimeString().slice(0, 5),
     maxParticipants: schedule.maxParticipants,
     status: schedule.status
@@ -424,7 +423,7 @@ const handleEventClick = (info: EventClickArg) => {
 }
 
 // Click en día vacío
-const handleDateClick = (info: DateClickArg) => {
+const handleDateClick = (info: any) => {
   selectedSchedule.value = null
 
   // Pre-fill with clicked date
@@ -504,10 +503,10 @@ const saveSchedule = async () => {
       payload.status = scheduleForm.value.status
 
       // Update existing schedule
-      await $fetch(
+       await $fetch(
         `${config.public.apiBase}/api/admin/schedules/${selectedSchedule.value.id}`,
         {
-          method: 'PATCH',
+         method: 'PUT',
           headers: getAuthHeaders(),
           body: payload
         }
@@ -583,7 +582,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
           let backgroundColor = 'var(--color-atacama-dorado-500)'
 
           // Verificar si tiene alertas críticas
-          const scheduleAlerts = alerts.get(schedule.id) || []
+          const scheduleAlerts = alerts?.get(schedule.id) || []
           const hasCriticalAlert = scheduleAlerts.some(
             (a: any) => a.severity === 'CRITICAL' && a.status === 'PENDING'
           )
@@ -621,7 +620,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
 
     // Contenido de cada día
     dayCellContent: (arg) => {
-      const date = arg.date.toISOString().split('T')[0]
+      const date = arg.date.toISOString().split('T')[0]!
       const moonPhase = moonPhases.get(date)
       const dayWeather = weather.get(date)
       const conditions = hasAdverseConditions(date, weather, moonPhases)

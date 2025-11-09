@@ -1,12 +1,22 @@
 
 package com.northernchile.api.auth.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.Objects;
 
 public class RegisterReq {
+    @NotBlank
+    @Email
     private String email;
+
+    @NotBlank
+    @Size(min = 8)
     private String password;
+
+    @NotBlank
     private String fullName;
     private String nationality;
     private String phoneNumber;

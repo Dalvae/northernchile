@@ -45,7 +45,7 @@
           :label="t('booking.nationality')"
           :placeholder="t('booking.nationality_placeholder')"
           size="lg"
-          @update:model-value="emit('update', { nationality: $event })"
+          @update:model-value="emit('update', { nationality: $event || undefined })"
         />
       </div>
 
@@ -61,7 +61,7 @@
           placeholder="YYYY-MM-DD"
           size="lg"
           icon="i-lucide-calendar"
-          @update:model-value="emit('update', { dateOfBirth: $event })"
+           @update:model-value="emit('update', { dateOfBirth: $event || null })"
         />
       </UFormField>
 
@@ -138,12 +138,12 @@
 const { t } = useI18n()
 
 defineProps<{
-  participant: {
-    fullName: string
-    documentId: string
-    nationality: string
-    dateOfBirth: string | null
-    pickupAddress: string
+   participant: {
+     fullName: string
+     documentId: string
+     nationality: string
+     dateOfBirth?: string | null
+     pickupAddress: string
     specialRequirements: string
     phoneNumber: string
     email: string
@@ -156,9 +156,9 @@ const emit = defineEmits<{
   update: [data: Partial<{
     fullName: string
     documentId: string
-    nationality: string
-    dateOfBirth: string | null
-    pickupAddress: string
+     nationality: string
+     dateOfBirth?: string | null
+     pickupAddress: string
     specialRequirements: string
     phoneNumber: string
     email: string

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { h, resolveComponent } from 'vue'
 import AdminStatusBadge from '~/components/admin/StatusBadge.vue'
-import type { TourRes } from '~/lib/api-client'
+import type { TourRes } from 'api-client'
 
 definePageMeta({
   layout: 'admin'
@@ -14,12 +14,9 @@ const {
   data: tours,
   pending,
   refresh
-} = useAsyncData('admin-tours', () => fetchAdminTours(), {
-  // Importante: solo ejecutar en el cliente
+} = useAsyncData<TourRes[]>('admin-tours', () => fetchAdminTours(), {
   server: false,
-  // Ejecutar solo si está autenticado
   lazy: true,
-  // Transformar data para manejar null
   default: () => []
 })
 
@@ -49,7 +46,11 @@ const columns = [
     id: 'status',
     accessorKey: 'status',
     header: 'Estado',
-    cell: ({ row }: any) => h(AdminStatusBadge, { type: 'tour', status: row.getValue('status') })
+    cell: ({ row }: { row: { original: TourRes } }) =>
+      h(AdminStatusBadge, {
+        type: 'tour',
+        status: row.original.status || 'DRAFT'
+      })
   },
   {
     id: 'actions',
@@ -102,6 +103,7 @@ async function handleDelete(tour: TourRes) {
   const tourName = tour.nameTranslations?.es || 'este tour'
   if (confirm(`¿Estás seguro de que quieres eliminar "${tourName}"?`)) {
     try {
+      if (!tour.id) throw new Error('Missing tour id')
       await deleteAdminTour(tour.id)
       toast.add({
         title: 'Tour eliminado',

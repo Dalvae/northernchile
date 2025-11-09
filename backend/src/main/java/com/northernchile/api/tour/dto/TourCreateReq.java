@@ -2,14 +2,19 @@
 package com.northernchile.api.tour.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public class TourCreateReq {
-  private Map<String, String> nameTranslations; // CAMBIO
-  private Map<String, String> descriptionTranslations; // CAMBIO
+  @NotEmpty
+  private Map<String, String> nameTranslations;
+
+  @NotEmpty
+  private Map<String, String> descriptionTranslations;
   private List<String> imageUrls; // NUEVO CAMPO
   @JsonProperty("isWindSensitive")
   private Boolean isWindSensitive;
@@ -17,11 +22,22 @@ public class TourCreateReq {
   private Boolean isMoonSensitive;
   @JsonProperty("isCloudSensitive")
   private Boolean isCloudSensitive; // NUEVO
+  @NotNull
   private String category;
+
+  @NotNull
   private BigDecimal price;
+
+  @NotNull
   private Integer defaultMaxParticipants;
+
+  @NotNull
   private Integer durationHours;
-  private String status; // <-- AÑADIR ESTA LÍNEA
+
+  @NotNull
+  private String status;
+
+  @NotNull
   private String contentKey;
 
   public TourCreateReq() {

@@ -5,13 +5,6 @@ const { themes, setTheme } = useTheme()
 
 const options = computed(() => [
   themes.map((key) => {
-    if (key === 'nc-base') {
-      return {
-        label: 'NC Base',
-        icon: 'i-lucide-swatch-book',
-        onSelect: () => setTheme('nc-base')
-      }
-    }
     if (key === 'atacama-nocturna') {
       return {
         label: 'Atacama Nocturna',

@@ -115,7 +115,7 @@ export const useAuthStore = defineStore('auth', {
         toast.add({
           title: 'Error de Autenticación',
           description: errorMessage,
-          color: 'red'
+          color: 'error'
         })
         throw error
       } finally {
@@ -146,7 +146,7 @@ export const useAuthStore = defineStore('auth', {
         toast.add({
           title: 'Registro Exitoso',
           description: 'Tu cuenta ha sido creada. Ahora puedes iniciar sesión.',
-          color: 'green'
+          color: 'success'
         })
       } catch (error: any) {
         let errorMessage = error.data?.message || 'Error en el registro'

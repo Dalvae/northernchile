@@ -1,4 +1,6 @@
-export default defineEventHandler(async (event) => {
+import type { TourRes } from 'api-client'
+
+export default defineEventHandler(async (event): Promise<TourRes> => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
   const authToken = getHeader(event, 'Authorization')
@@ -7,7 +9,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const updatedTour = await $fetch(`${backendUrl}/api/tours/${tourId}`, {
-      method: 'PUT',
+      method: 'PUT' as any,
       headers: { 'Authorization': authToken || '', 'Content-Type': 'application/json' },
       body: body
     })

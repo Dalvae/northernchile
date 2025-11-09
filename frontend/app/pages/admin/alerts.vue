@@ -18,7 +18,7 @@
             variant="outline"
             icon="i-lucide-refresh-cw"
             :loading="refreshing"
-            @click="refreshAlerts"
+            @click="() => refreshAlerts()"
           >
             Actualizar
           </UButton>
@@ -404,7 +404,7 @@
               </label>
               <UTextarea
                 v-model="resolveForm.notes"
-                rows="3"
+                :rows="3"
                 placeholder="Agrega cualquier información adicional sobre la resolución..."
               />
             </div>
@@ -452,10 +452,15 @@ const showResolveModal = ref(false)
 const selectedAlert = ref<any>(null)
 
 // Alerts data
+interface AlertHistoryResponse {
+  all: any[]
+  bySchedule: Record<string, any[]>
+}
+
 const { data: alertsData, refresh: refreshAlerts } = await useAsyncData(
   'admin-alerts',
   async () => {
-    const response = await $fetch(
+    const response = await $fetch<AlertHistoryResponse>(
       `${config.public.apiBaseUrl}/admin/alerts/history`,
       {
         credentials: 'include'
@@ -465,7 +470,8 @@ const { data: alertsData, refresh: refreshAlerts } = await useAsyncData(
   },
   {
     server: false,
-    lazy: true
+    lazy: true,
+    default: () => ({ all: [], bySchedule: {} })
   }
 )
 
@@ -508,9 +514,9 @@ const resolveForm = ref({
 
 // Computed
 const filteredAlerts = computed(() => {
-  if (!alertsData.value) return []
+  if (!alertsData.value || !alertsData.value.all) return []
 
-  let filtered = [...alertsData.value]
+  let filtered = [...alertsData.value.all]
 
   if (filters.value.status !== 'ALL') {
     filtered = filtered.filter(
@@ -538,15 +544,15 @@ const filteredAlerts = computed(() => {
 })
 
 const stats = computed(() => {
-  if (!alertsData.value)
+  if (!alertsData.value || !alertsData.value.all)
     return { pending: 0, cancelled: 0, kept: 0, rescheduled: 0 }
 
   return {
-    pending: alertsData.value.filter((a: any) => a.status === 'PENDING').length,
-    cancelled: alertsData.value.filter((a: any) => a.status === 'CANCELLED')
+    pending: alertsData.value.all.filter((a: any) => a.status === 'PENDING').length,
+    cancelled: alertsData.value.all.filter((a: any) => a.status === 'CANCELLED')
       .length,
-    kept: alertsData.value.filter((a: any) => a.status === 'KEPT').length,
-    rescheduled: alertsData.value.filter((a: any) => a.status === 'RESCHEDULED')
+    kept: alertsData.value.all.filter((a: any) => a.status === 'KEPT').length,
+    rescheduled: alertsData.value.all.filter((a: any) => a.status === 'RESCHEDULED')
       .length
   }
 })
@@ -555,7 +561,7 @@ const stats = computed(() => {
 const checkAlertsManually = async () => {
   checking.value = true
   try {
-    const response = await $fetch(
+    const response = await $fetch<{ pendingAlerts: number }>(
       `${config.public.apiBaseUrl}/admin/alerts/check`,
       {
         method: 'POST',
@@ -647,8 +653,10 @@ function formatDate(dateString: string): string {
   })
 }
 
-function getSeverityColor(severity: string): string {
-  const colors: Record<string, string> = {
+type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
+
+function getSeverityColor(severity: string): BadgeColor {
+  const colors: Record<string, BadgeColor> = {
     LOW: 'info',
     MEDIUM: 'warning',
     HIGH: 'error',
@@ -657,8 +665,8 @@ function getSeverityColor(severity: string): string {
   return colors[severity] || 'neutral'
 }
 
-function getTypeColor(type: string): string {
-  const colors: Record<string, string> = {
+function getTypeColor(type: string): BadgeColor {
+  const colors: Record<string, BadgeColor> = {
     WIND: 'error',
     CLOUDS: 'warning',
     MOON: 'tertiary',
@@ -677,8 +685,8 @@ function getTypeLabel(type: string): string {
   return labels[type] || type
 }
 
-function getStatusColor(status: string): string {
-  const colors: Record<string, string> = {
+function getStatusColor(status: string): BadgeColor {
+  const colors: Record<string, BadgeColor> = {
     PENDING: 'warning',
     KEPT: 'success',
     CANCELLED: 'error',
@@ -687,8 +695,8 @@ function getStatusColor(status: string): string {
   return colors[status] || 'neutral'
 }
 
-function getResolutionColor(resolution: string): string {
-  const colors: Record<string, string> = {
+function getResolutionColor(resolution: string): BadgeColor {
+  const colors: Record<string, BadgeColor> = {
     KEPT: 'success',
     CANCELLED: 'error',
     RESCHEDULED: 'warning'

@@ -16,7 +16,7 @@
     >
       <!-- Temperatura -->
       <div class="flex items-center gap-1 text-xs">
-        <span>{{ getWeatherIcon(weather.weather[0]?.main) }}</span>
+        <span>{{ getWeatherIcon(weather.weather[0]?.main || '') }}</span>
         <span class="text-neutral-700 dark:text-neutral-300">
           {{ Math.round(weather.temp.max) }}° / {{ Math.round(weather.temp.min) }}°
         </span>
@@ -30,7 +30,7 @@
           color="error"
           variant="soft"
           size="xs"
-          :ui="{ rounded: 'rounded-full' }"
+          class="rounded-full"
         >
           💨 Viento
         </UBadge>
@@ -41,7 +41,7 @@
           color="warning"
           variant="soft"
           size="xs"
-          :ui="{ rounded: 'rounded-full' }"
+          class="rounded-full"
         >
           ☁️ Nublado
         </UBadge>
@@ -52,7 +52,7 @@
           color="info"
           variant="soft"
           size="xs"
-          :ui="{ rounded: 'rounded-full' }"
+          class="rounded-full"
         >
           🌧️ Lluvia
         </UBadge>
@@ -63,7 +63,7 @@
           color="tertiary"
           variant="soft"
           size="xs"
-          :ui="{ rounded: 'rounded-full' }"
+          class="rounded-full"
         >
           🌕 Luna llena
         </UBadge>

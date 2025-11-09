@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { z } from 'zod'
+import type { UserCreateReq } from 'api-client'
 
+const emit = defineEmits<{ success: []; close: [] }>()
 const { t } = useI18n()
+const { createAdminUser } = useAdminData()
+const toast = useToast()
 
 // Role options for select
 const roleOptions = [
@@ -11,7 +15,7 @@ const roleOptions = [
 ]
 
 // Form state
-const state = reactive({
+const state = reactive<UserCreateReq & { password: string }>({
   email: '',
   fullName: '',
   password: '',
@@ -35,14 +39,16 @@ const isSubmitting = ref(false)
 async function handleSubmit() {
   isSubmitting.value = true
   try {
-    await createAdminUser({
+    const payload: UserCreateReq = {
       email: state.email,
       fullName: state.fullName,
       password: state.password,
       role: state.role,
-      nationality: state.nationality || null,
-      phoneNumber: state.phoneNumber || null
-    })
+      nationality: state.nationality || undefined,
+      phoneNumber: state.phoneNumber || undefined
+    }
+
+    await createAdminUser(payload)
     toast.add({
       title: 'Usuario creado',
       color: 'success',
@@ -58,10 +64,22 @@ async function handleSubmit() {
     state.phoneNumber = ''
 
     emit('success')
-  } catch (e: any) {
+  } catch (error: unknown) {
+    let description = 'Error desconocido'
+
+    if (typeof error === 'string') {
+      description = error
+    } else if (error && typeof error === 'object') {
+      const anyError = error as { data?: any; message?: string }
+      description
+        = anyError.data?.message
+        || anyError.message
+        || description
+    }
+
     toast.add({
       title: 'Error al crear',
-      description: e.message || 'Error desconocido',
+      description,
       color: 'error',
       icon: 'i-lucide-x-circle'
     })

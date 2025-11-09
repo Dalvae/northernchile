@@ -144,12 +144,12 @@ const resetSettings = () => {
        <p class="text-default">
         Error al cargar las configuraciones
       </p>
-      <UButton
-        color="primary"
-        variant="soft"
-        class="mt-4"
-        @click="refresh"
-      >
+       <UButton
+         color="primary"
+         variant="soft"
+         class="mt-4"
+         @click="() => refresh()"
+       >
         Reintentar
       </UButton>
     </div>

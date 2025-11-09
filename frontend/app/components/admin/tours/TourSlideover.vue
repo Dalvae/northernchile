@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { TourRes, TourCreateReq, TourUpdateReq } from '~/lib/api-client'
+import type { TourRes, TourCreateReq, TourUpdateReq } from 'api-client'
 
 const props = defineProps<{
   modelValue: boolean
@@ -89,25 +89,25 @@ watch(
   () => props.tour,
   (tour) => {
     if (tour) {
-      state.nameTranslations = tour.nameTranslations || {
-        es: '',
-        en: '',
-        pt: ''
+      state.nameTranslations = {
+        es: tour.nameTranslations?.es || '',
+        en: tour.nameTranslations?.en || '',
+        pt: tour.nameTranslations?.pt || ''
       }
-      state.descriptionTranslations = tour.descriptionTranslations || {
-        es: '',
-        en: '',
-        pt: ''
+      state.descriptionTranslations = {
+        es: tour.descriptionTranslations?.es || '',
+        en: tour.descriptionTranslations?.en || '',
+        pt: tour.descriptionTranslations?.pt || ''
       }
-      state.imageUrls = tour.images?.map(img => img.imageUrl) || []
+      state.imageUrls = tour.images?.map(img => img.imageUrl).filter((url): url is string => !!url) || []
       state.isMoonSensitive = tour.isMoonSensitive || false
       state.isWindSensitive = tour.isWindSensitive || false
       state.isCloudSensitive = tour.isCloudSensitive || false
-      state.category = tour.category
-      state.price = tour.price
-      state.defaultMaxParticipants = tour.defaultMaxParticipants
-      state.durationHours = tour.durationHours
-      state.status = tour.status
+      state.category = tour.category || 'ASTRONOMICAL'
+      state.price = tour.price || 0
+      state.defaultMaxParticipants = tour.defaultMaxParticipants || 10
+      state.durationHours = tour.durationHours || 2
+      state.status = (tour.status || 'DRAFT') as 'PUBLISHED' | 'DRAFT' | 'ARCHIVED'
       state.contentKey = tour.contentKey || ''
     } else {
       // Resetear a valores por defecto
@@ -141,14 +141,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       await updateAdminTour(props.tour.id, payload as TourUpdateReq)
       toast.add({
         title: 'Tour actualizado con éxito',
-        color: 'green',
+        color: 'success',
         icon: 'i-heroicons-check-circle'
       })
     } else {
       await createAdminTour(payload as TourCreateReq)
       toast.add({
         title: 'Tour creado con éxito',
-        color: 'green',
+        color: 'success',
         icon: 'i-heroicons-check-circle'
       })
     }
@@ -159,7 +159,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     toast.add({
       title: 'Error',
       description: error.message || 'No se pudo guardar el tour',
-      color: 'red',
+      color: 'error',
       icon: 'i-heroicons-exclamation-triangle'
     })
   } finally {

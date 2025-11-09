@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { h, resolveComponent } from 'vue'
-import type { BookingRes } from '~/lib/api-client'
+import type { BookingRes } from 'api-client'
 import { getGroupedRowModel } from '@tanstack/vue-table'
 import type { GroupingOptions } from '@tanstack/vue-table'
 
@@ -32,21 +32,21 @@ const activeTab = ref<'upcoming' | 'past'>('upcoming')
 
 // Transform bookings into participant rows
 type ParticipantRow = {
-  scheduleId: string
-  tourName: string
-  tourDate: string
-  tourStartTime: string
-  participantName: string
-  documentId: string
-  nationality: string
-  age: number
-  pickupAddress: string
-  specialRequirements: string
-  participantPhone: string
-  participantEmail: string
-  bookingUserName: string
-  bookingUserPhone: string
-  bookingId: string
+  scheduleId: string | undefined
+  tourName?: string
+  tourDate?: string
+  tourStartTime?: string | any
+  participantName?: string
+  documentId?: string
+  nationality?: string
+  age?: number
+  pickupAddress?: string
+  specialRequirements?: string
+  participantPhone?: string
+  participantEmail?: string
+  bookingUserName?: string
+  bookingUserPhone?: string
+  bookingId?: string
 }
 
 const participantRows = computed<ParticipantRow[]>(() => {
@@ -62,7 +62,7 @@ const participantRows = computed<ParticipantRow[]>(() => {
       continue
     }
 
-    if (!booking.participants || booking.participants.length === 0) {
+    if (!booking.participants || booking.participants.length === 0 || !booking.tourDate) {
       continue
     }
 
@@ -103,14 +103,7 @@ const participantRows = computed<ParticipantRow[]>(() => {
         participantEmail: participant.email,
         bookingUserName: booking.userFullName,
         bookingUserPhone: booking.userPhoneNumber,
-        bookingId: booking.id,
-        contact:
-           participant.phoneNumber
-           || booking.userPhoneNumber
-           || participant.email
-           || booking.userFullName,
-        isBookingContactPhone:
-           !participant.phoneNumber && !!booking.userPhoneNumber
+         bookingId: booking.id
       })
     }
   }
@@ -130,11 +123,11 @@ const columns = [
   {
     accessorKey: 'participantName',
     header: 'Participante',
-    cell: ({ row }) =>
+    cell: ({ row }: { row: import('@tanstack/vue-table').Row<ParticipantRow> }) =>
       row.getIsGrouped()
         ? `${row.getValue('participantName')} participantes`
         : row.getValue('participantName'),
-    aggregationFn: 'count'
+     aggregationFn: 'count' as const
   },
   {
     accessorKey: 'documentId',
@@ -143,7 +136,7 @@ const columns = [
 {
       accessorKey: 'nationality',
       header: 'Nacionalidad',
-      cell: ({ row }: any) => h(AdminCountryCell, { code: row.getValue('nationality') })
+      cell: ({ row }: import('@tanstack/vue-table').CellContext<ParticipantRow, unknown>) => h(AdminCountryCell, { code: row.getValue('nationality') as string })
     },
   {
     accessorKey: 'age',
@@ -158,10 +151,10 @@ const columns = [
       }
     }
   },
-  {
-    accessorKey: 'contact',
+   {
+    accessorKey: 'participantPhone',
     header: 'Contacto'
-  }
+   }
 ]
 
 const groupingOptions = ref<GroupingOptions>({
@@ -171,7 +164,7 @@ const groupingOptions = ref<GroupingOptions>({
 
 const { formatDateTime } = useDateTime()
 
-function formatTourDateTime(dateString: string, timeString: string): string {
+function formatTourDateTime(dateString: string, timeString?: string): string {
   const base = formatDateTime(dateString)
   return timeString ? `${base} - ${timeString}` : base
 }
@@ -262,9 +255,9 @@ function formatTourDateTime(dateString: string, timeString: string): string {
                 </strong>
                  <span class="text-sm text-default">
                   {{
-                    formatDateTime(
-                      row.original.tourDate,
-                      row.original.tourStartTime
+                    formatTourDateTime(
+                      row.original.tourDate || '',
+                      row.original.tourStartTime || ''
                     )
                   }}
                 </span>

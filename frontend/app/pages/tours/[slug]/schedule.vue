@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TourRes } from '~/lib/api-client'
+import type { TourRes } from 'api-client'
 
 const route = useRoute()
 const router = useRouter()
@@ -99,7 +99,7 @@ useSeoMeta({
   description: translatedDescription,
   ogTitle: () => `${translatedName.value} - ${t('schedule.title')}`,
   ogDescription: translatedDescription,
-  ogImage: tour.value?.images?.[0]?.url || 'https://www.northernchile.cl/og-image-tours.jpg',
+  ogImage: tour.value?.images?.[0]?.imageUrl || 'https://www.northernchile.cl/og-image-tours.jpg',
   twitterCard: 'summary_large_image'
 })
 </script>
@@ -205,7 +205,7 @@ useSeoMeta({
                     {{ t("tours.price_from") }}
                   </p>
                   <p class="font-semibold text-neutral-900 dark:text-white">
-                    ${{ (tour.price || tour.basePrice)?.toLocaleString() }}
+                    ${{ (tour.price || 0)?.toLocaleString() }}
                   </p>
                 </div>
               </div>
@@ -364,7 +364,7 @@ useSeoMeta({
                     {{ t("schedule.total_price") }}
                   </span>
                   <span class="text-2xl font-bold text-primary">
-                    ${{ ((tour.price || tour.basePrice || 0) * participantCount).toLocaleString() }}
+                    ${{ ((tour.price || 0) * participantCount).toLocaleString() }}
                   </span>
                 </div>
               </div>

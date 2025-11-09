@@ -87,8 +87,10 @@ const filteredParticipants = computed(() => {
 })
 
 // Status badge color mapping
-const getStatusColor = (status: string) => {
-  const colors: Record<string, string> = {
+type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
+
+const getStatusColor = (status: string): BadgeColor => {
+  const colors: Record<string, BadgeColor> = {
     CONFIRMED: 'success',
     PENDING: 'warning',
     CANCELLED: 'error',
@@ -98,7 +100,7 @@ const getStatusColor = (status: string) => {
 }
 
 // Type badge color mapping
-const getTypeColor = (type: string) => {
+const getTypeColor = (type: string): BadgeColor => {
   return type === 'ADULT' ? 'primary' : 'secondary'
 }
 
@@ -227,12 +229,12 @@ const typeOptions = [
        <p class="text-muted">
         Error al cargar los participantes
       </p>
-      <UButton
-        color="primary"
-        variant="soft"
-        class="mt-4"
-        @click="refresh"
-      >
+          <UButton
+            color="primary"
+            variant="soft"
+            class="mt-4"
+            @click="() => refresh()"
+          >
         Reintentar
       </UButton>
     </div>
