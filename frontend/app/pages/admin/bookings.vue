@@ -8,6 +8,9 @@ definePageMeta({
   layout: 'admin'
 })
 
+import AdminStatusBadge from '~/components/admin/StatusBadge.vue'
+import AdminCountryCell from '~/components/admin/CountryCell.vue'
+
 const UBadge = resolveComponent('UBadge')
 
 const { fetchAdminBookings } = useAdminData()
@@ -137,20 +140,11 @@ const columns = [
     accessorKey: 'documentId',
     header: 'Documento'
   },
-  {
-    accessorKey: 'nationality',
-    header: 'Nacionalidad',
-    cell: ({ row }: any) => {
-      const code = row.getValue('nationality')
-      if (!code) return '-'
-      const flag = getCountryFlag(code)
-      const label = getCountryLabel(code)
-      return h('div', { class: 'flex items-center gap-1.5' }, [
-        h('span', { class: 'text-lg' }, flag),
-        h('span', { class: 'text-sm' }, label)
-      ])
-    }
-  },
+{
+      accessorKey: 'nationality',
+      header: 'Nacionalidad',
+      cell: ({ row }: any) => h(AdminCountryCell, { code: row.getValue('nationality') })
+    },
   {
     accessorKey: 'age',
     header: 'Edad'

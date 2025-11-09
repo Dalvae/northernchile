@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { h, resolveComponent } from 'vue'
+import AdminStatusBadge from '~/components/admin/StatusBadge.vue'
 import type { TourRes } from '~/lib/api-client'
 
 definePageMeta({
@@ -47,7 +48,8 @@ const columns = [
   {
     id: 'status',
     accessorKey: 'status',
-    header: 'Estado'
+    header: 'Estado',
+    cell: ({ row }: any) => h(AdminStatusBadge, { type: 'tour', status: row.getValue('status') })
   },
   {
     id: 'actions',
@@ -189,20 +191,6 @@ async function handleDelete(tour: TourRes) {
             </span>
           </template>
 
-          <template #status-data="{ row }">
-            <UBadge
-              :color="
-                row.getValue('status') === 'PUBLISHED' ? 'success' : 'warning'
-              "
-              variant="subtle"
-            >
-              {{
-                row.getValue("status") === "PUBLISHED"
-                  ? "Publicado"
-                  : "Borrador"
-              }}
-            </UBadge>
-          </template>
 
           <!-- ✅ Acciones con dos botones separados -->
           <template #actions-cell="{ row }">

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { h } from 'vue'
+import AdminStatusBadge from '~/components/admin/StatusBadge.vue'
+import AdminCountryCell from '~/components/admin/CountryCell.vue'
 import type { UserRes } from '~/lib/api-client'
 
 definePageMeta({
@@ -37,23 +39,15 @@ const columns = [
   {
     id: 'role',
     accessorKey: 'role',
-    header: 'Rol'
+    header: 'Rol',
+    cell: ({ row }: any) => h(AdminStatusBadge, { type: 'user', status: row.getValue('role') })
   },
-  {
-    id: 'nationality',
-    accessorKey: 'nationality',
-    header: 'Nacionalidad',
-    cell: ({ row }: any) => {
-      const code = row.getValue('nationality')
-      if (!code) return '-'
-      const flag = getCountryFlag(code)
-      const label = getCountryLabel(code)
-      return h('div', { class: 'flex items-center gap-1.5' }, [
-        h('span', { class: 'text-lg' }, flag),
-        h('span', { class: 'text-sm' }, label)
-      ])
-    }
-  },
+{
+      id: 'nationality',
+      accessorKey: 'nationality',
+      header: 'Nacionalidad',
+      cell: ({ row }: any) => h(AdminCountryCell, { code: row.getValue('nationality') })
+    },
   {
     id: 'phoneNumber',
     accessorKey: 'phoneNumber',
@@ -225,12 +219,10 @@ function getRoleBadgeColor(role: string): string {
           </template>
 
           <template #role-data="{ row }">
-            <UBadge
-              :color="getRoleBadgeColor(row.getValue('role'))"
-              variant="subtle"
-            >
-              {{ getRoleLabel(row.getValue("role")) }}
-            </UBadge>
+            <AdminStatusBadge
+              type="user"
+              :status="row.getValue('role')"
+            />
           </template>
 
           <template #phoneNumber-data="{ row }">
