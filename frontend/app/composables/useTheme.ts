@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'nc-theme'
+const COOKIE_KEY = 'nc-theme'
 
 const themes = [
   'atacama-nocturna',
@@ -12,29 +13,49 @@ const themes = [
 export type Theme = (typeof themes)[number]
 
 export function useTheme() {
-  const current = useState<Theme>('nc-theme', () => 'atacama-nocturna')
+  const themeCookie = useCookie<Theme>(COOKIE_KEY, {
+    default: () => 'atacama-nocturna',
+    maxAge: 60 * 60 * 24 * 365, // 1 year
+    sameSite: 'lax'
+  })
+
+  const current = useState<Theme>('nc-theme', () => themeCookie.value || 'atacama-nocturna')
+
+  // Apply theme class to HTML element using useHead
+  useHead({
+    htmlAttrs: {
+      class: computed(() => current.value)
+    }
+  })
 
   const apply = (theme: Theme) => {
     if (!themes.includes(theme)) return
 
+    // Update state
     current.value = theme
+    themeCookie.value = theme
 
+    // Update DOM immediately on client
     if (import.meta.client) {
-      // Remover todas las clases de temas anteriores
+      // Remove all theme classes
       document.documentElement.classList.remove(...themes)
-      // Agregar la clase del tema actual
+      // Add new theme class
       document.documentElement.classList.add(theme)
-      // Guardar en localStorage
+      // Save to localStorage as backup
       localStorage.setItem(STORAGE_KEY, theme)
     }
   }
 
-  // Inicializar tema en el cliente
-  if (import.meta.client) {
+  // Initialize theme on client
+  onMounted(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as Theme | null
-    const initial = saved && themes.includes(saved) ? saved : current.value
-    apply(initial)
-  }
+    if (saved && themes.includes(saved) && saved !== current.value) {
+      apply(saved)
+    } else {
+      // Ensure current theme class is applied
+      document.documentElement.classList.add(current.value)
+    }
+  })
 
   return {
     themes,
