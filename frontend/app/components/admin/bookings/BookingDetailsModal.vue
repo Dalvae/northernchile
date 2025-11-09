@@ -8,13 +8,10 @@ const props = defineProps<{
 const { formatPrice: formatCurrency } = useCurrency()
 const { getCountryLabel, getCountryFlag } = useCountries()
 
+const { formatDateTime } = useDateTime()
+
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('es-CL', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  return formatDateTime(dateString)
 }
 
 function getStatusBadgeColor(status: string): string {

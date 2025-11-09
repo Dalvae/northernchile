@@ -103,15 +103,7 @@ const getTypeColor = (type: string) => {
 }
 
 // Format datetime
-const formatDateTime = (datetime: string) => {
-  return new Date(datetime).toLocaleString('es-CL', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+const { formatDateTime } = useDateTime()
 
 // Export to CSV
 const exportToCSV = () => {

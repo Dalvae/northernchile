@@ -175,20 +175,11 @@ const groupingOptions = ref<GroupingOptions>({
   getGroupedRowModel: getGroupedRowModel()
 })
 
-function formatDateTime(dateString: string, timeString: string): string {
-  const date = new Date(dateString)
-  const dateFormatted = date.toLocaleDateString('es-CL', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+const { formatDateTime } = useDateTime()
 
-  if (timeString) {
-    return `${dateFormatted} - ${timeString}`
-  }
-
-  return dateFormatted
+function formatTourDateTime(dateString: string, timeString: string): string {
+  const base = formatDateTime(dateString)
+  return timeString ? `${base} - ${timeString}` : base
 }
 </script>
 
