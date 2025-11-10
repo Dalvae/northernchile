@@ -5,6 +5,7 @@ import com.northernchile.api.validation.ValidLanguage;
 import jakarta.validation.Valid;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -23,6 +24,7 @@ public class TourUpdateReq {
     private BigDecimal price;
     private Integer defaultMaxParticipants;
     private Integer durationHours;
+    private LocalTime defaultStartTime;
     private String status;
     private String contentKey;
 
@@ -41,7 +43,7 @@ public class TourUpdateReq {
     public TourUpdateReq() {
     }
 
-    public TourUpdateReq(Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<String> imageUrls, Boolean isMoonSensitive, Boolean isWindSensitive, Boolean isCloudSensitive, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, String status, String contentKey, String guideName, Map<String, List<ItineraryItem>> itineraryTranslations, Map<String, List<String>> equipmentTranslations, Map<String, List<String>> additionalInfoTranslations) {
+    public TourUpdateReq(Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<String> imageUrls, Boolean isMoonSensitive, Boolean isWindSensitive, Boolean isCloudSensitive, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, LocalTime defaultStartTime, String status, String contentKey, String guideName, Map<String, List<ItineraryItem>> itineraryTranslations, Map<String, List<String>> equipmentTranslations, Map<String, List<String>> additionalInfoTranslations) {
         this.nameTranslations = nameTranslations;
         this.descriptionTranslations = descriptionTranslations;
         this.imageUrls = imageUrls;
@@ -52,6 +54,7 @@ public class TourUpdateReq {
         this.price = price;
         this.defaultMaxParticipants = defaultMaxParticipants;
         this.durationHours = durationHours;
+        this.defaultStartTime = defaultStartTime;
         this.status = status;
         this.contentKey = contentKey;
         this.guideName = guideName;
@@ -138,6 +141,14 @@ public class TourUpdateReq {
 
     public void setDurationHours(Integer durationHours) {
         this.durationHours = durationHours;
+    }
+
+    public LocalTime getDefaultStartTime() {
+        return defaultStartTime;
+    }
+
+    public void setDefaultStartTime(LocalTime defaultStartTime) {
+        this.defaultStartTime = defaultStartTime;
     }
 
     public String getStatus() {

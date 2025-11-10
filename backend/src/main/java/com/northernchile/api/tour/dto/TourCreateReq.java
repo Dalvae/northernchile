@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -36,6 +37,8 @@ public class TourCreateReq {
   @NotNull
   private Integer durationHours;
 
+  private LocalTime defaultStartTime;
+
   @NotNull
   private String status;
 
@@ -58,7 +61,7 @@ public class TourCreateReq {
   }
 
   public TourCreateReq(Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<String> imageUrls, Boolean isWindSensitive, Boolean isMoonSensitive, Boolean isCloudSensitive, String category, BigDecimal price,
-      Integer defaultMaxParticipants, Integer durationHours, String status, String contentKey, String guideName, Map<String, List<ItineraryItem>> itineraryTranslations, Map<String, List<String>> equipmentTranslations, Map<String, List<String>> additionalInfoTranslations) {
+      Integer defaultMaxParticipants, Integer durationHours, LocalTime defaultStartTime, String status, String contentKey, String guideName, Map<String, List<ItineraryItem>> itineraryTranslations, Map<String, List<String>> equipmentTranslations, Map<String, List<String>> additionalInfoTranslations) {
     this.nameTranslations = nameTranslations;
     this.descriptionTranslations = descriptionTranslations;
     this.imageUrls = imageUrls;
@@ -69,6 +72,7 @@ public class TourCreateReq {
     this.price = price;
     this.defaultMaxParticipants = defaultMaxParticipants;
     this.durationHours = durationHours;
+    this.defaultStartTime = defaultStartTime;
     this.status = status;
     this.contentKey = contentKey;
     this.guideName = guideName;
@@ -155,6 +159,14 @@ public class TourCreateReq {
 
   public void setDurationHours(Integer durationHours) {
     this.durationHours = durationHours;
+  }
+
+  public LocalTime getDefaultStartTime() {
+    return defaultStartTime;
+  }
+
+  public void setDefaultStartTime(LocalTime defaultStartTime) {
+    this.defaultStartTime = defaultStartTime;
   }
 
   // AÑADIR ESTOS DOS MÉTODOS

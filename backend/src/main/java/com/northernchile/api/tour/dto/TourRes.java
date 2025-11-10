@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.northernchile.api.model.TourImage; // Nueva importación
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalTime;
 import java.util.List; // Asegurarse de que esté importado
 import java.util.Map; // Asegurarse de que esté importado
 import java.util.Objects;
@@ -19,6 +20,7 @@ public class TourRes {
     private BigDecimal price;
     private Integer defaultMaxParticipants;
     private Integer durationHours;
+    private LocalTime defaultStartTime;
     private String status;
     private List<TourImageRes> images; // CAMBIO: List<TourImageRes>
     @JsonProperty("isMoonSensitive")
@@ -40,7 +42,7 @@ public class TourRes {
     public TourRes() {
     }
 
-    public TourRes(UUID id, String slug, Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, String status, List<TourImageRes> images, boolean isMoonSensitive, boolean isWindSensitive, boolean isCloudSensitive, Instant createdAt, Instant updatedAt, String contentKey, String guideName, List<ItineraryItem> itinerary, List<String> equipment, List<String> additionalInfo) {
+    public TourRes(UUID id, String slug, Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, LocalTime defaultStartTime, String status, List<TourImageRes> images, boolean isMoonSensitive, boolean isWindSensitive, boolean isCloudSensitive, Instant createdAt, Instant updatedAt, String contentKey, String guideName, List<ItineraryItem> itinerary, List<String> equipment, List<String> additionalInfo) {
         this.id = id;
         this.slug = slug;
         this.nameTranslations = nameTranslations;
@@ -49,6 +51,7 @@ public class TourRes {
         this.price = price;
         this.defaultMaxParticipants = defaultMaxParticipants;
         this.durationHours = durationHours;
+        this.defaultStartTime = defaultStartTime;
         this.status = status;
         this.images = images;
         this.isMoonSensitive = isMoonSensitive;
@@ -125,6 +128,14 @@ public class TourRes {
 
     public void setDurationHours(Integer durationHours) {
         this.durationHours = durationHours;
+    }
+
+    public LocalTime getDefaultStartTime() {
+        return defaultStartTime;
+    }
+
+    public void setDefaultStartTime(LocalTime defaultStartTime) {
+        this.defaultStartTime = defaultStartTime;
     }
 
     public String getStatus() {

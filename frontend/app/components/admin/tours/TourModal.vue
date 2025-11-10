@@ -62,6 +62,7 @@ const schema = z.object({
     .int()
     .min(1, 'Debe ser al menos 1 participante'),
   durationHours: z.number().int().min(1, 'Debe ser al menos 1 hora'),
+  defaultStartTime: z.string().optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
   contentKey: z.string().min(1, 'La clave de contenido es requerida')
 }).passthrough() // Allow extra fields that we'll clean up in onSubmit
@@ -87,6 +88,7 @@ const initialState: Schema = {
   price: 1,
   defaultMaxParticipants: 10,
   durationHours: 2,
+  defaultStartTime: undefined,
   status: 'DRAFT',
   contentKey: '',
   guideName: undefined,
@@ -132,6 +134,7 @@ watch(
         price: tour.price,
         defaultMaxParticipants: tour.defaultMaxParticipants,
         durationHours: tour.durationHours,
+        defaultStartTime: (tour as any).defaultStartTime || undefined,
         status: tour.status,
         contentKey: tour.contentKey || '',
         guideName: (tour as any).guideName || undefined,
@@ -617,7 +620,7 @@ const statusOptions = [
                   >
                     Configuración
                   </h4>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                     <UFormField
                       label="Máximo de Participantes"
                       name="defaultMaxParticipants"
@@ -630,7 +633,7 @@ const statusOptions = [
                         min="1"
                         max="100"
                         size="lg"
-                        class="w-null"
+                        class="w-full"
                       />
                     </UFormField>
                     <UFormField
@@ -646,6 +649,19 @@ const statusOptions = [
                         max="24"
                         size="lg"
                         class="w-full"
+                      />
+                    </UFormField>
+                    <UFormField
+                      label="Hora de Inicio (opcional)"
+                      name="defaultStartTime"
+                      :error="findError('defaultStartTime')"
+                    >
+                      <UInput
+                        v-model="state.defaultStartTime"
+                        type="time"
+                        size="lg"
+                        class="w-full"
+                        placeholder="19:30"
                       />
                     </UFormField>
                   </div>

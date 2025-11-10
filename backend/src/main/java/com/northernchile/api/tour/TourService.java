@@ -53,6 +53,7 @@ public class TourService {
         tour.setPrice(tourCreateReq.getPrice());
         tour.setDefaultMaxParticipants(tourCreateReq.getDefaultMaxParticipants());
         tour.setDurationHours(tourCreateReq.getDurationHours());
+        tour.setDefaultStartTime(tourCreateReq.getDefaultStartTime());
         tour.setStatus(tourCreateReq.getStatus());
 
         // Set structured content fields
@@ -153,6 +154,7 @@ public class TourService {
         tour.setPrice(tourUpdateReq.getPrice());
         tour.setDefaultMaxParticipants(tourUpdateReq.getDefaultMaxParticipants());
         tour.setDurationHours(tourUpdateReq.getDurationHours());
+        tour.setDefaultStartTime(tourUpdateReq.getDefaultStartTime());
         tour.setStatus(tourUpdateReq.getStatus());
 
         // Update structured content fields
