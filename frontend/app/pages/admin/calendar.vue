@@ -506,7 +506,7 @@ const saveSchedule = async () => {
        await $fetch(
         `${config.public.apiBase}/api/admin/schedules/${selectedSchedule.value.id}`,
         {
-         method: 'PUT',
+          method: 'PATCH',
           headers: getAuthHeaders(),
           body: payload
         }

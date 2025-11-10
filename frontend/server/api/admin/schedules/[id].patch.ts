@@ -8,11 +8,15 @@ export default defineEventHandler(async (event): Promise<TourScheduleRes> => {
   const body = await readBody(event)
 
   try {
-    const updatedSchedule = await $fetch<TourScheduleRes>(`${backendUrl}/api/tour-schedules/${scheduleId}`, {
-      method: 'PUT',
-      headers: { 'Authorization': authToken || '', 'Content-Type': 'application/json' },
-      body: body
+    const updatedSchedule = await $fetch<TourScheduleRes>(`${backendUrl}/api/admin/schedules/${scheduleId}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: authToken || '',
+        'Content-Type': 'application/json'
+      },
+      body
     })
+
     return updatedSchedule
   } catch (error: any) {
     throw createError({

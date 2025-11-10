@@ -61,7 +61,7 @@ export const useAdminData = () => {
       }),
     updateAdminSchedule: (id: string, scheduleData: any) =>
       $fetch(`/api/admin/schedules/${id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         body: scheduleData,
         headers: headers.value
       }),
@@ -120,7 +120,7 @@ export const useAdminData = () => {
        $fetch('/api/admin/settings', { headers: headers.value }),
      updateAdminSettings: (settings: any) =>
        $fetch('/api/admin/settings', {
-         method: 'PUT',
+         method: 'PATCH',
          body: settings,
          headers: headers.value
        })
