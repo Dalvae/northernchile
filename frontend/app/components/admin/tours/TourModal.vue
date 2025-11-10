@@ -5,22 +5,34 @@ import type { TourRes, TourCreateReq, TourUpdateReq } from 'api-client'
 
 const props = defineProps<{
   tour?: TourRes | null
-  open?: boolean // ✅ Añade esto
+  open?: boolean
 }>()
 
 const emit = defineEmits<{
   'success': []
-  'close': [] // ✅ Añade esto
-  'update:open': [value: boolean] // ✅ Añade esto
+  'close': []
+  'update:open': [value: boolean]
 }>()
 
 const isEditing = computed(() => !!props.tour)
 
-// ✅ Control local del modal
 const isOpen = computed({
   get: () => props.open ?? false,
   set: value => emit('update:open', value)
 })
+
+// Define types for structured content
+interface ItineraryItem {
+  time: string
+  description: string
+}
+
+interface StructuredContent {
+  guideName?: string
+  itineraryTranslations?: Record<string, ItineraryItem[]>
+  equipmentTranslations?: Record<string, string[]>
+  additionalInfoTranslations?: Record<string, string[]>
+}
 
 const schema = z.object({
   nameTranslations: z.object({
@@ -52,18 +64,17 @@ const schema = z.object({
   durationHours: z.number().int().min(1, 'Debe ser al menos 1 hora'),
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
   contentKey: z.string().min(1, 'La clave de contenido es requerida')
+}).passthrough() // Allow extra fields that we'll clean up in onSubmit
+
+// Extend schema to allow optional structured content without validation
+const fullSchema = schema.extend({
+  guideName: z.string().optional().or(z.literal('')),
+  itineraryTranslations: z.any().optional(),
+  equipmentTranslations: z.any().optional(),
+  additionalInfoTranslations: z.any().optional()
 })
 
-type Schema = z.output<typeof schema> & Pick<TourCreateReq,
-  'nameTranslations' |
-  'descriptionTranslations' |
-  'category' |
-  'price' |
-  'defaultMaxParticipants' |
-  'durationHours' |
-  'status' |
-  'contentKey'
->
+type Schema = z.output<typeof fullSchema> & StructuredContent
 
 const initialState: Schema = {
   nameTranslations: { es: '', en: '', pt: '' },
@@ -77,7 +88,11 @@ const initialState: Schema = {
   defaultMaxParticipants: 10,
   durationHours: 2,
   status: 'DRAFT',
-  contentKey: ''
+  contentKey: '',
+  guideName: undefined,
+  itineraryTranslations: undefined,
+  equipmentTranslations: undefined,
+  additionalInfoTranslations: undefined
 }
 
 const state = reactive<Schema>({ ...initialState })
@@ -109,7 +124,7 @@ watch(
           tour.nameTranslations || initialState.nameTranslations,
         descriptionTranslations:
           tour.descriptionTranslations || initialState.descriptionTranslations,
-         imageUrls: tour.images?.map((img) => img.imageUrl || '').filter(Boolean) || [],
+        imageUrls: tour.images?.map((img) => img.imageUrl || '').filter(Boolean) || [],
         moonSensitive: tour.moonSensitive || false,
         windSensitive: tour.windSensitive || false,
         cloudSensitive: tour.cloudSensitive || false,
@@ -118,10 +133,14 @@ watch(
         defaultMaxParticipants: tour.defaultMaxParticipants,
         durationHours: tour.durationHours,
         status: tour.status,
-        contentKey: tour.contentKey || ''
+        contentKey: tour.contentKey || '',
+        guideName: (tour as any).guideName || undefined,
+        itineraryTranslations: (tour as any).itineraryTranslations || undefined,
+        equipmentTranslations: (tour as any).equipmentTranslations || undefined,
+        additionalInfoTranslations: (tour as any).additionalInfoTranslations || undefined
       })
     } else {
-      Object.assign(state, initialState)
+      Object.assign(state, { ...initialState })
     }
   },
   { immediate: true, deep: true }
@@ -130,6 +149,55 @@ watch(
 const { createAdminTour, updateAdminTour } = useAdminData()
 const toast = useToast()
 const loading = ref(false)
+
+// Helper functions for structured content management
+function addItineraryItem(lang: string) {
+  if (!state.itineraryTranslations) {
+    state.itineraryTranslations = { es: [], en: [], pt: [] }
+  }
+  if (!state.itineraryTranslations[lang]) {
+    state.itineraryTranslations[lang] = []
+  }
+  state.itineraryTranslations[lang].push({ time: '', description: '' })
+}
+
+function removeItineraryItem(lang: string, index: number) {
+  if (state.itineraryTranslations?.[lang]) {
+    state.itineraryTranslations[lang].splice(index, 1)
+  }
+}
+
+function addEquipmentItem(lang: string) {
+  if (!state.equipmentTranslations) {
+    state.equipmentTranslations = { es: [], en: [], pt: [] }
+  }
+  if (!state.equipmentTranslations[lang]) {
+    state.equipmentTranslations[lang] = []
+  }
+  state.equipmentTranslations[lang].push('')
+}
+
+function removeEquipmentItem(lang: string, index: number) {
+  if (state.equipmentTranslations?.[lang]) {
+    state.equipmentTranslations[lang].splice(index, 1)
+  }
+}
+
+function addAdditionalInfoItem(lang: string) {
+  if (!state.additionalInfoTranslations) {
+    state.additionalInfoTranslations = { es: [], en: [], pt: [] }
+  }
+  if (!state.additionalInfoTranslations[lang]) {
+    state.additionalInfoTranslations[lang] = []
+  }
+  state.additionalInfoTranslations[lang].push('')
+}
+
+function removeAdditionalInfoItem(lang: string, index: number) {
+  if (state.additionalInfoTranslations?.[lang]) {
+    state.additionalInfoTranslations[lang].splice(index, 1)
+  }
+}
 
 // onError ahora guarda los errores en nuestra variable local
 function onError(event: FormErrorEvent) {
@@ -147,12 +215,50 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   formErrors.value = [] // Limpiar errores al intentar enviar
   loading.value = true
   try {
+    // Clean up empty structured content before sending
+    const cleanItinerary = event.data.itineraryTranslations
+      ? Object.fromEntries(
+          Object.entries(event.data.itineraryTranslations)
+            // Filter out languages with empty or invalid items
+            .map(([lang, items]) => [
+              lang,
+              items.filter(item => item.time?.trim() && item.description?.trim())
+            ])
+            // Only include languages that have at least one valid item
+            .filter(([_, items]) => items.length > 0)
+        )
+      : undefined
+
+    const cleanEquipment = event.data.equipmentTranslations
+      ? Object.fromEntries(
+          Object.entries(event.data.equipmentTranslations)
+            // Filter empty strings in each language
+            .map(([lang, items]) => [lang, items.filter(item => item?.trim())])
+            // Only include languages that have at least one item
+            .filter(([_, items]) => items.length > 0)
+        )
+      : undefined
+
+    const cleanAdditionalInfo = event.data.additionalInfoTranslations
+      ? Object.fromEntries(
+          Object.entries(event.data.additionalInfoTranslations)
+            // Filter empty strings in each language
+            .map(([lang, items]) => [lang, items.filter(item => item?.trim())])
+            // Only include languages that have at least one item
+            .filter(([_, items]) => items.length > 0)
+        )
+      : undefined
+
     const basePayload: TourCreateReq = {
       ...event.data,
       imageUrls:
         event.data.imageUrls && event.data.imageUrls.length > 0
           ? event.data.imageUrls
-          : undefined
+          : undefined,
+      guideName: event.data.guideName?.trim() || undefined,
+      itineraryTranslations: Object.keys(cleanItinerary || {}).length > 0 ? cleanItinerary : undefined,
+      equipmentTranslations: Object.keys(cleanEquipment || {}).length > 0 ? cleanEquipment : undefined,
+      additionalInfoTranslations: Object.keys(cleanAdditionalInfo || {}).length > 0 ? cleanAdditionalInfo : undefined
     }
 
     if (isEditing.value && props.tour?.id) {
@@ -251,7 +357,7 @@ const statusOptions = [
             <div class="space-y-8">
               <UForm
                 ref="form"
-                :schema="schema"
+                :schema="fullSchema"
                 :state="state"
                 class="space-y-8"
                 @submit="onSubmit"
@@ -543,6 +649,375 @@ const statusOptions = [
                       />
                     </UFormField>
                   </div>
+                </div>
+
+                <!-- Guide Name (Optional) -->
+                <div class="space-y-4">
+                  <h4 class="text-base font-semibold text-default border-b border-default pb-2">
+                    Guía (Opcional)
+                  </h4>
+                  <UFormField
+                    label="Nombre del Guía"
+                    name="guideName"
+                    :error="findError('guideName')"
+                  >
+                    <UInput
+                      v-model="state.guideName"
+                      placeholder="Ej: Alex, David"
+                      size="lg"
+                      class="w-full"
+                    />
+                    <template #help>
+                      <p class="text-xs text-muted mt-1">
+                        Nombre del guía para este tour (opcional)
+                      </p>
+                    </template>
+                  </UFormField>
+                </div>
+
+                <!-- Itinerary Editor -->
+                <div class="space-y-4">
+                  <h4 class="text-base font-semibold text-default border-b border-default pb-2">
+                    Itinerario (Opcional)
+                  </h4>
+                  <UTabs
+                    :items="[
+                      { label: 'Español', slot: 'itinerary-es' },
+                      { label: 'Inglés', slot: 'itinerary-en' },
+                      { label: 'Portugués', slot: 'itinerary-pt' }
+                    ]"
+                    class="w-full"
+                  >
+                    <template #itinerary-es>
+                      <div class="pt-4 space-y-4">
+                        <div
+                          v-for="(item, index) in state.itineraryTranslations?.es || []"
+                          :key="index"
+                          class="flex gap-3 items-start"
+                        >
+                          <UFormField label="Hora" class="w-32">
+                            <UInput
+                              v-model="item.time"
+                              placeholder="19:30"
+                              size="md"
+                            />
+                          </UFormField>
+                          <UFormField label="Descripción" class="flex-1">
+                            <UInput
+                              v-model="item.description"
+                              placeholder="Recepción con infusiones..."
+                              size="md"
+                            />
+                          </UFormField>
+                          <UButton
+                            icon="i-heroicons-trash"
+                            color="error"
+                            variant="ghost"
+                            size="md"
+                            class="mt-6"
+                            @click="removeItineraryItem('es', index)"
+                          />
+                        </div>
+                        <UButton
+                          label="Añadir Item"
+                          icon="i-heroicons-plus"
+                          color="primary"
+                          variant="outline"
+                          @click="addItineraryItem('es')"
+                        />
+                      </div>
+                    </template>
+                    <template #itinerary-en>
+                      <div class="pt-4 space-y-4">
+                        <div
+                          v-for="(item, index) in state.itineraryTranslations?.en || []"
+                          :key="index"
+                          class="flex gap-3 items-start"
+                        >
+                          <UFormField label="Time" class="w-32">
+                            <UInput
+                              v-model="item.time"
+                              placeholder="7:30 PM"
+                              size="md"
+                            />
+                          </UFormField>
+                          <UFormField label="Description" class="flex-1">
+                            <UInput
+                              v-model="item.description"
+                              placeholder="Reception with infusions..."
+                              size="md"
+                            />
+                          </UFormField>
+                          <UButton
+                            icon="i-heroicons-trash"
+                            color="error"
+                            variant="ghost"
+                            size="md"
+                            class="mt-6"
+                            @click="removeItineraryItem('en', index)"
+                          />
+                        </div>
+                        <UButton
+                          label="Add Item"
+                          icon="i-heroicons-plus"
+                          color="primary"
+                          variant="outline"
+                          @click="addItineraryItem('en')"
+                        />
+                      </div>
+                    </template>
+                    <template #itinerary-pt>
+                      <div class="pt-4 space-y-4">
+                        <div
+                          v-for="(item, index) in state.itineraryTranslations?.pt || []"
+                          :key="index"
+                          class="flex gap-3 items-start"
+                        >
+                          <UFormField label="Hora" class="w-32">
+                            <UInput
+                              v-model="item.time"
+                              placeholder="19:30"
+                              size="md"
+                            />
+                          </UFormField>
+                          <UFormField label="Descrição" class="flex-1">
+                            <UInput
+                              v-model="item.description"
+                              placeholder="Recepção com infusões..."
+                              size="md"
+                            />
+                          </UFormField>
+                          <UButton
+                            icon="i-heroicons-trash"
+                            color="error"
+                            variant="ghost"
+                            size="md"
+                            class="mt-6"
+                            @click="removeItineraryItem('pt', index)"
+                          />
+                        </div>
+                        <UButton
+                          label="Adicionar Item"
+                          icon="i-heroicons-plus"
+                          color="primary"
+                          variant="outline"
+                          @click="addItineraryItem('pt')"
+                        />
+                      </div>
+                    </template>
+                  </UTabs>
+                </div>
+
+                <!-- Equipment Editor -->
+                <div class="space-y-4">
+                  <h4 class="text-base font-semibold text-default border-b border-default pb-2">
+                    Equipamiento (Opcional)
+                  </h4>
+                  <UTabs
+                    :items="[
+                      { label: 'Español', slot: 'equipment-es' },
+                      { label: 'Inglés', slot: 'equipment-en' },
+                      { label: 'Portugués', slot: 'equipment-pt' }
+                    ]"
+                    class="w-full"
+                  >
+                    <template #equipment-es>
+                      <div class="pt-4 space-y-4">
+                        <div
+                          v-for="(item, index) in state.equipmentTranslations?.es || []"
+                          :key="index"
+                          class="flex gap-3"
+                        >
+                          <UInput
+                            v-model="state.equipmentTranslations!.es![index]"
+                            placeholder="Ej: Telescopio Celestron 8SE"
+                            size="md"
+                            class="flex-1"
+                          />
+                          <UButton
+                            icon="i-heroicons-trash"
+                            color="error"
+                            variant="ghost"
+                            size="md"
+                            @click="removeEquipmentItem('es', index)"
+                          />
+                        </div>
+                        <UButton
+                          label="Añadir Equipamiento"
+                          icon="i-heroicons-plus"
+                          color="primary"
+                          variant="outline"
+                          @click="addEquipmentItem('es')"
+                        />
+                      </div>
+                    </template>
+                    <template #equipment-en>
+                      <div class="pt-4 space-y-4">
+                        <div
+                          v-for="(item, index) in state.equipmentTranslations?.en || []"
+                          :key="index"
+                          class="flex gap-3"
+                        >
+                          <UInput
+                            v-model="state.equipmentTranslations!.en![index]"
+                            placeholder="Ex: Celestron 8SE Telescope"
+                            size="md"
+                            class="flex-1"
+                          />
+                          <UButton
+                            icon="i-heroicons-trash"
+                            color="error"
+                            variant="ghost"
+                            size="md"
+                            @click="removeEquipmentItem('en', index)"
+                          />
+                        </div>
+                        <UButton
+                          label="Add Equipment"
+                          icon="i-heroicons-plus"
+                          color="primary"
+                          variant="outline"
+                          @click="addEquipmentItem('en')"
+                        />
+                      </div>
+                    </template>
+                    <template #equipment-pt>
+                      <div class="pt-4 space-y-4">
+                        <div
+                          v-for="(item, index) in state.equipmentTranslations?.pt || []"
+                          :key="index"
+                          class="flex gap-3"
+                        >
+                          <UInput
+                            v-model="state.equipmentTranslations!.pt![index]"
+                            placeholder="Ex: Telescópio Celestron 8SE"
+                            size="md"
+                            class="flex-1"
+                          />
+                          <UButton
+                            icon="i-heroicons-trash"
+                            color="error"
+                            variant="ghost"
+                            size="md"
+                            @click="removeEquipmentItem('pt', index)"
+                          />
+                        </div>
+                        <UButton
+                          label="Adicionar Equipamento"
+                          icon="i-heroicons-plus"
+                          color="primary"
+                          variant="outline"
+                          @click="addEquipmentItem('pt')"
+                        />
+                      </div>
+                    </template>
+                  </UTabs>
+                </div>
+
+                <!-- Additional Info Editor -->
+                <div class="space-y-4">
+                  <h4 class="text-base font-semibold text-default border-b border-default pb-2">
+                    Información Adicional (Opcional)
+                  </h4>
+                  <UTabs
+                    :items="[
+                      { label: 'Español', slot: 'info-es' },
+                      { label: 'Inglés', slot: 'info-en' },
+                      { label: 'Portugués', slot: 'info-pt' }
+                    ]"
+                    class="w-full"
+                  >
+                    <template #info-es>
+                      <div class="pt-4 space-y-4">
+                        <div
+                          v-for="(item, index) in state.additionalInfoTranslations?.es || []"
+                          :key="index"
+                          class="flex gap-3"
+                        >
+                          <UInput
+                            v-model="state.additionalInfoTranslations!.es![index]"
+                            placeholder="Ej: Lleva ropa abrigada"
+                            size="md"
+                            class="flex-1"
+                          />
+                          <UButton
+                            icon="i-heroicons-trash"
+                            color="error"
+                            variant="ghost"
+                            size="md"
+                            @click="removeAdditionalInfoItem('es', index)"
+                          />
+                        </div>
+                        <UButton
+                          label="Añadir Información"
+                          icon="i-heroicons-plus"
+                          color="primary"
+                          variant="outline"
+                          @click="addAdditionalInfoItem('es')"
+                        />
+                      </div>
+                    </template>
+                    <template #info-en>
+                      <div class="pt-4 space-y-4">
+                        <div
+                          v-for="(item, index) in state.additionalInfoTranslations?.en || []"
+                          :key="index"
+                          class="flex gap-3"
+                        >
+                          <UInput
+                            v-model="state.additionalInfoTranslations!.en![index]"
+                            placeholder="Ex: Bring warm clothes"
+                            size="md"
+                            class="flex-1"
+                          />
+                          <UButton
+                            icon="i-heroicons-trash"
+                            color="error"
+                            variant="ghost"
+                            size="md"
+                            @click="removeAdditionalInfoItem('en', index)"
+                          />
+                        </div>
+                        <UButton
+                          label="Add Information"
+                          icon="i-heroicons-plus"
+                          color="primary"
+                          variant="outline"
+                          @click="addAdditionalInfoItem('en')"
+                        />
+                      </div>
+                    </template>
+                    <template #info-pt>
+                      <div class="pt-4 space-y-4">
+                        <div
+                          v-for="(item, index) in state.additionalInfoTranslations?.pt || []"
+                          :key="index"
+                          class="flex gap-3"
+                        >
+                          <UInput
+                            v-model="state.additionalInfoTranslations!.pt![index]"
+                            placeholder="Ex: Traga roupas quentes"
+                            size="md"
+                            class="flex-1"
+                          />
+                          <UButton
+                            icon="i-heroicons-trash"
+                            color="error"
+                            variant="ghost"
+                            size="md"
+                            @click="removeAdditionalInfoItem('pt', index)"
+                          />
+                        </div>
+                        <UButton
+                          label="Adicionar Informação"
+                          icon="i-heroicons-plus"
+                          color="primary"
+                          variant="outline"
+                          @click="addAdditionalInfoItem('pt')"
+                        />
+                      </div>
+                    </template>
+                  </UTabs>
                 </div>
               </UForm>
             </div>

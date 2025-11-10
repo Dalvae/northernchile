@@ -1,6 +1,8 @@
 package com.northernchile.api.tour.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.northernchile.api.validation.ValidLanguage;
+import jakarta.validation.Valid;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,10 +26,22 @@ public class TourUpdateReq {
     private String status;
     private String contentKey;
 
+    // Structured content fields
+    private String guideName;
+
+    @Valid
+    private Map<@ValidLanguage String, @Valid List<@Valid ItineraryItem>> itineraryTranslations;
+
+    @Valid
+    private Map<@ValidLanguage String, List<String>> equipmentTranslations;
+
+    @Valid
+    private Map<@ValidLanguage String, List<String>> additionalInfoTranslations;
+
     public TourUpdateReq() {
     }
 
-    public TourUpdateReq(Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<String> imageUrls, Boolean isMoonSensitive, Boolean isWindSensitive, Boolean isCloudSensitive, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, String status, String contentKey) {
+    public TourUpdateReq(Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, List<String> imageUrls, Boolean isMoonSensitive, Boolean isWindSensitive, Boolean isCloudSensitive, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, String status, String contentKey, String guideName, Map<String, List<ItineraryItem>> itineraryTranslations, Map<String, List<String>> equipmentTranslations, Map<String, List<String>> additionalInfoTranslations) {
         this.nameTranslations = nameTranslations;
         this.descriptionTranslations = descriptionTranslations;
         this.imageUrls = imageUrls;
@@ -40,6 +54,10 @@ public class TourUpdateReq {
         this.durationHours = durationHours;
         this.status = status;
         this.contentKey = contentKey;
+        this.guideName = guideName;
+        this.itineraryTranslations = itineraryTranslations;
+        this.equipmentTranslations = equipmentTranslations;
+        this.additionalInfoTranslations = additionalInfoTranslations;
     }
 
     public Map<String, String> getNameTranslations() {
@@ -136,6 +154,38 @@ public class TourUpdateReq {
 
     public void setContentKey(String contentKey) {
         this.contentKey = contentKey;
+    }
+
+    public String getGuideName() {
+        return guideName;
+    }
+
+    public void setGuideName(String guideName) {
+        this.guideName = guideName;
+    }
+
+    public Map<String, List<ItineraryItem>> getItineraryTranslations() {
+        return itineraryTranslations;
+    }
+
+    public void setItineraryTranslations(Map<String, List<ItineraryItem>> itineraryTranslations) {
+        this.itineraryTranslations = itineraryTranslations;
+    }
+
+    public Map<String, List<String>> getEquipmentTranslations() {
+        return equipmentTranslations;
+    }
+
+    public void setEquipmentTranslations(Map<String, List<String>> equipmentTranslations) {
+        this.equipmentTranslations = equipmentTranslations;
+    }
+
+    public Map<String, List<String>> getAdditionalInfoTranslations() {
+        return additionalInfoTranslations;
+    }
+
+    public void setAdditionalInfoTranslations(Map<String, List<String>> additionalInfoTranslations) {
+        this.additionalInfoTranslations = additionalInfoTranslations;
     }
 
     @Override

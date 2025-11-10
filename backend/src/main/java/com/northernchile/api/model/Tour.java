@@ -49,6 +49,22 @@ public class Tour {
     @Column(unique = true, length = 255)
     private String slug;
 
+    // Structured content fields
+    @Column(name = "guide_name", length = 255)
+    private String guideName;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "itinerary_translations", columnDefinition = "jsonb")
+    private Map<String, Object> itineraryTranslations;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "equipment_translations", columnDefinition = "jsonb")
+    private Map<String, Object> equipmentTranslations;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "additional_info_translations", columnDefinition = "jsonb")
+    private Map<String, Object> additionalInfoTranslations;
+
     @Column(nullable = false, length = 50)
     private String category;
 
@@ -276,6 +292,38 @@ public class Tour {
 
     public boolean isDeleted() {
         return deletedAt != null;
+    }
+
+    public String getGuideName() {
+        return guideName;
+    }
+
+    public void setGuideName(String guideName) {
+        this.guideName = guideName;
+    }
+
+    public Map<String, Object> getItineraryTranslations() {
+        return itineraryTranslations;
+    }
+
+    public void setItineraryTranslations(Map<String, Object> itineraryTranslations) {
+        this.itineraryTranslations = itineraryTranslations;
+    }
+
+    public Map<String, Object> getEquipmentTranslations() {
+        return equipmentTranslations;
+    }
+
+    public void setEquipmentTranslations(Map<String, Object> equipmentTranslations) {
+        this.equipmentTranslations = equipmentTranslations;
+    }
+
+    public Map<String, Object> getAdditionalInfoTranslations() {
+        return additionalInfoTranslations;
+    }
+
+    public void setAdditionalInfoTranslations(Map<String, Object> additionalInfoTranslations) {
+        this.additionalInfoTranslations = additionalInfoTranslations;
     }
 
     @Override

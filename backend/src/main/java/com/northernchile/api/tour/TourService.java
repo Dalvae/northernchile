@@ -11,6 +11,8 @@ import com.northernchile.api.tour.dto.TourImageRes;
 import com.northernchile.api.util.SlugGenerator;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -52,6 +54,18 @@ public class TourService {
         tour.setDefaultMaxParticipants(tourCreateReq.getDefaultMaxParticipants());
         tour.setDurationHours(tourCreateReq.getDurationHours());
         tour.setStatus(tourCreateReq.getStatus());
+
+        // Set structured content fields
+        tour.setGuideName(tourCreateReq.getGuideName());
+        if (tourCreateReq.getItineraryTranslations() != null) {
+            tour.setItineraryTranslations(new HashMap<>(tourCreateReq.getItineraryTranslations()));
+        }
+        if (tourCreateReq.getEquipmentTranslations() != null) {
+            tour.setEquipmentTranslations(new HashMap<>(tourCreateReq.getEquipmentTranslations()));
+        }
+        if (tourCreateReq.getAdditionalInfoTranslations() != null) {
+            tour.setAdditionalInfoTranslations(new HashMap<>(tourCreateReq.getAdditionalInfoTranslations()));
+        }
 
         String baseName = tourCreateReq.getNameTranslations().getOrDefault("es", "tour");
         tour.setSlug(generateUniqueSlug(baseName));
@@ -117,6 +131,7 @@ public class TourService {
 
     @Transactional
     @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @tourSecurityService.isOwner(authentication, #id)")
+    @CacheEvict(value = {"tour-detail", "tour-list"}, allEntries = true)
     public TourRes updateTour(UUID id, TourUpdateReq tourUpdateReq, User currentUser) {
         Tour tour = tourRepository.findByIdNotDeleted(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + id));
@@ -139,6 +154,18 @@ public class TourService {
         tour.setDefaultMaxParticipants(tourUpdateReq.getDefaultMaxParticipants());
         tour.setDurationHours(tourUpdateReq.getDurationHours());
         tour.setStatus(tourUpdateReq.getStatus());
+
+        // Update structured content fields
+        tour.setGuideName(tourUpdateReq.getGuideName());
+        if (tourUpdateReq.getItineraryTranslations() != null) {
+            tour.setItineraryTranslations(new HashMap<>(tourUpdateReq.getItineraryTranslations()));
+        }
+        if (tourUpdateReq.getEquipmentTranslations() != null) {
+            tour.setEquipmentTranslations(new HashMap<>(tourUpdateReq.getEquipmentTranslations()));
+        }
+        if (tourUpdateReq.getAdditionalInfoTranslations() != null) {
+            tour.setAdditionalInfoTranslations(new HashMap<>(tourUpdateReq.getAdditionalInfoTranslations()));
+        }
 
         String newBaseName = tourUpdateReq.getNameTranslations().getOrDefault("es", "tour");
         String currentSlug = tour.getSlug();
@@ -181,6 +208,7 @@ public class TourService {
 
     @Transactional
     @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @tourSecurityService.isOwner(authentication, #id)")
+    @CacheEvict(value = {"tour-detail", "tour-list"}, allEntries = true)
     public void deleteTour(UUID id, User currentUser) {
         Tour tour = tourRepository.findByIdNotDeleted(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + id));
@@ -198,6 +226,7 @@ public class TourService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "tour-detail", key = "#slug")
     public TourRes getTourBySlug(String slug) {
         Tour tour = tourRepository.findBySlugPublished(slug)
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found with slug: " + slug));

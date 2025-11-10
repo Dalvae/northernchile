@@ -31,11 +31,16 @@ public class TourRes {
     private Instant updatedAt;
     private String contentKey;
 
+    // Structured content (already translated to requested language)
+    private String guideName;
+    private List<ItineraryItem> itinerary;
+    private List<String> equipment;
+    private List<String> additionalInfo;
 
     public TourRes() {
     }
 
-    public TourRes(UUID id, String slug, Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, String status, List<TourImageRes> images, boolean isMoonSensitive, boolean isWindSensitive, boolean isCloudSensitive, Instant createdAt, Instant updatedAt, String contentKey) {
+    public TourRes(UUID id, String slug, Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, String status, List<TourImageRes> images, boolean isMoonSensitive, boolean isWindSensitive, boolean isCloudSensitive, Instant createdAt, Instant updatedAt, String contentKey, String guideName, List<ItineraryItem> itinerary, List<String> equipment, List<String> additionalInfo) {
         this.id = id;
         this.slug = slug;
         this.nameTranslations = nameTranslations;
@@ -52,6 +57,10 @@ public class TourRes {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.contentKey = contentKey;
+        this.guideName = guideName;
+        this.itinerary = itinerary;
+        this.equipment = equipment;
+        this.additionalInfo = additionalInfo;
     }
 
     public UUID getId() {
@@ -180,6 +189,38 @@ public class TourRes {
 
     public void setContentKey(String contentKey) {
         this.contentKey = contentKey;
+    }
+
+    public String getGuideName() {
+        return guideName;
+    }
+
+    public void setGuideName(String guideName) {
+        this.guideName = guideName;
+    }
+
+    public List<ItineraryItem> getItinerary() {
+        return itinerary;
+    }
+
+    public void setItinerary(List<ItineraryItem> itinerary) {
+        this.itinerary = itinerary;
+    }
+
+    public List<String> getEquipment() {
+        return equipment;
+    }
+
+    public void setEquipment(List<String> equipment) {
+        this.equipment = equipment;
+    }
+
+    public List<String> getAdditionalInfo() {
+        return additionalInfo;
+    }
+
+    public void setAdditionalInfo(List<String> additionalInfo) {
+        this.additionalInfo = additionalInfo;
     }
 
     @Override
