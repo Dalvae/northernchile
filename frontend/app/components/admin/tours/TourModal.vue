@@ -22,6 +22,8 @@ const isOpen = computed({
 })
 
 // Define types for structured content
+import type { ContentBlock } from 'api-client'
+
 interface ItineraryItem {
   time: string
   description: string
@@ -32,6 +34,7 @@ interface StructuredContent {
   itineraryTranslations?: Record<string, ItineraryItem[]>
   equipmentTranslations?: Record<string, string[]>
   additionalInfoTranslations?: Record<string, string[]>
+  descriptionBlocksTranslations?: Record<string, ContentBlock[]>
 }
 
 const schema = z.object({
@@ -39,17 +42,6 @@ const schema = z.object({
     es: z.string().min(3, 'El nombre (ES) debe tener al menos 3 caracteres'),
     en: z.string().min(3, 'El nombre (EN) debe tener al menos 3 caracteres'),
     pt: z.string().min(3, 'El nombre (PT) debe tener al menos 3 caracteres')
-  }),
-  descriptionTranslations: z.object({
-    es: z
-      .string()
-      .min(10, 'La descripción (ES) debe tener al menos 10 caracteres'),
-    en: z
-      .string()
-      .min(10, 'La descripción (EN) debe tener al menos 10 caracteres'),
-    pt: z
-      .string()
-      .min(10, 'La descripción (PT) debe tener al menos 10 caracteres')
   }),
   imageUrls: z.array(z.string().url('Debe ser una URL válida')).optional(),
   moonSensitive: z.boolean(),
@@ -72,14 +64,14 @@ const fullSchema = schema.extend({
   guideName: z.string().optional().or(z.literal('')),
   itineraryTranslations: z.any().optional(),
   equipmentTranslations: z.any().optional(),
-  additionalInfoTranslations: z.any().optional()
+  additionalInfoTranslations: z.any().optional(),
+  descriptionBlocksTranslations: z.any().optional()
 })
 
 type Schema = z.output<typeof fullSchema> & StructuredContent
 
 const initialState: Schema = {
   nameTranslations: { es: '', en: '', pt: '' },
-  descriptionTranslations: { es: '', en: '', pt: '' },
   imageUrls: [],
   moonSensitive: false,
   windSensitive: false,
@@ -94,7 +86,8 @@ const initialState: Schema = {
   guideName: undefined,
   itineraryTranslations: undefined,
   equipmentTranslations: undefined,
-  additionalInfoTranslations: undefined
+  additionalInfoTranslations: undefined,
+  descriptionBlocksTranslations: undefined
 }
 
 const state = reactive<Schema>({ ...initialState })
@@ -124,8 +117,6 @@ watch(
       Object.assign(state, {
         nameTranslations:
           tour.nameTranslations || initialState.nameTranslations,
-        descriptionTranslations:
-          tour.descriptionTranslations || initialState.descriptionTranslations,
         imageUrls: tour.images?.map((img) => img.imageUrl || '').filter(Boolean) || [],
         moonSensitive: tour.moonSensitive || false,
         windSensitive: tour.windSensitive || false,
@@ -140,7 +131,8 @@ watch(
         guideName: (tour as any).guideName || undefined,
         itineraryTranslations: (tour as any).itineraryTranslations || undefined,
         equipmentTranslations: (tour as any).equipmentTranslations || undefined,
-        additionalInfoTranslations: (tour as any).additionalInfoTranslations || undefined
+        additionalInfoTranslations: (tour as any).additionalInfoTranslations || undefined,
+        descriptionBlocksTranslations: (tour as any).descriptionBlocksTranslations || undefined
       })
     } else {
       Object.assign(state, { ...initialState })
@@ -202,6 +194,17 @@ function removeAdditionalInfoItem(lang: string, index: number) {
   }
 }
 
+// Helper to ensure descriptionBlocksTranslations is initialized
+function ensureDescriptionBlocks(lang: string): ContentBlock[] {
+  if (!state.descriptionBlocksTranslations) {
+    state.descriptionBlocksTranslations = { es: [], en: [], pt: [] }
+  }
+  if (!state.descriptionBlocksTranslations[lang]) {
+    state.descriptionBlocksTranslations[lang] = []
+  }
+  return state.descriptionBlocksTranslations[lang]
+}
+
 // onError ahora guarda los errores en nuestra variable local
 function onError(event: FormErrorEvent) {
   formErrors.value = event.errors
@@ -252,6 +255,20 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         )
       : undefined
 
+    // Clean description blocks
+    const cleanDescriptionBlocks = event.data.descriptionBlocksTranslations
+      ? Object.fromEntries(
+          Object.entries(event.data.descriptionBlocksTranslations)
+            // Filter out blocks with empty content
+            .map(([lang, blocks]) => [
+              lang,
+              blocks.filter(block => block.content?.trim())
+            ])
+            // Only include languages that have at least one block
+            .filter(([_, blocks]) => blocks.length > 0)
+        )
+      : undefined
+
     const basePayload: TourCreateReq = {
       ...event.data,
       imageUrls:
@@ -261,7 +278,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       guideName: event.data.guideName?.trim() || undefined,
       itineraryTranslations: Object.keys(cleanItinerary || {}).length > 0 ? cleanItinerary : undefined,
       equipmentTranslations: Object.keys(cleanEquipment || {}).length > 0 ? cleanEquipment : undefined,
-      additionalInfoTranslations: Object.keys(cleanAdditionalInfo || {}).length > 0 ? cleanAdditionalInfo : undefined
+      additionalInfoTranslations: Object.keys(cleanAdditionalInfo || {}).length > 0 ? cleanAdditionalInfo : undefined,
+      descriptionBlocksTranslations: Object.keys(cleanDescriptionBlocks || {}).length > 0 ? cleanDescriptionBlocks : undefined
     }
 
     if (isEditing.value && props.tour?.id) {
@@ -395,19 +413,6 @@ const statusOptions = [
                             class="w-full"
                           />
                         </UFormField>
-                        <UFormField
-                          label="Descripción (ES)"
-                          name="descriptionTranslations.es"
-                          required
-                          :error="findError('descriptionTranslations.es')"
-                        >
-                          <UTextarea
-                            v-model="state.descriptionTranslations.es"
-                            placeholder="Describe la experiencia..."
-                            :rows="4"
-                            class="w-full min-h-[100px]"
-                          />
-                        </UFormField>
                       </div>
                     </template>
                     <template #en="{ item }">
@@ -423,19 +428,6 @@ const statusOptions = [
                             placeholder="Ej: Premium Astronomical Tour in the Desert"
                             size="lg"
                             class="w-full"
-                          />
-                        </UFormField>
-                        <UFormField
-                          label="Descripción (EN)"
-                          name="descriptionTranslations.en"
-                          required
-                          :error="findError('descriptionTranslations.en')"
-                        >
-                          <UTextarea
-                            v-model="state.descriptionTranslations.en"
-                            placeholder="Describe the experience..."
-                            :rows="4"
-                            class="w-full min-h-[100px]"
                           />
                         </UFormField>
                       </div>
@@ -455,22 +447,67 @@ const statusOptions = [
                             class="w-full"
                           />
                         </UFormField>
-                        <UFormField
-                          label="Descripción (PT)"
-                          name="descriptionTranslations.pt"
-                          required
-                          :error="findError('descriptionTranslations.pt')"
-                        >
-                          <UTextarea
-                            v-model="state.descriptionTranslations.pt"
-                            placeholder="Descreva a experiência..."
-                            :rows="4"
-                            class="w-full min-h-[100px]"
-                          />
-                        </UFormField>
                       </div>
                     </template>
                   </UTabs>
+                </div>
+
+                <!-- Content Blocks Editor -->
+                <div class="space-y-4">
+                  <h4 class="text-base font-semibold text-default border-b border-default pb-2">
+                    Bloques de Contenido Estructurado
+                  </h4>
+                  <p class="text-sm text-neutral-500 dark:text-neutral-400">
+                    Crea contenido estructurado con títulos, párrafos y listas para una mejor presentación.
+                  </p>
+                  <UTabs
+                    :items="[
+                      { label: 'Español', slot: 'blocks-es' },
+                      { label: 'Inglés', slot: 'blocks-en' },
+                      { label: 'Portugués', slot: 'blocks-pt' }
+                    ]"
+                    class="w-full"
+                  >
+                    <template #blocks-es>
+                      <div class="pt-4">
+                        <AdminToursContentBlockEditor
+                          :model-value="ensureDescriptionBlocks('es')"
+                          language="es"
+                          @update:model-value="(value) => {
+                            ensureDescriptionBlocks('es')
+                            state.descriptionBlocksTranslations!.es = value
+                          }"
+                        />
+                      </div>
+                    </template>
+                    <template #blocks-en>
+                      <div class="pt-4">
+                        <AdminToursContentBlockEditor
+                          :model-value="ensureDescriptionBlocks('en')"
+                          language="en"
+                          @update:model-value="(value) => {
+                            ensureDescriptionBlocks('en')
+                            state.descriptionBlocksTranslations!.en = value
+                          }"
+                        />
+                      </div>
+                    </template>
+                    <template #blocks-pt>
+                      <div class="pt-4">
+                        <AdminToursContentBlockEditor
+                          :model-value="ensureDescriptionBlocks('pt')"
+                          language="pt"
+                          @update:model-value="(value) => {
+                            ensureDescriptionBlocks('pt')
+                            state.descriptionBlocksTranslations!.pt = value
+                          }"
+                        />
+                      </div>
+                    </template>
+                  </UTabs>
+                </div>
+
+                <div class="space-y-6">
                   <UFormField
                     label="Clave de Contenido"
                     name="contentKey"

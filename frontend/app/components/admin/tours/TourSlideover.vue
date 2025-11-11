@@ -24,17 +24,6 @@ const schema = z.object({
     en: z.string().min(3, 'El nombre (EN) debe tener al menos 3 caracteres'),
     pt: z.string().min(3, 'El nombre (PT) debe tener al menos 3 caracteres')
   }),
-  descriptionTranslations: z.object({
-    es: z
-      .string()
-      .min(10, 'La descripción (ES) debe tener al menos 10 caracteres'),
-    en: z
-      .string()
-      .min(10, 'La descripción (EN) debe tener al menos 10 caracteres'),
-    pt: z
-      .string()
-      .min(10, 'La descripción (PT) debe tener al menos 10 caracteres')
-  }),
   imageUrls: z.array(z.string().url('Debe ser una URL válida')).optional(),
   isMoonSensitive: z.boolean(),
   isWindSensitive: z.boolean(),
@@ -54,7 +43,6 @@ type Schema = z.output<typeof schema>
 // Estado inicial con tipos correctos
 const initialState: Schema = {
   nameTranslations: { es: '', en: '', pt: '' },
-  descriptionTranslations: { es: '', en: '', pt: '' },
   imageUrls: [],
   isMoonSensitive: false,
   isWindSensitive: false,
@@ -94,11 +82,6 @@ watch(
         en: tour.nameTranslations?.en || '',
         pt: tour.nameTranslations?.pt || ''
       }
-      state.descriptionTranslations = {
-        es: tour.descriptionTranslations?.es || '',
-        en: tour.descriptionTranslations?.en || '',
-        pt: tour.descriptionTranslations?.pt || ''
-      }
       state.imageUrls = tour.images?.map(img => img.imageUrl).filter((url): url is string => !!url) || []
       state.isMoonSensitive = tour.isMoonSensitive || false
       state.isWindSensitive = tour.isWindSensitive || false
@@ -130,7 +113,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     const payload = {
       ...data,
       nameTranslations: data.nameTranslations,
-      descriptionTranslations: data.descriptionTranslations,
       imageUrls: data.imageUrls,
       isMoonSensitive: data.isMoonSensitive,
       isWindSensitive: data.isWindSensitive,
@@ -217,17 +199,6 @@ const statusOptions = [
             <UInput
               v-model="state.nameTranslations.es"
               placeholder="Ej: Tour Astronómico Premium"
-            />
-          </UFormGroup>
-
-          <UFormGroup
-            label="Descripción"
-            name="descriptionTranslations.es"
-          >
-            <UTextarea
-              v-model="state.descriptionTranslations.es"
-              autoresize
-              placeholder="Describe la experiencia del tour..."
             />
           </UFormGroup>
 
