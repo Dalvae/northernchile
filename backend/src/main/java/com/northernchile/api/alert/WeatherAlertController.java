@@ -57,7 +57,7 @@ public class WeatherAlertController {
      */
     @GetMapping("/schedule/{scheduleId}")
     public List<WeatherAlert> getAlertsBySchedule(@PathVariable String scheduleId) {
-        return alertRepository.findByTourScheduleId(java.util.UUID.fromString(scheduleId));
+        return alertRepository.findByTourSchedule_Id(java.util.UUID.fromString(scheduleId));
     }
 
     /**

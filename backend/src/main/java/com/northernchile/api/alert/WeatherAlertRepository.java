@@ -24,7 +24,7 @@ public interface WeatherAlertRepository extends JpaRepository<WeatherAlert, UUID
     /**
      * Encuentra alertas pendientes para un schedule específico
      */
-    List<WeatherAlert> findByTourScheduleIdAndStatus(UUID scheduleId, String status);
+    List<WeatherAlert> findByTourSchedule_IdAndStatus(UUID scheduleId, String status);
 
     /**
      * Cuenta alertas pendientes

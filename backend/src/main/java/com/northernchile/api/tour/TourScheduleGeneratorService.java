@@ -26,10 +26,12 @@ public class TourScheduleGeneratorService {
 
     private static final Logger logger = LoggerFactory.getLogger(TourScheduleGeneratorService.class);
 
-    // Límites de generación según tipo de tour
-    private static final int DAYS_AHEAD_ASTRONOMICAL = 60; // 2 meses (solo luna - cálculo local)
-    private static final int DAYS_AHEAD_WEATHER_SENSITIVE = 8; // Límite OpenWeatherMap
-    private static final int DAYS_AHEAD_DEFAULT = 30; // 1 mes
+    // Ventana fija de generación para todos los tours
+    // Siempre intentamos tener hasta 90 días de schedules futuros.
+    private static final int DAYS_AHEAD_ALL = 90;
+
+    // Ventana "cercana" donde sí aplicamos filtros de pronóstico duro
+    private static final int HARD_WEATHER_WINDOW_DAYS = 2;
 
     private static final double WIND_THRESHOLD_KNOTS = 25.0;
     private static final ZoneId ZONE_ID = ZoneId.of("America/Santiago");
@@ -75,7 +77,7 @@ public class TourScheduleGeneratorService {
         int schedulesSkipped = 0;
 
         for (Tour tour : recurringTours) {
-            // Determinar límite de días según tipo de tour
+            // Determinar límite de días hacia adelante
             int daysToGenerate = getDaysToGenerate(tour);
             LocalDate endDate = today.plusDays(daysToGenerate);
 
@@ -103,21 +105,19 @@ public class TourScheduleGeneratorService {
     }
 
     /**
-     * Determina cuántos días adelante generar schedules según el tipo de tour
+     * Determina cuántos días adelante generar schedules.
+     * Ahora usamos una ventana fija para simplificar: siempre 90 días.
      */
     private int getDaysToGenerate(Tour tour) {
-        // Tours astronómicos puros: 60 días (solo dependen de la luna - cálculo local sin límite)
-        if (tour.isMoonSensitive() && !tour.isWindSensitive() && !tour.isCloudSensitive()) {
-            return DAYS_AHEAD_ASTRONOMICAL;
-        }
+        return DAYS_AHEAD_ALL;
+    }
 
-        // Tours sensibles al clima: 8 días (límite del pronóstico de OpenWeatherMap)
-        if (tour.isWindSensitive() || tour.isCloudSensitive()) {
-            return DAYS_AHEAD_WEATHER_SENSITIVE;
-        }
 
-        // Tours normales: 30 días por defecto
+        // Para tours sensibles al clima ahora también generamos 30 días hacia adelante.
+        // No limitamos la generación por la ventana del proveedor de clima; las alertas
+        // se encargan de marcar riesgos cerca de la fecha.
         return DAYS_AHEAD_DEFAULT;
+
     }
 
     /**
@@ -168,28 +168,34 @@ public class TourScheduleGeneratorService {
         LocalDate today = LocalDate.now(ZONE_ID);
         long daysFromNow = java.time.temporal.ChronoUnit.DAYS.between(today, date);
 
-        // Restricción de luna llena para tours sensibles a la luna
-        // (Sin límite de días - cálculo local siempre disponible)
-        if (tour.isMoonSensitive() && lunarService.isFullMoon(date)) {
-            logger.debug("Fecha {} omitida para tour {} por luna llena", date, tour.getId());
-            return false;
+        // Restricción por luminosidad lunar para tours sensibles a la luna
+        // En lugar de solo "día exacto de luna llena", usamos umbral por iluminación,
+        // lo que cubre de forma natural los días alrededor de la luna llena.
+        if (tour.isMoonSensitive()) {
+            int illumination = lunarService.getMoonIllumination(date);
+            if (illumination >= 80) { // Umbral configurable si es necesario
+                logger.debug("Fecha {} omitida para tour {} por luna brillante ({}%)", date, tour.getId(), illumination);
+                return false;
+            }
         }
 
-        // Restricciones de clima: Solo dentro de 8 días (límite de OpenWeatherMap)
-        if (daysFromNow < DAYS_AHEAD_WEATHER_SENSITIVE) {
+        // Restricciones de clima solo en ventana muy cercana donde el pronóstico es fiable.
+        // Más allá de HARD_WEATHER_WINDOW_DAYS, generamos igual y dejamos que Weather Alerts
+        // se encargue de marcar riesgos sin bloquear la oferta.
+        if (daysFromNow <= HARD_WEATHER_WINDOW_DAYS) {
             // Restricción de viento para tours sensibles al viento
             if (tour.isWindSensitive() && weatherService.isWindAboveThreshold(date, WIND_THRESHOLD_KNOTS)) {
-                logger.debug("Fecha {} omitida para tour {} por viento excesivo", date, tour.getId());
+                logger.debug("Fecha {} omitida para tour {} por viento excesivo (ventana cercana)", date, tour.getId());
                 return false;
             }
 
             // Restricción de nubosidad para tours sensibles a las nubes
             if (tour.isCloudSensitive() && weatherService.isCloudyDay(date)) {
-                logger.debug("Fecha {} omitida para tour {} por nubosidad excesiva", date, tour.getId());
+                logger.debug("Fecha {} omitida para tour {} por nubosidad excesiva (ventana cercana)", date, tour.getId());
                 return false;
             }
         }
-        // Nota: Más allá de 8 días, solo validamos luna (no hay pronóstico confiable)
+
 
         return true;
     }
