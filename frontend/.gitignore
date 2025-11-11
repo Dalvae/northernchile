@@ -14,6 +14,8 @@ node_modules
 logs
 *.log
 
+openapi.json
+
 # Misc
 .DS_Store
 .fleet
