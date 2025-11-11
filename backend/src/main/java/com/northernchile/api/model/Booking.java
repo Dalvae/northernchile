@@ -1,8 +1,8 @@
-
 package com.northernchile.api.model;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -21,16 +21,16 @@ public class Booking {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // El que paga
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_id", nullable = false)
     private TourSchedule schedule;
 
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Participant> participants; // La lista de asistentes
+    private List<Participant> participants;
 
-    @Column(nullable = false)
+    @Column(name = "tour_date", nullable = false)
     private LocalDate tourDate;
 
     @Column(length = 30)
@@ -45,19 +45,27 @@ public class Booking {
     @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal totalAmount;
 
-    @Column(nullable = false, length = 5)
+    @Column(name = "language_code", nullable = false, length = 5)
     private String languageCode = "es";
 
     @Column(columnDefinition = "TEXT")
     private String specialRequests;
 
     @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
 
     public Booking() {
     }
 
-    public Booking(UUID id, User user, TourSchedule schedule, List<Participant> participants, LocalDate tourDate, String status, BigDecimal subtotal, BigDecimal taxAmount, BigDecimal totalAmount, String languageCode, String specialRequests, Instant createdAt) {
+    public Booking(UUID id, User user, TourSchedule schedule, List<Participant> participants, LocalDate tourDate, String status, BigDecimal subtotal, BigDecimal taxAmount, BigDecimal totalAmount, String languageCode, String specialRequests, Instant createdAt, Instant updatedAt, Instant deletedAt) {
         this.id = id;
         this.user = user;
         this.schedule = schedule;
@@ -70,6 +78,8 @@ public class Booking {
         this.languageCode = languageCode;
         this.specialRequests = specialRequests;
         this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.deletedAt = deletedAt;
     }
 
     public UUID getId() {
@@ -168,34 +178,65 @@ public class Booking {
         this.createdAt = createdAt;
     }
 
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Instant getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(Instant deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Booking booking = (Booking) o;
-        return Objects.equals(id, booking.id) && Objects.equals(user, booking.user) && Objects.equals(schedule, booking.schedule) && Objects.equals(participants, booking.participants) && Objects.equals(tourDate, booking.tourDate) && Objects.equals(status, booking.status) && Objects.equals(subtotal, booking.subtotal) && Objects.equals(taxAmount, booking.taxAmount) && Objects.equals(totalAmount, booking.totalAmount) && Objects.equals(languageCode, booking.languageCode) && Objects.equals(specialRequests, booking.specialRequests) && Objects.equals(createdAt, booking.createdAt);
+        return Objects.equals(id, booking.id) &&
+            Objects.equals(user, booking.user) &&
+            Objects.equals(schedule, booking.schedule) &&
+            Objects.equals(participants, booking.participants) &&
+            Objects.equals(tourDate, booking.tourDate) &&
+            Objects.equals(status, booking.status) &&
+            Objects.equals(subtotal, booking.subtotal) &&
+            Objects.equals(taxAmount, booking.taxAmount) &&
+            Objects.equals(totalAmount, booking.totalAmount) &&
+            Objects.equals(languageCode, booking.languageCode) &&
+            Objects.equals(specialRequests, booking.specialRequests) &&
+            Objects.equals(createdAt, booking.createdAt) &&
+            Objects.equals(updatedAt, booking.updatedAt) &&
+            Objects.equals(deletedAt, booking.deletedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, user, schedule, participants, tourDate, status, subtotal, taxAmount, totalAmount, languageCode, specialRequests, createdAt);
+        return Objects.hash(id, user, schedule, participants, tourDate, status, subtotal, taxAmount, totalAmount, languageCode, specialRequests, createdAt, updatedAt, deletedAt);
     }
 
     @Override
     public String toString() {
         return "Booking{" +
-                "id=" + id +
-                ", user=" + user +
-                ", schedule=" + schedule +
-                ", participants=" + participants +
-                ", tourDate=" + tourDate +
-                ", status='" + status + '\'' +
-                ", subtotal=" + subtotal +
-                ", taxAmount=" + taxAmount +
-                ", totalAmount=" + totalAmount +
-                ", languageCode='" + languageCode + '\'' +
-                ", specialRequests='" + specialRequests + '\'' +
-                ", createdAt=" + createdAt +
-                '}';
+            "id=" + id +
+            ", user=" + user +
+            ", schedule=" + schedule +
+            ", participants=" + participants +
+            ", tourDate=" + tourDate +
+            ", status='" + status + '\'' +
+            ", subtotal=" + subtotal +
+            ", taxAmount=" + taxAmount +
+            ", totalAmount=" + totalAmount +
+            ", languageCode='" + languageCode + '\'' +
+            ", specialRequests='" + specialRequests + '\'' +
+            ", createdAt=" + createdAt +
+            ", updatedAt=" + updatedAt +
+            ", deletedAt=" + deletedAt +
+            '}';
     }
 }

@@ -45,7 +45,7 @@ public class TourService {
         Tour tour = new Tour();
         tour.setOwner(currentUser);
         tour.setNameTranslations(tourCreateReq.getNameTranslations());
-        tour.setDescriptionTranslations(tourCreateReq.getDescriptionTranslations());
+        tour.setDescriptionBlocksTranslations(tourCreateReq.getDescriptionBlocksTranslations());
         tour.setWindSensitive(tourCreateReq.isWindSensitive() != null && tourCreateReq.isWindSensitive());
         tour.setMoonSensitive(tourCreateReq.isMoonSensitive() != null && tourCreateReq.isMoonSensitive());
         tour.setCloudSensitive(tourCreateReq.isCloudSensitive() != null && tourCreateReq.isCloudSensitive());
@@ -146,7 +146,7 @@ public class TourService {
         );
 
         tour.setNameTranslations(tourUpdateReq.getNameTranslations());
-        tour.setDescriptionTranslations(tourUpdateReq.getDescriptionTranslations());
+        tour.setDescriptionBlocksTranslations(tourUpdateReq.getDescriptionBlocksTranslations());
         tour.setWindSensitive(tourUpdateReq.isWindSensitive() != null && tourUpdateReq.isWindSensitive());
         tour.setMoonSensitive(tourUpdateReq.isMoonSensitive() != null && tourUpdateReq.isMoonSensitive());
         tour.setCloudSensitive(tourUpdateReq.isCloudSensitive() != null && tourUpdateReq.isCloudSensitive());

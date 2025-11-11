@@ -1,4 +1,3 @@
-
 package com.northernchile.api.model;
 
 import jakarta.persistence.*;
@@ -21,13 +20,23 @@ public class PrivateTourRequest {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(name = "customer_name", nullable = false)
     private String customerName;
+
+    @Column(name = "customer_email", nullable = false)
     private String customerEmail;
+
+    @Column(name = "customer_phone")
     private String customerPhone;
+
+    @Column(name = "requested_tour_type", nullable = false)
     private String requestedTourType;
+
+    @Column(name = "requested_start_datetime")
     private Instant requestedDatetime;
-    private int numAdults;
-    private int numChildren;
+
+    @Column(name = "num_participants", nullable = false)
+    private int numParticipants;
 
     @Column(columnDefinition = "TEXT")
     private String specialRequests;
@@ -42,7 +51,7 @@ public class PrivateTourRequest {
     public PrivateTourRequest() {
     }
 
-    public PrivateTourRequest(UUID id, User user, String customerName, String customerEmail, String customerPhone, String requestedTourType, Instant requestedDatetime, int numAdults, int numChildren, String specialRequests, String status, BigDecimal quotedPrice, String paymentLinkId, Instant createdAt) {
+    public PrivateTourRequest(UUID id, User user, String customerName, String customerEmail, String customerPhone, String requestedTourType, Instant requestedDatetime, int numParticipants, String specialRequests, String status, BigDecimal quotedPrice, String paymentLinkId, Instant createdAt) {
         this.id = id;
         this.user = user;
         this.customerName = customerName;
@@ -50,8 +59,7 @@ public class PrivateTourRequest {
         this.customerPhone = customerPhone;
         this.requestedTourType = requestedTourType;
         this.requestedDatetime = requestedDatetime;
-        this.numAdults = numAdults;
-        this.numChildren = numChildren;
+        this.numParticipants = numParticipants;
         this.specialRequests = specialRequests;
         this.status = status;
         this.quotedPrice = quotedPrice;
@@ -115,20 +123,12 @@ public class PrivateTourRequest {
         this.requestedDatetime = requestedDatetime;
     }
 
-    public int getNumAdults() {
-        return numAdults;
+    public int getNumParticipants() {
+        return numParticipants;
     }
 
-    public void setNumAdults(int numAdults) {
-        this.numAdults = numAdults;
-    }
-
-    public int getNumChildren() {
-        return numChildren;
-    }
-
-    public void setNumChildren(int numChildren) {
-        this.numChildren = numChildren;
+    public void setNumParticipants(int numParticipants) {
+        this.numParticipants = numParticipants;
     }
 
     public String getSpecialRequests() {
@@ -176,31 +176,42 @@ public class PrivateTourRequest {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PrivateTourRequest that = (PrivateTourRequest) o;
-        return numAdults == that.numAdults && numChildren == that.numChildren && Objects.equals(id, that.id) && Objects.equals(user, that.user) && Objects.equals(customerName, that.customerName) && Objects.equals(customerEmail, that.customerEmail) && Objects.equals(customerPhone, that.customerPhone) && Objects.equals(requestedTourType, that.requestedTourType) && Objects.equals(requestedDatetime, that.requestedDatetime) && Objects.equals(specialRequests, that.specialRequests) && Objects.equals(status, that.status) && Objects.equals(quotedPrice, that.quotedPrice) && Objects.equals(paymentLinkId, that.paymentLinkId) && Objects.equals(createdAt, that.createdAt);
+        return numParticipants == that.numParticipants &&
+            Objects.equals(id, that.id) &&
+            Objects.equals(user, that.user) &&
+            Objects.equals(customerName, that.customerName) &&
+            Objects.equals(customerEmail, that.customerEmail) &&
+            Objects.equals(customerPhone, that.customerPhone) &&
+            Objects.equals(requestedTourType, that.requestedTourType) &&
+            Objects.equals(requestedDatetime, that.requestedDatetime) &&
+            Objects.equals(specialRequests, that.specialRequests) &&
+            Objects.equals(status, that.status) &&
+            Objects.equals(quotedPrice, that.quotedPrice) &&
+            Objects.equals(paymentLinkId, that.paymentLinkId) &&
+            Objects.equals(createdAt, that.createdAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, user, customerName, customerEmail, customerPhone, requestedTourType, requestedDatetime, numAdults, numChildren, specialRequests, status, quotedPrice, paymentLinkId, createdAt);
+        return Objects.hash(id, user, customerName, customerEmail, customerPhone, requestedTourType, requestedDatetime, numParticipants, specialRequests, status, quotedPrice, paymentLinkId, createdAt);
     }
 
     @Override
     public String toString() {
         return "PrivateTourRequest{" +
-                "id=" + id +
-                ", user=" + user +
-                ", customerName='" + customerName + '\'' +
-                ", customerEmail='" + customerEmail + '\'' +
-                ", customerPhone='" + customerPhone + '\'' +
-                ", requestedTourType='" + requestedTourType + '\'' +
-                ", requestedDatetime=" + requestedDatetime +
-                ", numAdults=" + numAdults +
-                ", numChildren=" + numChildren +
-                ", specialRequests='" + specialRequests + '\'' +
-                ", status='" + status + '\'' +
-                ", quotedPrice=" + quotedPrice +
-                ", paymentLinkId='" + paymentLinkId + '\'' +
-                ", createdAt=" + createdAt +
-                '}';
+            "id=" + id +
+            ", user=" + user +
+            ", customerName='" + customerName + '\'' +
+            ", customerEmail='" + customerEmail + '\'' +
+            ", customerPhone='" + customerPhone + '\'' +
+            ", requestedTourType='" + requestedTourType + '\'' +
+            ", requestedDatetime=" + requestedDatetime +
+            ", numParticipants=" + numParticipants +
+            ", specialRequests='" + specialRequests + '\'' +
+            ", status='" + status + '\'' +
+            ", quotedPrice=" + quotedPrice +
+            ", paymentLinkId='" + paymentLinkId + '\'' +
+            ", createdAt=" + createdAt +
+            '}';
     }
 }

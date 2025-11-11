@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.time.LocalTime;
 import java.util.List; // Asegurarse de que esté importado
 import java.util.Map; // Asegurarse de que esté importado
+
 import java.util.Objects;
 import java.util.UUID;
 
@@ -15,7 +16,6 @@ public class TourRes {
     private UUID id;
     private String slug;
     private Map<String, String> nameTranslations;
-    private Map<String, String> descriptionTranslations;
     private String category;
     private BigDecimal price;
     private Integer defaultMaxParticipants;
@@ -39,14 +39,16 @@ public class TourRes {
     private List<String> equipment;
     private List<String> additionalInfo;
 
+    private Map<String, java.util.List<ContentBlock>> descriptionBlocksTranslations;
+ 
     public TourRes() {
+
     }
 
-    public TourRes(UUID id, String slug, Map<String, String> nameTranslations, Map<String, String> descriptionTranslations, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, LocalTime defaultStartTime, String status, List<TourImageRes> images, boolean isMoonSensitive, boolean isWindSensitive, boolean isCloudSensitive, Instant createdAt, Instant updatedAt, String contentKey, String guideName, List<ItineraryItem> itinerary, List<String> equipment, List<String> additionalInfo) {
+    public TourRes(UUID id, String slug, Map<String, String> nameTranslations, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, LocalTime defaultStartTime, String status, List<TourImageRes> images, boolean isMoonSensitive, boolean isWindSensitive, boolean isCloudSensitive, Instant createdAt, Instant updatedAt, String contentKey, String guideName, List<ItineraryItem> itinerary, List<String> equipment, List<String> additionalInfo, Map<String, java.util.List<ContentBlock>> descriptionBlocksTranslations) {
         this.id = id;
         this.slug = slug;
         this.nameTranslations = nameTranslations;
-        this.descriptionTranslations = descriptionTranslations;
         this.category = category;
         this.price = price;
         this.defaultMaxParticipants = defaultMaxParticipants;
@@ -90,13 +92,6 @@ public class TourRes {
         this.nameTranslations = nameTranslations;
     }
 
-    public Map<String, String> getDescriptionTranslations() {
-        return descriptionTranslations;
-    }
-
-    public void setDescriptionTranslations(Map<String, String> descriptionTranslations) {
-        this.descriptionTranslations = descriptionTranslations;
-    }
 
     public String getCategory() {
         return category;
@@ -229,22 +224,31 @@ public class TourRes {
     public List<String> getAdditionalInfo() {
         return additionalInfo;
     }
-
+ 
     public void setAdditionalInfo(List<String> additionalInfo) {
         this.additionalInfo = additionalInfo;
     }
 
+    public Map<String, java.util.List<ContentBlock>> getDescriptionBlocksTranslations() {
+        return descriptionBlocksTranslations;
+    }
+
+    public void setDescriptionBlocksTranslations(Map<String, java.util.List<ContentBlock>> descriptionBlocksTranslations) {
+        this.descriptionBlocksTranslations = descriptionBlocksTranslations;
+    }
+ 
     @Override
+
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TourRes tourRes = (TourRes) o;
-        return isMoonSensitive == tourRes.isMoonSensitive && isWindSensitive == tourRes.isWindSensitive && isCloudSensitive == tourRes.isCloudSensitive && Objects.equals(id, tourRes.id) && Objects.equals(slug, tourRes.slug) && Objects.equals(nameTranslations, tourRes.nameTranslations) && Objects.equals(descriptionTranslations, tourRes.descriptionTranslations) && Objects.equals(category, tourRes.category) && Objects.equals(price, tourRes.price) && Objects.equals(defaultMaxParticipants, tourRes.defaultMaxParticipants) && Objects.equals(durationHours, tourRes.durationHours) && Objects.equals(status, tourRes.status) && Objects.equals(images, tourRes.images) && Objects.equals(createdAt, tourRes.createdAt) && Objects.equals(updatedAt, tourRes.updatedAt) && Objects.equals(contentKey, tourRes.contentKey);
+        return isMoonSensitive == tourRes.isMoonSensitive && isWindSensitive == tourRes.isWindSensitive && isCloudSensitive == tourRes.isCloudSensitive && Objects.equals(id, tourRes.id) && Objects.equals(slug, tourRes.slug) && Objects.equals(nameTranslations, tourRes.nameTranslations) && Objects.equals(category, tourRes.category) && Objects.equals(price, tourRes.price) && Objects.equals(defaultMaxParticipants, tourRes.defaultMaxParticipants) && Objects.equals(durationHours, tourRes.durationHours) && Objects.equals(status, tourRes.status) && Objects.equals(images, tourRes.images) && Objects.equals(createdAt, tourRes.createdAt) && Objects.equals(updatedAt, tourRes.updatedAt) && Objects.equals(contentKey, tourRes.contentKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, slug, nameTranslations, descriptionTranslations, category, price, defaultMaxParticipants, durationHours, status, images, isMoonSensitive, isWindSensitive, isCloudSensitive, createdAt, updatedAt, contentKey);
+        return Objects.hash(id, slug, nameTranslations, category, price, defaultMaxParticipants, durationHours, status, images, isMoonSensitive, isWindSensitive, isCloudSensitive, createdAt, updatedAt, contentKey);
     }
 
     @Override
@@ -253,7 +257,6 @@ public class TourRes {
                 "id=" + id +
                 ", slug='" + slug + '\'' +
                 ", nameTranslations=" + nameTranslations +
-                ", descriptionTranslations=" + descriptionTranslations +
                 ", category='" + category + '\'' +
                 ", price=" + price +
                 ", defaultMaxParticipants=" + defaultMaxParticipants +

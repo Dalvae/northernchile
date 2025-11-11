@@ -9,7 +9,9 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(name = "tour_schedules")
+@Table(name = "tour_schedules", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"tour_id", "start_datetime"})
+})
 public class TourSchedule {
 
     @Id
@@ -20,7 +22,7 @@ public class TourSchedule {
     @JoinColumn(name = "tour_id", nullable = false)
     private Tour tour;
 
-    @Column(nullable = false)
+    @Column(name = "start_datetime", nullable = false)
     private Instant startDatetime;
 
     @Column(nullable = false)
