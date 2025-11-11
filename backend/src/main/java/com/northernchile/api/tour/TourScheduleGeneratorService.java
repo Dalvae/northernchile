@@ -113,13 +113,6 @@ public class TourScheduleGeneratorService {
     }
 
 
-        // Para tours sensibles al clima ahora también generamos 30 días hacia adelante.
-        // No limitamos la generación por la ventana del proveedor de clima; las alertas
-        // se encargan de marcar riesgos cerca de la fecha.
-        return DAYS_AHEAD_DEFAULT;
-
-    }
-
     /**
      * Determina si se debe generar un schedule para un tour en una fecha específica
      */

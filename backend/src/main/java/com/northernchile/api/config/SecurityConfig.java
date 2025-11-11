@@ -35,7 +35,16 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(auth -> auth
+                 .authorizeHttpRequests(auth -> auth
+                         .requestMatchers(
+                                 "/api-docs",
+                                 "/api-docs/**",
+                                 "/v3/api-docs",
+                                 "/v3/api-docs/**",
+                                 "/swagger-ui/**",
+                                 "/swagger-ui.html"
+                         ).permitAll()
+
                         // Permitir GET a tours para todo el mundo (búsqueda pública)
                         .requestMatchers(HttpMethod.GET, "/api/tours/**").permitAll()
                         // Permitir GET a disponibilidad para todo el mundo
