@@ -46,21 +46,33 @@ watch(
 )
 
 // Propiedades computadas para usar en el template
+// Contenido enriquecido legacy (app/content/tours/*). Si existe, se usa.
 const translatedContent = computed(() => {
   if (!tourContent.value) return null
   return tourContent.value[locale.value] || tourContent.value.es
+})
+
+// Bloques estructurados desde API (descriptionBlocksTranslations)
+const descriptionBlocks = computed(() => {
+  const blocks = (tour.value as any)?.descriptionBlocksTranslations?.[locale.value]
+    || (tour.value as any)?.descriptionBlocksTranslations?.es
+  return Array.isArray(blocks) ? blocks.filter((b: any) => b?.type && b?.content) : []
+})
+
+// Texto plano fallback si no hay bloques
+const translatedDescription = computed(() => {
+  if (descriptionBlocks.value.length) {
+    return ''
+  }
+  return (tour.value as any)?.descriptionTranslations?.[locale.value]
+    || (tour.value as any)?.descriptionTranslations?.es
+    || ''
 })
 
 const translatedName = computed(
   () =>
     tour.value?.nameTranslations?.[locale.value]
     || tour.value?.nameTranslations?.es
-    || ''
-)
-const translatedDescription = computed(
-  () =>
-    tour.value?.descriptionTranslations?.[locale.value]
-    || tour.value?.descriptionTranslations?.es
     || ''
 )
 const heroImage = computed(
@@ -109,87 +121,136 @@ async function goToSchedule() {
           >
         </div>
 
-        <!-- Description -->
-        <div class="prose dark:prose-invert max-w-none">
+        <!-- Description blocks from API -->
+        <div
+          v-if="descriptionBlocks.length"
+          class="prose dark:prose-invert max-w-none space-y-4"
+        >
+             <component
+               :is="block.type === 'heading' ? 'h2' : 'p'"
+               v-for="(block, index) in descriptionBlocks"
+               :key="index"
+               class="text-lg text-neutral-900 dark:text-neutral-100"
+             >
+            {{ block.content }}
+          </component>
+        </div>
+
+        <!-- Fallback plain description -->
+        <div
+          v-else-if="translatedDescription"
+          class="prose dark:prose-invert max-w-none"
+        >
           <p class="text-lg text-neutral-600 dark:text-neutral-400">
             {{ translatedDescription }}
           </p>
         </div>
 
-        <!-- Renderizar el contenido ENRIQUECIDO si existe -->
-        <div
-          v-if="translatedContent"
-          class="space-y-8 mt-8"
-        >
-          <!-- Sección del Guía -->
-          <UCard>
-            <template #header>
-              <h2 class="text-2xl font-bold">
-                Tu Guía: {{ translatedContent.guide.name }}
-              </h2>
-            </template>
-            <p>{{ translatedContent.guide.bio }}</p>
-            <ul class="mt-4 space-y-1 list-disc list-inside">
-              <li
-                v-for="cred in translatedContent.guide.credentials"
-                :key="cred"
-              >
-                {{ cred }}
-              </li>
-            </ul>
-          </UCard>
+         <!-- Itinerario desde API (TourRes.itinerary mapeado en backend) -->
+         <div
+           v-if="tour?.itinerary && tour.itinerary.length"
+           class="space-y-4 mt-8"
+         >
+           <UCard>
+             <template #header>
+               <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">
+                 Itinerário
+               </h2>
+             </template>
+             <div
+               v-for="item in tour.itinerary"
+               :key="item.time + item.description"
+               class="flex items-center gap-4 py-2 border-b border-neutral-300 dark:border-neutral-700 last:border-b-0"
+             >
+               <span class="font-bold shrink-0 w-40 text-primary">
+                 {{ item.time }}
+               </span>
+               <p class="text-neutral-900 dark:text-neutral-100">
+                 {{ item.description }}
+               </p>
+             </div>
+           </UCard>
+         </div>
 
-          <!-- Sección del Itinerario -->
-          <UCard>
-            <template #header>
-              <h2 class="text-2xl font-bold">
-                Itinerario de tu Noche Cósmica
-              </h2>
-            </template>
-            <div
-              v-for="item in translatedContent.itinerary"
-              :key="item.time"
-              class="flex gap-4 py-2 border-b border-neutral-200 dark:border-neutral-700 last:border-b-0"
-            >
-              <span class="font-bold w-20 text-primary">{{ item.time }}</span>
-              <p>{{ item.description }}</p>
-            </div>
-          </UCard>
+         <!-- Renderizar contenido ENRIQUECIDO legacy (contentKey) solo como fallback -->
+         <div
+           v-else-if="translatedContent"
+           class="space-y-8 mt-8"
+         >
+           <UCard v-if="translatedContent.guide">
+             <template #header>
+               <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">
+                 Tu Guía
+               </h2>
+             </template>
+             <p class="text-neutral-900 dark:text-neutral-100">
+               {{ translatedContent.guide.bio }}
+             </p>
+             <ul class="mt-4 space-y-1 list-disc list-inside">
+               <li
+                 v-for="cred in translatedContent.guide.credentials"
+                 :key="cred"
+                 class="text-neutral-900 dark:text-neutral-100"
+               >
+                 {{ cred }}
+               </li>
+             </ul>
+           </UCard>
 
-          <!-- Sección de Equipamiento -->
-          <UCard>
-            <template #header>
-              <h2 class="text-2xl font-bold">
-                Nuestro Equipo Técnico
-              </h2>
-            </template>
-            <ul class="list-disc list-inside">
-              <li
-                v-for="item in translatedContent.equipment"
-                :key="item"
-              >
-                {{ item }}
-              </li>
-            </ul>
-          </UCard>
+           <UCard v-if="translatedContent.itinerary?.length">
+             <template #header>
+               <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">
+                 Itinerário
+               </h2>
+             </template>
+             <div
+               v-for="item in translatedContent.itinerary"
+               :key="item.time + item.description"
+               class="flex gap-4 py-2 border-b border-neutral-300 dark:border-neutral-700 last:border-b-0"
+             >
+               <span class="font-bold w-24 text-primary">
+                 {{ item.time }}
+               </span>
+               <p class="text-neutral-900 dark:text-neutral-100">
+                 {{ item.description }}
+               </p>
+             </div>
+           </UCard>
 
-          <!-- Sección de Incluye -->
-          <UCard>
-            <template #header>
-              <h2 class="text-2xl font-bold">
-                Incluye
-              </h2>
-            </template>
-            <ul class="list-disc list-inside">
-              <li
-                v-for="item in translatedContent.includes"
-                :key="item"
-              >
-                {{ item }}
-              </li>
-            </ul>
-          </UCard>
-        </div>
+           <UCard v-if="translatedContent.equipment?.length">
+             <template #header>
+               <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">
+                 Nosso Equipamento Técnico
+               </h2>
+             </template>
+             <ul class="list-disc list-inside">
+               <li
+                 v-for="item in translatedContent.equipment"
+                 :key="item"
+                 class="text-neutral-900 dark:text-neutral-100"
+               >
+                 {{ item }}
+               </li>
+             </ul>
+           </UCard>
+
+           <UCard v-if="translatedContent.includes?.length">
+             <template #header>
+               <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">
+                 Inclui
+               </h2>
+             </template>
+             <ul class="list-disc list-inside">
+               <li
+                 v-for="item in translatedContent.includes"
+                 :key="item"
+                 class="text-neutral-900 dark:text-neutral-100"
+               >
+                 {{ item }}
+               </li>
+             </ul>
+           </UCard>
+         </div>
 
         <!-- Gallery -->
         <div v-if="tour.images && tour.images.length > 1">

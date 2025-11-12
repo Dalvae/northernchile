@@ -9,11 +9,12 @@ export default defineEventHandler<TourRes>(async (event) => {
   }
 
   const apiBase = config.public.apiBase || 'http://localhost:8080'
+ 
+   try {
+     return await $fetch<TourRes>(
+       `${apiBase}/api/tours/slug/${encodeURIComponent(slugParam)}`
+     )
 
-  try {
-    return await $fetch<TourRes>(
-      `${backendUrl}/api/tours/slug/${encodeURIComponent(slugParam)}`
-    )
   } catch (error: any) {
     if (error?.status === 404) {
       throw createError({ statusCode: 404, statusMessage: 'Tour not found' })

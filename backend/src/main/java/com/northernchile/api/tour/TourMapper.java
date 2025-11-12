@@ -4,6 +4,7 @@ import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourImage;
 import com.northernchile.api.tour.dto.TourImageRes;
 import com.northernchile.api.tour.dto.TourRes;
+import com.northernchile.api.tour.dto.ItineraryItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE)
 public interface TourMapper {
@@ -36,9 +38,46 @@ public interface TourMapper {
             @Mapping(target = "updatedAt", source = "tour.updatedAt"),
             @Mapping(target = "contentKey", source = "tour.contentKey"),
             @Mapping(target = "guideName", source = "tour.guideName"),
-            @Mapping(target = "descriptionBlocksTranslations", source = "tour.descriptionBlocksTranslations")
+            @Mapping(target = "descriptionBlocksTranslations", source = "tour.descriptionBlocksTranslations"),
+            @Mapping(target = "itinerary", expression = "java(mapItinerary(tour.getItineraryTranslations(), locale))"),
+            @Mapping(target = "equipment", expression = "java(mapStringList(tour.getEquipmentTranslations(), locale))"),
+            @Mapping(target = "additionalInfo", expression = "java(mapStringList(tour.getAdditionalInfoTranslations(), locale))")
     })
     TourRes toTourRes(Tour tour, Locale locale);
+
+    // Helpers para contenido estructurado
+    default java.util.List<ItineraryItem> mapItinerary(Map<String, Object> translations, Locale locale) {
+        if (translations == null || translations.isEmpty()) return java.util.Collections.emptyList();
+        Object localized = translations.getOrDefault(locale.getLanguage(), translations.get("es"));
+        if (!(localized instanceof java.util.List<?> list)) return java.util.Collections.emptyList();
+        java.util.List<ItineraryItem> result = new java.util.ArrayList<>();
+        for (Object o : list) {
+            if (o instanceof java.util.Map<?, ?> m) {
+                Object time = m.get("time");
+                Object description = m.get("description");
+                if (time != null && description != null) {
+                    ItineraryItem item = new ItineraryItem();
+                    item.setTime(time.toString());
+                    item.setDescription(description.toString());
+                    result.add(item);
+                }
+            }
+        }
+        return result;
+    }
+
+    default java.util.List<String> mapStringList(Map<String, Object> translations, Locale locale) {
+        if (translations == null || translations.isEmpty()) return java.util.Collections.emptyList();
+        Object localized = translations.getOrDefault(locale.getLanguage(), translations.get("es"));
+        if (!(localized instanceof java.util.List<?> list)) return java.util.Collections.emptyList();
+        java.util.List<String> result = new java.util.ArrayList<>();
+        for (Object o : list) {
+            if (o != null) {
+                result.add(o.toString());
+            }
+        }
+        return result;
+    }
 
 
 

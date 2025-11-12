@@ -164,11 +164,17 @@ const title = computed(() =>
   || 'Tour'
 )
 
-const description = computed(() =>
-  props.tour.descriptionTranslations?.[locale.value]
-  || props.tour.descriptionTranslations?.es
-  || ''
-)
+const description = computed(() => {
+  const blocks = (props.tour as any).descriptionBlocksTranslations?.[locale.value]
+    || (props.tour as any).descriptionBlocksTranslations?.es
+  if (Array.isArray(blocks) && blocks.length) {
+    const firstText = blocks.find((b: any) => b?.content)?.content
+    if (firstText) return firstText
+  }
+  return (props.tour as any).descriptionTranslations?.[locale.value]
+    || (props.tour as any).descriptionTranslations?.es
+    || ''
+})
 
 const imageSrc = computed(() => {
   const hero = props.tour.images?.find(img => (img as any).isHeroImage)?.imageUrl
