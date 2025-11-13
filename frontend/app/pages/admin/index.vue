@@ -143,7 +143,7 @@ const actions = (row: BookingRes) => [
     {
       label: 'Ver Detalles',
       icon: 'i-lucide-eye'
-      // Add click handler later: click: () => console.log('View', row.id)
+      // TODO: Add click handler
     }
   ]
 ]
