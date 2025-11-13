@@ -66,18 +66,25 @@ public class TourReminderService {
     }
 
     private void sendReminderEmail(Booking booking) {
-        TourSchedule schedule = booking.getTourSchedule();
+        TourSchedule schedule = booking.getSchedule();
+        var tour = schedule.getTour();
 
         // Format date and time
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' HH:mm")
                 .withZone(ZoneId.of(appTimezone));
-        String tourDateTime = dateFormatter.format(schedule.getStartDateTime());
+        String tourDateTime = dateFormatter.format(schedule.getStartDatetime());
+
+        // Get tour name in the correct language, fallback to any available language
+        String tourName = tour.getNameTranslations().get(booking.getLanguageCode());
+        if (tourName == null) {
+            tourName = tour.getNameTranslations().values().iterator().next();
+        }
 
         emailService.sendTourReminderEmail(
                 booking.getUser().getEmail(),
                 booking.getUser().getFullName(),
                 booking.getId().toString(),
-                schedule.getTour().getName(),
+                tourName,
                 tourDateTime,
                 booking.getLanguageCode() != null ? booking.getLanguageCode() : "es-CL"
         );

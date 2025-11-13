@@ -143,15 +143,20 @@ public class BookingService {
                 java.time.format.DateTimeFormatter.ofPattern("HH:mm")
                 .withZone(java.time.ZoneId.of("America/Santiago"));
 
-        String tourDate = dateFormatter.format(schedule.getStartDateTime());
-        String tourTime = timeFormatter.format(schedule.getStartDateTime());
+        String tourDate = dateFormatter.format(schedule.getStartDatetime());
+        String tourTime = timeFormatter.format(schedule.getStartDatetime());
+
+        // Get tour name in the correct language, fallback to any available language
         String tourName = tour.getNameTranslations().get(booking.getLanguageCode());
+        if (tourName == null) {
+            tourName = tour.getNameTranslations().values().iterator().next();
+        }
 
         emailService.sendBookingConfirmationEmail(
                 booking.getUser().getEmail(),
                 booking.getUser().getFullName(),
                 booking.getId().toString(),
-                tourName != null ? tourName : tour.getName(),
+                tourName,
                 tourDate,
                 tourTime,
                 booking.getParticipants().size(),

@@ -63,6 +63,6 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
            "LEFT JOIN FETCH s.tour t " +
            "LEFT JOIN FETCH b.user u " +
            "LEFT JOIN FETCH b.participants " +
-           "WHERE b.status = :status AND s.startDateTime BETWEEN :start AND :end")
+           "WHERE b.status = :status AND s.startDatetime BETWEEN :start AND :end")
     List<Booking> findByStatusAndTourSchedule_StartDateTimeBetween(String status, Instant start, Instant end);
 }
