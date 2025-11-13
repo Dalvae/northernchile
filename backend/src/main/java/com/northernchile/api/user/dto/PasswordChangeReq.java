@@ -12,7 +12,6 @@ public class PasswordChangeReq {
     @Size(min = 8, message = "La nueva contraseña debe tener al menos 8 caracteres")
     private String newPassword;
 
-    // Getters y Setters
     public String getCurrentPassword() {
         return currentPassword;
     }

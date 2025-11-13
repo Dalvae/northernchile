@@ -35,6 +35,6 @@ public class CurrentUserMethodArgumentResolver implements HandlerMethodArgumentR
         }
         String currentPrincipalName = authentication.getName();
         return userRepository.findByEmail(currentPrincipalName)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("User not found with email: " + currentPrincipalName));
     }
 }

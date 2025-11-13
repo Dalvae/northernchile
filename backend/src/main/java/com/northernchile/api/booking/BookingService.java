@@ -141,18 +141,27 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public List<BookingRes> getBookingsByTourOwner(User owner) {
-        return bookingRepository.findAllWithDetails().stream()
-                .filter(booking -> booking.getSchedule().getTour().getOwner().getId().equals(owner.getId()))
+        return bookingRepository.findByTourOwnerId(owner.getId()).stream()
                 .map(bookingMapper::toBookingRes)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Get bookings for admin based on their role.
+     * SUPER_ADMIN sees all bookings, PARTNER_ADMIN sees only their tours' bookings.
+     */
+    @Transactional(readOnly = true)
+    public List<BookingRes> getBookingsForAdmin(User admin) {
+        if ("ROLE_SUPER_ADMIN".equals(admin.getRole())) {
+            return getAllBookingsForAdmin();
+        } else {
+            return getBookingsByTourOwner(admin);
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<BookingRes> getBookingsByUser(User user) {
-        return bookingRepository.findAllWithDetails().stream()
-                .filter(booking -> booking.getUser().getId().equals(user.getId()))
-                .map(bookingMapper::toBookingRes)
-                .collect(Collectors.toList());
+        return getBookingsByUser(user.getId());
     }
 
     @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId) or @bookingSecurityService.isBookingUser(authentication, #bookingId)")
@@ -174,7 +183,7 @@ public class BookingService {
         booking.setStatus(newStatus);
         Booking updatedBooking = bookingRepository.save(booking);
 
-        String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
+        String tourName = booking.getSchedule().getTour().getDisplayName();
         String description = tourName + " - " + booking.getUser().getFullName();
         Map<String, Object> oldValues = Map.of("status", oldStatus);
         Map<String, Object> newValues = Map.of("status", newStatus);
@@ -194,7 +203,7 @@ public class BookingService {
         booking.setStatus("CANCELLED");
         bookingRepository.save(booking);
 
-        String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
+        String tourName = booking.getSchedule().getTour().getDisplayName();
         String description = tourName + " - " + booking.getUser().getFullName();
         Map<String, Object> oldValues = Map.of("status", oldStatus);
         Map<String, Object> newValues = Map.of("status", "CANCELLED");
@@ -203,10 +212,7 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public List<BookingRes> getBookingsByUser(UUID userId) {
-        List<Booking> bookings = bookingRepository.findAllWithDetails().stream()
-                .filter(b -> b.getUser().getId().equals(userId))
-                .collect(Collectors.toList());
-        return bookings.stream()
+        return bookingRepository.findByUserId(userId).stream()
                 .map(bookingMapper::toBookingRes)
                 .collect(Collectors.toList());
     }
@@ -225,7 +231,7 @@ public class BookingService {
         booking.setStatus("CONFIRMED");
         Booking confirmedBooking = bookingRepository.save(booking);
 
-        String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
+        String tourName = booking.getSchedule().getTour().getDisplayName();
         String description = "Mock payment confirmation - " + tourName + " - " + booking.getUser().getFullName();
         Map<String, Object> oldValues = Map.of("status", oldStatus);
         Map<String, Object> newValues = Map.of("status", "CONFIRMED");
@@ -268,7 +274,7 @@ public class BookingService {
         Booking updatedBooking = bookingRepository.save(booking);
 
         // Audit log
-        String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
+        String tourName = booking.getSchedule().getTour().getDisplayName();
         String description = tourName + " - " + booking.getUser().getFullName() + " (Updated details)";
         auditLogService.logUpdate(currentUser, "BOOKING", booking.getId(), description, null, null);
 

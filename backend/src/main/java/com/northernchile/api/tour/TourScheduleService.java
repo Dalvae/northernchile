@@ -66,7 +66,7 @@ public class TourScheduleService {
         TourSchedule savedSchedule = tourScheduleRepository.save(schedule);
 
         // Audit log
-        String tourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String tourName = tour.getDisplayName();
         String description = tourName + " - " + savedSchedule.getStartDatetime().toString();
         Map<String, Object> newValues = Map.of(
             "id", savedSchedule.getId().toString(),
@@ -114,7 +114,7 @@ public class TourScheduleService {
         TourSchedule savedSchedule = tourScheduleRepository.save(schedule);
 
         // Audit log
-        String tourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String tourName = tour.getDisplayName();
         String description = tourName + " - " + savedSchedule.getStartDatetime().toString();
         Map<String, Object> newValues = Map.of(
             "startDatetime", savedSchedule.getStartDatetime().toString(),
@@ -146,7 +146,7 @@ public class TourScheduleService {
         TourSchedule savedSchedule = tourScheduleRepository.save(schedule);
 
         // Audit log
-        String tourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String tourName = tour.getDisplayName();
         String description = tourName + " - " + savedSchedule.getStartDatetime().toString();
         Map<String, Object> oldValues = Map.of("status", oldStatus);
         Map<String, Object> newValues = Map.of("status", "CANCELLED");
@@ -185,7 +185,7 @@ public class TourScheduleService {
         }
 
         // Audit log before deletion
-        String tourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String tourName = tour.getDisplayName();
         String description = tourName + " - " + schedule.getStartDatetime().toString();
         Map<String, Object> oldValues = Map.of(
             "tourId", tour.getId().toString(),

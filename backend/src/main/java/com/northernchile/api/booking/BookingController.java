@@ -75,13 +75,7 @@ public class BookingController {
     @GetMapping("/admin/bookings")
     @PreAuthorize("@bookingSecurityService.canViewTourBookings(authentication)")
     public ResponseEntity<List<BookingRes>> getAdminBookings(@CurrentUser User currentUser) {
-        // SUPER_ADMIN sees all bookings, PARTNER_ADMIN sees only their tours' bookings
-        List<BookingRes> bookings;
-        if (currentUser.getRole().equals("ROLE_SUPER_ADMIN")) {
-            bookings = bookingService.getAllBookingsForAdmin();
-        } else {
-            bookings = bookingService.getBookingsByTourOwner(currentUser);
-        }
+        List<BookingRes> bookings = bookingService.getBookingsForAdmin(currentUser);
         return new ResponseEntity<>(bookings, HttpStatus.OK);
     }
 

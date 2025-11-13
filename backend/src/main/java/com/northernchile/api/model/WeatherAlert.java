@@ -63,7 +63,6 @@ public class WeatherAlert {
         this.status = "PENDING";
     }
 
-    // Getters y Setters
     public UUID getId() {
         return id;
     }

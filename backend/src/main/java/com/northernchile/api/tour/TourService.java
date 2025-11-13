@@ -91,7 +91,7 @@ public class TourService {
             savedTour.setImages(tourImages);
         }
 
-        String tourName = savedTour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String tourName = savedTour.getDisplayName();
         Map<String, Object> newValues = Map.of(
             "id", savedTour.getId().toString(),
             "name", tourName,
@@ -140,7 +140,7 @@ public class TourService {
         Tour tour = tourRepository.findByIdNotDeleted(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + id));
 
-        String oldTourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String oldTourName = tour.getDisplayName();
         Map<String, Object> oldValues = Map.of(
             "name", oldTourName,
             "status", tour.getStatus(),
@@ -199,7 +199,7 @@ public class TourService {
 
         Tour updatedTour = tourRepository.save(tour);
 
-        String newTourName = updatedTour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String newTourName = updatedTour.getDisplayName();
         Map<String, Object> newValues = Map.of(
             "name", newTourName,
             "status", updatedTour.getStatus(),
@@ -221,7 +221,7 @@ public class TourService {
         tour.setDeletedAt(Instant.now());
         tourRepository.save(tour);
 
-        String tourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String tourName = tour.getDisplayName();
         Map<String, Object> oldValues = Map.of(
             "name", tourName,
             "status", tour.getStatus(),

@@ -44,7 +44,7 @@ public class ProfileController {
             Authentication authentication,
             @Valid @RequestBody PasswordChangeReq req) {
         User currentUser = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Usuario no encontrado"));
 
         try {
             userService.changeUserPassword(currentUser, req.getCurrentPassword(), req.getNewPassword());

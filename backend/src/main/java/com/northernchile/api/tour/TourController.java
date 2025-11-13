@@ -1,11 +1,13 @@
 package com.northernchile.api.tour;
 
 import com.northernchile.api.config.security.annotation.CurrentUser;
+import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.User;
 import com.northernchile.api.tour.dto.TourCreateReq;
 import com.northernchile.api.tour.dto.TourRes;
 import com.northernchile.api.tour.dto.TourUpdateReq;
 import com.northernchile.api.user.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +23,18 @@ public class TourController {
 
     private final TourService tourService;
     private final UserRepository userRepository;
+    private final TourRepository tourRepository;
+    private final TourMapper tourMapper;
 
-    public TourController(TourService tourService, UserRepository userRepository) {
+    public TourController(
+            TourService tourService,
+            UserRepository userRepository,
+            TourRepository tourRepository,
+            TourMapper tourMapper) {
         this.tourService = tourService;
         this.userRepository = userRepository;
+        this.tourRepository = tourRepository;
+        this.tourMapper = tourMapper;
     }
 
     @PostMapping("/admin/tours")
@@ -69,11 +79,12 @@ public class TourController {
     }
 
     @GetMapping("/tours/{id}")
-    public ResponseEntity<TourRes> getTourById(@PathVariable UUID id) {
-        User publicUser = new User();
-        publicUser.setRole("ROLE_PUBLIC");
-        TourRes tour = tourService.getTourById(id, publicUser);
-        return new ResponseEntity<>(tour, HttpStatus.OK);
+    public ResponseEntity<TourRes> getTourByIdPublic(@PathVariable UUID id) {
+        Tour tour = tourRepository.findByIdNotDeleted(id)
+                .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + id));
+
+        TourRes tourRes = tourMapper.toTourRes(tour);
+        return new ResponseEntity<>(tourRes, HttpStatus.OK);
     }
 
     @PutMapping("/admin/tours/{id}")
