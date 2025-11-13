@@ -19,6 +19,11 @@ interface Cart {
   cartTotal: number
 }
 
+interface AddCartItemRequest {
+  scheduleId: string
+  numParticipants: number
+}
+
 export const useCartStore = defineStore('cart', () => {
   // El backend es la ÚNICA fuente de verdad
   const cart = ref<Cart>({
@@ -47,40 +52,34 @@ export const useCartStore = defineStore('cart', () => {
         credentials: 'include'
       })
       cart.value = response
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching cart:', error)
-      // On error, reset to empty cart
       clearCart()
     } finally {
       isLoading.value = false
     }
   }
 
-  /**
-   * Add item to cart
-   * Always calls backend API - no local logic
-   */
-  async function addItem(itemData: any) {
+  async function addItem(itemData: AddCartItemRequest) {
     isLoading.value = true
     try {
-      const body = typeof itemData.scheduleId === 'string'
-        ? { scheduleId: itemData.scheduleId, numParticipants: itemData.numParticipants }
-        : { ...itemData }
-
       const response = await $fetch<Cart>('/api/cart/items', {
         method: 'POST',
         credentials: 'include',
-        body
+        body: itemData
       })
       cart.value = response
 
       toast.add({ title: 'Agregado al carrito', color: 'success' })
       return true
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error adding item to cart:', error)
+      const errorMessage = error && typeof error === 'object' && 'data' in error
+        ? (error.data as { message?: string })?.message
+        : undefined
       toast.add({
         title: 'Error',
-        description: error.data?.message || 'Failed to add item to cart',
+        description: errorMessage || 'Failed to add item to cart',
         color: 'error'
       })
       return false
@@ -89,10 +88,6 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
-  /**
-   * Remove item from cart
-   * Always calls backend API - no local logic
-   */
   async function removeItem(itemId: string) {
     isLoading.value = true
     try {
@@ -109,11 +104,14 @@ export const useCartStore = defineStore('cart', () => {
       })
 
       return true
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error removing item from cart:', error)
+      const errorMessage = error && typeof error === 'object' && 'data' in error
+        ? (error.data as { message?: string })?.message
+        : undefined
       toast.add({
         title: 'Error',
-        description: error.data?.message || 'No se pudo eliminar el item',
+        description: errorMessage || 'No se pudo eliminar el item',
         color: 'error'
       })
       return false

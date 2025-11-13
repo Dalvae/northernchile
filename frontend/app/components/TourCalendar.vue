@@ -8,6 +8,29 @@ import ptLocale from '@fullcalendar/core/locales/pt'
 import enLocale from '@fullcalendar/core/locales/en-gb'
 import type { TourRes } from 'api-client'
 
+interface TourSchedule {
+  id: string
+  startDatetime: string
+  maxParticipants: number
+  availableSpots?: number
+  bookedParticipants?: number
+  status: string
+  tour: TourRes
+}
+
+interface LunarPhase {
+  date: string
+  phaseName: string
+  illumination: number
+}
+
+interface WeatherDay {
+  date: string
+  maxWindKph: number
+  cloudCover: number
+  chanceOfRain: number
+}
+
 interface Props {
   tours: TourRes[]
   showLegend?: boolean
@@ -22,24 +45,22 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  scheduleClick: [schedule: any, tour: any]
+  scheduleClick: [schedule: TourSchedule, tour: TourRes]
 }>()
 
 const router = useRouter()
 const { locale, t } = useI18n()
 const config = useRuntimeConfig()
 
-// Calendar data
-const schedules = ref<any[]>([])
-const lunarData = ref<any[]>([])
-const weatherData = ref<any[]>([])
+const schedules = ref<TourSchedule[]>([])
+const lunarData = ref<LunarPhase[]>([])
+const weatherData = ref<WeatherDay[]>([])
 const loading = ref(false)
 
-// Fetch all schedules for the given tours
 async function fetchSchedules() {
   try {
     const start = new Date()
-    start.setHours(0, 0, 0, 0) // Desde hoy a las 00:00
+    start.setHours(0, 0, 0, 0)
 
     const end = new Date()
     end.setDate(end.getDate() + 90)
@@ -49,13 +70,16 @@ async function fetchSchedules() {
     const allSchedules = await Promise.all(
       props.tours.map(async (tour) => {
         try {
-          const response = await $fetch(`${config.public.apiBase}/api/tours/${tour.id}/schedules`, {
-            params: {
-              start: formatDate(start),
-              end: formatDate(end)
+          const response = await $fetch<Array<Omit<TourSchedule, 'tour'>>>(
+            `${config.public.apiBase}/api/tours/${tour.id}/schedules`,
+            {
+              params: {
+                start: formatDate(start),
+                end: formatDate(end)
+              }
             }
-          })
-          return (response as any[]).map(s => ({ ...s, tour }))
+          )
+          return response.map(s => ({ ...s, tour }))
         } catch {
           return []
         }
@@ -63,13 +87,12 @@ async function fetchSchedules() {
     )
 
     schedules.value = allSchedules.flat()
-  } catch (e: any) {
+  } catch (e) {
     console.error('Failed to fetch schedules', e)
     schedules.value = []
   }
 }
 
-// Fetch lunar phases
 async function fetchLunarData() {
   try {
     const start = new Date()
@@ -80,29 +103,36 @@ async function fetchLunarData() {
 
     const formatDate = (date: Date) => date.toISOString().split('T')[0]
 
-    const response = await $fetch(`${config.public.apiBase}/api/lunar/calendar`, {
+    const response = await $fetch<LunarPhase[]>(`${config.public.apiBase}/api/lunar/calendar`, {
       params: {
         startDate: formatDate(start),
         endDate: formatDate(end)
       }
     })
 
-    lunarData.value = response as any[]
-  } catch (e: any) {
+    lunarData.value = response
+  } catch (e) {
     console.error('Failed to fetch lunar data', e)
     lunarData.value = []
   }
 }
 
-// Fetch weather forecast
 async function fetchWeatherData() {
   try {
-    const response = await $fetch(`${config.public.apiBase}/api/weather/forecast`)
+    interface WeatherResponse {
+      daily?: Array<{
+        dt: number
+        windSpeed?: number
+        clouds?: number
+        pop?: number
+      }>
+    }
 
-    // Parse weather response
-    const weatherArray: any[] = []
-    if ((response as any)?.daily) {
-      for (const day of (response as any).daily) {
+    const response = await $fetch<WeatherResponse>(`${config.public.apiBase}/api/weather/forecast`)
+
+    const weatherArray: WeatherDay[] = []
+    if (response?.daily) {
+      for (const day of response.daily) {
         const date = new Date(day.dt * 1000).toISOString().split('T')[0]
         weatherArray.push({
           date,
@@ -114,7 +144,7 @@ async function fetchWeatherData() {
     }
 
     weatherData.value = weatherArray
-  } catch (e: any) {
+  } catch (e) {
     console.error('Failed to fetch weather data', e)
     weatherData.value = []
   }
@@ -164,9 +194,20 @@ function getTourColor(tourId: string): string {
   return colors[index % colors.length]!
 }
 
-// Convert schedules to FullCalendar events
+interface CalendarEvent {
+  id?: string
+  title: string
+  start: string
+  allDay: boolean
+  display?: string
+  backgroundColor?: string
+  borderColor?: string
+  textColor?: string
+  extendedProps?: Record<string, unknown>
+}
+
 const calendarEvents = computed(() => {
-  const events: any[] = []
+  const events: CalendarEvent[] = []
 
   // Add tour schedules
   schedules.value.forEach((schedule) => {
@@ -275,8 +316,15 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   }
 }))
 
-// Custom event content renderer to show available spots
-function renderEventContent(arg: any) {
+interface EventContentArg {
+  event: {
+    title: string
+    extendedProps: Record<string, unknown>
+  }
+  timeText: string
+}
+
+function renderEventContent(arg: EventContentArg) {
   const eventType = arg.event.extendedProps.type
 
   if (eventType === 'schedule') {
