@@ -60,7 +60,6 @@ public class AuditLog {
         createdAt = Instant.now();
     }
 
-    // Constructors
     public AuditLog() {
     }
 

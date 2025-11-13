@@ -18,6 +18,9 @@ import java.util.stream.Collectors;
 @Service
 public class AvailabilityService {
 
+    private static final int WIND_THRESHOLD_KNOTS = 25;
+    private static final int FEW_SLOTS_THRESHOLD = 5;
+
     private final TourScheduleRepository tourScheduleRepository;
     private final AvailabilityValidator availabilityValidator;
     private final WeatherService weatherService;
@@ -75,7 +78,7 @@ public class AvailabilityService {
         }
 
         // Check for strong wind on sensitive tours
-        if (schedule.getTour().isWindSensitive() && weatherService.isWindAboveThreshold(date, 25)) {
+        if (schedule.getTour().isWindSensitive() && weatherService.isWindAboveThreshold(date, WIND_THRESHOLD_KNOTS)) {
             return new DayAvailability("UNAVAILABLE_WIND", Integer.valueOf(0), Double.valueOf(lunarService.getMoonIllumination(date)));
         }
 
@@ -89,7 +92,7 @@ public class AvailabilityService {
         String status = "AVAILABLE";
         if (availableSlots <= 0) {
             status = "SOLD_OUT";
-        } else if (availableSlots < 5) {
+        } else if (availableSlots < FEW_SLOTS_THRESHOLD) {
             status = "FEW_SLOTS_LEFT";
         }
 

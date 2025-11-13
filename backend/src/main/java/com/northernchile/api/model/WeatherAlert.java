@@ -57,7 +57,6 @@ public class WeatherAlert {
     @Column
     private Double moonPhase;
 
-    // Constructor
     public WeatherAlert() {
         this.createdAt = Instant.now();
         this.status = "PENDING";
