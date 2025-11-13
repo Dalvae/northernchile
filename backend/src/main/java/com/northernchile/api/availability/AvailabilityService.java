@@ -80,7 +80,10 @@ public class AvailabilityService {
         }
 
         // Get availability status using centralized validator (accounts for both bookings and carts)
-        var availabilityStatus = availabilityValidator.getAvailabilityStatus(schedule);
+        var availabilityStatus = availabilityValidator.getAvailabilityStatus(
+                schedule.getId(),
+                schedule.getMaxParticipants()
+        );
         Integer availableSlots = availabilityStatus.getAvailableSlots();
 
         String status = "AVAILABLE";

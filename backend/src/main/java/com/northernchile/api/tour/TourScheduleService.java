@@ -209,7 +209,10 @@ public class TourScheduleService {
         res.setMaxParticipants(schedule.getMaxParticipants());
 
         // Get availability status (accounts for both confirmed bookings and cart reservations)
-        var availabilityStatus = availabilityValidator.getAvailabilityStatus(schedule);
+        var availabilityStatus = availabilityValidator.getAvailabilityStatus(
+                schedule.getId(),
+                schedule.getMaxParticipants()
+        );
         int totalReserved = schedule.getMaxParticipants() - availabilityStatus.getAvailableSlots();
         res.setBookedParticipants(totalReserved);
         res.setAvailableSpots(availabilityStatus.getAvailableSlots());
