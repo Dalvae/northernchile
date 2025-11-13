@@ -157,6 +157,21 @@
       			<artifactId>s3</artifactId>
       			<version>2.29.44</version>
       		</dependency>
+
+      		<!-- Payment Providers -->
+      		<!-- Transbank SDK for Webpay Plus (Chile) -->
+      		<dependency>
+      			<groupId>com.github.transbankdevelopers</groupId>
+      			<artifactId>transbank-sdk-java</artifactId>
+      			<version>6.0.0</version>
+      		</dependency>
+
+      		<!-- Mercado Pago SDK (Latin America, PIX support) -->
+      		<dependency>
+      			<groupId>com.mercadopago</groupId>
+      			<artifactId>sdk-java</artifactId>
+      			<version>2.6.0</version>
+      		</dependency>
       	</dependencies>
 	<build>
 		<plugins>
