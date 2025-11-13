@@ -18,7 +18,7 @@ northernchile/
 
 ### Backend (Spring Boot)
 - **Language**: Java 21
-- **Framework**: Spring Boot 3.5.7
+- **Framework**: Spring Boot 3.3.5
 - **Database**: PostgreSQL 15+ with Flyway migrations
 - **Security**: Spring Security 6 with JWT authentication
 - **API Docs**: OpenAPI 3 (Swagger) at `/api-docs`
