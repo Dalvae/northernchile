@@ -14,6 +14,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class TourReminderService {
@@ -74,10 +75,25 @@ public class TourReminderService {
                 .withZone(ZoneId.of(appTimezone));
         String tourDateTime = dateFormatter.format(schedule.getStartDatetime());
 
-        // Get tour name in the correct language, fallback to any available language
-        String tourName = tour.getNameTranslations().get(booking.getLanguageCode());
+        // Get tour name in the correct language, with safe fallbacks
+        String tourName = null;
+        Map<String, String> nameTranslations = tour.getNameTranslations();
+
+        if (nameTranslations != null && !nameTranslations.isEmpty()) {
+            tourName = nameTranslations.get(booking.getLanguageCode());
+            if (tourName == null) {
+                // Try default language (es)
+                tourName = nameTranslations.get("es");
+                if (tourName == null && !nameTranslations.isEmpty()) {
+                    // Use any available translation
+                    tourName = nameTranslations.values().iterator().next();
+                }
+            }
+        }
+
+        // Final fallback to display name
         if (tourName == null) {
-            tourName = tour.getNameTranslations().values().iterator().next();
+            tourName = tour.getDisplayName();
         }
 
         emailService.sendTourReminderEmail(
