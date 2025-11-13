@@ -24,12 +24,19 @@ public class TourScheduleRes {
     public TourScheduleRes() {
     }
 
-    public TourScheduleRes(UUID id, UUID tourId, String tourName, Instant startDatetime, Integer maxParticipants, String status, UUID assignedGuideId, String assignedGuideName, Instant createdAt) {
+    public TourScheduleRes(UUID id, UUID tourId, String tourName, Map<String, String> tourNameTranslations,
+                           Integer tourDurationHours, Instant startDatetime, Integer maxParticipants,
+                           Integer bookedParticipants, Integer availableSpots, String status,
+                           UUID assignedGuideId, String assignedGuideName, Instant createdAt) {
         this.id = id;
         this.tourId = tourId;
         this.tourName = tourName;
+        this.tourNameTranslations = tourNameTranslations;
+        this.tourDurationHours = tourDurationHours;
         this.startDatetime = startDatetime;
         this.maxParticipants = maxParticipants;
+        this.bookedParticipants = bookedParticipants;
+        this.availableSpots = availableSpots;
         this.status = status;
         this.assignedGuideId = assignedGuideId;
         this.assignedGuideName = assignedGuideName;
@@ -145,12 +152,26 @@ public class TourScheduleRes {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TourScheduleRes that = (TourScheduleRes) o;
-        return Objects.equals(id, that.id) && Objects.equals(tourId, that.tourId) && Objects.equals(tourName, that.tourName) && Objects.equals(startDatetime, that.startDatetime) && Objects.equals(maxParticipants, that.maxParticipants) && Objects.equals(status, that.status) && Objects.equals(assignedGuideId, that.assignedGuideId) && Objects.equals(assignedGuideName, that.assignedGuideName) && Objects.equals(createdAt, that.createdAt);
+        return Objects.equals(id, that.id) &&
+                Objects.equals(tourId, that.tourId) &&
+                Objects.equals(tourName, that.tourName) &&
+                Objects.equals(tourNameTranslations, that.tourNameTranslations) &&
+                Objects.equals(tourDurationHours, that.tourDurationHours) &&
+                Objects.equals(startDatetime, that.startDatetime) &&
+                Objects.equals(maxParticipants, that.maxParticipants) &&
+                Objects.equals(bookedParticipants, that.bookedParticipants) &&
+                Objects.equals(availableSpots, that.availableSpots) &&
+                Objects.equals(status, that.status) &&
+                Objects.equals(assignedGuideId, that.assignedGuideId) &&
+                Objects.equals(assignedGuideName, that.assignedGuideName) &&
+                Objects.equals(createdAt, that.createdAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, tourId, tourName, startDatetime, maxParticipants, status, assignedGuideId, assignedGuideName, createdAt);
+        return Objects.hash(id, tourId, tourName, tourNameTranslations, tourDurationHours,
+                startDatetime, maxParticipants, bookedParticipants, availableSpots,
+                status, assignedGuideId, assignedGuideName, createdAt);
     }
 
     @Override
@@ -159,8 +180,12 @@ public class TourScheduleRes {
                 "id=" + id +
                 ", tourId=" + tourId +
                 ", tourName='" + tourName + '\'' +
+                ", tourNameTranslations=" + tourNameTranslations +
+                ", tourDurationHours=" + tourDurationHours +
                 ", startDatetime=" + startDatetime +
                 ", maxParticipants=" + maxParticipants +
+                ", bookedParticipants=" + bookedParticipants +
+                ", availableSpots=" + availableSpots +
                 ", status='" + status + '\'' +
                 ", assignedGuideId=" + assignedGuideId +
                 ", assignedGuideName='" + assignedGuideName + '\'' +

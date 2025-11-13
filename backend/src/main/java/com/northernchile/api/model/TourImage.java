@@ -20,7 +20,7 @@ public class TourImage {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, String> altTextTranslations;
-    private boolean isHeroImage;
+    private boolean heroImage;
     private int displayOrder;
 
     public UUID getId() {
@@ -56,11 +56,11 @@ public class TourImage {
     }
 
     public boolean isHeroImage() {
-        return isHeroImage;
+        return heroImage;
     }
 
     public void setHeroImage(boolean heroImage) {
-        isHeroImage = heroImage;
+        this.heroImage = heroImage;
     }
 
     public int getDisplayOrder() {
