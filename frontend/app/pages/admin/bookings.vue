@@ -172,50 +172,46 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
 
 <template>
   <div class="min-h-screen bg-default">
-    <div
-       class="border-b border-default bg-elevated"
-    >
-      <div class="px-6 py-4">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-             <h1 class="text-2xl font-bold text-default">
-              Gestión de Reservas
-            </h1>
-             <p class="text-default text-sm mt-1">
-              Administra todas las reservas confirmadas del sistema
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <UInput
-              v-model="q"
-              icon="i-lucide-search"
-              placeholder="Buscar participante..."
-              class="w-80"
-            />
-          </div>
+    <div class="p-6 space-y-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-default">
+            Gestión de Reservas
+          </h1>
+          <p class="text-default text-sm mt-1">
+            Administra todas las reservas confirmadas del sistema
+          </p>
         </div>
-
-        <!-- Tabs -->
-        <div class="flex gap-2">
-          <UButton
-            :variant="activeTab === 'upcoming' ? 'solid' : 'ghost'"
-            :color="activeTab === 'upcoming' ? 'primary' : 'neutral'"
-            @click="activeTab = 'upcoming'"
-          >
-            Próximas
-          </UButton>
-          <UButton
-            :variant="activeTab === 'past' ? 'solid' : 'ghost'"
-            :color="activeTab === 'past' ? 'primary' : 'neutral'"
-            @click="activeTab = 'past'"
-          >
-            Anteriores
-          </UButton>
+        <div class="flex items-center gap-3">
+          <UInput
+            v-model="q"
+            icon="i-lucide-search"
+            placeholder="Buscar participante..."
+            class="w-80"
+          />
         </div>
       </div>
-    </div>
 
-    <div class="p-6">
+      <!-- Tabs -->
+      <div class="flex gap-2">
+        <UButton
+          :variant="activeTab === 'upcoming' ? 'solid' : 'ghost'"
+          :color="activeTab === 'upcoming' ? 'primary' : 'neutral'"
+          @click="activeTab = 'upcoming'"
+        >
+          Próximas
+        </UButton>
+        <UButton
+          :variant="activeTab === 'past' ? 'solid' : 'ghost'"
+          :color="activeTab === 'past' ? 'primary' : 'neutral'"
+          @click="activeTab = 'past'"
+        >
+          Anteriores
+        </UButton>
+      </div>
+
+      <!-- Table Container -->
       <div
         class="bg-elevated rounded-lg shadow-sm border border-default overflow-hidden"
       >

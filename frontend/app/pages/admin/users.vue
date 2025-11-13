@@ -157,41 +157,37 @@ function getRoleBadgeColor(role: string): string {
 
 <template>
   <div class="min-h-screen bg-default">
-    <div
-      class="border-b border-default bg-elevated"
-    >
-      <div class="px-6 py-4">
-        <div class="flex items-center justify-between">
-          <div>
-             <h1 class="text-2xl font-bold text-default">
-              Gestión de Usuarios
-            </h1>
-             <p class="text-default text-sm mt-1">
-              Administra todos los usuarios del sistema
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <UInput
-              v-model="q"
-              icon="i-lucide-search"
-              placeholder="Buscar usuario..."
-              class="w-80"
-            />
-            <USelectMenu
-              v-model="roleFilter"
-              :options="roleOptions"
-              option-attribute="label"
-              value-attribute="value"
-              placeholder="Filtrar por rol"
-            />
-            <!-- Create User Modal -->
-            <AdminUsersCreateUserModal @success="refresh" />
-          </div>
+    <div class="p-6 space-y-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-default">
+            Gestión de Usuarios
+          </h1>
+          <p class="text-default text-sm mt-1">
+            Administra todos los usuarios del sistema
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <UInput
+            v-model="q"
+            icon="i-lucide-search"
+            placeholder="Buscar usuario..."
+            class="w-80"
+          />
+          <USelectMenu
+            v-model="roleFilter"
+            :options="roleOptions"
+            option-attribute="label"
+            value-attribute="value"
+            placeholder="Filtrar por rol"
+          />
+          <!-- Create User Modal -->
+          <AdminUsersCreateUserModal @success="refresh" />
         </div>
       </div>
-    </div>
 
-    <div class="p-6">
+      <!-- Table Container -->
       <div
         class="bg-elevated rounded-lg shadow-sm border border-default overflow-hidden"
       >

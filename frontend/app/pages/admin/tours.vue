@@ -125,39 +125,35 @@ async function handleDelete(tour: TourRes) {
 
 <template>
   <div class="min-h-screen bg-default">
-    <div
-      class="border-b border-default bg-elevated"
-    >
-      <div class="px-6 py-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-2xl font-bold text-default">
-              Gestión de Tours
-            </h1>
-            <p class="mt-1 text-muted">
-              Administra y crea nuevos tours
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <UInput
-              v-model="q"
-              icon="i-lucide-search"
-              placeholder="Buscar tour..."
-              class="w-80"
-            />
-            <!-- ✅ Botón para abrir modal de CREAR -->
-            <UButton
-              label="Agregar Tour"
-              trailing-icon="i-lucide-plus"
-              color="primary"
-              @click="openCreateModal"
-            />
-          </div>
+    <div class="p-6 space-y-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-default">
+            Gestión de Tours
+          </h1>
+          <p class="mt-1 text-muted">
+            Administra y crea nuevos tours
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <UInput
+            v-model="q"
+            icon="i-lucide-search"
+            placeholder="Buscar tour..."
+            class="w-80"
+          />
+          <!-- ✅ Botón para abrir modal de CREAR -->
+          <UButton
+            label="Agregar Tour"
+            trailing-icon="i-lucide-plus"
+            color="primary"
+            @click="openCreateModal"
+          />
         </div>
       </div>
-    </div>
 
-    <div class="p-6">
+      <!-- Table Container -->
       <div
         class="bg-elevated rounded-lg shadow-sm border border-default overflow-hidden"
       >
