@@ -437,7 +437,7 @@ Comprehensive payment integration system supporting multiple payment providers w
      - Mercado Pago wallet
    - Currencies: BRL, USD, CLP, ARS, MXN, and others
    - PIX features: QR code generation, copy-paste code, 30-minute expiration
-   - SDK: `mercadopago-sdk-java` v2.7.0 (official package `com.mercadopago`)
+   - SDK: `mercadopago-sdk-java` v2.1.21 (official package `com.mercadopago`)
 
 3. **Stripe** - International payment processor (future implementation)
 
