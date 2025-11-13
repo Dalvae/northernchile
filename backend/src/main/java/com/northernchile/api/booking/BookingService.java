@@ -63,33 +63,51 @@ public class BookingService {
         var schedule = tourScheduleRepository.findById(req.getScheduleId())
                 .orElseThrow(() -> new EntityNotFoundException("TourSchedule not found with id: " + req.getScheduleId()));
 
-        // Validate availability using centralized validator
-        int requestedSlots = req.getParticipants().size();
-        var availabilityResult = availabilityValidator.validateAvailability(schedule, requestedSlots);
+        validateAvailability(schedule, req.getParticipants().size());
 
+        BookingPricing pricing = calculateBookingPricing(schedule.getTour().getPrice(), req.getParticipants().size());
+
+        Booking booking = createBookingEntity(req, currentUser, schedule, pricing);
+        List<Participant> participants = createParticipantEntities(req, booking);
+        booking.setParticipants(participants);
+
+        Booking savedBooking = bookingRepository.save(booking);
+        sendBookingNotifications(savedBooking);
+
+        return bookingMapper.toBookingRes(savedBooking);
+    }
+
+    private void validateAvailability(com.northernchile.api.model.TourSchedule schedule, int requestedSlots) {
+        var availabilityResult = availabilityValidator.validateAvailability(schedule, requestedSlots);
         if (!availabilityResult.isAvailable()) {
             throw new IllegalStateException(availabilityResult.getErrorMessage());
         }
+    }
 
-        int participantCount = req.getParticipants().size();
-        BigDecimal pricePerParticipant = schedule.getTour().getPrice();
-
+    private BookingPricing calculateBookingPricing(BigDecimal pricePerParticipant, int participantCount) {
         BigDecimal totalAmount = pricePerParticipant.multiply(BigDecimal.valueOf(participantCount));
-
         BigDecimal subtotal = totalAmount.divide(BigDecimal.ONE.add(taxRate), 2, RoundingMode.HALF_UP);
         BigDecimal taxAmount = totalAmount.subtract(subtotal);
+        return new BookingPricing(subtotal, taxAmount, totalAmount);
+    }
 
+    private Booking createBookingEntity(BookingCreateReq req, User currentUser,
+                                        com.northernchile.api.model.TourSchedule schedule,
+                                        BookingPricing pricing) {
         Booking booking = new Booking();
         booking.setUser(currentUser);
         booking.setSchedule(schedule);
         booking.setTourDate(LocalDate.ofInstant(schedule.getStartDatetime(), ZoneOffset.UTC));
         booking.setStatus("PENDING");
-        booking.setSubtotal(subtotal);
-        booking.setTaxAmount(taxAmount);
-        booking.setTotalAmount(totalAmount);
+        booking.setSubtotal(pricing.subtotal);
+        booking.setTaxAmount(pricing.taxAmount);
+        booking.setTotalAmount(pricing.totalAmount);
         booking.setLanguageCode(req.getLanguageCode());
         booking.setSpecialRequests(req.getSpecialRequests());
+        return booking;
+    }
 
+    private List<Participant> createParticipantEntities(BookingCreateReq req, Booking booking) {
         List<Participant> participants = new ArrayList<>();
         for (var participantReq : req.getParticipants()) {
             Participant participant = new Participant();
@@ -98,11 +116,9 @@ public class BookingService {
             participant.setDocumentId(participantReq.getDocumentId());
             participant.setNationality(participantReq.getNationality());
 
-            // Set dateOfBirth if provided (will auto-calculate age)
             if (participantReq.getDateOfBirth() != null) {
                 participant.setDateOfBirth(participantReq.getDateOfBirth());
             } else if (participantReq.getAge() != null) {
-                // Fallback: if only age is provided (backward compatibility)
                 participant.setAge(participantReq.getAge());
             }
 
@@ -112,19 +128,29 @@ public class BookingService {
             participant.setEmail(participantReq.getEmail());
             participants.add(participant);
         }
-        booking.setParticipants(participants);
+        return participants;
+    }
 
-        Booking savedBooking = bookingRepository.save(booking);
-
+    private void sendBookingNotifications(Booking booking) {
         emailService.sendBookingConfirmationEmail(
-                savedBooking.getLanguageCode(),
-                savedBooking.getId().toString(),
-                savedBooking.getUser().getFullName(),
-                savedBooking.getSchedule().getTour().getNameTranslations().get(savedBooking.getLanguageCode())
+                booking.getLanguageCode(),
+                booking.getId().toString(),
+                booking.getUser().getFullName(),
+                booking.getSchedule().getTour().getNameTranslations().get(booking.getLanguageCode())
         );
-        emailService.sendNewBookingNotificationToAdmin(savedBooking.getId().toString());
+        emailService.sendNewBookingNotificationToAdmin(booking.getId().toString());
+    }
 
-        return bookingMapper.toBookingRes(savedBooking);
+    private static class BookingPricing {
+        final BigDecimal subtotal;
+        final BigDecimal taxAmount;
+        final BigDecimal totalAmount;
+
+        BookingPricing(BigDecimal subtotal, BigDecimal taxAmount, BigDecimal totalAmount) {
+            this.subtotal = subtotal;
+            this.taxAmount = taxAmount;
+            this.totalAmount = totalAmount;
+        }
     }
 
     @Transactional(readOnly = true)
