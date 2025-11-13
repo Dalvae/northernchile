@@ -47,6 +47,9 @@
     "validation_error": "Validation Error",
     "validation_error_description": "Please correct the marked fields.",
     "save_error": "Save Error",
+    "coming_soon": "Coming Soon",
+    "copied": "Copied",
+    "copy": "Copy",
     "days": {
       "sunday_short": "Sun",
       "monday_short": "Mon",
@@ -409,15 +412,81 @@
     }
   },
   "payment": {
+    "select_method": "Select your payment method",
+    "select_method_description": "Choose how you prefer to pay for your booking",
     "success": {
       "title": "Payment Successful!",
-      "subtitle": "Your booking has been confirmed"
+      "subtitle": "Your booking has been confirmed",
+      "description": "Your payment has been processed successfully"
     },
     "error": {
-      "title": "Payment Rejected",
-      "subtitle": "Your payment could not be processed"
+      "title": "Payment Error",
+      "subtitle": "Your payment could not be processed",
+      "transaction_failed": "The transaction could not be completed",
+      "confirmation_failed": "Error confirming payment",
+      "generic": "An error occurred while processing payment",
+      "cancelled_by_user": "You cancelled the payment process",
+      "cancelled": "Payment cancelled"
+    },
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded",
+      "expired": "Expired"
+    },
+    "methods": {
+      "transbank": {
+        "description": "Pay with Chilean cards using Webpay Plus",
+        "info": "We accept debit and credit cards from all Chilean banks. You will be redirected to Transbank's secure gateway."
+      },
+      "pix": {
+        "description": "Instant payment with PIX (Brazil)",
+        "info": "The PIX code expires in 30 minutes. Your booking will be confirmed automatically after payment."
+      },
+      "credit_card": {
+        "name": "International Credit Card",
+        "description": "Visa, Mastercard, American Express",
+        "countries": "International"
+      }
+    },
+    "pix": {
+      "scan_qr_code": "Scan the QR Code",
+      "scan_description": "Open your banking app and scan the code to complete payment",
+      "expires_in": "Expires in",
+      "expired": "Code expired",
+      "expired_description": "The PIX code has expired. Please start a new payment.",
+      "copy_paste_option": "Or copy and paste the PIX code",
+      "code_copied": "Code copied",
+      "code_copied_description": "The PIX code has been copied to clipboard",
+      "copy_error": "Error copying code",
+      "how_to_pay": "How to pay with PIX?",
+      "step_1": "Open your bank app",
+      "step_2": "Select the PIX option",
+      "step_3": "Scan the QR or paste the code",
+      "step_4": "Confirm payment in your app",
+      "waiting_payment": "Waiting for your payment",
+      "automatic_confirmation": "We will confirm your booking automatically upon receiving payment",
+      "supported_banks": "PIX is available in all Brazilian banks",
+      "payment_received": "Payment received!",
+      "payment_received_description": "Your payment has been confirmed successfully",
+      "payment_failed": "Payment failed",
+      "payment_failed_description": "We could not confirm your PIX payment"
+    },
+    "security": {
+      "title": "100% Secure Payment",
+      "description": "Your data is protected with bank-level encryption. We don't store card information."
     },
     "callback": {
+      "processing": "Processing your payment...",
+      "verifying_payment": "Please wait while we verify your transaction",
+      "invalid_callback": "Invalid request",
+      "no_payment_data": "No payment data found",
+      "error_processing": "Error processing payment",
+      "payment_id": "Payment ID",
+      "payment_date": "Payment Date",
       "booking_number": "Booking Number",
       "status_confirmed": "Confirmed",
       "booking_date": "Booking Date",
@@ -425,6 +494,8 @@
       "confirmation_sent_description": "We have sent your booking details to your email address",
       "automatic_reminders_title": "Automatic reminders",
       "automatic_reminders_description": "We will send you reminders 24 hours before each tour",
+      "booking_confirmed_title": "Booking confirmed",
+      "booking_confirmed_description": "Your tour has been successfully booked",
       "cancellation_policy_title": "Cancellation policy",
       "cancellation_policy_description": "Free cancellation up to 24 hours before the tour",
       "view_bookings_button": "View My Bookings",
@@ -435,6 +506,8 @@
       "reason_expired_card": "Expired or blocked card",
       "reason_incorrect_data": "Incorrect data",
       "reason_transaction_limit": "Transaction limit exceeded",
+      "reason_user_cancelled": "You cancelled the payment manually",
+      "support_message": "If you need help, contact us and we'll assist you with your booking",
       "try_again_button": "Try Again",
       "back_to_cart_button": "Back to Cart"
     }

@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { PaymentProvider, PaymentMethod } from '~/types/payment'
+
 const cartStore = useCartStore()
 const authStore = useAuthStore()
+const paymentStore = usePaymentStore()
 const router = useRouter()
 const toast = useToast()
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 const { countries } = useCountries()
 
 // Redirect if cart is empty
@@ -59,7 +62,8 @@ function initializeParticipants() {
 }
 
 // Step 3: Payment
-const paymentMethod = ref('credit_card')
+const selectedPaymentMethod = ref<{ provider: PaymentProvider; method: PaymentMethod } | null>(null)
+const showPIXModal = ref(false)
 
 // Validation
 const step1Valid = computed(() => {
@@ -154,21 +158,21 @@ function updateParticipant(index: number, data: Partial<{
 
 // Submit booking
 const isSubmitting = ref(false)
+const createdBookingId = ref<string | null>(null)
 
 async function submitBooking() {
-  if (isSubmitting.value) return
+  if (isSubmitting.value || !selectedPaymentMethod.value) return
   isSubmitting.value = true
 
   const config = useRuntimeConfig()
-  const createdBookingIds: string[] = []
 
   try {
     // Step 1: Ensure user is authenticated
     if (!authStore.isAuthenticated) {
       toast.add({
         color: 'info',
-        title: 'Creando cuenta...',
-        description: 'Estamos registrando tu información'
+        title: t('auth.login'),
+        description: t('auth.register_description')
       })
 
       // Register and login the new user
@@ -190,7 +194,7 @@ async function submitBooking() {
         if (error.statusCode === 409) {
           toast.add({
             color: 'warning',
-            title: 'Cuenta existente',
+            title: t('common.error'),
             description: 'Ya tienes una cuenta. Por favor inicia sesión.'
           })
           router.push('/auth')
@@ -202,143 +206,108 @@ async function submitBooking() {
 
     const token = authStore.token
 
-    // Step 2: Create all bookings (status: PENDING)
+    // Step 2: Create booking for the first cart item (simplified for now)
+    // TODO: Support multiple bookings in one payment
     toast.add({
       color: 'info',
-      title: 'Procesando reservas...',
-      description: 'Creando tus reservas'
+      title: t('booking.booking_created_success'),
+      description: 'Creando tu reserva'
     })
 
-    let participantIndex = 0
-
-    for (const item of cartStore.cart.items) {
-      // Assign participants to this booking
-      const numParticipantsForThisItem = item.numParticipants
-      const bookingParticipants = participants.value.slice(
-        participantIndex,
-        participantIndex + numParticipantsForThisItem
-      )
-      participantIndex += numParticipantsForThisItem
-
-      // Map to backend format
-      const participantReqs = bookingParticipants.map(p => ({
-         fullName: p.fullName,
-         documentId: p.documentId,
-         nationality: p.nationality,
-         dateOfBirth: p.dateOfBirth || null,
-         pickupAddress: p.pickupAddress || null,
-         specialRequirements: p.specialRequirements || null,
-         phoneNumber: p.phoneNumber || null,
-         email: p.email || null
-      }))
-
-      // Create booking (will be PENDING)
-      const bookingReq = {
-        scheduleId: item.scheduleId,
-        participants: participantReqs,
-        languageCode: locale.value,
-        specialRequests: null
-      }
-
-      try {
-        const bookingRes = await $fetch<any>(`${config.public.apiBase}/api/bookings`, {
-          method: 'POST',
-          body: bookingReq,
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        })
-
-        createdBookingIds.push(bookingRes.id)
-      } catch (error: any) {
-        // If booking creation fails, rollback by cancelling already created bookings
-        console.error('Error creating booking:', error)
-
-        // Rollback: Cancel all previously created bookings
-        for (const bookingId of createdBookingIds) {
-          try {
-            await $fetch(`${config.public.apiBase}/api/admin/bookings/${bookingId}`, {
-              method: 'DELETE',
-              headers: {
-                Authorization: `Bearer ${token}`
-              }
-            })
-          } catch (e) {
-            console.error('Error rolling back booking:', e)
-          }
-        }
-
-        throw error
-      }
+    const firstItem = cartStore.cart.items[0]
+    if (!firstItem) {
+      throw new Error('No items in cart')
     }
 
-    // Step 3: Simulate payment processing
-    toast.add({
-      color: 'info',
-      title: 'Procesando pago...',
-      description: 'Simulando pasarela de pago'
+    const bookingParticipants = participants.value.slice(0, firstItem.numParticipants)
+
+    // Map to backend format
+    const participantReqs = bookingParticipants.map(p => ({
+      fullName: p.fullName,
+      documentId: p.documentId,
+      nationality: p.nationality,
+      dateOfBirth: p.dateOfBirth || null,
+      pickupAddress: p.pickupAddress || null,
+      specialRequirements: p.specialRequirements || null,
+      phoneNumber: p.phoneNumber || null,
+      email: p.email || null
+    }))
+
+    // Create booking (will be PENDING)
+    const bookingReq = {
+      scheduleId: firstItem.scheduleId,
+      participants: participantReqs,
+      languageCode: locale.value,
+      specialRequests: null
+    }
+
+    const bookingRes = await $fetch<any>(`${config.public.apiBase}/api/bookings`, {
+      method: 'POST',
+      body: bookingReq,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
     })
 
-    // Wait 1.5 seconds to simulate payment gateway
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    createdBookingId.value = bookingRes.id
 
-    // Step 4: Confirm all bookings (PENDING -> CONFIRMED)
+    // Step 3: Initialize payment
     toast.add({
       color: 'info',
-      title: 'Confirmando reservas...',
-      description: 'Finalizando tu compra'
+      title: t('payment.callback.processing'),
+      description: 'Iniciando proceso de pago'
     })
 
-    for (const bookingId of createdBookingIds) {
-      try {
-        await $fetch(`${config.public.apiBase}/api/bookings/${bookingId}/confirm-mock`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-      } catch (error: any) {
-        console.error('Error confirming booking:', error)
+    const paymentResult = await paymentStore.initializePayment({
+      bookingId: bookingRes.id,
+      provider: selectedPaymentMethod.value.provider,
+      paymentMethod: selectedPaymentMethod.value.method,
+      amount: total.value,
+      currency: 'CLP',
+      returnUrl: `${window.location.origin}/payment/callback?bookingId=${bookingRes.id}`,
+      cancelUrl: `${window.location.origin}/checkout`,
+      userEmail: contactForm.value.email,
+      description: `Reserva para ${firstItem.tourName}`
+    })
 
-        // If confirmation fails, the bookings remain PENDING
-        // Admin can manually review them
+    // Step 4: Handle payment flow based on method
+    if (selectedPaymentMethod.value.method === PaymentMethod.WEBPAY) {
+      // Transbank: Redirect to payment URL
+      if (paymentResult.paymentUrl) {
         toast.add({
-          color: 'warning',
-          title: 'Advertencia',
-          description: 'Algunas reservas quedaron pendientes de confirmación. Contacta a soporte.'
+          color: 'info',
+          title: 'Redirigiendo a Transbank...',
+          description: 'Serás redirigido a la pasarela de pago segura'
         })
+
+        // Redirect to Transbank
+        setTimeout(() => {
+          window.location.href = paymentResult.paymentUrl!
+        }, 1000)
+      } else {
+        throw new Error('No payment URL received from Transbank')
       }
+    } else if (selectedPaymentMethod.value.method === PaymentMethod.PIX) {
+      // PIX: Show QR code modal
+      showPIXModal.value = true
     }
-
-    // Step 5: Clear cart (silently)
-    const itemsToRemove = [...cartStore.cart.items]
-    for (const item of itemsToRemove) {
-      try {
-        await $fetch(`${config.public.apiBase}/api/cart/items/${item.itemId}`, {
-          method: 'DELETE',
-          credentials: 'include'
-        })
-      } catch (e) {
-        // Cart cleanup is not critical, ignore errors
-        console.warn('Could not remove cart item:', e)
-      }
-    }
-
-    // Clear local cart state
-    cartStore.clearCart()
-
-    // Success!
-    toast.add({
-      color: 'success',
-      title: '¡Reservas confirmadas!',
-      description: `Se confirmaron ${createdBookingIds.length} reserva(s) exitosamente`
-    })
-
-    // Redirect to bookings page
-    router.push('/profile/bookings')
   } catch (error: any) {
     console.error('Error in checkout process:', error)
+
+    // Rollback: Cancel booking if it was created
+    if (createdBookingId.value) {
+      try {
+        await $fetch(`${config.public.apiBase}/api/admin/bookings/${createdBookingId.value}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${authStore.token}`
+          }
+        })
+      } catch (e) {
+        console.error('Error rolling back booking:', e)
+      }
+    }
 
     let errorMessage = 'Hubo un error procesando tu reserva.'
 
@@ -355,12 +324,52 @@ async function submitBooking() {
 
     toast.add({
       color: 'error',
-      title: 'Error al crear reserva',
+      title: t('common.error'),
       description: errorMessage
     })
   } finally {
     isSubmitting.value = false
   }
+}
+
+// Handle PIX payment success
+function handlePIXSuccess() {
+  showPIXModal.value = false
+
+  // Clear cart
+  cartStore.clearCart()
+
+  // Redirect to success page
+  router.push({
+    path: '/payment/callback',
+    query: {
+      status: 'success',
+      paymentId: paymentStore.currentPayment?.paymentId,
+      bookingId: createdBookingId.value
+    }
+  })
+}
+
+// Handle PIX payment failure
+function handlePIXFailed(error: string) {
+  showPIXModal.value = false
+
+  toast.add({
+    color: 'error',
+    title: t('payment.error.title'),
+    description: error
+  })
+}
+
+// Handle PIX payment expiration
+function handlePIXExpired() {
+  showPIXModal.value = false
+
+  toast.add({
+    color: 'warning',
+    title: t('payment.pix.expired'),
+    description: t('payment.pix.expired_description')
+  })
 }
 
 // Format currency
@@ -669,77 +678,17 @@ const total = computed(() => subtotal.value + tax.value)
               <h2
                 class="text-xl font-semibold text-neutral-900 dark:text-white"
               >
-                Método de Pago
+                {{ t('payment.select_method') }}
               </h2>
               <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-                Selecciona cómo deseas pagar
+                {{ t('payment.select_method_description') }}
               </p>
             </template>
 
-            <div class="space-y-4">
-              <div
-                class="p-4 rounded-lg border cursor-pointer transition-colors"
-                :class="[
-                  paymentMethod === 'credit_card'
-                    ? 'border-primary bg-primary/10'
-                    : 'border-neutral-200 dark:border-neutral-700 hover:border-primary/50'
-                ]"
-                @click="paymentMethod = 'credit_card'"
-              >
-                <div class="flex items-center gap-3">
-                  <UIcon
-                    name="i-lucide-credit-card"
-                    class="w-6 h-6 text-primary"
-                  />
-                  <div>
-                    <p class="font-medium text-neutral-900 dark:text-white">
-                      Tarjeta de Crédito/Débito
-                    </p>
-                    <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                      Visa, Mastercard, AmEx
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                class="p-4 rounded-lg border cursor-pointer transition-colors"
-                :class="[
-                  paymentMethod === 'transfer'
-                    ? 'border-primary bg-primary/10'
-                    : 'border-neutral-200 dark:border-neutral-700 hover:border-primary/50'
-                ]"
-                @click="paymentMethod = 'transfer'"
-              >
-                <div class="flex items-center gap-3">
-                  <UIcon
-                    name="i-lucide-building-2"
-                    class="w-6 h-6 text-primary"
-                  />
-                  <div>
-                    <p class="font-medium text-neutral-900 dark:text-white">
-                      Transferencia Bancaria
-                    </p>
-                    <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                      Pago directo desde tu banco
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                class="mt-6 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg"
-              >
-                <p class="text-sm text-neutral-600 dark:text-neutral-400">
-                  <UIcon
-                    name="i-lucide-info"
-                    class="w-4 h-4 inline mr-1"
-                  />
-                  Este es un pago de demostración. No se procesará ningún cargo
-                  real.
-                </p>
-              </div>
-            </div>
+            <PaymentMethodSelector
+              v-model="selectedPaymentMethod"
+              :amount="total"
+            />
 
             <template #footer>
               <div class="flex justify-between">
@@ -749,17 +698,17 @@ const total = computed(() => subtotal.value + tax.value)
                   icon="i-lucide-arrow-left"
                   @click="prevStep"
                 >
-                  Atrás
+                  {{ t('common.back') }}
                 </UButton>
                 <UButton
                   color="primary"
                   size="lg"
                   :icon="isSubmitting ? 'i-lucide-loader-2' : 'i-lucide-lock'"
                   :loading="isSubmitting"
-                  :disabled="isSubmitting"
+                  :disabled="isSubmitting || !selectedPaymentMethod"
                   @click="submitBooking"
                 >
-                  {{ isSubmitting ? 'Procesando...' : `Pagar ${formatCurrency(total)}` }}
+                  {{ isSubmitting ? t('booking.mock_payment_processing') : `${t('common.confirm')} ${formatCurrency(total)}` }}
                 </UButton>
               </div>
             </template>
@@ -830,6 +779,37 @@ const total = computed(() => subtotal.value + tax.value)
           </div>
         </div>
       </div>
+
+      <!-- PIX Payment Modal -->
+      <UModal
+        v-model:open="showPIXModal"
+        :prevent-close="true"
+      >
+        <template #content>
+          <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">
+                {{ t('payment.pix.scan_qr_code') }}
+              </h3>
+              <UButton
+                icon="i-lucide-x"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                @click="showPIXModal = false"
+              />
+            </div>
+
+            <PaymentPIXDisplay
+              v-if="paymentStore.currentPayment"
+              :payment="paymentStore.currentPayment"
+              @success="handlePIXSuccess"
+              @failed="handlePIXFailed"
+              @expired="handlePIXExpired"
+            />
+          </div>
+        </template>
+      </UModal>
     </UContainer>
   </div>
 </template>

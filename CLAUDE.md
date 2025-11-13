@@ -376,6 +376,16 @@ AWS_S3_BUCKET_NAME=northern-chile-assets
 WEATHER_API_KEY=your_openweathermap_key
 GOOGLE_CLIENT_ID=your_google_oauth_id
 GOOGLE_CLIENT_SECRET=your_google_oauth_secret
+
+# Payment Providers
+# Transbank (Webpay Plus - Chile)
+TRANSBANK_COMMERCE_CODE=597055555532
+TRANSBANK_API_KEY=579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C
+TRANSBANK_ENVIRONMENT=INTEGRATION
+
+# Mercado Pago (Latin America, PIX - Brazil)
+MERCADOPAGO_ACCESS_TOKEN=TEST-ACCESS-TOKEN
+MERCADOPAGO_PUBLIC_KEY=TEST-PUBLIC-KEY
 ```
 
 ### Required for Frontend
@@ -403,8 +413,126 @@ Type checking with `pnpm typecheck`. ESLint configured with stylistic rules (1tb
 ### External APIs
 - **OpenWeatherMap**: 5-day / 3-hour forecast for wind and cloud conditions (Free tier: 60 calls/min)
 - **Lunar phase calculations**: Built-in astronomical calculations for moon illumination
-- **Payment gateways**: Transbank (Chile), Mercado Pago (Brazil/PIX), Stripe (international)
 - **Google OAuth 2.0**: Social login integration
+
+### Payment Processors
+Comprehensive payment integration system supporting multiple payment providers with a strategy pattern architecture:
+
+**Supported Providers**:
+1. **Transbank (Webpay Plus)** - Chile's primary payment processor
+   - Integration type: Redirect-based flow
+   - Payment methods: Credit/debit cards (Chilean banks)
+   - Currency: CLP (Chilean Pesos)
+   - Environment: INTEGRATION (testing) / PRODUCTION
+   - SDK: `transbank-sdk-java` v6.0.0 (official package `com.github.transbankdevelopers`)
+   - Test credentials: Pre-configured in SDK for integration environment
+
+2. **Mercado Pago** - Latin America payment processor (like Stripe or PayPal)
+   - Integration type: API-based with webhook notifications
+   - **Payment methods supported:**
+     - **PIX** (Brazil's instant payment system - like ACH/bank transfer)
+     - Credit cards (Visa, Mastercard, Amex)
+     - Debit cards
+     - Bank transfers
+     - Mercado Pago wallet
+   - Currencies: BRL, USD, CLP, ARS, MXN, and others
+   - PIX features: QR code generation, copy-paste code, 30-minute expiration
+   - SDK: `mercadopago-sdk-java` v2.6.0 (official package `com.mercadopago`)
+
+3. **Stripe** - International payment processor (future implementation)
+
+**Architecture**:
+- **Strategy Pattern**: `PaymentProviderService` interface with provider-specific implementations
+- **Factory Pattern**: `PaymentProviderFactory` selects the appropriate provider
+- **Facade Pattern**: `PaymentService` orchestrates business logic
+- **Entity**: `Payment` table stores all transactions with provider responses (JSONB)
+- **Enums**: `PaymentProvider`, `PaymentMethod`, `PaymentStatus`
+
+**Payment Flow**:
+
+*Transbank (Webpay Plus)*:
+1. Client calls `/api/payments/init` with booking ID and provider
+2. Backend creates transaction with Transbank, receives token + URL
+3. Client redirects user to Transbank payment page
+4. User completes payment on Transbank
+5. Transbank redirects back to `/api/payments/confirm?token_ws={token}`
+6. Backend commits transaction and updates booking status to CONFIRMED
+
+*Mercado Pago (PIX)*:
+1. Client calls `/api/payments/init` with booking ID and PIX method
+2. Backend creates payment with Mercado Pago, receives QR code + PIX code
+3. Client displays QR code and copy-paste code to user
+4. User scans QR or pastes code in their bank app
+5. Mercado Pago sends webhook to `/api/webhooks/mercadopago` on payment completion
+6. Backend processes webhook and updates booking status to CONFIRMED
+
+**API Endpoints**:
+```
+POST   /api/payments/init              - Initialize payment
+GET    /api/payments/{id}/status       - Get payment status
+GET    /api/payments/confirm           - Confirm payment (redirect callback)
+POST   /api/payments/{id}/refund       - Refund payment (admin only)
+GET    /api/payments/booking/{id}      - Get all payments for booking
+POST   /api/webhooks/mercadopago       - Mercado Pago webhook
+POST   /api/webhooks/transbank         - Transbank webhook (not used)
+```
+
+**Configuration**:
+```properties
+# Transbank
+transbank.commerce-code=${TRANSBANK_COMMERCE_CODE:597055555532}
+transbank.api-key=${TRANSBANK_API_KEY:579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C}
+transbank.environment=${TRANSBANK_ENVIRONMENT:INTEGRATION}
+
+# Mercado Pago
+mercadopago.access-token=${MERCADOPAGO_ACCESS_TOKEN:TEST-ACCESS-TOKEN}
+mercadopago.public-key=${MERCADOPAGO_PUBLIC_KEY:TEST-PUBLIC-KEY}
+```
+
+**Testing**:
+- **Transbank Integration**:
+  - Environment: `INTEGRATION` (default)
+  - Test cards: VISA 4051885600446623 (success), Mastercard 5186059559590568 (fail)
+  - Test auth: RUT 11.111.111-1, password 123
+  - See `backend/docs/PAYMENT_TESTING.md` for complete testing guide
+- **Mercado Pago**:
+  - Environment: Requires TEST credentials (token starts with `TEST-`)
+  - Test cards vary by country (Argentina, Brazil, Chile, Mexico)
+  - Cardholder names determine outcome: APRO (approved), FUND (insufficient), etc.
+  - PIX: Instant approval in sandbox mode
+  - Complete testing guide: `backend/docs/PAYMENT_TESTING.md`
+
+**Important Notes**:
+- Payment amounts stored in `BigDecimal` with 4 decimal precision
+- All timestamps in `Instant` (UTC) format
+- Provider responses stored as JSONB in `provider_response` column
+- Booking status automatically updated to CONFIRMED on successful payment
+- Refunds require SUPER_ADMIN or PARTNER_ADMIN role
+- PIX payments expire after 30 minutes by default (configurable)
+
+**Package Structure**:
+```
+payment/
+├── model/
+│   ├── Payment.java
+│   ├── PaymentProvider.java
+│   ├── PaymentMethod.java
+│   └── PaymentStatus.java
+├── dto/
+│   ├── PaymentInitReq.java
+│   ├── PaymentInitRes.java
+│   └── PaymentStatusRes.java
+├── provider/
+│   ├── PaymentProviderService.java (interface)
+│   ├── TransbankPaymentService.java
+│   ├── MercadoPagoPaymentService.java
+│   └── PaymentProviderFactory.java
+├── repository/
+│   └── PaymentRepository.java
+├── PaymentService.java
+├── PaymentController.java
+└── WebhookController.java
+```
 
 ### Email Service
 Comprehensive email system with Google Workspace/Gmail SMTP integration:
@@ -567,6 +695,8 @@ Centralized booking validation prevents double-booking of tour schedules:
 - **SpringDoc OpenAPI**: API documentation and Swagger UI
 - **Thymeleaf**: Email template engine
 - **AWS SDK**: S3 file storage
+- **Transbank SDK**: Webpay Plus payment integration (Chile)
+- **Mercado Pago SDK**: Latin America payment processing with PIX support
 - **Cron-utils**: Recurrence rule parsing
 - **Hibernate Types**: JSON column type support
 
@@ -596,6 +726,7 @@ Health checks include:
 ## Documentation References
 
 - **Email Setup**: `backend/docs/EMAIL_SETUP.md`
+- **Payment Testing**: `backend/docs/PAYMENT_TESTING.md` - Complete guide for testing Transbank, Mercado Pago, and PIX with test cards and credentials
 - **Date/Time Handling**: `docs/DATE_TIME_HANDLING.md`
 - **Frontend Theming**: `frontend/THEMING.md`
 - **Nuxt UI Updates**: `frontend/NUXT_UI_UPDATES.md`

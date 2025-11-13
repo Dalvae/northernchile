@@ -47,6 +47,9 @@
     "validation_error": "Error de validación",
     "validation_error_description": "Por favor, corrige los campos marcados.",
     "save_error": "Error al guardar",
+    "coming_soon": "Próximamente",
+    "copied": "Copiado",
+    "copy": "Copiar",
     "days": {
       "sunday_short": "Dom",
       "monday_short": "Lun",
@@ -409,15 +412,81 @@
     }
   },
   "payment": {
+    "select_method": "Selecciona tu método de pago",
+    "select_method_description": "Elige cómo prefieres pagar tu reserva",
     "success": {
       "title": "¡Pago Exitoso!",
-      "subtitle": "Tu reserva ha sido confirmada"
+      "subtitle": "Tu reserva ha sido confirmada",
+      "description": "Tu pago ha sido procesado correctamente"
     },
     "error": {
-      "title": "Pago Rechazado",
-      "subtitle": "No se pudo procesar tu pago"
+      "title": "Error en el Pago",
+      "subtitle": "No se pudo procesar tu pago",
+      "transaction_failed": "La transacción no pudo ser completada",
+      "confirmation_failed": "Error al confirmar el pago",
+      "generic": "Ocurrió un error al procesar el pago",
+      "cancelled_by_user": "Cancelaste el proceso de pago",
+      "cancelled": "Pago cancelado"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "processing": "Procesando",
+      "completed": "Completado",
+      "failed": "Fallido",
+      "cancelled": "Cancelado",
+      "refunded": "Reembolsado",
+      "expired": "Expirado"
+    },
+    "methods": {
+      "transbank": {
+        "description": "Paga con tarjetas chilenas usando Webpay Plus",
+        "info": "Aceptamos tarjetas de débito y crédito de todos los bancos chilenos. Serás redirigido a la pasarela segura de Transbank."
+      },
+      "pix": {
+        "description": "Pago instantáneo con PIX (Brasil)",
+        "info": "El código PIX expira en 30 minutos. Tu reserva será confirmada automáticamente después del pago."
+      },
+      "credit_card": {
+        "name": "Tarjeta de Crédito Internacional",
+        "description": "Visa, Mastercard, American Express",
+        "countries": "Internacional"
+      }
+    },
+    "pix": {
+      "scan_qr_code": "Escanea el Código QR",
+      "scan_description": "Abre tu app bancaria y escanea el código para completar el pago",
+      "expires_in": "Expira en",
+      "expired": "Código expirado",
+      "expired_description": "El código PIX ha expirado. Por favor, inicia un nuevo pago.",
+      "copy_paste_option": "O copia y pega el código PIX",
+      "code_copied": "Código copiado",
+      "code_copied_description": "El código PIX ha sido copiado al portapapeles",
+      "copy_error": "Error al copiar el código",
+      "how_to_pay": "¿Cómo pagar con PIX?",
+      "step_1": "Abre la app de tu banco",
+      "step_2": "Selecciona la opción PIX",
+      "step_3": "Escanea el QR o pega el código",
+      "step_4": "Confirma el pago en tu app",
+      "waiting_payment": "Esperando tu pago",
+      "automatic_confirmation": "Confirmaremos tu reserva automáticamente al recibir el pago",
+      "supported_banks": "PIX está disponible en todos los bancos brasileños",
+      "payment_received": "¡Pago recibido!",
+      "payment_received_description": "Tu pago ha sido confirmado exitosamente",
+      "payment_failed": "Pago fallido",
+      "payment_failed_description": "No pudimos confirmar tu pago PIX"
+    },
+    "security": {
+      "title": "Pago 100% Seguro",
+      "description": "Tus datos están protegidos con encriptación de nivel bancario. No almacenamos información de tarjetas."
     },
     "callback": {
+      "processing": "Procesando tu pago...",
+      "verifying_payment": "Por favor espera mientras verificamos tu transacción",
+      "invalid_callback": "Solicitud inválida",
+      "no_payment_data": "No se encontraron datos de pago",
+      "error_processing": "Error al procesar el pago",
+      "payment_id": "ID de Pago",
+      "payment_date": "Fecha de Pago",
       "booking_number": "Número de Reserva",
       "status_confirmed": "Confirmada",
       "booking_date": "Fecha de Reserva",
@@ -425,6 +494,8 @@
       "confirmation_sent_description": "Hemos enviado los detalles de tu reserva a tu correo electrónico",
       "automatic_reminders_title": "Recordatorios automáticos",
       "automatic_reminders_description": "Te enviaremos recordatorios 24 horas antes de cada tour",
+      "booking_confirmed_title": "Reserva confirmada",
+      "booking_confirmed_description": "Tu tour ha sido reservado exitosamente",
       "cancellation_policy_title": "Política de cancelación",
       "cancellation_policy_description": "Cancelación gratuita hasta 24 horas antes del tour",
       "view_bookings_button": "Ver Mis Reservas",
@@ -435,6 +506,8 @@
       "reason_expired_card": "Tarjeta vencida o bloqueada",
       "reason_incorrect_data": "Datos incorrectos",
       "reason_transaction_limit": "Límite de transacciones excedido",
+      "reason_user_cancelled": "Cancelaste el pago manualmente",
+      "support_message": "Si necesitas ayuda, contáctanos y te asistiremos con tu reserva",
       "try_again_button": "Intentar Nuevamente",
       "back_to_cart_button": "Volver al Carrito"
     }
