@@ -144,7 +144,7 @@ const formatDate = (date: string) => {
 
     <!-- Date Range Filter -->
      <div class="bg-elevated rounded-lg p-4 mb-6 border border-default">
-      <div class="flex items-center gap-4">
+      <div class="flex items-end gap-4">
         <div class="flex-1">
           <label class="block text-sm font-medium text-default mb-2">
             Rango de Fechas
@@ -153,27 +153,24 @@ const formatDate = (date: string) => {
             <UInput
               v-model="dateRange.start"
               type="date"
-              label="Desde"
-              size="lg"
+              size="xl"
             />
             <UInput
               v-model="dateRange.end"
               type="date"
-              label="Hasta"
-              size="lg"
+              size="xl"
             />
           </div>
         </div>
-        <div class="flex items-end">
-          <UButton
-            color="primary"
-            icon="i-lucide-refresh-cw"
-            :loading="overviewPending"
-            @click="() => refreshOverview()"
-          >
-            Actualizar
-          </UButton>
-        </div>
+        <UButton
+          color="primary"
+          icon="i-lucide-refresh-cw"
+          :loading="overviewPending"
+          size="xl"
+          @click="() => refreshOverview()"
+        >
+          Actualizar
+        </UButton>
       </div>
     </div>
 
