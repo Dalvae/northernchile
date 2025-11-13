@@ -20,18 +20,18 @@ public interface CartRepository extends JpaRepository<Cart, UUID> {
            "WHERE c.id = :cartId")
     Optional<Cart> findByIdWithDetails(@Param("cartId") UUID cartId);
 
-    @Query("SELECT COALESCE(SUM(ci.quantity), 0) FROM CartItem ci " +
+    @Query("SELECT COALESCE(SUM(ci.numParticipants), 0) FROM CartItem ci " +
            "WHERE ci.schedule.id = :scheduleId")
     Integer countParticipantsByScheduleId(@Param("scheduleId") UUID scheduleId);
 
-    @Query("SELECT COALESCE(SUM(ci.quantity), 0) FROM CartItem ci " +
+    @Query("SELECT COALESCE(SUM(ci.numParticipants), 0) FROM CartItem ci " +
            "WHERE ci.schedule.id = :scheduleId " +
            "AND ci.cart.id != :excludeCartId")
     Integer countParticipantsByScheduleIdExcludingCart(
             @Param("scheduleId") UUID scheduleId,
             @Param("excludeCartId") UUID excludeCartId);
 
-    @Query("SELECT COALESCE(SUM(ci.quantity), 0) FROM CartItem ci " +
+    @Query("SELECT COALESCE(SUM(ci.numParticipants), 0) FROM CartItem ci " +
            "WHERE ci.schedule.id = :scheduleId " +
            "AND ci.cart.user.id != :excludeUserId")
     Integer countParticipantsByScheduleIdExcludingUser(
