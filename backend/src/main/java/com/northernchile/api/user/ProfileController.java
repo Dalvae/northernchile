@@ -17,11 +17,13 @@ import java.util.Map;
 @RequestMapping("/api/profile")
 public class ProfileController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public ProfileController(UserService userService, UserRepository userRepository) {
+        this.userService = userService;
+        this.userRepository = userRepository;
+    }
 
     @GetMapping("/me")
     public ResponseEntity<UserRes> getCurrentUserProfile(@CurrentUser User currentUser) {
@@ -42,7 +44,7 @@ public class ProfileController {
             Authentication authentication,
             @Valid @RequestBody PasswordChangeReq req) {
         User currentUser = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Usuario no encontrado"));
 
         try {
             userService.changeUserPassword(currentUser, req.getCurrentPassword(), req.getNewPassword());

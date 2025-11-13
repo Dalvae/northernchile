@@ -2,6 +2,8 @@ package com.northernchile.api.external;
 
 import com.northernchile.api.external.dto.DailyForecast;
 import com.northernchile.api.external.dto.FiveDayForecastResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 @Service
 public class WeatherService {
 
+    private static final Logger log = LoggerFactory.getLogger(WeatherService.class);
     private static final ZoneId ZONE_ID = ZoneId.of("America/Santiago");
 
     @Value("${weather.api.key:dummy}")
@@ -41,7 +44,7 @@ public class WeatherService {
     @Cacheable(value = "weatherForecast", key = "'fiveday'")
     public Map<String, Object> getForecast() {
         if ("dummy".equals(apiKey)) {
-            System.out.println("WeatherService: API key is 'dummy', skipping weather fetch");
+            log.warn("API key is 'dummy', skipping weather fetch");
             return createEmptyForecast();
         }
 
@@ -49,32 +52,30 @@ public class WeatherService {
         String url = String.format("https://api.openweathermap.org/data/2.5/forecast?lat=%s&lon=%s&units=metric&appid=%s",
                 latitude, longitude, apiKey);
 
-        System.out.println("WeatherService: Fetching weather from: " + url.replace(apiKey, "***"));
+        log.debug("Fetching weather from: {}", url.replace(apiKey, "***"));
 
         try {
             RestTemplate restTemplate = new RestTemplate();
             FiveDayForecastResponse response = restTemplate.getForObject(url, FiveDayForecastResponse.class);
 
             if (response == null) {
-                System.err.println("WeatherService: Response is null");
+                log.error("Weather API response is null");
                 return createEmptyForecast();
             }
 
             if (response.list == null) {
-                System.err.println("WeatherService: Response.list is null");
+                log.error("Weather API response.list is null");
                 return createEmptyForecast();
             }
 
-            System.out.println("WeatherService: Received " + response.list.size() + " forecast items");
+            log.info("Received {} forecast items from Weather API", response.list.size());
 
             // Agrupar por día y procesar
             Map<String, Object> result = processForecastData(response);
-            System.out.println("WeatherService: Processed into " +
-                ((List<?>) result.get("daily")).size() + " daily forecasts");
+            log.info("Processed into {} daily forecasts", ((List<?>) result.get("daily")).size());
             return result;
         } catch (Exception e) {
-            System.err.println("Error fetching OpenWeather forecast: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error fetching OpenWeather forecast: {}", e.getMessage(), e);
             return createEmptyForecast();
         }
     }

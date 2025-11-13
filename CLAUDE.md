@@ -152,44 +152,95 @@ Migrations run automatically on backend startup. Version migration files followi
 
 ### Theming and Semantic Colors
 
-**CRITICAL**: Always use semantic colors, never hardcode color values.
+**CRITICAL**: ALWAYS use Nuxt UI semantic colors. NEVER use hardcoded color names or direct Tailwind color classes.
 
-The application uses Nuxt UI's semantic color system configured in `app/app.config.ts`:
-- `primary`: Main CTAs, active navigation, brand elements
-- `secondary`: Secondary buttons, alternative actions
-- `tertiary`: Astronomical/special accents (custom `deep-space` color)
-- `success`: Success messages, confirmations
-- `info`: Info alerts, tooltips, neutral notifications
-- `warning`: Warnings, pending states
-- `error`: Error messages, validation errors, destructive actions
-- `neutral`: Text, borders, backgrounds, disabled states
+The application uses Nuxt UI's semantic color system. All themes are defined in `frontend/app/assets/css/themes/*.css` and switch dynamically using the `useTheme()` composable.
 
-**Correct usage:**
+#### Available Semantic Colors (registered in `nuxt.config.ts`)
+
+Use ONLY these semantic color names in your components and styles:
+
+- **`primary`**: Main CTAs, active navigation, brand elements, important actions
+- **`secondary`**: Secondary buttons, alternative actions, complementary UI elements
+- **`tertiary`**: Special accents, astronomical elements, unique features
+- **`success`**: Success messages, completed states, positive confirmations
+- **`info`**: Info alerts, tooltips, help text, neutral notifications
+- **`warning`**: Warning messages, pending states, attention-needed items
+- **`error`**: Error messages, validation errors, destructive actions
+- **`neutral`**: Text, borders, backgrounds, disabled states, structural elements
+
+#### Correct Usage Examples
+
 ```vue
-<!-- Components -->
-<UButton color="primary" />
-<UButton color="error" />
+<!-- ✅ Nuxt UI Components - ALWAYS use semantic colors -->
+<UButton color="primary">Save</UButton>
+<UButton color="secondary">Cancel</UButton>
+<UButton color="error">Delete</UButton>
 <UBadge color="success">Published</UBadge>
+<UBadge color="warning">Pending</UBadge>
+<UAlert color="info" title="Information" />
 
-<!-- Toasts -->
-toast.add({ color: "success" })
-toast.add({ color: "error" })
+<!-- ✅ Toasts -->
+const toast = useToast()
+toast.add({ color: "success", title: "Saved!" })
+toast.add({ color: "error", title: "Failed!" })
 
-<!-- Tailwind classes -->
-<p class="text-neutral-900 dark:text-white">
-<div class="bg-neutral-800 border-neutral-700">
+<!-- ✅ Tailwind classes with semantic colors -->
+<p class="text-primary-600 dark:text-primary-400">
+<div class="bg-neutral-100 dark:bg-neutral-900">
+<div class="border-neutral-200 dark:border-neutral-800">
 ```
 
-**NEVER use:**
+#### WRONG - Never Do This
+
 ```vue
-<!-- ❌ WRONG -->
+<!-- ❌ NEVER use hardcoded color names -->
 <UButton color="red" />
+<UButton color="blue" />
 <UBadge color="green">
+
+<!-- ❌ NEVER use direct Tailwind color classes -->
 <p class="text-gray-900">
-<div class="bg-blue-800">
+<div class="bg-blue-500">
+<div class="border-red-600">
+
+<!-- ❌ NEVER use hex/rgb values -->
+<div style="color: #ff0000">
+<div style="background: rgb(0, 123, 255)">
 ```
 
-See `frontend/THEMING.md` for complete guidelines.
+#### Theme System Architecture
+
+Themes are defined in CSS files using Tailwind CSS v4 `@theme` directive:
+- `themes/atacama-nocturna.css` (default theme)
+- `themes/atacama-cobre-lunar.css`
+- `themes/atacama-cosmic-desert.css`
+- `themes/aurora.css`
+- `themes/atacama-classic.css`
+- `themes/cosmic.css`
+
+Each theme maps semantic colors to specific palettes:
+```css
+/* Example: atacama-nocturna.css */
+@theme {
+  --color-atacama-copper-500: oklch(55% 0.13 35);
+  /* ... other color definitions */
+}
+
+.atacama-nocturna {
+  --ui-color-primary-500: var(--color-atacama-copper-500);
+  --ui-color-secondary-500: var(--color-atacama-dorado-500);
+  /* ... semantic color mappings */
+}
+```
+
+The `useTheme()` composable switches themes by changing the class on `<html>`:
+```typescript
+const { setTheme, currentTheme } = useTheme()
+setTheme('atacama-nocturna') // Changes <html class="atacama-nocturna">
+```
+
+See `frontend/THEMING.md` for complete theming guidelines.
 
 ### Nuxt UI Modals
 All modal content must be inside the `#content` slot:

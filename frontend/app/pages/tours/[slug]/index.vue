@@ -80,9 +80,7 @@ const heroImage = computed(
 )
 
 async function goToSchedule() {
-  console.log('Navigating to schedule page for:', tourSlug)
   const schedulePath = `/tours/${tourSlug}/schedule`
-  console.log('Schedule path:', schedulePath)
   await navigateTo(schedulePath)
 }
 </script>

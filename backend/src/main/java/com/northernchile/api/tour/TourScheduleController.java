@@ -17,11 +17,13 @@ import java.util.UUID;
 @RequestMapping("/api/schedules")
 public class TourScheduleController {
 
-    @Autowired
-    private TourScheduleService tourScheduleService;
+    private final TourScheduleService tourScheduleService;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public TourScheduleController(TourScheduleService tourScheduleService, UserRepository userRepository) {
+        this.tourScheduleService = tourScheduleService;
+        this.userRepository = userRepository;
+    }
 
     @PostMapping
     public ResponseEntity<TourScheduleRes> createScheduledTour(@RequestBody TourScheduleCreateReq req,

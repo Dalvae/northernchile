@@ -57,13 +57,11 @@ public class WeatherAlert {
     @Column
     private Double moonPhase;
 
-    // Constructor
     public WeatherAlert() {
         this.createdAt = Instant.now();
         this.status = "PENDING";
     }
 
-    // Getters y Setters
     public UUID getId() {
         return id;
     }

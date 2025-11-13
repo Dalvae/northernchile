@@ -33,64 +33,81 @@ import java.util.stream.Collectors;
 @Transactional
 public class BookingService {
 
-    @Autowired
-    private BookingRepository bookingRepository;
-
-    @Autowired
-    private TourScheduleRepository tourScheduleRepository;
-
-    @Autowired
-    private EmailService emailService;
-
-    @Autowired
-    private AuditLogService auditLogService;
-
-    @Autowired
-    private BookingMapper bookingMapper;
+    private final BookingRepository bookingRepository;
+    private final TourScheduleRepository tourScheduleRepository;
+    private final EmailService emailService;
+    private final AuditLogService auditLogService;
+    private final BookingMapper bookingMapper;
+    private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
 
     @Value("${tax.rate}")
     private BigDecimal taxRate;
+
+    public BookingService(
+            BookingRepository bookingRepository,
+            TourScheduleRepository tourScheduleRepository,
+            EmailService emailService,
+            AuditLogService auditLogService,
+            BookingMapper bookingMapper,
+            com.northernchile.api.availability.AvailabilityValidator availabilityValidator) {
+        this.bookingRepository = bookingRepository;
+        this.tourScheduleRepository = tourScheduleRepository;
+        this.emailService = emailService;
+        this.auditLogService = auditLogService;
+        this.bookingMapper = bookingMapper;
+        this.availabilityValidator = availabilityValidator;
+    }
 
     @Transactional
     public BookingRes createBooking(BookingCreateReq req, User currentUser) {
         var schedule = tourScheduleRepository.findById(req.getScheduleId())
                 .orElseThrow(() -> new EntityNotFoundException("TourSchedule not found with id: " + req.getScheduleId()));
 
-        // Validate available slots - only count CONFIRMED bookings
-        // Note: This validation prevents overbooking in most cases. For complete protection
-        // against race conditions (two users booking the last slot simultaneously),
-        // consider adding optimistic locking (@Version) or a database constraint.
-        Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(req.getScheduleId());
-        if (bookedParticipants == null) bookedParticipants = 0;
-        int requestedSlots = req.getParticipants().size();
-        int availableSlots = schedule.getMaxParticipants() - bookedParticipants;
+        validateAvailability(schedule, req.getParticipants().size());
 
-        if (availableSlots < requestedSlots) {
-            throw new IllegalStateException(String.format(
-                "Not enough available slots. Requested: %d, Available: %d",
-                requestedSlots, availableSlots
-            ));
+        BookingPricing pricing = calculateBookingPricing(schedule.getTour().getPrice(), req.getParticipants().size());
+
+        Booking booking = createBookingEntity(req, currentUser, schedule, pricing);
+        List<Participant> participants = createParticipantEntities(req, booking);
+        booking.setParticipants(participants);
+
+        Booking savedBooking = bookingRepository.save(booking);
+        sendBookingNotifications(savedBooking);
+
+        return bookingMapper.toBookingRes(savedBooking);
+    }
+
+    private void validateAvailability(com.northernchile.api.model.TourSchedule schedule, int requestedSlots) {
+        var availabilityResult = availabilityValidator.validateAvailability(schedule, requestedSlots);
+        if (!availabilityResult.isAvailable()) {
+            throw new IllegalStateException(availabilityResult.getErrorMessage());
         }
+    }
 
-        int participantCount = req.getParticipants().size();
-        BigDecimal pricePerParticipant = schedule.getTour().getPrice();
-
+    private BookingPricing calculateBookingPricing(BigDecimal pricePerParticipant, int participantCount) {
         BigDecimal totalAmount = pricePerParticipant.multiply(BigDecimal.valueOf(participantCount));
-
         BigDecimal subtotal = totalAmount.divide(BigDecimal.ONE.add(taxRate), 2, RoundingMode.HALF_UP);
         BigDecimal taxAmount = totalAmount.subtract(subtotal);
+        return new BookingPricing(subtotal, taxAmount, totalAmount);
+    }
 
+    private Booking createBookingEntity(BookingCreateReq req, User currentUser,
+                                        com.northernchile.api.model.TourSchedule schedule,
+                                        BookingPricing pricing) {
         Booking booking = new Booking();
         booking.setUser(currentUser);
         booking.setSchedule(schedule);
         booking.setTourDate(LocalDate.ofInstant(schedule.getStartDatetime(), ZoneOffset.UTC));
         booking.setStatus("PENDING");
-        booking.setSubtotal(subtotal);
-        booking.setTaxAmount(taxAmount);
-        booking.setTotalAmount(totalAmount);
+        booking.setSubtotal(pricing.subtotal);
+        booking.setTaxAmount(pricing.taxAmount);
+        booking.setTotalAmount(pricing.totalAmount);
         booking.setLanguageCode(req.getLanguageCode());
         booking.setSpecialRequests(req.getSpecialRequests());
+        return booking;
+    }
 
+    private List<Participant> createParticipantEntities(BookingCreateReq req, Booking booking) {
         List<Participant> participants = new ArrayList<>();
         for (var participantReq : req.getParticipants()) {
             Participant participant = new Participant();
@@ -99,11 +116,9 @@ public class BookingService {
             participant.setDocumentId(participantReq.getDocumentId());
             participant.setNationality(participantReq.getNationality());
 
-            // Set dateOfBirth if provided (will auto-calculate age)
             if (participantReq.getDateOfBirth() != null) {
                 participant.setDateOfBirth(participantReq.getDateOfBirth());
             } else if (participantReq.getAge() != null) {
-                // Fallback: if only age is provided (backward compatibility)
                 participant.setAge(participantReq.getAge());
             }
 
@@ -113,19 +128,29 @@ public class BookingService {
             participant.setEmail(participantReq.getEmail());
             participants.add(participant);
         }
-        booking.setParticipants(participants);
+        return participants;
+    }
 
-        Booking savedBooking = bookingRepository.save(booking);
-
+    private void sendBookingNotifications(Booking booking) {
         emailService.sendBookingConfirmationEmail(
-                savedBooking.getLanguageCode(),
-                savedBooking.getId().toString(),
-                savedBooking.getUser().getFullName(),
-                savedBooking.getSchedule().getTour().getNameTranslations().get(savedBooking.getLanguageCode())
+                booking.getLanguageCode(),
+                booking.getId().toString(),
+                booking.getUser().getFullName(),
+                booking.getSchedule().getTour().getNameTranslations().get(booking.getLanguageCode())
         );
-        emailService.sendNewBookingNotificationToAdmin(savedBooking.getId().toString());
+        emailService.sendNewBookingNotificationToAdmin(booking.getId().toString());
+    }
 
-        return bookingMapper.toBookingRes(savedBooking);
+    private static class BookingPricing {
+        final BigDecimal subtotal;
+        final BigDecimal taxAmount;
+        final BigDecimal totalAmount;
+
+        BookingPricing(BigDecimal subtotal, BigDecimal taxAmount, BigDecimal totalAmount) {
+            this.subtotal = subtotal;
+            this.taxAmount = taxAmount;
+            this.totalAmount = totalAmount;
+        }
     }
 
     @Transactional(readOnly = true)
@@ -137,18 +162,27 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public List<BookingRes> getBookingsByTourOwner(User owner) {
-        return bookingRepository.findAllWithDetails().stream()
-                .filter(booking -> booking.getSchedule().getTour().getOwner().getId().equals(owner.getId()))
+        return bookingRepository.findByTourOwnerId(owner.getId()).stream()
                 .map(bookingMapper::toBookingRes)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Get bookings for admin based on their role.
+     * SUPER_ADMIN sees all bookings, PARTNER_ADMIN sees only their tours' bookings.
+     */
+    @Transactional(readOnly = true)
+    public List<BookingRes> getBookingsForAdmin(User admin) {
+        if ("ROLE_SUPER_ADMIN".equals(admin.getRole())) {
+            return getAllBookingsForAdmin();
+        } else {
+            return getBookingsByTourOwner(admin);
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<BookingRes> getBookingsByUser(User user) {
-        return bookingRepository.findAllWithDetails().stream()
-                .filter(booking -> booking.getUser().getId().equals(user.getId()))
-                .map(bookingMapper::toBookingRes)
-                .collect(Collectors.toList());
+        return getBookingsByUser(user.getId());
     }
 
     @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId) or @bookingSecurityService.isBookingUser(authentication, #bookingId)")
@@ -170,7 +204,7 @@ public class BookingService {
         booking.setStatus(newStatus);
         Booking updatedBooking = bookingRepository.save(booking);
 
-        String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
+        String tourName = booking.getSchedule().getTour().getDisplayName();
         String description = tourName + " - " + booking.getUser().getFullName();
         Map<String, Object> oldValues = Map.of("status", oldStatus);
         Map<String, Object> newValues = Map.of("status", newStatus);
@@ -190,7 +224,7 @@ public class BookingService {
         booking.setStatus("CANCELLED");
         bookingRepository.save(booking);
 
-        String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
+        String tourName = booking.getSchedule().getTour().getDisplayName();
         String description = tourName + " - " + booking.getUser().getFullName();
         Map<String, Object> oldValues = Map.of("status", oldStatus);
         Map<String, Object> newValues = Map.of("status", "CANCELLED");
@@ -199,10 +233,7 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public List<BookingRes> getBookingsByUser(UUID userId) {
-        List<Booking> bookings = bookingRepository.findAllWithDetails().stream()
-                .filter(b -> b.getUser().getId().equals(userId))
-                .collect(Collectors.toList());
-        return bookings.stream()
+        return bookingRepository.findByUserId(userId).stream()
                 .map(bookingMapper::toBookingRes)
                 .collect(Collectors.toList());
     }
@@ -221,7 +252,7 @@ public class BookingService {
         booking.setStatus("CONFIRMED");
         Booking confirmedBooking = bookingRepository.save(booking);
 
-        String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
+        String tourName = booking.getSchedule().getTour().getDisplayName();
         String description = "Mock payment confirmation - " + tourName + " - " + booking.getUser().getFullName();
         Map<String, Object> oldValues = Map.of("status", oldStatus);
         Map<String, Object> newValues = Map.of("status", "CONFIRMED");
@@ -264,7 +295,7 @@ public class BookingService {
         Booking updatedBooking = bookingRepository.save(booking);
 
         // Audit log
-        String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour");
+        String tourName = booking.getSchedule().getTour().getDisplayName();
         String description = tourName + " - " + booking.getUser().getFullName() + " (Updated details)";
         auditLogService.logUpdate(currentUser, "BOOKING", booking.getId(), description, null, null);
 

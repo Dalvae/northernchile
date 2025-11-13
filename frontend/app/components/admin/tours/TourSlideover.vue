@@ -105,7 +105,6 @@ const toast = useToast()
 const loading = ref(false)
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  console.log('Form submitted with data:', event.data)
   loading.value = true
   try {
     const data = event.data

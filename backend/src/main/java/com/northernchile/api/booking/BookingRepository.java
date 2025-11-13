@@ -39,4 +39,22 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
            "LEFT JOIN FETCH b.user " +
            "LEFT JOIN FETCH b.participants")
     List<Booking> findAllWithDetails();
+
+    @Query("SELECT DISTINCT b FROM Booking b " +
+           "LEFT JOIN FETCH b.schedule s " +
+           "LEFT JOIN FETCH s.tour t " +
+           "LEFT JOIN FETCH t.owner o " +
+           "LEFT JOIN FETCH b.user " +
+           "LEFT JOIN FETCH b.participants " +
+           "WHERE o.id = :ownerId")
+    List<Booking> findByTourOwnerId(UUID ownerId);
+
+    @Query("SELECT DISTINCT b FROM Booking b " +
+           "LEFT JOIN FETCH b.schedule s " +
+           "LEFT JOIN FETCH s.tour t " +
+           "LEFT JOIN FETCH t.owner " +
+           "LEFT JOIN FETCH b.user u " +
+           "LEFT JOIN FETCH b.participants " +
+           "WHERE u.id = :userId")
+    List<Booking> findByUserId(UUID userId);
 }

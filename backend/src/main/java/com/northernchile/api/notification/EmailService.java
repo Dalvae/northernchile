@@ -1,6 +1,7 @@
 package com.northernchile.api.notification;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
@@ -9,8 +10,13 @@ import java.util.Locale;
 @Service
 public class EmailService {
 
-    @Autowired
-    private MessageSource messageSource;
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+
+    private final MessageSource messageSource;
+
+    public EmailService(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
 
     // In a real application, you would use JavaMailSender to send emails.
     // This is a placeholder implementation.
@@ -35,22 +41,16 @@ public class EmailService {
                 userLocale
         );
 
-        System.out.println("---- Sending Email ----");
-        System.out.println("To: " + customerName);
-        System.out.println("Subject: " + subject);
-        System.out.println("Body: " + greeting + " " + body);
-        System.out.println("-----------------------");
+        log.info("Sending booking confirmation email - To: {}, Subject: {}, Language: {}",
+                customerName, subject, languageCode);
+        log.debug("Email body: {} {}", greeting, body);
     }
 
     public void sendNewBookingNotificationToAdmin(String bookingId) {
-        System.out.println("---- Admin Notification ----");
-        System.out.println("New booking received: " + bookingId);
-        System.out.println("--------------------------");
+        log.info("Sending admin notification - New booking received: {}", bookingId);
     }
 
      public void sendNewPrivateRequestNotificationToAdmin(String requestId) {
-        System.out.println("---- Admin Notification ----");
-        System.out.println("New private tour request received: " + requestId);
-        System.out.println("--------------------------");
+        log.info("Sending admin notification - New private tour request received: {}", requestId);
     }
 }

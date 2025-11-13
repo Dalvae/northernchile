@@ -2,7 +2,8 @@ package com.northernchile.api.config;
 
 import com.northernchile.api.model.User;
 import com.northernchile.api.user.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,28 +12,32 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataInitializer implements CommandLineRunner {
 
-    @Autowired
-    private UserRepository userRepository;
+    private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // Configuration for multiple admin users
     @Value("${admin.users.config:}")
     private String adminUsersConfig;
 
+    public DataInitializer(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
     @Override
     public void run(String... args) {
-        System.out.println("=== INICIALIZACIÓN DE DATOS ===");
+        log.info("=== INICIALIZACIÓN DE DATOS ===");
         initializeAdminUsers();
-        System.out.println("=== FIN INICIALIZACIÓN ===");
+        log.info("=== FIN INICIALIZACIÓN ===");
     }
 
     private void initializeAdminUsers() {
-        System.out.println("--- Inicializando Usuarios Administradores ---");
+        log.info("--- Inicializando Usuarios Administradores ---");
 
         if (adminUsersConfig == null || adminUsersConfig.isEmpty()) {
-            System.out.println("No se encontró configuración de usuarios admin (admin.users.config). Omitiendo.");
+            log.info("No se encontró configuración de usuarios admin (admin.users.config). Omitiendo.");
             return;
         }
 
@@ -42,7 +47,7 @@ public class DataInitializer implements CommandLineRunner {
         for (String userConfig : userConfigs) {
             String[] parts = userConfig.split(":");
             if (parts.length != 3) {
-                System.err.println("Configuración de usuario inválida (debe ser email:password:role): " + userConfig);
+                log.error("Configuración de usuario inválida (debe ser email:password:role): {}", userConfig);
                 continue;
             }
 
@@ -60,9 +65,9 @@ public class DataInitializer implements CommandLineRunner {
                 adminUser.setRole(role);
                 adminUser.setAuthProvider("LOCAL");
                 userRepository.save(adminUser);
-                System.out.println("✓ Usuario admin creado: " + email + " con rol " + role);
+                log.info("✓ Usuario admin creado: {} con rol {}", email, role);
             } else {
-                System.out.println("○ Usuario admin ya existe: " + email);
+                log.info("○ Usuario admin ya existe: {}", email);
             }
         }
     }

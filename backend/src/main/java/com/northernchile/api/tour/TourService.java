@@ -10,7 +10,6 @@ import com.northernchile.api.tour.dto.TourUpdateReq;
 import com.northernchile.api.tour.dto.TourImageRes;
 import com.northernchile.api.util.SlugGenerator;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
@@ -26,20 +25,24 @@ import java.util.stream.Collectors;
 @Transactional
 public class TourService {
 
-    @Autowired
-    private TourRepository tourRepository;
+    private final TourRepository tourRepository;
+    private final TourImageRepository tourImageRepository;
+    private final AuditLogService auditLogService;
+    private final SlugGenerator slugGenerator;
+    private final TourMapper tourMapper;
 
-    @Autowired
-    private TourImageRepository tourImageRepository;
-
-    @Autowired
-    private AuditLogService auditLogService;
-
-    @Autowired
-    private SlugGenerator slugGenerator;
-
-    @Autowired
-    private TourMapper tourMapper;
+    public TourService(
+            TourRepository tourRepository,
+            TourImageRepository tourImageRepository,
+            AuditLogService auditLogService,
+            SlugGenerator slugGenerator,
+            TourMapper tourMapper) {
+        this.tourRepository = tourRepository;
+        this.tourImageRepository = tourImageRepository;
+        this.auditLogService = auditLogService;
+        this.slugGenerator = slugGenerator;
+        this.tourMapper = tourMapper;
+    }
 
     public TourRes createTour(TourCreateReq tourCreateReq, User currentUser) {
         Tour tour = new Tour();
@@ -88,7 +91,7 @@ public class TourService {
             savedTour.setImages(tourImages);
         }
 
-        String tourName = savedTour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String tourName = savedTour.getDisplayName();
         Map<String, Object> newValues = Map.of(
             "id", savedTour.getId().toString(),
             "name", tourName,
@@ -137,7 +140,7 @@ public class TourService {
         Tour tour = tourRepository.findByIdNotDeleted(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + id));
 
-        String oldTourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String oldTourName = tour.getDisplayName();
         Map<String, Object> oldValues = Map.of(
             "name", oldTourName,
             "status", tour.getStatus(),
@@ -196,7 +199,7 @@ public class TourService {
 
         Tour updatedTour = tourRepository.save(tour);
 
-        String newTourName = updatedTour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String newTourName = updatedTour.getDisplayName();
         Map<String, Object> newValues = Map.of(
             "name", newTourName,
             "status", updatedTour.getStatus(),
@@ -218,7 +221,7 @@ public class TourService {
         tour.setDeletedAt(Instant.now());
         tourRepository.save(tour);
 
-        String tourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String tourName = tour.getDisplayName();
         Map<String, Object> oldValues = Map.of(
             "name", tourName,
             "status", tour.getStatus(),

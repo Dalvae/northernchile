@@ -141,7 +141,7 @@ public class TourScheduleAdminController {
     @GetMapping("/{id}/participants")
     public ResponseEntity<Map<String, Object>> getScheduleParticipants(@PathVariable String id) {
         TourSchedule schedule = tourScheduleRepository.findById(UUID.fromString(id))
-                .orElseThrow(() -> new RuntimeException("Schedule not found: " + id));
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Schedule not found with id: " + id));
 
         List<Booking> bookings = bookingRepository.findByScheduleId(UUID.fromString(id));
 

@@ -146,6 +146,16 @@ public class Tour {
         this.nameTranslations = nameTranslations;
     }
 
+    /**
+     * Helper method to get the tour name in Spanish (default language).
+     * If Spanish translation is not available, returns a default fallback.
+     *
+     * @return Tour name in Spanish or "Tour sin nombre" as fallback
+     */
+    public String getDisplayName() {
+        return nameTranslations != null ? nameTranslations.getOrDefault("es", "Tour sin nombre") : "Tour sin nombre";
+    }
+
 
     public List<TourImage> getImages() {
         return images;

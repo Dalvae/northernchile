@@ -1,5 +1,7 @@
 package com.northernchile.api.alert;
 
+import com.northernchile.api.config.security.annotation.CurrentUser;
+import com.northernchile.api.model.User;
 import com.northernchile.api.model.WeatherAlert;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,11 +68,10 @@ public class WeatherAlertController {
     @PostMapping("/{id}/resolve")
     public ResponseEntity<Map<String, String>> resolveAlert(
             @PathVariable String id,
-            @RequestBody ResolveAlertRequest request) {
+            @RequestBody ResolveAlertRequest request,
+            @CurrentUser User currentUser) {
         try {
-            // TODO: Obtener adminId del usuario autenticado
-            String adminId = "admin-temp"; // Por ahora hardcoded
-            alertService.resolveAlert(id, request.resolution(), adminId);
+            alertService.resolveAlert(id, request.resolution(), currentUser.getId().toString());
             return ResponseEntity.ok(Map.of("message", "Alert resolved successfully"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

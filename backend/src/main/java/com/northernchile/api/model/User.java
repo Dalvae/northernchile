@@ -70,7 +70,6 @@ public class User {
         this.providerId = providerId;
     }
 
-    // Getters
     public UUID getId() {
         return id;
     }
@@ -119,7 +118,6 @@ public class User {
         return updatedAt;
     }
 
-    // Setters (excluding id, createdAt, updatedAt)
     public void setEmail(String email) {
         this.email = email;
     }

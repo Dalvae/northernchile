@@ -22,11 +22,13 @@ import java.util.UUID;
 @RequestMapping("/api/admin/users")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public UserController(UserService userService, UserRepository userRepository) {
+        this.userService = userService;
+        this.userRepository = userRepository;
+    }
 
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @GetMapping

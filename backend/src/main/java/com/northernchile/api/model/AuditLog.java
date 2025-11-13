@@ -60,11 +60,9 @@ public class AuditLog {
         createdAt = Instant.now();
     }
 
-    // Constructors
     public AuditLog() {
     }
 
-    // Getters and Setters
     public UUID getId() {
         return id;
     }

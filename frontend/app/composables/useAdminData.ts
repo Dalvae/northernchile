@@ -33,81 +33,80 @@ export const useAdminData = () => {
   return {
     fetchAdminTours: () =>
       $fetch<TourRes[]>('/api/admin/tours', { headers: headers.value }),
-    createAdminTour: (tourData: any) =>
-      $fetch('/api/admin/tours', {
+    createAdminTour: (tourData: TourCreateReq) =>
+      $fetch<TourRes>('/api/admin/tours', {
         method: 'POST' as const,
         body: tourData,
         headers: headers.value
       }),
-    updateAdminTour: (id: string, tourData: any) =>
-      $fetch(`/api/admin/tours/${id}`, {
+    updateAdminTour: (id: string, tourData: TourUpdateReq) =>
+      $fetch<TourRes>(`/api/admin/tours/${id}`, {
         method: 'PUT',
         body: tourData,
         headers: headers.value
       }),
     deleteAdminTour: (id: string) =>
-      $fetch(`/api/admin/tours/${id}`, {
+      $fetch<void>(`/api/admin/tours/${id}`, {
         method: 'DELETE',
         headers: headers.value
       }),
-    // ... (asegúrate de que todas las funciones usen headers: headers.value)
-    fetchAdminSchedules: (params?: any) =>
-      $fetch('/api/admin/schedules', { params, headers: headers.value }),
-    createAdminSchedule: (scheduleData: any) =>
-      $fetch('/api/admin/schedules', {
+    fetchAdminSchedules: (params?: Record<string, string>) =>
+      $fetch<TourScheduleRes[]>('/api/admin/schedules', { params, headers: headers.value }),
+    createAdminSchedule: (scheduleData: TourScheduleCreateReq) =>
+      $fetch<TourScheduleRes>('/api/admin/schedules', {
         method: 'POST' as const,
         body: scheduleData,
         headers: headers.value
       }),
-    updateAdminSchedule: (id: string, scheduleData: any) =>
-      $fetch(`/api/admin/schedules/${id}`, {
+    updateAdminSchedule: (id: string, scheduleData: Partial<TourScheduleCreateReq>) =>
+      $fetch<TourScheduleRes>(`/api/admin/schedules/${id}`, {
         method: 'PATCH',
         body: scheduleData,
         headers: headers.value
       }),
     deleteAdminSchedule: (id: string) =>
-      $fetch(`/api/admin/schedules/${id}`, {
+      $fetch<void>(`/api/admin/schedules/${id}`, {
         method: 'DELETE',
         headers: headers.value
       }),
-     fetchAdminBookings: (params?: any) =>
+     fetchAdminBookings: (params?: Record<string, string>) =>
        $fetch<BookingRes[]>('/api/admin/bookings', { params, headers: headers.value }),
     fetchAdminBookingById: (id: string) =>
-      $fetch(`/api/admin/bookings/${id}`, { headers: headers.value }),
-    updateAdminBooking: (id: string, bookingData: any) =>
-      $fetch(`/api/admin/bookings/${id}`, {
+      $fetch<BookingRes>(`/api/admin/bookings/${id}`, { headers: headers.value }),
+    updateAdminBooking: (id: string, bookingData: BookingUpdateReq) =>
+      $fetch<BookingRes>(`/api/admin/bookings/${id}`, {
         method: 'PUT',
         body: bookingData,
         headers: headers.value
       }),
     deleteAdminBooking: (id: string) =>
-      $fetch(`/api/admin/bookings/${id}`, {
+      $fetch<void>(`/api/admin/bookings/${id}`, {
         method: 'DELETE',
         headers: headers.value
       }),
-    fetchAdminUsers: (params?: any) =>
-      $fetch('/api/admin/users', { params, headers: headers.value }),
+    fetchAdminUsers: (params?: Record<string, string>) =>
+      $fetch<UserRes[]>('/api/admin/users', { params, headers: headers.value }),
     fetchAdminUserById: (id: string) =>
-      $fetch(`/api/admin/users/${id}`, { headers: headers.value }),
-    createAdminUser: (userData: any) =>
-      $fetch<any>('/api/admin/users', {
+      $fetch<UserRes>(`/api/admin/users/${id}`, { headers: headers.value }),
+    createAdminUser: (userData: UserCreateReq) =>
+      $fetch<UserRes>('/api/admin/users', {
         method: 'POST',
         body: userData,
         headers: headers.value
       }),
-    updateAdminUser: (id: string, userData: any) =>
-      $fetch(`/api/admin/users/${id}`, {
+    updateAdminUser: (id: string, userData: UserUpdateReq) =>
+      $fetch<UserRes>(`/api/admin/users/${id}`, {
         method: 'PUT',
         body: userData,
         headers: headers.value
       }),
     deleteAdminUser: (id: string) =>
-      $fetch(`/api/admin/users/${id}`, {
+      $fetch<void>(`/api/admin/users/${id}`, {
         method: 'DELETE',
         headers: headers.value
       }),
     resetAdminUserPassword: (id: string, newPassword: string) =>
-      $fetch(`/api/admin/users/${id}/password`, {
+      $fetch<void>(`/api/admin/users/${id}/password`, {
         method: 'PUT',
         body: { newPassword },
         headers: headers.value
@@ -117,9 +116,9 @@ export const useAdminData = () => {
          headers: headers.value
        }),
      fetchAdminSettings: () =>
-       $fetch('/api/admin/settings', { headers: headers.value }),
-     updateAdminSettings: (settings: any) =>
-       $fetch('/api/admin/settings', {
+       $fetch<Record<string, unknown>>('/api/admin/settings', { headers: headers.value }),
+     updateAdminSettings: (settings: Record<string, unknown>) =>
+       $fetch<Record<string, unknown>>('/api/admin/settings', {
          method: 'PATCH',
          body: settings,
          headers: headers.value

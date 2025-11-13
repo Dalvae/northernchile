@@ -1,6 +1,8 @@
 package com.northernchile.api.exception;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -30,6 +32,8 @@ import java.util.Map;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
      * Handles ResourceNotFoundException (custom)
@@ -173,8 +177,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGlobalException(
             Exception ex,
             WebRequest request) {
-        // Log the full exception for debugging
-        ex.printStackTrace();
+        log.error("Unhandled exception occurred: {}", request.getDescription(false), ex);
 
         ErrorResponse errorResponse = new ErrorResponse(
                 Instant.now(),
@@ -204,14 +207,12 @@ public class GlobalExceptionHandler {
             this.path = path;
         }
 
-        // Getters
         public Instant getTimestamp() { return timestamp; }
         public int getStatus() { return status; }
         public String getError() { return error; }
         public String getMessage() { return message; }
         public String getPath() { return path; }
 
-        // Setters
         public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
         public void setStatus(int status) { this.status = status; }
         public void setError(String error) { this.error = error; }

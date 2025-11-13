@@ -4,7 +4,6 @@ import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.User;
 import com.northernchile.api.user.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -14,11 +13,13 @@ import java.util.UUID;
 @Service("bookingSecurityService")
 public class BookingSecurityService {
 
-    @Autowired
-    private BookingRepository bookingRepository;
+    private final BookingRepository bookingRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public BookingSecurityService(BookingRepository bookingRepository, UserRepository userRepository) {
+        this.bookingRepository = bookingRepository;
+        this.userRepository = userRepository;
+    }
 
     /**
      * Check if the authenticated user is the owner of the tour associated with this booking

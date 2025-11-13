@@ -9,7 +9,6 @@ import com.northernchile.api.tour.dto.TourScheduleCreateReq;
 import com.northernchile.api.tour.dto.TourScheduleRes;
 import com.northernchile.api.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,16 +23,24 @@ import java.util.stream.Collectors;
 @Service
 public class TourScheduleService {
 
-    @Autowired
-    private TourScheduleRepository tourScheduleRepository;
-    @Autowired
-    private TourRepository tourRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private BookingRepository bookingRepository;
-    @Autowired
-    private AuditLogService auditLogService;
+    private final TourScheduleRepository tourScheduleRepository;
+    private final TourRepository tourRepository;
+    private final UserRepository userRepository;
+    private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
+    private final AuditLogService auditLogService;
+
+    public TourScheduleService(
+            TourScheduleRepository tourScheduleRepository,
+            TourRepository tourRepository,
+            UserRepository userRepository,
+            com.northernchile.api.availability.AvailabilityValidator availabilityValidator,
+            AuditLogService auditLogService) {
+        this.tourScheduleRepository = tourScheduleRepository;
+        this.tourRepository = tourRepository;
+        this.userRepository = userRepository;
+        this.availabilityValidator = availabilityValidator;
+        this.auditLogService = auditLogService;
+    }
 
     @Transactional
     public TourScheduleRes createScheduledTour(TourScheduleCreateReq req, User currentUser) {
@@ -59,7 +66,7 @@ public class TourScheduleService {
         TourSchedule savedSchedule = tourScheduleRepository.save(schedule);
 
         // Audit log
-        String tourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String tourName = tour.getDisplayName();
         String description = tourName + " - " + savedSchedule.getStartDatetime().toString();
         Map<String, Object> newValues = Map.of(
             "id", savedSchedule.getId().toString(),
@@ -107,7 +114,7 @@ public class TourScheduleService {
         TourSchedule savedSchedule = tourScheduleRepository.save(schedule);
 
         // Audit log
-        String tourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String tourName = tour.getDisplayName();
         String description = tourName + " - " + savedSchedule.getStartDatetime().toString();
         Map<String, Object> newValues = Map.of(
             "startDatetime", savedSchedule.getStartDatetime().toString(),
@@ -139,7 +146,7 @@ public class TourScheduleService {
         TourSchedule savedSchedule = tourScheduleRepository.save(schedule);
 
         // Audit log
-        String tourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String tourName = tour.getDisplayName();
         String description = tourName + " - " + savedSchedule.getStartDatetime().toString();
         Map<String, Object> oldValues = Map.of("status", oldStatus);
         Map<String, Object> newValues = Map.of("status", "CANCELLED");
@@ -178,7 +185,7 @@ public class TourScheduleService {
         }
 
         // Audit log before deletion
-        String tourName = tour.getNameTranslations().getOrDefault("es", "Tour sin nombre");
+        String tourName = tour.getDisplayName();
         String description = tourName + " - " + schedule.getStartDatetime().toString();
         Map<String, Object> oldValues = Map.of(
             "tourId", tour.getId().toString(),
@@ -201,10 +208,14 @@ public class TourScheduleService {
         res.setStartDatetime(schedule.getStartDatetime());
         res.setMaxParticipants(schedule.getMaxParticipants());
 
-        // Calculate booked and available spots
-        Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(schedule.getId());
-        res.setBookedParticipants(bookedParticipants != null ? bookedParticipants : 0);
-        res.setAvailableSpots(schedule.getMaxParticipants() - res.getBookedParticipants());
+        // Get availability status (accounts for both confirmed bookings and cart reservations)
+        var availabilityStatus = availabilityValidator.getAvailabilityStatus(
+                schedule.getId(),
+                schedule.getMaxParticipants()
+        );
+        int totalReserved = schedule.getMaxParticipants() - availabilityStatus.getAvailableSlots();
+        res.setBookedParticipants(totalReserved);
+        res.setAvailableSpots(availabilityStatus.getAvailableSlots());
 
         res.setStatus(schedule.getStatus());
         if (schedule.getAssignedGuide() != null) {

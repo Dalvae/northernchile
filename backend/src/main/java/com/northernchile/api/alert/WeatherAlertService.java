@@ -218,7 +218,7 @@ public class WeatherAlertService {
     @Transactional
     public void resolveAlert(String alertId, String resolution, String adminId) {
         WeatherAlert alert = alertRepository.findById(java.util.UUID.fromString(alertId))
-                .orElseThrow(() -> new RuntimeException("Alert not found"));
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Alert not found with id: " + alertId));
 
         alert.setStatus("RESOLVED");
         alert.setResolution(resolution);

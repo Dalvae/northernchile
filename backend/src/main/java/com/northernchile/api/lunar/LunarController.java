@@ -16,6 +16,8 @@ import java.util.List;
 @RequestMapping("/api/lunar")
 public class LunarController {
 
+    private static final int MIN_DAYS_BETWEEN_FULL_MOONS = 25;
+
     private final LunarService lunarService;
 
     public LunarController(LunarService lunarService) {
@@ -118,8 +120,8 @@ public class LunarController {
                 ));
 
                 found++;
-                // Saltar al menos 25 días para no encontrar la misma luna llena
-                current = current.plusDays(25);
+                // Skip at least MIN_DAYS_BETWEEN_FULL_MOONS to avoid finding the same full moon
+                current = current.plusDays(MIN_DAYS_BETWEEN_FULL_MOONS);
             }
             current = current.plusDays(1);
         }

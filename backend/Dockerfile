@@ -17,6 +17,10 @@ FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
+# Actualizar tzdata para asegurar horarios de Chile correctos
+# Chile cambia DST frecuentemente, necesitamos tzdata actualizado
+RUN apk add --no-cache tzdata
+
 # Copiar el JAR compilado desde la etapa de build
 COPY --from=build /build/target/*.jar app.jar
 

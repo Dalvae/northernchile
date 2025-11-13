@@ -4,39 +4,47 @@ interface User {
   id: string
   email: string
   fullName: string
-  role: string  // Changed from string[] to singular string (backend now returns role as string)
+  role: string
   nationality?: string
   phoneNumber?: string
   dateOfBirth?: string
   authProvider?: string
 }
 
-// Función auxiliar para decodificar el payload del JWT de forma segura
-function decodeJwtPayload(token: string): any | null {
+interface JwtPayload {
+  sub: string
+  email: string
+  fullName: string
+  role: string
+  iat?: number
+  exp?: number
+  [key: string]: unknown
+}
+
+function decodeJwtPayload(token: string): JwtPayload | null {
   try {
     const payloadBase64 = token.split('.')[1]
     if (!payloadBase64) return null
     const decodedJson = atob(
       payloadBase64.replace(/-/g, '+').replace(/_/g, '/')
     )
-    return JSON.parse(decodedJson)
+    return JSON.parse(decodedJson) as JwtPayload
   } catch (error) {
     return null
   }
 }
 
-// Helper functions for localStorage (solo en cliente)
-function getFromStorage(key: string): any {
+function getFromStorage<T = unknown>(key: string): T | null {
   if (typeof window === 'undefined') return null
   try {
     const item = localStorage.getItem(key)
-    return item ? JSON.parse(item) : null
+    return item ? (JSON.parse(item) as T) : null
   } catch {
     return null
   }
 }
 
-function setToStorage(key: string, value: any): void {
+function setToStorage<T = unknown>(key: string, value: T | null): void {
   if (typeof window === 'undefined') return
   try {
     if (value === null) {

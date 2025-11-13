@@ -321,12 +321,9 @@ const profileForm = reactive({
 // Load user data on mount
 onMounted(async () => {
   isLoading.value = true
-  console.log('[Profile] Mounting, current user:', authStore.user)
 
   // Fetch fresh user data from backend
   await authStore.fetchUser()
-
-  console.log('[Profile] After fetch, user:', authStore.user)
 
   // Update form with user data
   if (authStore.user) {
@@ -335,7 +332,6 @@ onMounted(async () => {
     profileForm.nationality = authStore.user.nationality || ''
     profileForm.dateOfBirth = authStore.user.dateOfBirth || ''
     profileForm.phoneNumber = authStore.user.phoneNumber || ''
-    console.log('[Profile] Form updated:', profileForm)
   }
 
   isLoading.value = false
