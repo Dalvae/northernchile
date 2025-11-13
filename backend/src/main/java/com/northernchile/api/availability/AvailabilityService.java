@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.UUID;
@@ -20,6 +21,7 @@ public class AvailabilityService {
 
     private static final int WIND_THRESHOLD_KNOTS = 25;
     private static final int FEW_SLOTS_THRESHOLD = 5;
+    private static final ZoneId ZONE_ID = ZoneId.of("America/Santiago");
 
     private final TourScheduleRepository tourScheduleRepository;
     private final AvailabilityValidator availabilityValidator;
@@ -57,20 +59,20 @@ public class AvailabilityService {
 
         var schedules = tourScheduleRepository.findByTourIdAndStartDatetimeBetween(
                 tourId,
-                startOfMonth.atStartOfDay().toInstant(ZoneOffset.UTC),
-                endOfMonth.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC)
+                startOfMonth.atStartOfDay(ZONE_ID).toInstant(),
+                endOfMonth.plusDays(1).atStartOfDay(ZONE_ID).toInstant()
         );
 
         return schedules.stream()
                 .collect(Collectors.toMap(
-                        schedule -> LocalDate.ofInstant(schedule.getStartDatetime(), ZoneOffset.UTC),
+                        schedule -> LocalDate.ofInstant(schedule.getStartDatetime(), ZONE_ID),
                         schedule -> calculateDayAvailability(schedule),
                         (day1, day2) -> day1 // In case of multiple schedules on the same day, take the first one
                 ));
     }
 
     private DayAvailability calculateDayAvailability(TourSchedule schedule) {
-        LocalDate date = LocalDate.ofInstant(schedule.getStartDatetime(), ZoneOffset.UTC);
+        LocalDate date = LocalDate.ofInstant(schedule.getStartDatetime(), ZONE_ID);
 
         // Check for full moon on astronomical tours
         if ("ASTRONOMICAL".equalsIgnoreCase(schedule.getTour().getCategory()) && lunarService.isFullMoon(date)) {
