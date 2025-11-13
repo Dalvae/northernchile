@@ -1,6 +1,8 @@
 package com.northernchile.api.config;
 
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,6 +21,8 @@ import java.util.TimeZone;
 @Configuration
 public class TimezoneConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(TimezoneConfig.class);
+
     @Value("${app.timezone:America/Santiago}")
     private String timezone;
 
@@ -28,10 +32,10 @@ public class TimezoneConfig {
     public void init() {
         // Set default timezone for the entire JVM
         TimeZone.setDefault(TimeZone.getTimeZone(timezone));
-        System.out.println("===============================================");
-        System.out.println("Application timezone set to: " + timezone);
-        System.out.println("Current offset: " + ZoneId.of(timezone).getRules().getOffset(java.time.Instant.now()));
-        System.out.println("===============================================");
+        log.info("===============================================");
+        log.info("Application timezone set to: {}", timezone);
+        log.info("Current offset: {}", ZoneId.of(timezone).getRules().getOffset(java.time.Instant.now()));
+        log.info("===============================================");
     }
 
     /**
