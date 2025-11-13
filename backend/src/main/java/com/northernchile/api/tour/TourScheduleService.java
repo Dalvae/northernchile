@@ -26,19 +26,19 @@ public class TourScheduleService {
     private final TourScheduleRepository tourScheduleRepository;
     private final TourRepository tourRepository;
     private final UserRepository userRepository;
-    private final BookingRepository bookingRepository;
+    private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
     private final AuditLogService auditLogService;
 
     public TourScheduleService(
             TourScheduleRepository tourScheduleRepository,
             TourRepository tourRepository,
             UserRepository userRepository,
-            BookingRepository bookingRepository,
+            com.northernchile.api.availability.AvailabilityValidator availabilityValidator,
             AuditLogService auditLogService) {
         this.tourScheduleRepository = tourScheduleRepository;
         this.tourRepository = tourRepository;
         this.userRepository = userRepository;
-        this.bookingRepository = bookingRepository;
+        this.availabilityValidator = availabilityValidator;
         this.auditLogService = auditLogService;
     }
 
@@ -208,10 +208,11 @@ public class TourScheduleService {
         res.setStartDatetime(schedule.getStartDatetime());
         res.setMaxParticipants(schedule.getMaxParticipants());
 
-        // Calculate booked and available spots
-        Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(schedule.getId());
-        res.setBookedParticipants(bookedParticipants != null ? bookedParticipants : 0);
-        res.setAvailableSpots(schedule.getMaxParticipants() - res.getBookedParticipants());
+        // Get availability status (accounts for both confirmed bookings and cart reservations)
+        var availabilityStatus = availabilityValidator.getAvailabilityStatus(schedule);
+        int totalReserved = schedule.getMaxParticipants() - availabilityStatus.getAvailableSlots();
+        res.setBookedParticipants(totalReserved);
+        res.setAvailableSpots(availabilityStatus.getAvailableSlots());
 
         res.setStatus(schedule.getStatus());
         if (schedule.getAssignedGuide() != null) {

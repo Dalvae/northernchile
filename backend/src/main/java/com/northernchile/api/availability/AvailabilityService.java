@@ -19,17 +19,17 @@ import java.util.stream.Collectors;
 public class AvailabilityService {
 
     private final TourScheduleRepository tourScheduleRepository;
-    private final BookingRepository bookingRepository;
+    private final AvailabilityValidator availabilityValidator;
     private final WeatherService weatherService;
     private final LunarService lunarService;
 
     public AvailabilityService(
             TourScheduleRepository tourScheduleRepository,
-            BookingRepository bookingRepository,
+            AvailabilityValidator availabilityValidator,
             WeatherService weatherService,
             LunarService lunarService) {
         this.tourScheduleRepository = tourScheduleRepository;
-        this.bookingRepository = bookingRepository;
+        this.availabilityValidator = availabilityValidator;
         this.weatherService = weatherService;
         this.lunarService = lunarService;
     }
@@ -79,14 +79,14 @@ public class AvailabilityService {
             return new DayAvailability("UNAVAILABLE_WIND", Integer.valueOf(0), Double.valueOf(lunarService.getMoonIllumination(date)));
         }
 
-        // Calculate available slots
-        Integer bookedParticipants = bookingRepository.countParticipantsByScheduleId(schedule.getId());
-        Integer availableSlots = Integer.valueOf(schedule.getMaxParticipants() - bookedParticipants);
+        // Get availability status using centralized validator (accounts for both bookings and carts)
+        var availabilityStatus = availabilityValidator.getAvailabilityStatus(schedule);
+        Integer availableSlots = availabilityStatus.getAvailableSlots();
 
         String status = "AVAILABLE";
         if (availableSlots <= 0) {
             status = "SOLD_OUT";
-        } else if (availableSlots < 5) { // Example threshold for "few slots left"
+        } else if (availableSlots < 5) {
             status = "FEW_SLOTS_LEFT";
         }
 

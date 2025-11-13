@@ -35,16 +35,19 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final TourScheduleRepository tourScheduleRepository;
     private final BookingRepository bookingRepository;
+    private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
 
     public CartService(
             CartRepository cartRepository,
             CartItemRepository cartItemRepository,
             TourScheduleRepository tourScheduleRepository,
-            BookingRepository bookingRepository) {
+            BookingRepository bookingRepository,
+            com.northernchile.api.availability.AvailabilityValidator availabilityValidator) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.tourScheduleRepository = tourScheduleRepository;
         this.bookingRepository = bookingRepository;
+        this.availabilityValidator = availabilityValidator;
     }
 
     @Transactional
@@ -76,11 +79,7 @@ public class CartService {
         var schedule = tourScheduleRepository.findById(itemReq.getScheduleId())
                 .orElseThrow(() -> new EntityNotFoundException("TourSchedule not found"));
 
-        // Validate available slots - only count CONFIRMED bookings
-        Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(itemReq.getScheduleId());
-        if (bookedParticipants == null) bookedParticipants = 0;
-
-        // Also count participants already in THIS cart for the same schedule
+        // Count participants already in THIS cart for the same schedule
         int participantsInCart = cart.getItems() != null
             ? cart.getItems().stream()
                 .filter(item -> item.getSchedule().getId().equals(itemReq.getScheduleId()))
@@ -88,15 +87,13 @@ public class CartService {
                 .sum()
             : 0;
 
-        int requestedSlots = itemReq.getNumParticipants();
-        int totalRequestedSlots = participantsInCart + requestedSlots;
-        int availableSlots = schedule.getMaxParticipants() - bookedParticipants;
+        // Validate availability excluding this cart (to allow adding more to same cart)
+        int totalRequestedSlots = participantsInCart + itemReq.getNumParticipants();
+        var availabilityResult = availabilityValidator.validateAvailability(
+                schedule, totalRequestedSlots, cart.getId(), null);
 
-        if (availableSlots < totalRequestedSlots) {
-            throw new IllegalStateException(String.format(
-                "Not enough available slots. Requested: %d, Already in cart: %d, Available: %d",
-                requestedSlots, participantsInCart, availableSlots
-            ));
+        if (!availabilityResult.isAvailable()) {
+            throw new IllegalStateException(availabilityResult.getErrorMessage());
         }
 
         CartItem newItem = new CartItem();

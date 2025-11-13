@@ -38,6 +38,7 @@ public class BookingService {
     private final EmailService emailService;
     private final AuditLogService auditLogService;
     private final BookingMapper bookingMapper;
+    private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
 
     @Value("${tax.rate}")
     private BigDecimal taxRate;
@@ -47,12 +48,14 @@ public class BookingService {
             TourScheduleRepository tourScheduleRepository,
             EmailService emailService,
             AuditLogService auditLogService,
-            BookingMapper bookingMapper) {
+            BookingMapper bookingMapper,
+            com.northernchile.api.availability.AvailabilityValidator availabilityValidator) {
         this.bookingRepository = bookingRepository;
         this.tourScheduleRepository = tourScheduleRepository;
         this.emailService = emailService;
         this.auditLogService = auditLogService;
         this.bookingMapper = bookingMapper;
+        this.availabilityValidator = availabilityValidator;
     }
 
     @Transactional
@@ -60,20 +63,12 @@ public class BookingService {
         var schedule = tourScheduleRepository.findById(req.getScheduleId())
                 .orElseThrow(() -> new EntityNotFoundException("TourSchedule not found with id: " + req.getScheduleId()));
 
-        // Validate available slots - only count CONFIRMED bookings
-        // Note: This validation prevents overbooking in most cases. For complete protection
-        // against race conditions (two users booking the last slot simultaneously),
-        // consider adding optimistic locking (@Version) or a database constraint.
-        Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(req.getScheduleId());
-        if (bookedParticipants == null) bookedParticipants = 0;
+        // Validate availability using centralized validator
         int requestedSlots = req.getParticipants().size();
-        int availableSlots = schedule.getMaxParticipants() - bookedParticipants;
+        var availabilityResult = availabilityValidator.validateAvailability(schedule, requestedSlots);
 
-        if (availableSlots < requestedSlots) {
-            throw new IllegalStateException(String.format(
-                "Not enough available slots. Requested: %d, Available: %d",
-                requestedSlots, availableSlots
-            ));
+        if (!availabilityResult.isAvailable()) {
+            throw new IllegalStateException(availabilityResult.getErrorMessage());
         }
 
         int participantCount = req.getParticipants().size();
