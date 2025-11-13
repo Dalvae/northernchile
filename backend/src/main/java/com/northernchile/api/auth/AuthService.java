@@ -4,8 +4,12 @@ import com.northernchile.api.auth.dto.LoginReq;
 import com.northernchile.api.auth.dto.RegisterReq;
 import com.northernchile.api.config.security.JwtUtil;
 import com.northernchile.api.exception.EmailAlreadyExistsException;
+import com.northernchile.api.model.EmailVerificationToken;
+import com.northernchile.api.model.PasswordResetToken;
 import com.northernchile.api.model.User;
+import com.northernchile.api.notification.EmailService;
 import com.northernchile.api.user.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -15,6 +19,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,15 +31,24 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final TokenService tokenService;
+    private final EmailService emailService;
+
+    @Value("${NUXT_PUBLIC_BASE_URL:http://localhost:3000}")
+    private String frontendBaseUrl;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                       AuthenticationConfiguration authenticationConfiguration, JwtUtil jwtUtil) throws Exception {
+                       AuthenticationConfiguration authenticationConfiguration, JwtUtil jwtUtil,
+                       TokenService tokenService, EmailService emailService) throws Exception {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationConfiguration.getAuthenticationManager();
         this.jwtUtil = jwtUtil;
+        this.tokenService = tokenService;
+        this.emailService = emailService;
     }
 
+    @Transactional
     public User register(RegisterReq registerReq) {
         if (userRepository.findByEmail(registerReq.getEmail()).isPresent()) {
             throw new EmailAlreadyExistsException(registerReq.getEmail());
@@ -49,8 +63,17 @@ public class AuthService {
         user.setDateOfBirth(registerReq.getDateOfBirth());
         user.setRole("ROLE_CLIENT"); // Default role
         user.setAuthProvider("LOCAL");
+        user.setEmailVerified(false); // Email not verified yet
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        // Send verification email
+        EmailVerificationToken token = tokenService.createEmailVerificationToken(savedUser);
+        String verificationUrl = frontendBaseUrl + "/verify-email?token=" + token.getToken();
+        emailService.sendVerificationEmail(savedUser.getEmail(), savedUser.getFullName(),
+                verificationUrl, "es-CL"); // TODO: Get language from request
+
+        return savedUser;
     }
 
     public Map<String, Object> login(LoginReq loginReq) {
@@ -81,5 +104,69 @@ public class AuthService {
         response.put("user", userMap);
 
         return response;
+    }
+
+    /**
+     * Verify user email with token
+     */
+    @Transactional
+    public void verifyEmail(String token) {
+        EmailVerificationToken verificationToken = tokenService.validateEmailVerificationToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired verification token"));
+
+        User user = verificationToken.getUser();
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        tokenService.markEmailVerificationTokenAsUsed(verificationToken);
+    }
+
+    /**
+     * Request password reset - sends email with reset link
+     */
+    @Transactional
+    public void requestPasswordReset(String email, String languageCode) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        PasswordResetToken token = tokenService.createPasswordResetToken(user);
+        String resetUrl = frontendBaseUrl + "/reset-password?token=" + token.getToken();
+
+        emailService.sendPasswordResetEmail(user.getEmail(), user.getFullName(),
+                resetUrl, languageCode != null ? languageCode : "es-CL");
+    }
+
+    /**
+     * Reset password with token
+     */
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = tokenService.validatePasswordResetToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired reset token"));
+
+        User user = resetToken.getUser();
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        tokenService.markPasswordResetTokenAsUsed(resetToken);
+    }
+
+    /**
+     * Resend verification email
+     */
+    @Transactional
+    public void resendVerificationEmail(String email, String languageCode) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (user.isEmailVerified()) {
+            throw new IllegalStateException("Email already verified");
+        }
+
+        EmailVerificationToken token = tokenService.createEmailVerificationToken(user);
+        String verificationUrl = frontendBaseUrl + "/verify-email?token=" + token.getToken();
+
+        emailService.sendVerificationEmail(user.getEmail(), user.getFullName(),
+                verificationUrl, languageCode != null ? languageCode : "es-CL");
     }
 }

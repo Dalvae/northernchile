@@ -132,12 +132,38 @@ public class BookingService {
     }
 
     private void sendBookingNotifications(Booking booking) {
+        var schedule = booking.getSchedule();
+        var tour = schedule.getTour();
+
+        // Format date and time
+        java.time.format.DateTimeFormatter dateFormatter =
+                java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                .withZone(java.time.ZoneId.of("America/Santiago"));
+        java.time.format.DateTimeFormatter timeFormatter =
+                java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+                .withZone(java.time.ZoneId.of("America/Santiago"));
+
+        String tourDate = dateFormatter.format(schedule.getStartDatetime());
+        String tourTime = timeFormatter.format(schedule.getStartDatetime());
+
+        // Get tour name in the correct language, fallback to any available language
+        String tourName = tour.getNameTranslations().get(booking.getLanguageCode());
+        if (tourName == null) {
+            tourName = tour.getNameTranslations().values().iterator().next();
+        }
+
         emailService.sendBookingConfirmationEmail(
-                booking.getLanguageCode(),
-                booking.getId().toString(),
+                booking.getUser().getEmail(),
                 booking.getUser().getFullName(),
-                booking.getSchedule().getTour().getNameTranslations().get(booking.getLanguageCode())
+                booking.getId().toString(),
+                tourName,
+                tourDate,
+                tourTime,
+                booking.getParticipants().size(),
+                booking.getTotalAmount().toString(),
+                booking.getLanguageCode() != null ? booking.getLanguageCode() : "es-CL"
         );
+
         emailService.sendNewBookingNotificationToAdmin(booking.getId().toString());
     }
 
