@@ -4,7 +4,7 @@ interface User {
   id: string
   email: string
   fullName: string
-  role: string[]
+  role: string  // Changed from string[] to singular string (backend now returns role as string)
   nationality?: string
   phoneNumber?: string
   dateOfBirth?: string
@@ -64,8 +64,8 @@ export const useAuthStore = defineStore('auth', {
     isAdmin(state): boolean {
       if (!state.user?.role) return false
       return (
-        state.user.role.includes('ROLE_SUPER_ADMIN')
-        || state.user.role.includes('ROLE_PARTNER_ADMIN')
+        state.user.role === 'ROLE_SUPER_ADMIN'
+        || state.user.role === 'ROLE_PARTNER_ADMIN'
       )
     }
   },
@@ -85,20 +85,37 @@ export const useAuthStore = defineStore('auth', {
         })
 
         if (response && response.token) {
-          const payload = decodeJwtPayload(response.token)
-
           // Guardar en el state y en localStorage
           this.token = response.token
           setToStorage('auth_token', response.token)
 
-          if (payload) {
+          // Backend now returns user object in response - use it directly
+          if (response.user) {
             this.user = {
-              id: payload.userId || payload.sub,
-              email: payload.email,
-              fullName: payload.fullName || '',
-              role: payload.roles || []
+              id: response.user.id,
+              email: response.user.email,
+              fullName: response.user.fullName,
+              role: response.user.role, // Now singular string from backend
+              nationality: response.user.nationality,
+              phoneNumber: response.user.phoneNumber,
+              dateOfBirth: response.user.dateOfBirth
             }
             setToStorage('user', this.user)
+          } else {
+            // Fallback: decode from JWT if user not in response (shouldn't happen with new backend)
+            const payload = decodeJwtPayload(response.token)
+            if (payload) {
+              // JWT still has roles as array (Spring Security convention)
+              // Extract first role or use default
+              const roleFromJwt = Array.isArray(payload.roles) ? payload.roles[0] : payload.roles
+              this.user = {
+                id: payload.userId || payload.sub,
+                email: payload.email,
+                fullName: payload.fullName || '',
+                role: roleFromJwt || 'ROLE_CLIENT'
+              }
+              setToStorage('user', this.user)
+            }
           }
 
            toast.add({
@@ -202,7 +219,7 @@ export const useAuthStore = defineStore('auth', {
             id: response.id,
             email: response.email,
             fullName: response.fullName,
-            role: Array.isArray(response.role) ? response.role : [response.role],
+            role: response.role, // Backend returns singular string
             nationality: response.nationality,
             phoneNumber: response.phoneNumber,
             dateOfBirth: response.dateOfBirth,
@@ -238,17 +255,17 @@ export const useAuthStore = defineStore('auth', {
               this.token = savedToken
 
               // Sincronizar user desde localStorage o decodificar del token
-              if (savedUser && savedUser.role && savedUser.role.length > 0) {
+              if (savedUser && savedUser.role) {
                 this.user = savedUser
-
               } else {
                 // Reconstruir desde el token si no hay user en localStorage
-
+                // JWT still has roles as array (Spring Security convention)
+                const roleFromJwt = Array.isArray(payload.roles) ? payload.roles[0] : payload.roles
                 this.user = {
                   id: payload.userId || payload.sub,
                   email: payload.email,
                   fullName: payload.fullName || '',
-                  role: payload.roles || []
+                  role: roleFromJwt || 'ROLE_CLIENT'
                 }
                 setToStorage('user', this.user)
               }

@@ -117,8 +117,11 @@ public class TourScheduleAdminController {
      * Cancela un schedule (cambia status a CANCELLED)
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> cancelSchedule(@PathVariable String id) {
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<TourScheduleRes> cancelSchedule(
+            @PathVariable String id,
+            @CurrentUser User currentUser) {
+        TourScheduleRes cancelled = tourScheduleService.cancelScheduledTour(UUID.fromString(id), currentUser);
+        return ResponseEntity.ok(cancelled);
     }
 
     /**

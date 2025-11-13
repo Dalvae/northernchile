@@ -235,7 +235,7 @@ public class Tour {
         this.defaultStartTime = defaultStartTime;
     }
 
-    public Boolean isRecurring() {
+    public Boolean getRecurring() {
         return recurring;
     }
 

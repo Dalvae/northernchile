@@ -3,9 +3,9 @@ package com.northernchile.api.auth;
 import com.northernchile.api.auth.dto.LoginReq;
 import com.northernchile.api.auth.dto.RegisterReq;
 import com.northernchile.api.config.security.JwtUtil;
+import com.northernchile.api.exception.EmailAlreadyExistsException;
 import com.northernchile.api.model.User;
 import com.northernchile.api.user.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -16,7 +16,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +37,7 @@ public class AuthService {
 
     public User register(RegisterReq registerReq) {
         if (userRepository.findByEmail(registerReq.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already in use");
+            throw new EmailAlreadyExistsException(registerReq.getEmail());
         }
 
         User user = new User();
@@ -75,7 +74,7 @@ public class AuthService {
         userMap.put("nationality", user.getNationality());
         userMap.put("phoneNumber", user.getPhoneNumber());
         userMap.put("dateOfBirth", user.getDateOfBirth());
-        userMap.put("role", Collections.singletonList(user.getRole()));
+        userMap.put("role", user.getRole()); // Return role as singular String, not array
 
         Map<String, Object> response = new HashMap<>();
         response.put("token", jwt);
