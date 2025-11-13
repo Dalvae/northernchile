@@ -33,23 +33,27 @@ import java.util.stream.Collectors;
 @Transactional
 public class BookingService {
 
-    @Autowired
-    private BookingRepository bookingRepository;
-
-    @Autowired
-    private TourScheduleRepository tourScheduleRepository;
-
-    @Autowired
-    private EmailService emailService;
-
-    @Autowired
-    private AuditLogService auditLogService;
-
-    @Autowired
-    private BookingMapper bookingMapper;
+    private final BookingRepository bookingRepository;
+    private final TourScheduleRepository tourScheduleRepository;
+    private final EmailService emailService;
+    private final AuditLogService auditLogService;
+    private final BookingMapper bookingMapper;
 
     @Value("${tax.rate}")
     private BigDecimal taxRate;
+
+    public BookingService(
+            BookingRepository bookingRepository,
+            TourScheduleRepository tourScheduleRepository,
+            EmailService emailService,
+            AuditLogService auditLogService,
+            BookingMapper bookingMapper) {
+        this.bookingRepository = bookingRepository;
+        this.tourScheduleRepository = tourScheduleRepository;
+        this.emailService = emailService;
+        this.auditLogService = auditLogService;
+        this.bookingMapper = bookingMapper;
+    }
 
     @Transactional
     public BookingRes createBooking(BookingCreateReq req, User currentUser) {

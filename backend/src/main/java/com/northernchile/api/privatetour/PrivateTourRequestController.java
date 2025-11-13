@@ -13,11 +13,15 @@ import java.util.UUID;
 @RequestMapping("/api")
 public class PrivateTourRequestController {
 
-    @Autowired
-    private PrivateTourRequestService privateTourRequestService;
+    private final PrivateTourRequestService privateTourRequestService;
+    private final PrivateTourRequestRepository privateTourRequestRepository;
 
-    @Autowired
-    private PrivateTourRequestRepository privateTourRequestRepository; // For admin part
+    public PrivateTourRequestController(
+            PrivateTourRequestService privateTourRequestService,
+            PrivateTourRequestRepository privateTourRequestRepository) {
+        this.privateTourRequestService = privateTourRequestService;
+        this.privateTourRequestRepository = privateTourRequestRepository;
+    }
 
     // Endpoint PÚBLICO para que clientes envíen una solicitud
     @PostMapping("/private-tours/requests")

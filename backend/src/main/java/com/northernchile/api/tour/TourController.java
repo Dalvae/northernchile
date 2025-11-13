@@ -19,11 +19,13 @@ import java.util.UUID;
 @RequestMapping("/api")
 public class TourController {
 
-    @Autowired
-    private TourService tourService;
+    private final TourService tourService;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public TourController(TourService tourService, UserRepository userRepository) {
+        this.tourService = tourService;
+        this.userRepository = userRepository;
+    }
 
     @PostMapping("/admin/tours")
     @PreAuthorize("@tourSecurityService.canCreateTour(authentication)")

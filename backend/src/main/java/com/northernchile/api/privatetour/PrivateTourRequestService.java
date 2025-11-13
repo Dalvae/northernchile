@@ -2,17 +2,20 @@ package com.northernchile.api.privatetour;
 
 import com.northernchile.api.model.PrivateTourRequest;
 import com.northernchile.api.notification.EmailService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PrivateTourRequestService {
 
-    @Autowired
-    private PrivateTourRequestRepository privateTourRequestRepository;
+    private final PrivateTourRequestRepository privateTourRequestRepository;
+    private final EmailService emailService;
 
-    @Autowired
-    private EmailService emailService;
+    public PrivateTourRequestService(
+            PrivateTourRequestRepository privateTourRequestRepository,
+            EmailService emailService) {
+        this.privateTourRequestRepository = privateTourRequestRepository;
+        this.emailService = emailService;
+    }
 
     public PrivateTourRequest createRequest(PrivateTourRequest request) {
         PrivateTourRequest savedRequest = privateTourRequestRepository.save(request);

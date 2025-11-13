@@ -20,10 +20,13 @@ import java.util.UUID;
 @RequestMapping("/api/cart")
 public class CartController {
 
-    @Autowired
-    private CartService cartService;
-    @Autowired
-    private UserRepository userRepository;
+    private final CartService cartService;
+    private final UserRepository userRepository;
+
+    public CartController(CartService cartService, UserRepository userRepository) {
+        this.cartService = cartService;
+        this.userRepository = userRepository;
+    }
 
     @GetMapping
     public ResponseEntity<CartRes> getCart(@CookieValue(name = "cartId", required = false) String cartId) {

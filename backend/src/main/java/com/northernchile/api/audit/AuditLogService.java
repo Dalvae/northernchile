@@ -3,7 +3,6 @@ package com.northernchile.api.audit;
 import com.northernchile.api.model.AuditLog;
 import com.northernchile.api.model.User;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -15,8 +14,11 @@ import java.util.UUID;
 @Service
 public class AuditLogService {
 
-    @Autowired
-    private AuditLogRepository auditLogRepository;
+    private final AuditLogRepository auditLogRepository;
+
+    public AuditLogService(AuditLogRepository auditLogRepository) {
+        this.auditLogRepository = auditLogRepository;
+    }
 
     /**
      * Log an admin action

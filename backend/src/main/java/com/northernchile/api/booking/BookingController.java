@@ -24,7 +24,6 @@ public class BookingController {
     private final BookingService bookingService;
     private final UserRepository userRepository;
 
-    @Autowired
     public BookingController(BookingService bookingService, UserRepository userRepository) {
         this.bookingService = bookingService;
         this.userRepository = userRepository;

@@ -31,14 +31,21 @@ import java.util.stream.Collectors;
 @Transactional
 public class CartService {
 
-    @Autowired
-    private CartRepository cartRepository;
-    @Autowired
-    private CartItemRepository cartItemRepository;
-    @Autowired
-    private TourScheduleRepository tourScheduleRepository;
-    @Autowired
-    private BookingRepository bookingRepository;
+    private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
+    private final TourScheduleRepository tourScheduleRepository;
+    private final BookingRepository bookingRepository;
+
+    public CartService(
+            CartRepository cartRepository,
+            CartItemRepository cartItemRepository,
+            TourScheduleRepository tourScheduleRepository,
+            BookingRepository bookingRepository) {
+        this.cartRepository = cartRepository;
+        this.cartItemRepository = cartItemRepository;
+        this.tourScheduleRepository = tourScheduleRepository;
+        this.bookingRepository = bookingRepository;
+    }
 
     @Transactional
     public Cart getOrCreateCart(Optional<User> currentUser, Optional<UUID> cartId) {

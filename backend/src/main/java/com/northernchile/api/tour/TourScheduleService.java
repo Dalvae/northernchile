@@ -9,7 +9,6 @@ import com.northernchile.api.tour.dto.TourScheduleCreateReq;
 import com.northernchile.api.tour.dto.TourScheduleRes;
 import com.northernchile.api.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,16 +23,24 @@ import java.util.stream.Collectors;
 @Service
 public class TourScheduleService {
 
-    @Autowired
-    private TourScheduleRepository tourScheduleRepository;
-    @Autowired
-    private TourRepository tourRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private BookingRepository bookingRepository;
-    @Autowired
-    private AuditLogService auditLogService;
+    private final TourScheduleRepository tourScheduleRepository;
+    private final TourRepository tourRepository;
+    private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
+    private final AuditLogService auditLogService;
+
+    public TourScheduleService(
+            TourScheduleRepository tourScheduleRepository,
+            TourRepository tourRepository,
+            UserRepository userRepository,
+            BookingRepository bookingRepository,
+            AuditLogService auditLogService) {
+        this.tourScheduleRepository = tourScheduleRepository;
+        this.tourRepository = tourRepository;
+        this.userRepository = userRepository;
+        this.bookingRepository = bookingRepository;
+        this.auditLogService = auditLogService;
+    }
 
     @Transactional
     public TourScheduleRes createScheduledTour(TourScheduleCreateReq req, User currentUser) {

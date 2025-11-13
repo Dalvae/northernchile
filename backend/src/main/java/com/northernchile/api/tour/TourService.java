@@ -10,7 +10,6 @@ import com.northernchile.api.tour.dto.TourUpdateReq;
 import com.northernchile.api.tour.dto.TourImageRes;
 import com.northernchile.api.util.SlugGenerator;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
@@ -26,20 +25,24 @@ import java.util.stream.Collectors;
 @Transactional
 public class TourService {
 
-    @Autowired
-    private TourRepository tourRepository;
+    private final TourRepository tourRepository;
+    private final TourImageRepository tourImageRepository;
+    private final AuditLogService auditLogService;
+    private final SlugGenerator slugGenerator;
+    private final TourMapper tourMapper;
 
-    @Autowired
-    private TourImageRepository tourImageRepository;
-
-    @Autowired
-    private AuditLogService auditLogService;
-
-    @Autowired
-    private SlugGenerator slugGenerator;
-
-    @Autowired
-    private TourMapper tourMapper;
+    public TourService(
+            TourRepository tourRepository,
+            TourImageRepository tourImageRepository,
+            AuditLogService auditLogService,
+            SlugGenerator slugGenerator,
+            TourMapper tourMapper) {
+        this.tourRepository = tourRepository;
+        this.tourImageRepository = tourImageRepository;
+        this.auditLogService = auditLogService;
+        this.slugGenerator = slugGenerator;
+        this.tourMapper = tourMapper;
+    }
 
     public TourRes createTour(TourCreateReq tourCreateReq, User currentUser) {
         Tour tour = new Tour();

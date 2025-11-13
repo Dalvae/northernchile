@@ -5,7 +5,6 @@ import com.northernchile.api.external.LunarService;
 import com.northernchile.api.external.WeatherService;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.tour.TourScheduleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,17 +18,21 @@ import java.util.stream.Collectors;
 @Service
 public class AvailabilityService {
 
-    @Autowired
-    private TourScheduleRepository tourScheduleRepository;
+    private final TourScheduleRepository tourScheduleRepository;
+    private final BookingRepository bookingRepository;
+    private final WeatherService weatherService;
+    private final LunarService lunarService;
 
-    @Autowired
-    private BookingRepository bookingRepository;
-
-    @Autowired
-    private WeatherService weatherService;
-
-    @Autowired
-    private LunarService lunarService;
+    public AvailabilityService(
+            TourScheduleRepository tourScheduleRepository,
+            BookingRepository bookingRepository,
+            WeatherService weatherService,
+            LunarService lunarService) {
+        this.tourScheduleRepository = tourScheduleRepository;
+        this.bookingRepository = bookingRepository;
+        this.weatherService = weatherService;
+        this.lunarService = lunarService;
+    }
 
     // This DTO should be in its own file in a real application
     public static class DayAvailability {

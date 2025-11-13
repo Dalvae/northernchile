@@ -17,11 +17,13 @@ import java.util.Map;
 @RequestMapping("/api/profile")
 public class ProfileController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public ProfileController(UserService userService, UserRepository userRepository) {
+        this.userService = userService;
+        this.userRepository = userRepository;
+    }
 
     @GetMapping("/me")
     public ResponseEntity<UserRes> getCurrentUserProfile(@CurrentUser User currentUser) {

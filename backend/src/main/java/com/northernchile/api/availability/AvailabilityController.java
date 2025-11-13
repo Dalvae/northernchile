@@ -16,8 +16,11 @@ import java.util.UUID;
 @RequestMapping("/api/availability")
 public class AvailabilityController {
 
-    @Autowired
-    private AvailabilityService availabilityService;
+    private final AvailabilityService availabilityService;
+
+    public AvailabilityController(AvailabilityService availabilityService) {
+        this.availabilityService = availabilityService;
+    }
 
     @GetMapping
     public ResponseEntity<Map<LocalDate, AvailabilityService.DayAvailability>> getAvailability(

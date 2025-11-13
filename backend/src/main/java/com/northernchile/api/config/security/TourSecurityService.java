@@ -4,7 +4,6 @@ import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.User;
 import com.northernchile.api.tour.TourRepository;
 import com.northernchile.api.user.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -14,11 +13,13 @@ import java.util.UUID;
 @Service("tourSecurityService")
 public class TourSecurityService {
 
-    @Autowired
-    private TourRepository tourRepository;
+    private final TourRepository tourRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public TourSecurityService(TourRepository tourRepository, UserRepository userRepository) {
+        this.tourRepository = tourRepository;
+        this.userRepository = userRepository;
+    }
 
     /**
      * Check if the authenticated user is the owner of the tour

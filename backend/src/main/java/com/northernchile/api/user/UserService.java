@@ -25,17 +25,21 @@ import java.util.stream.Collectors;
 @Transactional
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
+    private final UserMapper userMapper;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private AuditLogService auditLogService;
-
-    @Autowired
-    private UserMapper userMapper;
+    public UserService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            AuditLogService auditLogService,
+            UserMapper userMapper) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.auditLogService = auditLogService;
+        this.userMapper = userMapper;
+    }
 
     public List<UserRes> getAllUsers() {
         return userRepository.findAll().stream()

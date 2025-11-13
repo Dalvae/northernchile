@@ -31,23 +31,6 @@ public class WebhookController {
         // Por ahora, solo registramos la recepción del webhook.
         log.info("Received payment webhook: {}", payload);
 
-        /*
-        // Ejemplo de lógica a implementar en el futuro:
-        String eventType = (String) payload.get("type");
-        if ("payment_intent.succeeded".equals(eventType)) {
-            Map<String, Object> data = (Map<String, Object>) payload.get("data");
-            Map<String, Object> object = (Map<String, Object>) data.get("object");
-            String bookingIdStr = (String) object.get("metadata.booking_id");
-            if (bookingIdStr != null) {
-                UUID bookingId = UUID.fromString(bookingIdStr);
-                bookingRepository.findById(bookingId).ifPresent(booking -> {
-                    booking.setStatus("CONFIRMED");
-                    bookingRepository.save(booking);
-                });
-            }
-        }
-        */
-
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
