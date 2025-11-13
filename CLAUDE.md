@@ -25,15 +25,23 @@ northernchile/
 - **Package Structure**: Feature-based packages under `com.northernchile.api/`
 
 Key backend packages:
-- `auth/` - Authentication and user management
+- `auth/` - Authentication and user management with email verification and password reset
 - `tour/` - Tour catalog and scheduling
-- `booking/` - Booking management and participant tracking
+- `booking/` - Booking management and participant tracking with anti-overbooking system
 - `cart/` - Shopping cart functionality
 - `payment/` - Payment processing
-- `availability/` - Tour availability calculation
-- `external/` - Weather and lunar phase APIs
-- `config/` - Security, CORS, i18n configuration
-- `model/` - JPA entities
+- `availability/` - Tour availability calculation with timezone handling
+- `external/` - Weather API integration
+- `lunar/` - Lunar phase calculations for astronomical tours
+- `notification/` - Email notification system with multilingual templates
+- `alert/` - System alerts and notifications
+- `audit/` - Activity tracking and audit logs
+- `reports/` - Analytics and reporting functionality
+- `privatetour/` - Custom private tour request management
+- `storage/` - AWS S3 file storage integration
+- `diagnostic/` - System health checks and diagnostics
+- `config/` - Security, CORS, i18n, timezone, and Jackson configuration
+- `model/` - JPA entities with MapStruct DTO mappings
 
 ### Frontend (Nuxt 3)
 - **Framework**: Nuxt 3 with Vue 3 Composition API
@@ -129,15 +137,18 @@ Tours can be recurring (`is_recurring = true`) with `recurrence_rule` (cron expr
 
 ## Database Management
 
-### Migrations
-Flyway migrations are in `backend/src/main/resources/db/migration/`:
-```
-V1__Create_initial_schema.sql
-V2__Add_auth_provider_to_users.sql
-...
-```
+### Schema Management
+**IMPORTANT**: The project is currently in development mode with the following configuration:
+- **Flyway**: Disabled (`spring.flyway.enabled=false`)
+- **Hibernate DDL**: Set to `create` mode (`spring.jpa.hibernate.ddl-auto=create`)
+- **Development Note**: Database schema is recreated on each backend startup
+- **Migration Strategy**: Once moving to production, migrations will be managed via Flyway with versioned SQL files in `backend/src/main/resources/db/migration/` following the `V{number}__{description}.sql` pattern
 
-Migrations run automatically on backend startup. Version migration files following the `V{number}__{description}.sql` pattern.
+### Data Seeding
+The backend supports optional data seeding for development and demos:
+- Set `SEED_DATA=true` in `.env` to populate database with synthetic tour data
+- Seeding only runs if the database is empty (no tours exist)
+- Useful for MVP presentations and development testing
 
 ### Main Tables
 - `users` - All users (clients and admins) with role and auth provider
@@ -293,11 +304,32 @@ const statusOptions = [
 ];
 ```
 
+### Frontend Routing and SSR Strategy
+
+The application uses a hybrid SSR approach for optimal performance and SEO:
+
+**Server-Side Rendered (SSR) Pages**:
+- `/` - Homepage (prerendered)
+- `/tours/**` - Tour catalog and detail pages
+- `/about`, `/contact` - Static pages
+- SEO-optimized with meta tags, structured data, and multilingual support
+
+**Client-Side Rendered (CSR) Pages**:
+- `/admin/**` - Admin dashboard and management
+- `/profile/**` - User profile and settings
+- `/bookings/**` - Booking history and details
+- `/cart` - Shopping cart
+- `/auth` - Login and registration
+
+**Route Rules**: Configured in `nuxt.config.ts` using `routeRules`
+
 ### i18n and SEO
 The app uses `@nuxtjs/i18n` with SEO-optimized configuration:
 - `useLocaleHead` is implemented in `layouts/default.vue` for automatic `lang`, `hreflang`, and canonical tags
 - Locales use ISO codes: `es-CL`, `en-US`, `pt-BR`
 - Base URL configured for production: `https://www.northernchile.cl`
+- URL Strategy: `prefix_except_default` (ES default, /en/*, /pt/* for translations)
+- Browser language detection with cookie persistence
 
 ## Environment Variables
 
@@ -305,16 +337,43 @@ The app uses `@nuxtjs/i18n` with SEO-optimized configuration:
 ```bash
 # Database
 SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/northernchile_db
-POSTGRES_USER=user
-POSTGRES_PASSWORD=password
+SPRING_DATASOURCE_USERNAME=user
+SPRING_DATASOURCE_PASSWORD=password
 
-# Admin initialization
+# Security
+JWT_SECRET=your-256-bit-secret-key
+SPRING_REMOTE_SECRET=change-me-in-dev
+
+# Admin initialization (Legacy - single admin)
 ADMIN_EMAIL=admin@northernchile.cl
 ADMIN_FULL_NAME=Administrador Principal
 ADMIN_PASSWORD=Admin123!secure
 
-# External APIs (optional for dev)
-WEATHER_API_KEY=your_weatherapi_key
+# Multi-Admin Configuration (Recommended)
+# Format: email:password:role;email2:password2:role2
+# Roles: ROLE_SUPER_ADMIN, ROLE_PARTNER_ADMIN, ROLE_CLIENT
+ADMIN_USERS_CONFIG=admin@example.com:pass123:ROLE_SUPER_ADMIN;partner@example.com:pass456:ROLE_PARTNER_ADMIN
+
+# Data Seeding (for development/demos)
+SEED_DATA=false
+
+# Email Configuration (Google Workspace / Gmail SMTP)
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=noreply@northernchile.cl
+MAIL_PASSWORD=your_app_specific_password_here
+MAIL_FROM_EMAIL=noreply@northernchile.cl
+MAIL_FROM_NAME=Northern Chile Tours
+MAIL_ENABLED=true
+
+# AWS S3 Storage (for tour images and assets)
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=sa-east-1
+AWS_S3_BUCKET_NAME=northern-chile-assets
+
+# External APIs
+WEATHER_API_KEY=your_openweathermap_key
 GOOGLE_CLIENT_ID=your_google_oauth_id
 GOOGLE_CLIENT_SECRET=your_google_oauth_secret
 ```
@@ -325,7 +384,11 @@ NUXT_PUBLIC_API_BASE_URL=http://localhost:8080/api
 NUXT_PUBLIC_BASE_URL=http://localhost:3000
 ```
 
-Copy `.env.example` to `.env` and fill in values.
+### Environment Setup
+1. Copy `.env.example` to `.env`
+2. Fill in required values
+3. For email setup, see `backend/docs/EMAIL_SETUP.md`
+4. For AWS S3 setup, create a bucket in sa-east-1 region and configure IAM user with S3 permissions
 
 ## Testing Strategy
 
@@ -338,16 +401,216 @@ Type checking with `pnpm typecheck`. ESLint configured with stylistic rules (1tb
 ## Integration Points
 
 ### External APIs
-- **WeatherAPI.com**: 14-day forecast for wind and cloud conditions
-- **commons-suncalc**: Lunar phase calculations
+- **OpenWeatherMap**: 5-day / 3-hour forecast for wind and cloud conditions (Free tier: 60 calls/min)
+- **Lunar phase calculations**: Built-in astronomical calculations for moon illumination
 - **Payment gateways**: Transbank (Chile), Mercado Pago (Brazil/PIX), Stripe (international)
+- **Google OAuth 2.0**: Social login integration
 
 ### Email Service
-Multilingual email templates using Spring's `MessageSource` with `messages_{locale}.properties` files. Language determined by `booking.language_code`.
+Comprehensive email system with Google Workspace/Gmail SMTP integration:
 
-## Known Issues and TODO
-See `TODO.md` for current pending tasks:
-- Missing translations
-- Theme configuration (light/dark mode)
-- Adult/child price differentiation in some flows
-- Always use the migration v1 edited, we will wipe the db and start again since we are on development right now
+**Email Types**:
+1. **Email Verification** - Sent on registration (24-hour token validity)
+2. **Password Reset** - Sent on password reset request (2-hour token validity)
+3. **Booking Confirmation** - Sent immediately after successful booking
+4. **Tour Reminders** - Automated emails sent 24 hours before tour start
+
+**Key Features**:
+- Multilingual templates using Thymeleaf
+- i18n support via `messages_{locale}.properties` (es, en, pt)
+- Language determined by user's `languageCode` or `Accept-Language` header
+- Graceful degradation: Set `MAIL_ENABLED=false` to log emails instead of sending
+- Scheduled task runs hourly to send tour reminders
+- Templates located in `backend/src/main/resources/templates/email/`
+
+**Configuration**: See `backend/docs/EMAIL_SETUP.md` for complete setup guide with Google Workspace app passwords, SPF/DKIM configuration, and troubleshooting.
+
+### File Storage
+AWS S3 integration for storing:
+- Tour images and gallery photos
+- User profile pictures
+- Booking attachments and documents
+- Configured via AWS SDK with region `sa-east-1`
+- Max file upload size: 10MB
+
+## Timezone and Date/Time Handling
+
+**CRITICAL**: The application uses a standardized approach for date/time serialization to prevent timezone bugs.
+
+### Application Timezone
+- **Primary Timezone**: `America/Santiago` (Chile)
+- **DST Handling**: Automatic (UTC-04:00 in winter, UTC-03:00 in summer)
+- **Database Storage**: All timestamps stored as UTC
+- **Serialization**: ISO-8601 format
+
+### Type Contracts (Backend ↔ Frontend)
+
+1. **Instant** (Timezone-aware timestamps)
+   - **Backend Type**: `java.time.Instant`
+   - **JSON Format**: `"2025-01-15T14:30:00Z"` (ISO-8601 with UTC)
+   - **Use Cases**: `TourSchedule.startDatetime`, `Booking.createdAt`, `Booking.updatedAt`
+
+2. **LocalDate** (Date without time)
+   - **Backend Type**: `java.time.LocalDate`
+   - **JSON Format**: `"2025-01-15"` (YYYY-MM-DD)
+   - **Use Cases**: `User.dateOfBirth`, `Participant.dateOfBirth`
+   - **IMPORTANT**: Always send as string, NEVER convert to JavaScript Date object
+
+3. **LocalTime** (Time without date)
+   - **Backend Type**: `java.time.LocalTime`
+   - **JSON Format**: `"14:30:00"` (HH:mm:ss)
+   - **Use Cases**: `Tour.defaultStartTime`
+
+### Frontend Best Practices
+```typescript
+// ✅ DO: Parse Instant for display
+const date = new Date(booking.createdAt);
+const formatter = new Intl.DateTimeFormat('es-CL', {
+  timeZone: 'America/Santiago'
+});
+
+// ✅ DO: Send LocalDate as string
+const participant = { dateOfBirth: "1990-05-15" };
+
+// ❌ DON'T: Convert LocalDate to Date object
+const participant = { dateOfBirth: new Date("1990-05-15") }; // ❌ Timezone issues!
+```
+
+**Complete Guide**: See `docs/DATE_TIME_HANDLING.md` for detailed patterns, testing strategies, and troubleshooting.
+
+## Backend Architecture Patterns
+
+### DTO Mapping with MapStruct
+The backend uses MapStruct 1.5.5 for type-safe, compile-time DTO mappings:
+- Mappers located in each feature package (e.g., `auth/mapper/`, `tour/mapper/`)
+- Automatic mapping generation at compile time
+- Custom mappings for complex transformations
+- No runtime reflection overhead
+
+### Anti-Overbooking System
+Centralized booking validation prevents double-booking of tour schedules:
+- Database-level constraint checks
+- Service-layer validation before booking creation
+- Transaction isolation to prevent race conditions
+
+### Service Layer Architecture
+- Feature-based package structure
+- Clear separation of concerns
+- Dependency injection via Spring constructor injection
+- Service extraction for reusable business logic
+
+### API Conventions
+
+**REST Endpoint Structure**:
+```
+/api/{resource}           - List/Create
+/api/{resource}/{id}      - Get/Update/Delete
+/api/{resource}/{id}/sub  - Nested resources
+```
+
+**Request/Response Patterns**:
+- **Request DTOs**: Suffixed with `Req` (e.g., `BookingReq`, `TourCreateReq`)
+- **Response DTOs**: Suffixed with `Res` (e.g., `BookingRes`, `TourRes`)
+- **Validation**: JSR-303 annotations on request DTOs (`@NotNull`, `@Valid`, `@Size`, etc.)
+- **Error Responses**: Standardized error format with HTTP status codes
+- **Pagination**: Use Spring Data `Pageable` for list endpoints
+- **Filtering**: Query parameters for filtering (e.g., `?status=CONFIRMED&startDate=2025-01-01`)
+
+**Authentication & Authorization**:
+- JWT tokens in `Authorization: Bearer {token}` header
+- Role-based access control with `@PreAuthorize` annotations
+- Multi-tenant filtering by `owner_id` for `PARTNER_ADMIN` role
+- Public endpoints: Auth registration, login, tour catalog
+- Protected endpoints: Bookings, admin operations, profile management
+
+**OpenAPI Documentation**:
+- All endpoints documented with `@Operation`, `@ApiResponse` annotations
+- Request/response examples in Swagger UI
+- Available at `/swagger-ui.html` and `/api-docs` (JSON)
+
+## Best Practices for AI Assistants
+
+### When Working on Backend Features
+1. **Always use feature-based packages**: Place new features in their own package with `controller/`, `service/`, `repository/`, `model/`, `dto/`, `mapper/` structure
+2. **Use MapStruct for DTOs**: Create mappers for entity ↔ DTO conversions
+3. **Add validation**: Use JSR-303 annotations on request DTOs
+4. **Consider multi-tenancy**: Check if `owner_id` filtering is needed for `PARTNER_ADMIN` users
+5. **Test timezone handling**: Ensure `Instant` types for timestamps, `LocalDate` for dates
+6. **Add OpenAPI docs**: Document all new endpoints with Swagger annotations
+7. **Handle email notifications**: Check if the feature requires email notifications
+
+### When Working on Frontend Features
+1. **Use semantic colors only**: Never use hardcoded color names (see Theming section)
+2. **Use API client types**: Import types from `api-client` generated by OpenAPI
+3. **Handle i18n**: Add translations to all three locale files (`es.json`, `en.json`, `pt.json`)
+4. **Respect SSR/CSR boundaries**: Check `routeRules` before adding new pages
+5. **Use composables**: Extract reusable logic to `composables/` directory
+6. **Follow USelect patterns**: Use `option-attribute` and `value-attribute` for object arrays
+7. **Test date handling**: Keep `LocalDate` as strings, don't convert to Date objects
+8. **Use Pinia stores**: For shared state management across components
+
+### Code Quality Standards
+- **Backend**: Follow Spring Boot best practices, use constructor injection, avoid `@Autowired`
+- **Frontend**: Use TypeScript strict mode, avoid `any` types, use Composition API
+- **Testing**: Write unit tests for services, integration tests for controllers
+- **Logging**: Use SLF4J for backend, avoid excessive console.log in frontend production
+- **Error Handling**: Use try-catch blocks, return appropriate HTTP status codes
+- **Security**: Sanitize user input, validate all request data, use parameterized queries
+
+## Key Dependencies and Tools
+
+### Backend
+- **MapStruct**: DTO mapping (annotation processor)
+- **JJWT**: JWT token generation and validation
+- **Caffeine**: In-memory caching
+- **Flyway**: Database migrations (currently disabled, will be enabled for production)
+- **SpringDoc OpenAPI**: API documentation and Swagger UI
+- **Thymeleaf**: Email template engine
+- **AWS SDK**: S3 file storage
+- **Cron-utils**: Recurrence rule parsing
+- **Hibernate Types**: JSON column type support
+
+### Frontend
+- **@nuxt/ui**: Component library with semantic theming
+- **@nuxtjs/i18n**: Internationalization
+- **@pinia/nuxt**: State management
+- **@vueuse/nuxt**: Vue composition utilities
+- **@fullcalendar/vue3**: Calendar component for tour scheduling
+- **date-fns**: Date manipulation utilities
+- **@openapitools/openapi-generator-cli**: API client generation
+
+## Monitoring and Health Checks
+
+### Spring Boot Actuator Endpoints
+Available at `http://localhost:8080/actuator`:
+- `/actuator/health` - Application health status
+- `/actuator/health/liveness` - Liveness probe (Kubernetes)
+- `/actuator/health/readiness` - Readiness probe (Kubernetes)
+- `/actuator/info` - Application information
+
+Health checks include:
+- Database connectivity
+- Disk space
+- Application status
+
+## Documentation References
+
+- **Email Setup**: `backend/docs/EMAIL_SETUP.md`
+- **Date/Time Handling**: `docs/DATE_TIME_HANDLING.md`
+- **Frontend Theming**: `frontend/THEMING.md`
+- **Nuxt UI Updates**: `frontend/NUXT_UI_UPDATES.md`
+- **API Documentation**: `http://localhost:8080/swagger-ui.html`
+
+## Known Issues and Development Notes
+
+**Current Development Status**:
+- Database schema management using Hibernate `create` mode (recreates on each startup)
+- Flyway migrations disabled during active development
+- Production deployment will use Flyway with versioned migrations
+- `TODO.md` is currently empty - tasks are tracked in pull requests and issues
+
+**Important Notes**:
+- Always test timezone-sensitive features with `America/Santiago` timezone
+- Email sending disabled by default (`MAIL_ENABLED=false`) - check logs for email content
+- Data seeding available for quick development setup (`SEED_DATA=true`)
+- Multi-admin configuration allows multiple administrators with different roles
