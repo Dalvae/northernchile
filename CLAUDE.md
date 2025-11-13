@@ -424,14 +424,20 @@ Comprehensive payment integration system supporting multiple payment providers w
    - Payment methods: Credit/debit cards (Chilean banks)
    - Currency: CLP (Chilean Pesos)
    - Environment: INTEGRATION (testing) / PRODUCTION
-   - SDK: `transbank-sdk-java` v6.0.0
+   - SDK: `transbank-sdk-java` v6.0.0 (official package `com.github.transbankdevelopers`)
+   - Test credentials: Pre-configured in SDK for integration environment
 
-2. **Mercado Pago** - Latin America payment processor
+2. **Mercado Pago** - Latin America payment processor (like Stripe or PayPal)
    - Integration type: API-based with webhook notifications
-   - Payment methods: PIX (Brazil), credit cards, debit cards, bank transfers
-   - Currencies: BRL, USD, CLP, and others
+   - **Payment methods supported:**
+     - **PIX** (Brazil's instant payment system - like ACH/bank transfer)
+     - Credit cards (Visa, Mastercard, Amex)
+     - Debit cards
+     - Bank transfers
+     - Mercado Pago wallet
+   - Currencies: BRL, USD, CLP, ARS, MXN, and others
    - PIX features: QR code generation, copy-paste code, 30-minute expiration
-   - SDK: `mercadopago-sdk-java` v2.6.0
+   - SDK: `mercadopago-sdk-java` v2.6.0 (official package `com.mercadopago`)
 
 3. **Stripe** - International payment processor (future implementation)
 
@@ -484,11 +490,17 @@ mercadopago.public-key=${MERCADOPAGO_PUBLIC_KEY:TEST-PUBLIC-KEY}
 ```
 
 **Testing**:
-- **Transbank Integration**: Use default integration credentials (pre-configured in SDK)
-  - Test user: RUT 11.111.111-1, password 123
-  - All transactions approved in integration environment
-- **Mercado Pago**: Use test access tokens from developer panel
-  - PIX payments simulate instant approval in test mode
+- **Transbank Integration**:
+  - Environment: `INTEGRATION` (default)
+  - Test cards: VISA 4051885600446623 (success), Mastercard 5186059559590568 (fail)
+  - Test auth: RUT 11.111.111-1, password 123
+  - See `backend/docs/PAYMENT_TESTING.md` for complete testing guide
+- **Mercado Pago**:
+  - Environment: Requires TEST credentials (token starts with `TEST-`)
+  - Test cards vary by country (Argentina, Brazil, Chile, Mexico)
+  - Cardholder names determine outcome: APRO (approved), FUND (insufficient), etc.
+  - PIX: Instant approval in sandbox mode
+  - Complete testing guide: `backend/docs/PAYMENT_TESTING.md`
 
 **Important Notes**:
 - Payment amounts stored in `BigDecimal` with 4 decimal precision
@@ -714,6 +726,7 @@ Health checks include:
 ## Documentation References
 
 - **Email Setup**: `backend/docs/EMAIL_SETUP.md`
+- **Payment Testing**: `backend/docs/PAYMENT_TESTING.md` - Complete guide for testing Transbank, Mercado Pago, and PIX with test cards and credentials
 - **Date/Time Handling**: `docs/DATE_TIME_HANDLING.md`
 - **Frontend Theming**: `frontend/THEMING.md`
 - **Nuxt UI Updates**: `frontend/NUXT_UI_UPDATES.md`
