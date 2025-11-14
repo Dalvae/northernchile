@@ -51,14 +51,14 @@ public class TransbankPaymentService implements PaymentProviderService {
     }
 
     /**
-     * Configure Transbank SDK with credentials.
+     * Create WebpayPlus Transaction instance with credentials.
      * In production, this should use environment-specific credentials.
      */
-    private void configureTransbank() {
+    private WebpayPlus.Transaction getTransactionInstance() {
         if ("PRODUCTION".equalsIgnoreCase(environment)) {
-            WebpayPlus.configureForProduction(commerceCode, apiKey);
+            return WebpayPlus.Transaction.buildForProduction(commerceCode, apiKey);
         } else {
-            WebpayPlus.configureForTesting();
+            return WebpayPlus.Transaction.buildForIntegration(commerceCode, apiKey);
         }
     }
 
@@ -72,15 +72,15 @@ public class TransbankPaymentService implements PaymentProviderService {
             Booking booking = bookingRepository.findById(request.getBookingId())
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found: " + request.getBookingId()));
 
-            // Configure Transbank SDK
-            configureTransbank();
+            // Get Transaction instance
+            WebpayPlus.Transaction transaction = getTransactionInstance();
 
             // Create transaction with Transbank
             String buyOrder = "ORDER-" + request.getBookingId().toString().substring(0, 8);
             String sessionId = "SESSION-" + System.currentTimeMillis();
-            long amountInPesos = request.getAmount().longValue();
+            double amountInPesos = request.getAmount().doubleValue();
 
-            WebpayPlusTransactionCreateResponse transbankResponse = WebpayPlus.Transaction.create(
+            WebpayPlusTransactionCreateResponse transbankResponse = transaction.create(
                 buyOrder,
                 sessionId,
                 amountInPesos,
@@ -123,6 +123,9 @@ public class TransbankPaymentService implements PaymentProviderService {
         } catch (TransactionCreateException e) {
             log.error("Error creating Transbank transaction", e);
             throw new RuntimeException("Failed to create Transbank payment: " + e.getMessage(), e);
+        } catch (java.io.IOException e) {
+            log.error("IO error creating Transbank transaction", e);
+            throw new RuntimeException("Failed to create Transbank payment: " + e.getMessage(), e);
         }
     }
 
@@ -136,11 +139,11 @@ public class TransbankPaymentService implements PaymentProviderService {
             Payment payment = paymentRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found for token: " + token));
 
-            // Configure Transbank SDK
-            configureTransbank();
+            // Get Transaction instance
+            WebpayPlus.Transaction transaction = getTransactionInstance();
 
             // Commit transaction with Transbank
-            WebpayPlusTransactionCommitResponse commitResponse = WebpayPlus.Transaction.commit(token);
+            WebpayPlusTransactionCommitResponse commitResponse = transaction.commit(token);
 
             // Update payment status based on Transbank response
             PaymentStatus newStatus = mapTransbankStatus(commitResponse.getResponseCode());
@@ -185,6 +188,9 @@ public class TransbankPaymentService implements PaymentProviderService {
         } catch (TransactionCommitException e) {
             log.error("Error committing Transbank transaction", e);
             throw new RuntimeException("Failed to confirm Transbank payment: " + e.getMessage(), e);
+        } catch (java.io.IOException e) {
+            log.error("IO error committing Transbank transaction", e);
+            throw new RuntimeException("Failed to confirm Transbank payment: " + e.getMessage(), e);
         }
     }
 
@@ -193,11 +199,11 @@ public class TransbankPaymentService implements PaymentProviderService {
         log.info("Getting Transbank payment status: {}", externalPaymentId);
 
         try {
-            // Configure Transbank SDK
-            configureTransbank();
+            // Get Transaction instance
+            WebpayPlus.Transaction transaction = getTransactionInstance();
 
             // Get transaction status from Transbank
-            WebpayPlusTransactionStatusResponse statusResponse = WebpayPlus.Transaction.status(externalPaymentId);
+            WebpayPlusTransactionStatusResponse statusResponse = transaction.status(externalPaymentId);
 
             // Find payment in database
             Payment payment = paymentRepository.findByExternalPaymentId(externalPaymentId)
@@ -223,6 +229,9 @@ public class TransbankPaymentService implements PaymentProviderService {
         } catch (TransactionStatusException e) {
             log.error("Error getting Transbank transaction status", e);
             throw new RuntimeException("Failed to get Transbank payment status: " + e.getMessage(), e);
+        } catch (java.io.IOException e) {
+            log.error("IO error getting Transbank transaction status", e);
+            throw new RuntimeException("Failed to get Transbank payment status: " + e.getMessage(), e);
         }
     }
 
@@ -231,14 +240,14 @@ public class TransbankPaymentService implements PaymentProviderService {
         log.info("Refunding Transbank payment: {}", payment.getId());
 
         try {
-            // Configure Transbank SDK
-            configureTransbank();
+            // Get Transaction instance
+            WebpayPlus.Transaction transaction = getTransactionInstance();
 
             // Determine refund amount
-            long refundAmount = (amount != null) ? amount.longValue() : payment.getAmount().longValue();
+            double refundAmount = (amount != null) ? amount.doubleValue() : payment.getAmount().doubleValue();
 
             // Refund transaction with Transbank
-            WebpayPlus.Transaction.refund(
+            transaction.refund(
                 payment.getToken(),
                 refundAmount
             );

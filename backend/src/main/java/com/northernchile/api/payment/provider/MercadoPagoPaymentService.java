@@ -107,10 +107,22 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
                 payment.setExpiresAt(Instant.now().plus(expirationMinutes, ChronoUnit.MINUTES));
             }
 
-            // Set payment URL (for credit card 3DS or other redirect flows)
-            if (mpPayment.getPointOfInteraction() != null &&
-                mpPayment.getPointOfInteraction().getLinksObject() != null) {
-                payment.setPaymentUrl(mpPayment.getPointOfInteraction().getLinksObject().toString());
+            // Set payment URL (ticket URL for PIX or 3DS redirect)
+            if (mpPayment.getPointOfInteraction() != null) {
+                // Try to get ticket URL if available
+                String ticketUrl = null;
+                try {
+                    // The ticket_url is typically available in the main payment object
+                    if (mpPayment.getTransactionDetails() != null &&
+                        mpPayment.getTransactionDetails().getExternalResourceUrl() != null) {
+                        ticketUrl = mpPayment.getTransactionDetails().getExternalResourceUrl();
+                    }
+                } catch (Exception e) {
+                    log.debug("Could not retrieve ticket URL: {}", e.getMessage());
+                }
+                if (ticketUrl != null) {
+                    payment.setPaymentUrl(ticketUrl);
+                }
             }
 
             // Store provider response
@@ -211,6 +223,10 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
 
             return response;
 
+        } catch (MPApiException e) {
+            log.error("Mercado Pago API error getting payment status: {} - {}",
+                e.getApiResponse().getStatusCode(), e.getApiResponse().getContent(), e);
+            throw new RuntimeException("Failed to get Mercado Pago payment status: " + e.getApiResponse().getContent(), e);
         } catch (MPException e) {
             log.error("Error getting Mercado Pago payment status", e);
             throw new RuntimeException("Failed to get Mercado Pago payment status: " + e.getMessage(), e);
