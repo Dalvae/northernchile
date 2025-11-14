@@ -3,6 +3,8 @@ package com.northernchile.api.exception;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -12,7 +14,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +39,25 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    private final Environment environment;
+
+    public GlobalExceptionHandler(Environment environment) {
+        this.environment = environment;
+    }
+
+    private boolean isDevMode() {
+        return Arrays.asList(environment.getActiveProfiles()).contains("dev")
+            || Arrays.asList(environment.getActiveProfiles()).contains("local")
+            || Arrays.asList(environment.getActiveProfiles()).isEmpty(); // Default to dev if no profile
+    }
+
+    private String getStackTraceAsString(Exception ex) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        ex.printStackTrace(pw);
+        return sw.toString();
+    }
 
     /**
      * Handles ResourceNotFoundException (custom)
@@ -172,19 +196,30 @@ public class GlobalExceptionHandler {
     /**
      * Handles all other unhandled exceptions
      * Returns HTTP 500 Internal Server Error
+     * In development mode, includes full stacktrace for debugging
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(
             Exception ex,
             WebRequest request) {
-        log.error("Unhandled exception occurred: {}", request.getDescription(false), ex);
+        // Always log the full exception with stacktrace
+        log.error("Unhandled exception occurred: {} - {}",
+            request.getDescription(false),
+            ex.getMessage(),
+            ex
+        );
+
+        String detailedMessage = isDevMode() ? ex.getMessage() : "An unexpected error occurred";
+        String stackTrace = isDevMode() ? getStackTraceAsString(ex) : null;
 
         ErrorResponse errorResponse = new ErrorResponse(
                 Instant.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "An unexpected error occurred",
-                request.getDescription(false).replace("uri=", "")
+                detailedMessage,
+                request.getDescription(false).replace("uri=", ""),
+                ex.getClass().getName(),
+                stackTrace
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -198,7 +233,10 @@ public class GlobalExceptionHandler {
         private String error;
         private String message;
         private String path;
+        private String exceptionType; // Optional: Exception class name (dev mode only)
+        private String stackTrace;    // Optional: Full stacktrace (dev mode only)
 
+        // Constructor for standard errors (without debug info)
         public ErrorResponse(Instant timestamp, int status, String error, String message, String path) {
             this.timestamp = timestamp;
             this.status = status;
@@ -207,17 +245,32 @@ public class GlobalExceptionHandler {
             this.path = path;
         }
 
+        // Constructor for errors with debug info (dev mode)
+        public ErrorResponse(Instant timestamp, int status, String error, String message, String path, String exceptionType, String stackTrace) {
+            this.timestamp = timestamp;
+            this.status = status;
+            this.error = error;
+            this.message = message;
+            this.path = path;
+            this.exceptionType = exceptionType;
+            this.stackTrace = stackTrace;
+        }
+
         public Instant getTimestamp() { return timestamp; }
         public int getStatus() { return status; }
         public String getError() { return error; }
         public String getMessage() { return message; }
         public String getPath() { return path; }
+        public String getExceptionType() { return exceptionType; }
+        public String getStackTrace() { return stackTrace; }
 
         public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
         public void setStatus(int status) { this.status = status; }
         public void setError(String error) { this.error = error; }
         public void setMessage(String message) { this.message = message; }
         public void setPath(String path) { this.path = path; }
+        public void setExceptionType(String exceptionType) { this.exceptionType = exceptionType; }
+        public void setStackTrace(String stackTrace) { this.stackTrace = stackTrace; }
     }
 
     /**
