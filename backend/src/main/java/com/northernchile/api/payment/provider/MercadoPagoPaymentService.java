@@ -131,6 +131,13 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
             providerResponse.put("status", mpPayment.getStatus());
             providerResponse.put("status_detail", mpPayment.getStatusDetail());
             providerResponse.put("payment_type_id", mpPayment.getPaymentTypeId());
+
+            // Store additional booking IDs for multi-item cart checkout
+            if (request.getAdditionalBookingIds() != null && !request.getAdditionalBookingIds().isEmpty()) {
+                providerResponse.put("additionalBookingIds", request.getAdditionalBookingIds());
+                log.info("Payment includes {} additional bookings", request.getAdditionalBookingIds().size());
+            }
+
             payment.setProviderResponse(providerResponse);
 
             payment = paymentRepository.save(payment);
@@ -203,10 +210,30 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
 
             // Update booking status if payment completed
             if (newStatus == PaymentStatus.COMPLETED) {
+                // Confirm primary booking
                 Booking booking = payment.getBooking();
                 booking.setStatus("CONFIRMED");
                 bookingRepository.save(booking);
                 log.info("Booking {} confirmed after successful payment", booking.getId());
+
+                // Confirm additional bookings from multi-item cart (if any)
+                Map<String, Object> storedResponse = payment.getProviderResponse();
+                if (storedResponse != null && storedResponse.containsKey("additionalBookingIds")) {
+                    @SuppressWarnings("unchecked")
+                    java.util.List<String> additionalIds = (java.util.List<String>) storedResponse.get("additionalBookingIds");
+                    for (String idStr : additionalIds) {
+                        try {
+                            java.util.UUID additionalBookingId = java.util.UUID.fromString(idStr);
+                            bookingRepository.findById(additionalBookingId).ifPresent(additionalBooking -> {
+                                additionalBooking.setStatus("CONFIRMED");
+                                bookingRepository.save(additionalBooking);
+                                log.info("Additional booking {} confirmed after successful payment", additionalBookingId);
+                            });
+                        } catch (IllegalArgumentException e) {
+                            log.error("Invalid additional booking ID: {}", idStr, e);
+                        }
+                    }
+                }
             }
 
             log.info("Mercado Pago payment status updated: {} - {}", payment.getId(), newStatus);

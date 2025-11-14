@@ -272,8 +272,12 @@ async function submitBooking() {
     const primaryBooking = bookingResponses[0]
     const tourNames = cartItems.map(item => item.tourName).join(', ')
 
+    // Collect additional booking IDs (all except the first one)
+    const additionalBookingIds = bookingResponses.slice(1).map(b => b.id)
+
     const paymentResult = await paymentStore.initializePayment({
       bookingId: primaryBooking.id,
+      additionalBookingIds: additionalBookingIds.length > 0 ? additionalBookingIds : undefined,
       provider: selectedPaymentMethod.value.provider,
       paymentMethod: selectedPaymentMethod.value.method,
       amount: total.value,
