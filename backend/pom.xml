@@ -179,6 +179,13 @@
       			<artifactId>bucket4j-core</artifactId>
       			<version>8.15.0</version>
       		</dependency>
+
+      		<!-- Apache Commons Codec for webhook signature verification -->
+      		<dependency>
+      			<groupId>commons-codec</groupId>
+      			<artifactId>commons-codec</artifactId>
+      			<version>1.16.0</version>
+      		</dependency>
       	</dependencies>
 	<build>
 		<plugins>

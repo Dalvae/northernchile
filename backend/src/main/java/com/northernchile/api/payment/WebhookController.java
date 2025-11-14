@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.Map;
 
 /**
@@ -25,28 +26,83 @@ public class WebhookController {
     private static final Logger log = LoggerFactory.getLogger(WebhookController.class);
 
     private final PaymentService paymentService;
+    private final WebhookSecurityService webhookSecurityService;
 
-    public WebhookController(PaymentService paymentService) {
+    public WebhookController(PaymentService paymentService, WebhookSecurityService webhookSecurityService) {
         this.paymentService = paymentService;
+        this.webhookSecurityService = webhookSecurityService;
     }
 
     @PostMapping("/mercadopago")
     @Operation(summary = "Mercado Pago webhook", description = "Handle Mercado Pago payment notifications")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Webhook processed successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid webhook payload")
+        @ApiResponse(responseCode = "400", description = "Invalid webhook payload"),
+        @ApiResponse(responseCode = "401", description = "Invalid signature"),
+        @ApiResponse(responseCode = "409", description = "Duplicate request")
     })
-    public ResponseEntity<Void> handleMercadoPagoWebhook(@RequestBody Map<String, Object> payload) {
-        log.info("Received Mercado Pago webhook: {}", payload);
+    public ResponseEntity<Map<String, String>> handleMercadoPagoWebhook(
+            @RequestBody String rawBody,
+            @RequestHeader(value = "x-signature", required = false) String signature,
+            @RequestHeader(value = "x-request-id", required = false) String requestId) {
+
+        log.info("Received Mercado Pago webhook with request ID: {}", requestId);
 
         try {
-            // Process webhook
+            // 1. Verify signature
+            if (signature != null && !webhookSecurityService.verifyMercadoPagoSignature(rawBody, signature)) {
+                log.error("Mercado Pago webhook signature verification failed");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid signature"));
+            }
+
+            // 2. Check for duplicate requests
+            if (requestId != null && webhookSecurityService.isDuplicateRequest(requestId)) {
+                log.warn("Duplicate Mercado Pago webhook request detected: {}", requestId);
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", "Duplicate request"));
+            }
+
+            // 3. Parse payload
+            @SuppressWarnings("unchecked")
+            Map<String, Object> payload = new com.fasterxml.jackson.databind.ObjectMapper().readValue(rawBody, Map.class);
+
+            // 4. Validate timestamp (if present in payload)
+            Object dataObj = payload.get("data");
+            if (dataObj instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> data = (Map<String, Object>) dataObj;
+                Object dateCreated = data.get("date_created");
+                if (dateCreated != null) {
+                    // Mercado Pago sends ISO timestamp, convert to epoch seconds for validation
+                    try {
+                        Instant timestamp = Instant.parse(dateCreated.toString());
+                        if (!webhookSecurityService.isValidTimestamp(timestamp.getEpochSecond())) {
+                            log.error("Mercado Pago webhook timestamp validation failed");
+                            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(Map.of("error", "Invalid or expired timestamp"));
+                        }
+                    } catch (Exception e) {
+                        log.warn("Could not parse Mercado Pago timestamp: {}", dateCreated);
+                    }
+                }
+            }
+
+            // 5. Process webhook
             PaymentStatusRes response = paymentService.processWebhook("MERCADOPAGO", payload);
             log.info("Mercado Pago webhook processed successfully: {}", response.getPaymentId());
-            return ResponseEntity.ok().build();
+
+            // 6. Mark request as processed
+            if (requestId != null) {
+                webhookSecurityService.markRequestAsProcessed(requestId);
+            }
+
+            return ResponseEntity.ok(Map.of("status", "processed"));
+
         } catch (Exception e) {
             log.error("Error processing Mercado Pago webhook", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", e.getMessage()));
         }
     }
 
