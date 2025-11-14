@@ -74,6 +74,7 @@ services:
 volumes:
   postgres_data:
   maven_cache:
+  backend_logs:
 
 networks:
   default:
