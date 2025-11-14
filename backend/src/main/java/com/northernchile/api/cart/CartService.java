@@ -130,9 +130,26 @@ public class CartService {
     private void mergeCarts(UUID guestCartId, Cart userCart) {
         cartRepository.findById(guestCartId).ifPresent(guestCart -> {
             if (!guestCart.getId().equals(userCart.getId())) {
-                guestCart.getItems().forEach(item -> {
-                    item.setCart(userCart);
-                    userCart.getItems().add(item);
+                guestCart.getItems().forEach(guestItem -> {
+                    // Check if user already has an item for this schedule
+                    CartItem existingItem = userCart.getItems().stream()
+                            .filter(item -> item.getSchedule().getId().equals(guestItem.getSchedule().getId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (existingItem != null) {
+                        // Merge: Add guest item participants to existing item
+                        existingItem.setNumParticipants(existingItem.getNumParticipants() + guestItem.getNumParticipants());
+                        existingItem.setItemTotal(existingItem.getPricePerParticipant().multiply(
+                            BigDecimal.valueOf(existingItem.getNumParticipants())
+                        ));
+                        cartItemRepository.save(existingItem);
+                        // Guest item will be deleted with the guest cart
+                    } else {
+                        // No duplicate: Move item to user cart
+                        guestItem.setCart(userCart);
+                        userCart.getItems().add(guestItem);
+                    }
                 });
                 cartRepository.save(userCart);
                 cartRepository.delete(guestCart);
