@@ -140,9 +140,7 @@ public class CartService {
                     if (existingItem != null) {
                         // Merge: Add guest item participants to existing item
                         existingItem.setNumParticipants(existingItem.getNumParticipants() + guestItem.getNumParticipants());
-                        existingItem.setItemTotal(existingItem.getPricePerParticipant().multiply(
-                            BigDecimal.valueOf(existingItem.getNumParticipants())
-                        ));
+                        // Note: CartItem doesn't store itemTotal, it's calculated on-the-fly from schedule.tour.price * numParticipants
                         cartItemRepository.save(existingItem);
                         // Guest item will be deleted with the guest cart
                     } else {
