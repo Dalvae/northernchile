@@ -15,6 +15,7 @@ useHead({
 const { fetchAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser }
   = useAdminData()
 const { getCountryLabel, getCountryFlag } = useCountries()
+const { formatDate } = useDateTime()
 
 const {
   data: users,
@@ -122,14 +123,6 @@ async function handleDelete(user: UserRes) {
       })
     }
   }
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('es-CL', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
 }
 
 function getRoleLabel(role: string): string {

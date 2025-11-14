@@ -12,6 +12,7 @@ useHead({
 
 const { fetchAdminBookings, fetchAdminTours, fetchAdminAlertsCount } = useAdminData()
 const { formatPrice: formatCurrency } = useCurrency()
+const { formatDate } = useDateTime()
 const config = useRuntimeConfig()
 
 const { data: bookingsData, pending: pendingBookings } = await useAsyncData(
@@ -116,12 +117,7 @@ const bookingColumns = [
       const date = row.original.tourDate || row.getValue('tourDate')
       const time = row.original.tourStartTime
       if (!date) return ''
-      const formattedDate = new Date(date).toLocaleDateString('es-CL', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
+      const formattedDate = formatDate(date)
       return `${formattedDate}${time ? ` - ${time.slice(0, 5)}` : ''}`
     }
   },

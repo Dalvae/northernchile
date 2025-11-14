@@ -173,12 +173,22 @@
   },
   "cart": {
     "title": "Carrito de Compras",
+    "description": "Revisa tu carrito de compras y procede al pago de tus tours",
     "empty": "Tu carrito está vacío",
-    "items": "{count} item | {count} items",
+    "empty_description": "No has agregado ningún tour a tu carrito aún",
+    "items_count": "{count} persona | {count} personas",
     "add_to_cart": "Agregar al Carrito",
     "remove": "Eliminar",
     "continue_shopping": "Seguir Comprando",
     "checkout": "Proceder al Pago",
+    "explore_tours": "Explorar Tours",
+    "order_summary": "Resumen del Pedido",
+    "per_person": "por persona",
+    "person": "persona",
+    "persons": "personas",
+    "hours": "horas",
+    "secure_payment": "Pago seguro y encriptado",
+    "free_cancellation": "Cancelación gratis hasta 24h antes",
     "apply_coupon": "Aplicar Cupón"
   },
   "user": {

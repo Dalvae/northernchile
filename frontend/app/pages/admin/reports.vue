@@ -10,6 +10,7 @@ useHead({
 const config = useRuntimeConfig()
 const toast = useToast()
 const { formatPrice } = useCurrency()
+const { formatDate } = useDateTime()
 
 // Date range filter
 const today = new Date()
@@ -123,15 +124,6 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
     watch: [dateRange]
   }
 )
-
-// Format date
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('es-CL', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
 </script>
 
 <template>

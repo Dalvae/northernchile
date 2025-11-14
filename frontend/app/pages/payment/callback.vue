@@ -7,6 +7,7 @@ const router = useRouter()
 const toast = useToast()
 const paymentStore = usePaymentStore()
 const cartStore = useCartStore()
+const { formatDateTime } = useDateTime()
 
 // Page state
 const isLoading = ref(true)
@@ -196,15 +197,7 @@ function retryPayment() {
                     {{ t('payment.callback.payment_date') }}
                   </p>
                   <p class="font-medium text-neutral-900 dark:text-white">
-                    {{
-                      new Date().toLocaleDateString('es-CL', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })
-                    }}
+                    {{ formatDateTime(new Date()) }}
                   </p>
                 </div>
               </div>
