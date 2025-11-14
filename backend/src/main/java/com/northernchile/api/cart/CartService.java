@@ -170,4 +170,19 @@ public class CartService {
 
         return res;
     }
+
+    /**
+     * Scheduled task to delete expired carts
+     * Runs every hour to cleanup carts that have passed their expiration time
+     */
+    @org.springframework.scheduling.annotation.Scheduled(cron = "0 0 * * * *")
+    @Transactional
+    public void cleanupExpiredCarts() {
+        Instant now = Instant.now();
+        int deletedCount = cartRepository.deleteByExpiresAtBefore(now);
+        if (deletedCount > 0) {
+            org.slf4j.LoggerFactory.getLogger(CartService.class)
+                .info("Cleaned up {} expired carts", deletedCount);
+        }
+    }
 }

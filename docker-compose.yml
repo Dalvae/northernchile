@@ -23,21 +23,50 @@ services:
     depends_on:
       - database
     environment:
-      # Variables de entorno comunes a todos los entornos
+      # Database
       - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+
+      # Admin Configuration
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_FULL_NAME=${ADMIN_FULL_NAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - ADMIN_USERS_CONFIG=${ADMIN_USERS_CONFIG}
+
+      # Security
       - JWT_SECRET=${JWT_SECRET}
+      - SPRING_REMOTE_SECRET=${SPRING_REMOTE_SECRET:-change-me-in-dev}
+
+      # Data Seeding
       - SEED_DATA=${SEED_DATA:-false}
+
+      # Email Configuration
+      - MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_FROM_EMAIL=${MAIL_FROM_EMAIL:-noreply@northernchile.cl}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Northern Chile Tours}
+      - MAIL_ENABLED=${MAIL_ENABLED:-false}
+
+      # AWS S3 Storage
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_REGION=${AWS_REGION}
+      - AWS_REGION=${AWS_REGION:-sa-east-1}
       - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME}
+
+      # External APIs
       - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+
+      # Payment Providers
+      - TRANSBANK_COMMERCE_CODE=${TRANSBANK_COMMERCE_CODE:-597055555532}
+      - TRANSBANK_API_KEY=${TRANSBANK_API_KEY:-579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C}
+      - TRANSBANK_ENVIRONMENT=${TRANSBANK_ENVIRONMENT:-INTEGRATION}
+      - MERCADOPAGO_ACCESS_TOKEN=${MERCADOPAGO_ACCESS_TOKEN:-TEST-ACCESS-TOKEN}
+      - MERCADOPAGO_PUBLIC_KEY=${MERCADOPAGO_PUBLIC_KEY:-TEST-PUBLIC-KEY}
     # Nota: image, ports, volumes y command se definen en:
     # - docker-compose.override.yml (desarrollo)
     # - docker-compose.prod.yml (producción)

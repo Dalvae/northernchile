@@ -2,10 +2,12 @@ package com.northernchile.api.cart;
 
 import com.northernchile.api.model.Cart;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,8 +23,13 @@ public interface CartRepository extends JpaRepository<Cart, UUID> {
     Optional<Cart> findByIdWithDetails(@Param("cartId") UUID cartId);
 
     @Query("SELECT COALESCE(SUM(ci.numParticipants), 0) FROM CartItem ci " +
-           "WHERE ci.schedule.id = :scheduleId")
+           "WHERE ci.schedule.id = :scheduleId " +
+           "AND ci.cart.expiresAt > CURRENT_TIMESTAMP")
     Integer countParticipantsByScheduleId(@Param("scheduleId") UUID scheduleId);
+
+    @Modifying
+    @Query("DELETE FROM Cart c WHERE c.expiresAt < :now")
+    int deleteByExpiresAtBefore(@Param("now") Instant now);
 
     @Query("SELECT COALESCE(SUM(ci.numParticipants), 0) FROM CartItem ci " +
            "WHERE ci.schedule.id = :scheduleId " +
