@@ -190,8 +190,12 @@ async function submitBooking() {
           email: contactForm.value.email,
           password: contactForm.value.password
         })
-      } catch (error: any) {
-        if (error.statusCode === 409) {
+      } catch (error: unknown) {
+        const statusCode = error && typeof error === 'object' && 'statusCode' in error
+          ? (error as { statusCode?: number }).statusCode
+          : undefined
+
+        if (statusCode === 409) {
           toast.add({
             color: 'warning',
             title: t('common.error'),
@@ -309,7 +313,7 @@ async function submitBooking() {
       // PIX: Show QR code modal
       showPIXModal.value = true
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in checkout process:', error)
 
     // Rollback: Cancel ALL bookings if they were created

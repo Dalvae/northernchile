@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TourRes } from 'api-client'
+import type { TourRes, TourScheduleRes } from 'api-client'
 import TourCard from '~/components/tour/TourCard.vue'
 
 const router = useRouter()
@@ -66,7 +66,7 @@ watch([searchQuery, selectedCategory, sortBy], () => {
 })
 
 // Handle calendar schedule click
-function handleScheduleClick(schedule: any, tour: any) {
+function handleScheduleClick(schedule: TourScheduleRes, tour: TourRes) {
   if (tour?.slug) {
     router.push(`/tours/${tour.slug}/schedule`)
   }

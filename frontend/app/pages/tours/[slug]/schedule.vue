@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TourRes } from 'api-client'
+import type { TourRes, TourScheduleRes } from 'api-client'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,12 +15,12 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 
 // Selected schedule for booking
-const selectedSchedule = ref<any | null>(null)
+const selectedSchedule = ref<TourScheduleRes | null>(null)
 const participantCount = ref(1)
 const showParticipantModal = ref(false)
 
 // Reference to the calendar component
-const calendarRef = ref<any>(null)
+const calendarRef = ref<InstanceType<typeof TourCalendar> | null>(null)
 
 const translatedName = computed(
   () =>
@@ -41,7 +41,7 @@ async function fetchTour() {
   try {
     const response = await $fetch(`/api/tours/slug/${tourSlug}`)
     tour.value = response as TourRes
-  } catch (e: any) {
+  } catch (e: unknown) {
     error.value = t('schedule.error_loading_tour')
     console.error('Failed to fetch tour', e)
   } finally {
@@ -50,7 +50,7 @@ async function fetchTour() {
 }
 
 // Handle schedule click from calendar
-function handleScheduleClick(schedule: any, _tour: any) {
+function handleScheduleClick(schedule: TourScheduleRes, _tour: TourRes) {
   selectedSchedule.value = schedule
   participantCount.value = 1
   showParticipantModal.value = true
@@ -79,11 +79,16 @@ async function addToCart() {
 
     // Go to cart
     router.push('/cart')
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const errorMessage = (e && typeof e === 'object' && 'data' in e &&
+                          e.data && typeof e.data === 'object' && 'message' in e.data)
+      ? (e.data as { message?: string }).message
+      : undefined
+
     toast.add({
       color: 'error',
       title: t('common.error'),
-      description: e.data?.message || t('schedule.error_adding_to_cart')
+      description: errorMessage || t('schedule.error_adding_to_cart')
     })
   }
 }
