@@ -39,7 +39,7 @@ public class TourController {
 
     @PostMapping("/admin/tours")
     @PreAuthorize("@tourSecurityService.canCreateTour(authentication)")
-    public ResponseEntity<TourRes> createTour(@RequestBody TourCreateReq tourCreateReq,
+    public ResponseEntity<TourRes> createTour(@jakarta.validation.Valid @RequestBody TourCreateReq tourCreateReq,
                                               @CurrentUser User currentUser) {
         TourRes createdTour = tourService.createTour(tourCreateReq, currentUser);
         return new ResponseEntity<>(createdTour, HttpStatus.CREATED);
@@ -89,7 +89,7 @@ public class TourController {
 
     @PutMapping("/admin/tours/{id}")
     @PreAuthorize("@tourSecurityService.canEditTour(authentication, #id)")
-    public ResponseEntity<TourRes> updateTour(@PathVariable UUID id, @RequestBody TourUpdateReq tourUpdateReq,
+    public ResponseEntity<TourRes> updateTour(@PathVariable UUID id, @jakarta.validation.Valid @RequestBody TourUpdateReq tourUpdateReq,
                                               @CurrentUser User currentUser) {
         TourRes updatedTour = tourService.updateTour(id, tourUpdateReq, currentUser);
         return new ResponseEntity<>(updatedTour, HttpStatus.OK);

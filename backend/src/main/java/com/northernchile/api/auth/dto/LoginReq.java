@@ -42,19 +42,19 @@ public class LoginReq {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LoginReq loginReq = (LoginReq) o;
-        return Objects.equals(email, loginReq.email) && Objects.equals(password, loginReq.password);
+        return Objects.equals(email, loginReq.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(email, password);
+        return Objects.hash(email);
     }
 
     @Override
     public String toString() {
         return "LoginReq{" +
                 "email='" + email + '\'' +
-                ", password='" + password + '\'' +
+                ", password='[REDACTED]'" +
                 '}';
     }
 }

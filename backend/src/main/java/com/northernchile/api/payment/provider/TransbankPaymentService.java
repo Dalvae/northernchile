@@ -132,12 +132,12 @@ public class TransbankPaymentService implements PaymentProviderService {
     @Override
     @Transactional
     public PaymentStatusRes confirmPayment(String token) {
-        log.info("Confirming Transbank payment with token: {}", token);
+        log.info("Confirming Transbank payment request");
 
         try {
             // Find payment by token
             Payment payment = paymentRepository.findByToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Payment not found for token: " + token));
+                .orElseThrow(() -> new IllegalArgumentException("Payment not found"));
 
             // Get Transaction instance
             WebpayPlus.Transaction transaction = getTransactionInstance();

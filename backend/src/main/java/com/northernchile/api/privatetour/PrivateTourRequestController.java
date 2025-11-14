@@ -25,7 +25,7 @@ public class PrivateTourRequestController {
 
     // Endpoint PÚBLICO para que clientes envíen una solicitud
     @PostMapping("/private-tours/requests")
-    public ResponseEntity<String> submitRequest(@RequestBody PrivateTourRequest request) {
+    public ResponseEntity<String> submitRequest(@jakarta.validation.Valid @RequestBody PrivateTourRequest request) {
         // In a real app, you'd use a DTO here
         privateTourRequestService.createRequest(request);
         return ResponseEntity.ok("Request received. We will contact you shortly.");

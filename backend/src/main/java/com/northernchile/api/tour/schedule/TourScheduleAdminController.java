@@ -93,7 +93,7 @@ public class TourScheduleAdminController {
      * Crea un schedule manualmente (para David y casos especiales)
      */
     @PostMapping
-    public ResponseEntity<TourScheduleRes> createSchedule(@RequestBody TourScheduleCreateReq request,
+    public ResponseEntity<TourScheduleRes> createSchedule(@jakarta.validation.Valid @RequestBody TourScheduleCreateReq request,
                                                           @CurrentUser User currentUser) {
         TourScheduleRes created = tourScheduleService.createScheduledTour(request, currentUser);
         return ResponseEntity.ok(created);
