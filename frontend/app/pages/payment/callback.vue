@@ -6,6 +6,7 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const paymentStore = usePaymentStore()
+const cartStore = useCartStore()
 
 // Page state
 const isLoading = ref(true)
@@ -57,6 +58,9 @@ async function handleTransbankCallback(token: string) {
     bookingId.value = route.query.bookingId as string || null
 
     if (result.status === PaymentStatus.COMPLETED) {
+      // Clear cart after successful payment
+      cartStore.clearCart()
+
       toast.add({
         color: 'success',
         title: t('payment.success.title'),
@@ -88,6 +92,8 @@ function handleDirectCallback() {
 
   if (queryStatus === 'success') {
     paymentStatus.value = PaymentStatus.COMPLETED
+    // Clear cart after successful payment
+    cartStore.clearCart()
   } else if (queryStatus === 'error' || queryStatus === 'failed') {
     paymentStatus.value = PaymentStatus.FAILED
     errorMessage.value = route.query.message as string || t('payment.error.generic')

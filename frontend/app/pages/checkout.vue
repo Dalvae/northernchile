@@ -158,7 +158,7 @@ function updateParticipant(index: number, data: Partial<{
 
 // Submit booking
 const isSubmitting = ref(false)
-const createdBookingId = ref<string | null>(null)
+const createdBookingIds = ref<string[]>([])
 
 async function submitBooking() {
   if (isSubmitting.value || !selectedPaymentMethod.value) return
@@ -206,69 +206,82 @@ async function submitBooking() {
 
     const token = authStore.token
 
-    // Step 2: Create booking for the first cart item (simplified for now)
-    // TODO: Support multiple bookings in one payment
+    // Step 2: Create bookings for ALL cart items
     toast.add({
       color: 'info',
       title: t('booking.booking_created_success'),
-      description: 'Creando tu reserva'
+      description: 'Creando tus reservas'
     })
 
-    const firstItem = cartStore.cart.items[0]
-    if (!firstItem) {
+    const cartItems = cartStore.cart.items
+    if (!cartItems || cartItems.length === 0) {
       throw new Error('No items in cart')
     }
 
-    const bookingParticipants = participants.value.slice(0, firstItem.numParticipants)
+    // Create bookings for each cart item
+    let participantOffset = 0
+    const bookingResponses = []
 
-    // Map to backend format
-    const participantReqs = bookingParticipants.map(p => ({
-      fullName: p.fullName,
-      documentId: p.documentId,
-      nationality: p.nationality,
-      dateOfBirth: p.dateOfBirth || null,
-      pickupAddress: p.pickupAddress || null,
-      specialRequirements: p.specialRequirements || null,
-      phoneNumber: p.phoneNumber || null,
-      email: p.email || null
-    }))
+    for (const item of cartItems) {
+      const bookingParticipants = participants.value.slice(
+        participantOffset,
+        participantOffset + item.numParticipants
+      )
 
-    // Create booking (will be PENDING)
-    const bookingReq = {
-      scheduleId: firstItem.scheduleId,
-      participants: participantReqs,
-      languageCode: locale.value,
-      specialRequests: null
+      // Map to backend format
+      const participantReqs = bookingParticipants.map(p => ({
+        fullName: p.fullName,
+        documentId: p.documentId,
+        nationality: p.nationality,
+        dateOfBirth: p.dateOfBirth || null,
+        pickupAddress: p.pickupAddress || null,
+        specialRequirements: p.specialRequirements || null,
+        phoneNumber: p.phoneNumber || null,
+        email: p.email || null
+      }))
+
+      // Create booking (will be PENDING)
+      const bookingReq = {
+        scheduleId: item.scheduleId,
+        participants: participantReqs,
+        languageCode: locale.value,
+        specialRequests: null
+      }
+
+      const bookingRes = await $fetch<any>(`${config.public.apiBase}/api/bookings`, {
+        method: 'POST',
+        body: bookingReq,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      bookingResponses.push(bookingRes)
+      createdBookingIds.value.push(bookingRes.id)
+      participantOffset += item.numParticipants
     }
 
-    const bookingRes = await $fetch<any>(`${config.public.apiBase}/api/bookings`, {
-      method: 'POST',
-      body: bookingReq,
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    createdBookingId.value = bookingRes.id
-
-    // Step 3: Initialize payment
+    // Step 3: Initialize payment for all bookings (using first booking as reference)
     toast.add({
       color: 'info',
       title: t('payment.callback.processing'),
       description: 'Iniciando proceso de pago'
     })
 
+    const primaryBooking = bookingResponses[0]
+    const tourNames = cartItems.map(item => item.tourName).join(', ')
+
     const paymentResult = await paymentStore.initializePayment({
-      bookingId: bookingRes.id,
+      bookingId: primaryBooking.id,
       provider: selectedPaymentMethod.value.provider,
       paymentMethod: selectedPaymentMethod.value.method,
       amount: total.value,
       currency: 'CLP',
-      returnUrl: `${window.location.origin}/payment/callback?bookingId=${bookingRes.id}`,
+      returnUrl: `${window.location.origin}/payment/callback?bookingId=${primaryBooking.id}`,
       cancelUrl: `${window.location.origin}/checkout`,
       userEmail: contactForm.value.email,
-      description: `Reserva para ${firstItem.tourName}`
+      description: `Reserva para ${tourNames}`
     })
 
     // Step 4: Handle payment flow based on method
@@ -295,18 +308,21 @@ async function submitBooking() {
   } catch (error: any) {
     console.error('Error in checkout process:', error)
 
-    // Rollback: Cancel booking if it was created
-    if (createdBookingId.value) {
-      try {
-        await $fetch(`${config.public.apiBase}/api/admin/bookings/${createdBookingId.value}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${authStore.token}`
-          }
-        })
-      } catch (e) {
-        console.error('Error rolling back booking:', e)
+    // Rollback: Cancel ALL bookings if they were created
+    if (createdBookingIds.value.length > 0) {
+      for (const bookingId of createdBookingIds.value) {
+        try {
+          await $fetch(`${config.public.apiBase}/api/admin/bookings/${bookingId}`, {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${authStore.token}`
+            }
+          })
+        } catch (e) {
+          console.error(`Error rolling back booking ${bookingId}:`, e)
+        }
       }
+      createdBookingIds.value = []
     }
 
     let errorMessage = 'Hubo un error procesando tu reserva.'
@@ -335,19 +351,8 @@ async function submitBooking() {
 // Handle PIX payment success
 function handlePIXSuccess() {
   showPIXModal.value = false
-
-  // Clear cart
-  cartStore.clearCart()
-
-  // Redirect to success page
-  router.push({
-    path: '/payment/callback',
-    query: {
-      status: 'success',
-      paymentId: paymentStore.currentPayment?.paymentId,
-      bookingId: createdBookingId.value
-    }
-  })
+  // Note: PIXDisplay component handles redirect to callback page
+  // Cart will be cleared on the callback page after payment confirmation
 }
 
 // Handle PIX payment failure
