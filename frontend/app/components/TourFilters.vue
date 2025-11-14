@@ -73,6 +73,7 @@ function clearFilters() {
           :placeholder="t('tours.search_placeholder')"
           size="lg"
           class="w-full"
+          aria-label="Buscar tours"
         />
       </div>
 
@@ -87,6 +88,7 @@ function clearFilters() {
             :placeholder="t('tours.filter_by_category')"
             size="lg"
             class="w-full"
+            aria-label="Filtrar por categoría"
           />
         </div>
 
@@ -99,6 +101,7 @@ function clearFilters() {
             :placeholder="t('tours.sort_by')"
             size="lg"
             class="w-full"
+            aria-label="Ordenar tours"
           />
         </div>
       </div>
@@ -107,6 +110,8 @@ function clearFilters() {
       <div
         v-if="showResultsCount"
         class="flex items-center justify-between text-sm text-neutral-600 dark:text-neutral-400"
+        role="status"
+        aria-live="polite"
       >
         <span>
           {{

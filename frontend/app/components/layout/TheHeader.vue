@@ -9,6 +9,7 @@
           <NuxtLink
             :to="localePath('/')"
             class="flex items-center gap-2 group"
+            aria-label="Ir a la página de inicio de Northern Chile"
           >
             <UIcon
               name="i-lucide-telescope"
@@ -21,7 +22,11 @@
         </div>
 
         <!-- Desktop Navigation -->
-        <nav class="hidden md:flex items-center gap-1">
+        <nav
+          class="hidden md:flex items-center gap-1"
+          role="navigation"
+          aria-label="Navegación principal"
+        >
           <UButton
             v-for="link in links"
             :key="link.label"
@@ -84,6 +89,7 @@
                   color="neutral"
                   square
                   class="hidden sm:flex"
+                  aria-label="Menú de usuario"
                 >
                   <div class="flex items-center gap-1">
                     <div
@@ -110,6 +116,7 @@
             color="neutral"
             icon="i-lucide-menu"
             class="md:hidden"
+            aria-label="Abrir menú de navegación"
             @click="mobileMenuOpen = true"
           />
         </div>
@@ -141,7 +148,11 @@
           </div>
 
           <!-- Navigation Links -->
-          <nav class="space-y-2">
+          <nav
+            class="space-y-2"
+            role="navigation"
+            aria-label="Navegación móvil"
+          >
             <UButton
               v-for="link in links"
               :key="link.label"
