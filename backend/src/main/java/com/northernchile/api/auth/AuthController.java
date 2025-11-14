@@ -22,12 +22,12 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginReq loginReq) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginReq loginReq) {
         return ResponseEntity.ok(authService.login(loginReq));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterReq registerReq) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterReq registerReq) {
         authService.register(registerReq);
         Map<String, String> response = new HashMap<>();
         response.put("message", "User registered successfully. Please check your email to verify your account.");

@@ -1,10 +1,12 @@
 export function useDateTime() {
+  const { locale } = useI18n()
+
   const formatDate = (value: string | number | Date): string => {
     if (!value) return ''
     const date = value instanceof Date ? value : new Date(value)
     if (Number.isNaN(date.getTime())) return ''
 
-    return date.toLocaleDateString('es-CL', {
+    return date.toLocaleDateString(locale.value, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
@@ -16,7 +18,7 @@ export function useDateTime() {
     const date = value instanceof Date ? value : new Date(value)
     if (Number.isNaN(date.getTime())) return ''
 
-    return date.toLocaleString('es-CL', {
+    return date.toLocaleString(locale.value, {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -30,7 +32,7 @@ export function useDateTime() {
     const date = value instanceof Date ? value : new Date(value)
     if (Number.isNaN(date.getTime())) return ''
 
-    return date.toLocaleTimeString('es-CL', {
+    return date.toLocaleTimeString(locale.value, {
       hour: '2-digit',
       minute: '2-digit'
     })

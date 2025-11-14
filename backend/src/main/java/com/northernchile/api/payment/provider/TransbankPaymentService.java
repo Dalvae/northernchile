@@ -22,7 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Transbank Webpay Plus payment provider implementation.
@@ -104,6 +106,13 @@ public class TransbankPaymentService implements PaymentProviderService {
             providerResponse.put("url", transbankResponse.getUrl());
             providerResponse.put("buyOrder", buyOrder);
             providerResponse.put("sessionId", sessionId);
+
+            // Store additional booking IDs for multi-item cart checkout
+            if (request.getAdditionalBookingIds() != null && !request.getAdditionalBookingIds().isEmpty()) {
+                providerResponse.put("additionalBookingIds", request.getAdditionalBookingIds());
+                log.info("Payment includes {} additional bookings", request.getAdditionalBookingIds().size());
+            }
+
             payment.setProviderResponse(providerResponse);
 
             payment = paymentRepository.save(payment);
@@ -132,12 +141,12 @@ public class TransbankPaymentService implements PaymentProviderService {
     @Override
     @Transactional
     public PaymentStatusRes confirmPayment(String token) {
-        log.info("Confirming Transbank payment with token: {}", token);
+        log.info("Confirming Transbank payment request");
 
         try {
             // Find payment by token
             Payment payment = paymentRepository.findByToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Payment not found for token: " + token));
+                .orElseThrow(() -> new IllegalArgumentException("Payment not found"));
 
             // Get Transaction instance
             WebpayPlus.Transaction transaction = getTransactionInstance();
@@ -165,10 +174,30 @@ public class TransbankPaymentService implements PaymentProviderService {
 
             // Update booking status if payment completed
             if (newStatus == PaymentStatus.COMPLETED) {
+                // Confirm primary booking
                 Booking booking = payment.getBooking();
                 booking.setStatus("CONFIRMED");
                 bookingRepository.save(booking);
                 log.info("Booking {} confirmed after successful payment", booking.getId());
+
+                // Confirm additional bookings from multi-item cart (if any)
+                Map<String, Object> storedResponse = payment.getProviderResponse();
+                if (storedResponse != null && storedResponse.containsKey("additionalBookingIds")) {
+                    @SuppressWarnings("unchecked")
+                    List<String> additionalIds = (List<String>) storedResponse.get("additionalBookingIds");
+                    for (String idStr : additionalIds) {
+                        try {
+                            UUID additionalBookingId = UUID.fromString(idStr);
+                            bookingRepository.findById(additionalBookingId).ifPresent(additionalBooking -> {
+                                additionalBooking.setStatus("CONFIRMED");
+                                bookingRepository.save(additionalBooking);
+                                log.info("Additional booking {} confirmed after successful payment", additionalBookingId);
+                            });
+                        } catch (IllegalArgumentException e) {
+                            log.error("Invalid additional booking ID: {}", idStr, e);
+                        }
+                    }
+                }
             }
 
             log.info("Transbank payment confirmed: {} with status: {}", payment.getId(), newStatus);

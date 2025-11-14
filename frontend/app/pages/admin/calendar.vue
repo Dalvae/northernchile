@@ -271,6 +271,10 @@ definePageMeta({
   layout: 'admin'
 })
 
+useHead({
+  title: 'Calendario - Admin - Northern Chile'
+})
+
 const config = useRuntimeConfig()
 const { locale } = useI18n()
 const toast = useToast()

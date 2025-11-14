@@ -7,6 +7,10 @@ definePageMeta({
   layout: 'admin'
 })
 
+useHead({
+  title: 'Tours - Admin - Northern Chile'
+})
+
 const { fetchAdminTours, deleteAdminTour } = useAdminData()
 const { formatPrice } = useCurrency()
 

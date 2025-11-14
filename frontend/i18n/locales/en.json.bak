@@ -29,7 +29,6 @@
     "previous": "Previous",
     "loading": "Loading...",
     "error": "Error",
-    "error_unknown": "An unexpected error occurred",
     "success": "Success",
     "confirm": "Confirm",
     "actions": "Actions",
@@ -537,15 +536,5 @@
       "cloudy": "Cloudy",
       "rain": "Rain"
     }
-  },
-  "errors": {
-    "bad_request": "Invalid request",
-    "unauthorized": "Unauthorized",
-    "forbidden": "Access denied",
-    "not_found": "Not found",
-    "conflict": "Conflict - resource already exists",
-    "validation_failed": "Validation error",
-    "server_error": "Internal server error",
-    "service_unavailable": "Service unavailable"
   }
 }

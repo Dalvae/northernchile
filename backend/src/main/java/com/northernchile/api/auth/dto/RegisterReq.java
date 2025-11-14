@@ -87,19 +87,19 @@ public class RegisterReq {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         RegisterReq that = (RegisterReq) o;
-        return Objects.equals(email, that.email) && Objects.equals(password, that.password) && Objects.equals(fullName, that.fullName) && Objects.equals(nationality, that.nationality) && Objects.equals(phoneNumber, that.phoneNumber) && Objects.equals(dateOfBirth, that.dateOfBirth);
+        return Objects.equals(email, that.email) && Objects.equals(fullName, that.fullName) && Objects.equals(nationality, that.nationality) && Objects.equals(phoneNumber, that.phoneNumber) && Objects.equals(dateOfBirth, that.dateOfBirth);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(email, password, fullName, nationality, phoneNumber, dateOfBirth);
+        return Objects.hash(email, fullName, nationality, phoneNumber, dateOfBirth);
     }
 
     @Override
     public String toString() {
         return "RegisterReq{" +
                 "email='" + email + '\'' +
-                ", password='" + password + '\'' +
+                ", password='[REDACTED]'" +
                 ", fullName='" + fullName + '\'' +
                 ", nationality='" + nationality + '\'' +
                 ", phoneNumber='" + phoneNumber + '\'' +

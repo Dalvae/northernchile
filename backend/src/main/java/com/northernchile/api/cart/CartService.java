@@ -130,9 +130,24 @@ public class CartService {
     private void mergeCarts(UUID guestCartId, Cart userCart) {
         cartRepository.findById(guestCartId).ifPresent(guestCart -> {
             if (!guestCart.getId().equals(userCart.getId())) {
-                guestCart.getItems().forEach(item -> {
-                    item.setCart(userCart);
-                    userCart.getItems().add(item);
+                guestCart.getItems().forEach(guestItem -> {
+                    // Check if user already has an item for this schedule
+                    CartItem existingItem = userCart.getItems().stream()
+                            .filter(item -> item.getSchedule().getId().equals(guestItem.getSchedule().getId()))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (existingItem != null) {
+                        // Merge: Add guest item participants to existing item
+                        existingItem.setNumParticipants(existingItem.getNumParticipants() + guestItem.getNumParticipants());
+                        // Note: CartItem doesn't store itemTotal, it's calculated on-the-fly from schedule.tour.price * numParticipants
+                        cartItemRepository.save(existingItem);
+                        // Guest item will be deleted with the guest cart
+                    } else {
+                        // No duplicate: Move item to user cart
+                        guestItem.setCart(userCart);
+                        userCart.getItems().add(guestItem);
+                    }
                 });
                 cartRepository.save(userCart);
                 cartRepository.delete(guestCart);
@@ -169,5 +184,20 @@ public class CartService {
         res.setCartTotal(cartTotal);
 
         return res;
+    }
+
+    /**
+     * Scheduled task to delete expired carts
+     * Runs every hour to cleanup carts that have passed their expiration time
+     */
+    @org.springframework.scheduling.annotation.Scheduled(cron = "0 0 * * * *")
+    @Transactional
+    public void cleanupExpiredCarts() {
+        Instant now = Instant.now();
+        int deletedCount = cartRepository.deleteByExpiresAtBefore(now);
+        if (deletedCount > 0) {
+            org.slf4j.LoggerFactory.getLogger(CartService.class)
+                .info("Cleaned up {} expired carts", deletedCount);
+        }
     }
 }

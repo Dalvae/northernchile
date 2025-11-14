@@ -8,6 +8,10 @@ definePageMeta({
   layout: 'admin'
 })
 
+useHead({
+  title: 'Reservas - Admin - Northern Chile'
+})
+
 import AdminStatusBadge from '~/components/admin/StatusBadge.vue'
 import AdminCountryCell from '~/components/admin/CountryCell.vue'
 

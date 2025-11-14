@@ -183,12 +183,12 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) && Objects.equals(email, user.email) && Objects.equals(passwordHash, user.passwordHash) && Objects.equals(fullName, user.fullName) && Objects.equals(nationality, user.nationality) && Objects.equals(phoneNumber, user.phoneNumber) && Objects.equals(dateOfBirth, user.dateOfBirth) && Objects.equals(role, user.role) && Objects.equals(authProvider, user.authProvider) && Objects.equals(providerId, user.providerId) && Objects.equals(createdAt, user.createdAt) && Objects.equals(updatedAt, user.updatedAt);
+        return Objects.equals(id, user.id) && Objects.equals(email, user.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, email, passwordHash, fullName, nationality, phoneNumber, dateOfBirth, role, authProvider, providerId, createdAt, updatedAt);
+        return Objects.hash(id, email);
     }
 
     @Override
@@ -196,7 +196,7 @@ public class User {
         return "User{" +
                "id=" + id +
                ", email='" + email + "'" +
-               ", passwordHash='" + passwordHash + "'" +
+               ", passwordHash='[REDACTED]'" +
                ", fullName='" + fullName + "'" +
                ", nationality='" + nationality + "'" +
                ", phoneNumber='" + phoneNumber + "'" +

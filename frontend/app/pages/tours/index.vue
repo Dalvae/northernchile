@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TourRes } from 'api-client'
+import type { TourRes, TourScheduleRes } from 'api-client'
 import TourCard from '~/components/tour/TourCard.vue'
 
 const router = useRouter()
@@ -66,7 +66,7 @@ watch([searchQuery, selectedCategory, sortBy], () => {
 })
 
 // Handle calendar schedule click
-function handleScheduleClick(schedule: any, tour: any) {
+function handleScheduleClick(schedule: TourScheduleRes, tour: TourRes) {
   if (tour?.slug) {
     router.push(`/tours/${tour.slug}/schedule`)
   }
@@ -187,8 +187,8 @@ useSeoMeta({
           @schedule-click="handleScheduleClick"
         >
           <template #info>
-            <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <p class="text-sm text-blue-900 dark:text-blue-200">
+            <div class="mt-4 p-4 bg-info/10 dark:bg-info/20 rounded-lg">
+              <p class="text-sm text-info dark:text-info">
                 <UIcon
                   name="i-lucide-info"
                   class="inline w-4 h-4 mr-1"

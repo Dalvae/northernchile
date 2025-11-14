@@ -3,6 +3,10 @@ definePageMeta({
   layout: 'admin'
 })
 
+useHead({
+  title: 'Configuración - Admin - Northern Chile'
+})
+
 const toast = useToast()
 const { fetchAdminSettings, updateAdminSettings } = useAdminData()
 

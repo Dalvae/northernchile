@@ -114,7 +114,11 @@ function formatAmount(amount: number, currency: string) {
       </p>
     </div>
 
-    <div class="space-y-3">
+    <div
+      class="space-y-3"
+      role="radiogroup"
+      aria-label="Seleccionar método de pago"
+    >
       <div
         v-for="option in paymentOptions"
         :key="`${option.provider}-${option.method}`"
@@ -127,7 +131,14 @@ function formatAmount(amount: number, currency: string) {
               : 'border-neutral-200 dark:border-neutral-700 opacity-60 cursor-not-allowed',
           !option.available && 'grayscale'
         ]"
+        role="radio"
+        :aria-checked="isSelected(option)"
+        :aria-disabled="!option.available"
+        :aria-label="`${option.name} - ${option.description}`"
+        tabindex="0"
         @click="selectMethod(option)"
+        @keydown.enter="selectMethod(option)"
+        @keydown.space.prevent="selectMethod(option)"
       >
         <div class="flex items-start gap-4">
           <!-- Icon -->

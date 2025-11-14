@@ -2,6 +2,7 @@
   <NuxtLink
     :to="linkTo"
     class="block"
+    :aria-label="`Ver detalles del tour ${title}`"
   >
     <UCard
       :ui="cardUi"

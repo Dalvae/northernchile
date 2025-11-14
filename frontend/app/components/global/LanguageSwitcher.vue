@@ -4,6 +4,7 @@
       color="neutral"
       variant="ghost"
       icon="i-heroicons-language"
+      aria-label="Seleccionar idioma"
     />
   </UDropdownMenu>
 </template>

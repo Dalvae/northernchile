@@ -58,7 +58,7 @@ public class BookingService {
         this.availabilityValidator = availabilityValidator;
     }
 
-    @Transactional
+    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.SERIALIZABLE)
     public BookingRes createBooking(BookingCreateReq req, User currentUser) {
         var schedule = tourScheduleRepository.findById(req.getScheduleId())
                 .orElseThrow(() -> new EntityNotFoundException("TourSchedule not found with id: " + req.getScheduleId()));
@@ -97,7 +97,7 @@ public class BookingService {
         Booking booking = new Booking();
         booking.setUser(currentUser);
         booking.setSchedule(schedule);
-        booking.setTourDate(LocalDate.ofInstant(schedule.getStartDatetime(), ZoneOffset.UTC));
+        booking.setTourDate(LocalDate.ofInstant(schedule.getStartDatetime(), java.time.ZoneId.of("America/Santiago")));
         booking.setStatus("PENDING");
         booking.setSubtotal(pricing.subtotal);
         booking.setTaxAmount(pricing.taxAmount);

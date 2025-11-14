@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -53,6 +54,11 @@ public class PaymentInitReq {
      * Payment expiration time in minutes (for PIX, etc.)
      */
     private Integer expirationMinutes;
+
+    /**
+     * Additional booking IDs to be confirmed with this payment (for multi-item cart checkout)
+     */
+    private List<UUID> additionalBookingIds;
 
     public PaymentInitReq() {
     }
@@ -150,6 +156,14 @@ public class PaymentInitReq {
 
     public void setExpirationMinutes(Integer expirationMinutes) {
         this.expirationMinutes = expirationMinutes;
+    }
+
+    public List<UUID> getAdditionalBookingIds() {
+        return additionalBookingIds;
+    }
+
+    public void setAdditionalBookingIds(List<UUID> additionalBookingIds) {
+        this.additionalBookingIds = additionalBookingIds;
     }
 
     @Override

@@ -29,6 +29,7 @@
     "previous": "Anterior",
     "loading": "Cargando...",
     "error": "Error",
+    "error_unknown": "Ocurrió un error inesperado",
     "success": "Éxito",
     "confirm": "Confirmar",
     "actions": "Acciones",
@@ -536,5 +537,15 @@
       "cloudy": "Nublado",
       "rain": "Lluvia"
     }
+  },
+  "errors": {
+    "bad_request": "Solicitud inválida",
+    "unauthorized": "No autorizado",
+    "forbidden": "Acceso denegado",
+    "not_found": "No encontrado",
+    "conflict": "Conflicto - el recurso ya existe",
+    "validation_failed": "Error de validación",
+    "server_error": "Error interno del servidor",
+    "service_unavailable": "Servicio no disponible"
   }
 }

@@ -37,7 +37,7 @@ public class CartController {
     @PostMapping("/items")
     public ResponseEntity<CartRes> addItemToCart(
             @CookieValue(name = "cartId", required = false) String cartId,
-            @RequestBody CartItemReq itemReq,
+            @jakarta.validation.Valid @RequestBody CartItemReq itemReq,
             HttpServletResponse response) {
         Cart cart = cartService.getOrCreateCart(getCurrentUser(), getCartId(cartId));
         Cart updatedCart = cartService.addItemToCart(cart, itemReq);
@@ -74,8 +74,10 @@ public class CartController {
     private void setCartIdCookie(HttpServletResponse response, UUID cartId) {
         Cookie cookie = new Cookie("cartId", cartId.toString());
         cookie.setHttpOnly(true);
+        cookie.setSecure(true); // HTTPS only
         cookie.setPath("/");
         cookie.setMaxAge(60 * 60 * 24 * 30); // 30 days
+        cookie.setAttribute("SameSite", "Lax"); // CSRF protection
         response.addCookie(cookie);
     }
 }
