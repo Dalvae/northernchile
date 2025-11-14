@@ -440,6 +440,10 @@ definePageMeta({
   layout: 'admin'
 })
 
+useHead({
+  title: 'Alertas Climáticas - Admin - Northern Chile'
+})
+
 const config = useRuntimeConfig()
 const toast = useToast()
 

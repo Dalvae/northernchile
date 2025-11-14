@@ -3,6 +3,10 @@ definePageMeta({
   layout: 'admin'
 })
 
+useHead({
+  title: 'Tours Privados - Admin - Northern Chile'
+})
+
 const config = useRuntimeConfig()
 const toast = useToast()
 

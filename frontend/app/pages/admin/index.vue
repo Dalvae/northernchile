@@ -6,6 +6,10 @@ definePageMeta({
   layout: 'admin'
 })
 
+useHead({
+  title: 'Dashboard - Admin - Northern Chile'
+})
+
 const { fetchAdminBookings, fetchAdminTours, fetchAdminAlertsCount } = useAdminData()
 const { formatPrice: formatCurrency } = useCurrency()
 const config = useRuntimeConfig()

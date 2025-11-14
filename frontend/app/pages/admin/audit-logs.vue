@@ -368,6 +368,10 @@ definePageMeta({
   layout: 'admin'
 })
 
+useHead({
+  title: 'Auditoría - Admin - Northern Chile'
+})
+
 const config = useRuntimeConfig()
 
 // State

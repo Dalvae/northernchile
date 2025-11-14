@@ -8,6 +8,10 @@ definePageMeta({
   layout: 'admin'
 })
 
+useHead({
+  title: 'Usuarios - Admin - Northern Chile'
+})
+
 const { fetchAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser }
   = useAdminData()
 const { getCountryLabel, getCountryFlag } = useCountries()

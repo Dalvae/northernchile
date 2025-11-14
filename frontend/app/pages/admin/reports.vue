@@ -3,6 +3,10 @@ definePageMeta({
   layout: 'admin'
 })
 
+useHead({
+  title: 'Reportes - Admin - Northern Chile'
+})
+
 const config = useRuntimeConfig()
 const toast = useToast()
 const { formatPrice } = useCurrency()
