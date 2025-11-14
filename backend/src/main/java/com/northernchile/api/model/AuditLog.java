@@ -1,6 +1,6 @@
 package com.northernchile.api.model;
 
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Type;
 
@@ -38,11 +38,11 @@ public class AuditLog {
     @Column(name = "entity_description", columnDefinition = "TEXT")
     private String entityDescription;
 
-    @Type(JsonBinaryType.class)
+    @Type(JsonType.class)
     @Column(name = "old_values", columnDefinition = "jsonb")
     private Map<String, Object> oldValues;
 
-    @Type(JsonBinaryType.class)
+    @Type(JsonType.class)
     @Column(name = "new_values", columnDefinition = "jsonb")
     private Map<String, Object> newValues;
 
