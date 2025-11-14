@@ -14,12 +14,16 @@
         :label="t('booking.full_name')"
         name="fullName"
         required
+        :help="participant.fullName && participant.fullName.length < 2 ? 'Mínimo 2 caracteres' : undefined"
       >
         <UInput
           :model-value="participant.fullName"
           :placeholder="t('booking.full_name_placeholder')"
           size="lg"
           icon="i-lucide-user"
+          required
+          minlength="2"
+          maxlength="100"
           @update:model-value="emit('update', { fullName: $event })"
         />
       </UFormField>
@@ -30,12 +34,16 @@
           :label="t('booking.document_id')"
           name="documentId"
           required
+          :help="participant.documentId && participant.documentId.length < 3 ? 'Mínimo 3 caracteres' : undefined"
         >
           <UInput
             :model-value="participant.documentId"
             :placeholder="t('booking.document_id_placeholder')"
             size="lg"
             icon="i-lucide-credit-card"
+            required
+            minlength="3"
+            maxlength="50"
             @update:model-value="emit('update', { documentId: $event })"
           />
         </UFormField>
@@ -61,7 +69,9 @@
           placeholder="YYYY-MM-DD"
           size="lg"
           icon="i-lucide-calendar"
-           @update:model-value="emit('update', { dateOfBirth: $event || null })"
+          :max="new Date().toISOString().split('T')[0]"
+          aria-label="Fecha de nacimiento del participante"
+          @update:model-value="emit('update', { dateOfBirth: $event || null })"
         />
       </UFormField>
 
@@ -77,6 +87,9 @@
           :placeholder="t('booking.pickup_address_placeholder')"
           size="lg"
           icon="i-lucide-map-pin"
+          required
+          maxlength="200"
+          aria-label="Dirección de recogida"
           @update:model-value="emit('update', { pickupAddress: $event })"
         />
       </UFormField>
@@ -85,6 +98,7 @@
       <UFormField
         :label="t('booking.special_requirements')"
         name="specialRequirements"
+        :help="participant.specialRequirements ? `${participant.specialRequirements.length}/500` : undefined"
       >
         <UTextarea
           :model-value="participant.specialRequirements"
@@ -92,6 +106,8 @@
           :rows="3"
           size="lg"
           class="w-full"
+          maxlength="500"
+          aria-label="Requerimientos especiales"
           @update:model-value="emit('update', { specialRequirements: $event })"
         />
       </UFormField>
@@ -110,6 +126,10 @@
             size="lg"
             icon="i-lucide-phone"
             class="w-full"
+            pattern="^\+?[0-9\s\-()]{7,20}$"
+            minlength="7"
+            maxlength="20"
+            aria-label="Número de teléfono"
             @update:model-value="emit('update', { phoneNumber: $event })"
           />
         </UFormField>
@@ -126,6 +146,8 @@
             size="lg"
             icon="i-lucide-mail"
             class="w-full"
+            maxlength="100"
+            aria-label="Correo electrónico"
             @update:model-value="emit('update', { email: $event })"
           />
         </UFormField>

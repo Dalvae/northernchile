@@ -1,23 +1,40 @@
 
 package com.northernchile.api.booking.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 import java.util.Objects;
 
 public class ParticipantReq {
     @NotBlank(message = "Full name is required")
+    @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
     private String fullName;
 
     @NotBlank(message = "Document ID is required")
+    @Size(min = 3, max = 50, message = "Document ID must be between 3 and 50 characters")
     private String documentId;
 
+    @Size(max = 2, message = "Nationality must be a 2-letter country code (ISO 3166-1 alpha-2)")
     private String nationality;
+
+    @Past(message = "Date of birth must be in the past")
     private LocalDate dateOfBirth;
+
+    @Min(value = 0, message = "Age cannot be negative")
+    @Max(value = 150, message = "Age must be less than 150")
     private Integer age; // Optional, will be calculated from dateOfBirth if provided
+
+    @Size(max = 200, message = "Pickup address must not exceed 200 characters")
     private String pickupAddress;
+
+    @Size(max = 500, message = "Special requirements must not exceed 500 characters")
     private String specialRequirements;
+
+    @Pattern(regexp = "^\\+?[0-9\\s\\-()]{7,20}$", message = "Invalid phone number format")
     private String phoneNumber;
+
+    @Email(message = "Invalid email format")
+    @Size(max = 100, message = "Email must not exceed 100 characters")
     private String email;
 
     public ParticipantReq() {
