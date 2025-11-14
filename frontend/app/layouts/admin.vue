@@ -150,12 +150,12 @@ function formatSegment(segment: string) {
 </script>
 
 <template>
-  <div class="min-h-screen flex bg-default">
+  <div class="min-h-screen flex bg-white dark:bg-neutral-900">
     <!-- Sidebar -->
     <aside
       :class="[
         'fixed inset-y-0 left-0 z-40 transition-transform duration-300 ease-in-out',
-         'bg-elevated border-r border-default',
+         'bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700',
         'flex flex-col w-64',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         'lg:translate-x-0 lg:static'
@@ -163,11 +163,11 @@ function formatSegment(segment: string) {
     >
       <!-- Header del sidebar -->
       <div
-        class="h-16 flex items-center justify-between px-4 border-b border-default"
+        class="h-16 flex items-center justify-between px-4 border-b border-neutral-200 dark:border-neutral-700"
       >
         <NuxtLink
           to="/admin"
-          class="flex items-center gap-2 font-bold text-lg text-default"
+          class="flex items-center gap-2 font-bold text-lg text-neutral-900 dark:text-white"
         >
           <UIcon
             name="i-lucide-shield-check"
@@ -195,11 +195,11 @@ function formatSegment(segment: string) {
       </nav>
 
       <!-- User section -->
-      <div         class="p-4 border-t border-default">
+      <div         class="p-4 border-t border-neutral-200 dark:border-neutral-700">
         <UDropdownMenu :items="userMenuItems">
           <template #default>
               <div
-                class="flex items-center gap-3 p-2 rounded-lg hover:bg-muted cursor-pointer transition-colors"
+                class="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer transition-colors"
             >
               <UAvatar
                 :alt="authStore.user?.fullName"
@@ -207,11 +207,11 @@ function formatSegment(segment: string) {
               />
               <div class="flex-1 min-w-0">
                 <p
-                    class="text-sm font-medium truncate text-default"
+                    class="text-sm font-medium truncate text-neutral-900 dark:text-white"
                 >
                   {{ authStore.user?.fullName }}
                 </p>
-                 <p class="text-xs text-muted truncate">
+                 <p class="text-xs text-neutral-600 dark:text-neutral-400 truncate">
                   {{
                     authStore.user?.role?.includes("ROLE_SUPER_ADMIN")
                       ? "Super Admin"
@@ -234,7 +234,7 @@ function formatSegment(segment: string) {
     <!-- Overlay para mobile -->
     <div
       v-if="sidebarOpen"
-       class="fixed inset-0 bg-inverted/50 z-30 lg:hidden"
+       class="fixed inset-0 bg-black/50 z-30 lg:hidden"
       @click="sidebarOpen = false"
     />
 
@@ -242,7 +242,7 @@ function formatSegment(segment: string) {
     <div class="flex-1 flex flex-col min-w-0">
       <!-- Top navbar -->
        <header
-        class="h-16 bg-elevated border-b border-default flex items-center px-4 gap-4 sticky top-0 z-20"
+        class="h-16 bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 flex items-center px-4 gap-4 sticky top-0 z-20"
       >
         <!-- Hamburger menu mobile -->
         <UButton
