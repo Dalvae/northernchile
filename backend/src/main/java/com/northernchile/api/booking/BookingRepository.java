@@ -1,7 +1,9 @@
 package com.northernchile.api.booking;
 
 import com.northernchile.api.model.Booking;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.stereotype.Repository;
@@ -13,6 +15,7 @@ import java.util.UUID;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, UUID> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT COUNT(p) FROM Participant p WHERE p.booking.schedule.id = :scheduleId AND p.booking.status = 'CONFIRMED'")
     Integer countConfirmedParticipantsByScheduleId(UUID scheduleId);
 
