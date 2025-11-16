@@ -3,16 +3,6 @@
   "private": true,
   "type": "module",
   "pnpm": {
-    "overrides": {
-      "@vue/devtools-api": "8.0.3",
-      "@vue/devtools-kit": "8.0.3"
-    },
-    "peerDependencyRules": {
-      "ignoreMissing": [
-        "@vue/devtools-api",
-        "@vue/devtools-kit"
-      ]
-    },
     "hooks": {
       "readPackage": "import('./pnpm-hooks.mjs').then(hooks => hooks.readPackage)"
     }
