@@ -1,5 +1,6 @@
 package com.northernchile.api.exception;
 
+import com.northernchile.api.i18n.LocalizedMessageProvider;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import java.util.Map;
 
 /**
  * Global exception handler for consistent error responses across the API.
+ * Supports internationalization (i18n) of error messages based on Accept-Language header.
  *
  * All error responses follow this structure:
  * {
@@ -41,9 +43,11 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     private final Environment environment;
+    private final LocalizedMessageProvider messageProvider;
 
-    public GlobalExceptionHandler(Environment environment) {
+    public GlobalExceptionHandler(Environment environment, LocalizedMessageProvider messageProvider) {
         this.environment = environment;
+        this.messageProvider = messageProvider;
     }
 
     private boolean isDevMode() {
@@ -164,11 +168,13 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
 
+        String localizedMessage = messageProvider.getMessage("error.bad.request", "Validation failed");
+
         ValidationErrorResponse errorResponse = new ValidationErrorResponse(
                 Instant.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Validation failed",
+                localizedMessage,
                 request.getDescription(false).replace("uri=", ""),
                 errors
         );
@@ -209,7 +215,9 @@ public class GlobalExceptionHandler {
             ex
         );
 
-        String detailedMessage = isDevMode() ? ex.getMessage() : "An unexpected error occurred";
+        String detailedMessage = isDevMode()
+            ? ex.getMessage()
+            : messageProvider.getMessage("error.internal.server", "An unexpected error occurred");
         String stackTrace = isDevMode() ? getStackTraceAsString(ex) : null;
 
         ErrorResponse errorResponse = new ErrorResponse(

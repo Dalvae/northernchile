@@ -446,6 +446,7 @@ useHead({
 
 const config = useRuntimeConfig()
 const toast = useToast()
+const { formatDateTime: formatDate } = useDateTime()
 
 // State
 const pending = ref(false)
@@ -647,16 +648,6 @@ const resolveAlert = async () => {
 }
 
 // Helper functions
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('es-CL', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
 type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
 
 function getSeverityColor(severity: string): BadgeColor {

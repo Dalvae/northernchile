@@ -234,6 +234,44 @@ public class BookingService {
         return Optional.of(bookingMapper.toBookingRes(booking));
     }
 
+    /**
+     * Validates that a status transition is allowed.
+     * Valid transitions:
+     * - PENDING -> CONFIRMED (after payment)
+     * - PENDING -> CANCELLED (before 24h)
+     * - CONFIRMED -> COMPLETED (after tour date)
+     * - CONFIRMED -> CANCELLED (before 24h, with refund)
+     * - CANCELLED -> (no transitions allowed)
+     * - COMPLETED -> (no transitions allowed)
+     *
+     * @param currentStatus The current booking status
+     * @param newStatus The desired new status
+     * @throws IllegalStateException if the transition is not allowed
+     */
+    private void validateStatusTransition(String currentStatus, String newStatus) {
+        // Same status is always allowed (no-op)
+        if (currentStatus.equals(newStatus)) {
+            return;
+        }
+
+        // Define allowed transitions
+        Map<String, List<String>> allowedTransitions = Map.of(
+            "PENDING", List.of("CONFIRMED", "CANCELLED"),
+            "CONFIRMED", List.of("COMPLETED", "CANCELLED"),
+            "CANCELLED", List.of(), // No transitions from CANCELLED
+            "COMPLETED", List.of()  // No transitions from COMPLETED
+        );
+
+        List<String> allowed = allowedTransitions.getOrDefault(currentStatus, List.of());
+
+        if (!allowed.contains(newStatus)) {
+            throw new IllegalStateException(
+                String.format("Invalid status transition from %s to %s. Allowed transitions: %s",
+                    currentStatus, newStatus, allowed.isEmpty() ? "none" : String.join(", ", allowed))
+            );
+        }
+    }
+
     @Transactional
     @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId)")
     public BookingRes updateBookingStatus(UUID bookingId, String newStatus, User currentUser) {
@@ -241,6 +279,9 @@ public class BookingService {
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
 
         String oldStatus = booking.getStatus();
+
+        // Validate status transition
+        validateStatusTransition(oldStatus, newStatus);
 
         booking.setStatus(newStatus);
         Booking updatedBooking = bookingRepository.save(booking);
@@ -261,6 +302,9 @@ public class BookingService {
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
 
         String oldStatus = booking.getStatus();
+
+        // Validate status transition
+        validateStatusTransition(oldStatus, "CANCELLED");
 
         booking.setStatus("CANCELLED");
         bookingRepository.save(booking);

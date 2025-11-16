@@ -7,6 +7,7 @@ const { locale, t } = useI18n()
 const toast = useToast()
 const cartStore = useCartStore()
 const authStore = useAuthStore()
+const { formatPrice } = useCurrency()
 
 const tourSlug = route.params.slug as string
 
@@ -210,7 +211,7 @@ useSeoMeta({
                     {{ t("tours.price_from") }}
                   </p>
                   <p class="font-semibold text-neutral-900 dark:text-white">
-                    ${{ (tour.price || 0)?.toLocaleString() }}
+                    {{ formatPrice(tour.price || 0) }}
                   </p>
                 </div>
               </div>
@@ -369,7 +370,7 @@ useSeoMeta({
                     {{ t("schedule.total_price") }}
                   </span>
                   <span class="text-2xl font-bold text-primary">
-                    ${{ ((tour.price || 0) * participantCount).toLocaleString() }}
+                    {{ formatPrice((tour.price || 0) * participantCount) }}
                   </span>
                 </div>
               </div>

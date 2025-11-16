@@ -2,6 +2,7 @@ package com.northernchile.api.payment.dto;
 
 import com.northernchile.api.payment.model.PaymentMethod;
 import com.northernchile.api.payment.model.PaymentProvider;
+import com.northernchile.api.validation.ValidReturnUrl;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
@@ -33,11 +34,13 @@ public class PaymentInitReq {
     /**
      * Return URL after payment completion (for redirect-based flows like Webpay)
      */
+    @ValidReturnUrl(nullable = true)
     private String returnUrl;
 
     /**
      * Cancel URL if user cancels payment
      */
+    @ValidReturnUrl(nullable = true)
     private String cancelUrl;
 
     /**

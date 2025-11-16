@@ -2,11 +2,13 @@
 const cartStore = useCartStore()
 const authStore = useAuthStore()
 const router = useRouter()
-const { locale } = useI18n()
+const { t, locale } = useI18n()
+const { formatPrice } = useCurrency()
+const { formatDateTime } = useDateTime()
 
 useSeoMeta({
-  title: 'Carrito - Northern Chile',
-  description: 'Revisa tu carrito de compras y procede al pago de tus tours',
+  title: () => `${t('cart.title')} - Northern Chile`,
+  description: () => t('cart.description'),
   robots: 'noindex, nofollow'
 })
 
@@ -26,26 +28,6 @@ function proceedToCheckout() {
   if (isEmpty.value) return
   router.push('/checkout')
 }
-
-// Format helpers
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP'
-  }).format(amount)
-}
-
-function formatDate(datetime: string) {
-  const date = new Date(datetime)
-  return new Intl.DateTimeFormat(locale.value, {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date)
-}
 </script>
 
 <template>
@@ -53,15 +35,13 @@ function formatDate(datetime: string) {
     <UContainer>
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
-          Carrito de Compras
+          {{ t('cart.title') }}
         </h1>
         <p class="text-neutral-600 dark:text-neutral-400">
           {{
             isEmpty
-              ? "Tu carrito está vacío"
-              : `${cartStore.totalItems} ${
-                cartStore.totalItems === 1 ? "persona" : "personas"
-              }`
+              ? t('cart.empty')
+              : t('cart.items_count', { count: cartStore.totalItems }, cartStore.totalItems)
           }}
         </p>
       </div>
@@ -78,10 +58,10 @@ function formatDate(datetime: string) {
         <h2
           class="text-2xl font-semibold text-neutral-900 dark:text-white mb-4"
         >
-          Tu carrito está vacío
+          {{ t('cart.empty') }}
         </h2>
         <p class="text-neutral-600 dark:text-neutral-400 mb-6">
-          No has agregado ningún tour a tu carrito aún
+          {{ t('cart.empty_description') }}
         </p>
         <UButton
           to="/tours"
@@ -89,7 +69,7 @@ function formatDate(datetime: string) {
           color="primary"
           icon="i-lucide-telescope"
         >
-          Explorar Tours
+          {{ t('cart.explore_tours') }}
         </UButton>
       </div>
 
@@ -123,7 +103,7 @@ function formatDate(datetime: string) {
                       name="i-lucide-calendar"
                       class="w-4 h-4"
                     />
-                    {{ formatDate(item.startDatetime) }}
+                    {{ formatDateTime(item.startDatetime) }}
                   </p>
                   <p
                     v-if="item.durationHours"
@@ -133,22 +113,21 @@ function formatDate(datetime: string) {
                       name="i-lucide-clock"
                       class="w-4 h-4"
                     />
-                    {{ item.durationHours }} horas
+                    {{ item.durationHours }} {{ t('cart.hours') }}
                   </p>
                   <p class="flex items-center gap-2">
                     <UIcon
                       name="i-lucide-user"
                       class="w-4 h-4"
                     />
-                    {{ formatCurrency(item.pricePerParticipant) }} por persona
+                    {{ formatPrice(item.pricePerParticipant) }} {{ t('cart.per_person') }}
                   </p>
                   <p class="flex items-center gap-2">
                     <UIcon
                       name="i-lucide-users"
                       class="w-4 h-4"
                     />
-                    {{ item.numParticipants }}
-                    {{ item.numParticipants === 1 ? "persona" : "personas" }}
+                    {{ t('cart.items_count', { count: item.numParticipants }, item.numParticipants) }}
                   </p>
                 </div>
               </div>
@@ -156,7 +135,7 @@ function formatDate(datetime: string) {
               <!-- Price & Remove -->
               <div class="flex flex-col items-end justify-between">
                 <p class="text-xl font-bold text-neutral-900 dark:text-white">
-                  {{ formatCurrency(item.itemTotal) }}
+                  {{ formatPrice(item.itemTotal) }}
                 </p>
                 <UButton
                   icon="i-lucide-trash-2"
@@ -165,7 +144,7 @@ function formatDate(datetime: string) {
                   size="sm"
                   @click="removeItem(item.itemId)"
                 >
-                  Eliminar
+                  {{ t('cart.remove') }}
                 </UButton>
               </div>
             </div>
@@ -178,30 +157,30 @@ function formatDate(datetime: string) {
             <h3
               class="text-xl font-semibold text-neutral-900 dark:text-white mb-6"
             >
-              Resumen del Pedido
+              {{ t('cart.order_summary') }}
             </h3>
 
             <div class="space-y-4 mb-6">
               <div
                 class="flex justify-between text-neutral-600 dark:text-neutral-400"
               >
-                <span>Subtotal</span>
+                <span>{{ t('common.subtotal') }}</span>
                 <span class="font-semibold">{{
-                  formatCurrency(subtotal)
+                  formatPrice(subtotal)
                 }}</span>
               </div>
               <div
                 class="flex justify-between text-neutral-600 dark:text-neutral-400"
               >
-                <span>IVA (19%)</span>
-                <span class="font-semibold">{{ formatCurrency(tax) }}</span>
+                <span>{{ t('common.tax') }} (19%)</span>
+                <span class="font-semibold">{{ formatPrice(tax) }}</span>
               </div>
               <UDivider />
               <div
                 class="flex justify-between text-lg font-bold text-neutral-900 dark:text-white"
               >
-                <span>Total</span>
-                <span>{{ formatCurrency(total) }}</span>
+                <span>{{ t('common.total') }}</span>
+                <span>{{ formatPrice(total) }}</span>
               </div>
             </div>
 
@@ -213,7 +192,7 @@ function formatDate(datetime: string) {
               trailing
               @click="proceedToCheckout"
             >
-              Proceder al Pago
+              {{ t('cart.checkout') }}
             </UButton>
 
             <UButton
@@ -224,7 +203,7 @@ function formatDate(datetime: string) {
               icon="i-lucide-arrow-left"
               to="/tours"
             >
-              Seguir Comprando
+              {{ t('cart.continue_shopping') }}
             </UButton>
 
             <!-- Security badges -->
@@ -238,7 +217,7 @@ function formatDate(datetime: string) {
                   name="i-lucide-shield-check"
                   class="w-5 h-5 text-success"
                 />
-                <span>Pago seguro y encriptado</span>
+                <span>{{ t('cart.secure_payment') }}</span>
               </div>
               <div
                 class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400"
@@ -247,7 +226,7 @@ function formatDate(datetime: string) {
                   name="i-lucide-rotate-ccw"
                   class="w-5 h-5 text-info"
                 />
-                <span>Cancelación gratis hasta 24h antes</span>
+                <span>{{ t('cart.free_cancellation') }}</span>
               </div>
             </div>
           </UCard>

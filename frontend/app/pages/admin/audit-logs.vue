@@ -373,6 +373,7 @@ useHead({
 })
 
 const config = useRuntimeConfig()
+const { formatDate, formatTime } = useDateTime()
 
 // State
 const pending = ref(false)
@@ -561,21 +562,6 @@ function getActionIcon(action: string): string {
   return icons[action] || 'i-lucide-file'
 }
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('es-CL', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
-
-function formatTime(dateString: string): string {
-  return new Date(dateString).toLocaleTimeString('es-CL', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  })
-}
 
 // Initialize
 onMounted(() => {
