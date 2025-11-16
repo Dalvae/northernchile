@@ -100,10 +100,6 @@ export default defineNuxtConfig({
             ),
           }
         : {},
-    // Exclude Vue DevTools from production builds
-    moduleSideEffects(id) {
-      return !id.includes("@vue/devtools") && !id.includes("perfect-debounce");
-    },
     replace: {
       __VUE_PROD_DEVTOOLS__: "false",
     },
