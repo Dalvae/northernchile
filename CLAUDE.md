@@ -138,11 +138,14 @@ Tours can be recurring (`is_recurring = true`) with `recurrence_rule` (cron expr
 ## Database Management
 
 ### Schema Management
-**IMPORTANT**: The project is currently in development mode with the following configuration:
-- **Flyway**: Disabled (`spring.flyway.enabled=false`)
-- **Hibernate DDL**: Set to `create` mode (`spring.jpa.hibernate.ddl-auto=create`)
-- **Development Note**: Database schema is recreated on each backend startup
-- **Migration Strategy**: Once moving to production, migrations will be managed via Flyway with versioned SQL files in `backend/src/main/resources/db/migration/` following the `V{number}__{description}.sql` pattern
+**Production-Ready Configuration**: The project now uses Flyway for database migrations:
+- **Flyway**: Enabled (`spring.flyway.enabled=true`)
+- **Hibernate DDL**: Set to `validate` mode (`spring.jpa.hibernate.ddl-auto=validate`)
+- **Migration Files**: Located in `backend/src/main/resources/db/migration/` following the `V{number}__{description}.sql` pattern
+- **Initial Migration**: `V1__initial_schema.sql` contains the complete initial database schema
+- **Schema Validation**: Hibernate validates that entities match the database schema on startup
+- **Adding Migrations**: Create new migration files with incremented version numbers (e.g., `V2__add_tours_rating.sql`)
+- **Important**: Never modify existing migration files that have been applied to production databases
 
 ### Data Seeding
 The backend supports optional data seeding for development and demos:
