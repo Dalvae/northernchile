@@ -13,6 +13,17 @@ export default defineNuxtConfig({
   devtools: {
     enabled: false,
   },
+
+  // Completely disable devtools in production
+  hooks: {
+    "vite:extendConfig"(config) {
+      if (import.meta.env.PROD) {
+        config.define = config.define || {};
+        config.define.__VUE_PROD_DEVTOOLS__ = false;
+        config.define.__VUE_PROD_HYDRATION_MISMATCH_DETAILS__ = false;
+      }
+    },
+  },
   app: {
     head: {
       link: [
@@ -74,10 +85,24 @@ export default defineNuxtConfig({
         changeOrigin: true,
       },
     },
+    // Exclude Vue DevTools from production builds
+    moduleSideEffects(id) {
+      return !id.includes("@vue/devtools") && !id.includes("perfect-debounce");
+    },
+    replace: {
+      __VUE_PROD_DEVTOOLS__: "false",
+    },
   },
 
   vite: {
     plugins: [viteTsconfigPaths()],
+    // Fix SSR issues with Vue DevTools in production
+    ssr: {
+      noExternal: ["perfect-debounce"],
+    },
+    optimizeDeps: {
+      exclude: ["@vue/devtools-kit", "@vue/devtools-api", "perfect-debounce"],
+    },
   },
 
   eslint: {

@@ -1,25 +1,52 @@
 export function readPackage(pkg, context) {
-  if (process.env.NODE_ENV === 'production') {
-    context.log(`[PNPM Hook] Entorno de producción detectado. Modificando dependencias de: ${pkg.name}`)
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
 
-    const removeDevtoolsDeps = (deps) => {
-      if (deps) {
-        delete deps['@vue/devtools-api']
-        delete deps['@vue/devtools-kit']
-        delete deps['perfect-debounce']
+  // Always log for debugging
+  if (isProduction) {
+    context.log(`[PNPM Hook] Production environment detected. Modifying dependencies for: ${pkg.name}`);
+  }
+
+  const removeDevtoolsDeps = (deps) => {
+    if (deps) {
+      const removed = [];
+      if (deps['@vue/devtools-api']) {
+        delete deps['@vue/devtools-api'];
+        removed.push('@vue/devtools-api');
+      }
+      if (deps['@vue/devtools-kit']) {
+        delete deps['@vue/devtools-kit'];
+        removed.push('@vue/devtools-kit');
+      }
+      if (deps['perfect-debounce']) {
+        delete deps['perfect-debounce'];
+        removed.push('perfect-debounce');
+      }
+      if (removed.length > 0 && isProduction) {
+        context.log(`[PNPM Hook] Removed from ${pkg.name}: ${removed.join(', ')}`);
       }
     }
+  };
 
-    removeDevtoolsDeps(pkg.dependencies)
-    removeDevtoolsDeps(pkg.devDependencies)
-    removeDevtoolsDeps(pkg.optionalDependencies)
+  // Remove devtools dependencies from all packages in production
+  if (isProduction) {
+    removeDevtoolsDeps(pkg.dependencies);
+    removeDevtoolsDeps(pkg.devDependencies);
+    removeDevtoolsDeps(pkg.optionalDependencies);
+    removeDevtoolsDeps(pkg.peerDependencies);
+  }
 
-    // Si el paquete es 'pinia', eliminamos su dependencia a las devtools.
-    if (pkg.name === 'pinia' && pkg.dependencies) {
-      delete pkg.dependencies['@vue/devtools-api']
-      context.log(`[PNPM Hook] Eliminada la dependencia '@vue/devtools-api' de pinia.`)
+  // Always remove devtools from specific packages that cause issues
+  const problematicPackages = ['pinia', '@nuxt/ui', '@vueuse/core'];
+  if (problematicPackages.includes(pkg.name)) {
+    if (pkg.dependencies?.['@vue/devtools-api']) {
+      delete pkg.dependencies['@vue/devtools-api'];
+      context.log(`[PNPM Hook] Removed @vue/devtools-api from ${pkg.name}`);
+    }
+    if (pkg.dependencies?.['@vue/devtools-kit']) {
+      delete pkg.dependencies['@vue/devtools-kit'];
+      context.log(`[PNPM Hook] Removed @vue/devtools-kit from ${pkg.name}`);
     }
   }
 
-  return pkg
+  return pkg;
 }
