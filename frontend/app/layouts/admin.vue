@@ -66,6 +66,11 @@ const navigationLinks = [
     to: '/admin/calendar'
   },
   {
+    label: 'Medios',
+    icon: 'i-lucide-image',
+    to: '/admin/media'
+  },
+  {
     label: 'Reservas',
     icon: 'i-lucide-book-marked',
     to: '/admin/bookings'
@@ -140,6 +145,7 @@ function formatSegment(segment: string) {
     'bookings': 'Reservas',
     'users': 'Usuarios',
     'calendar': 'Calendario',
+    'media': 'Medios',
     'alerts': 'Alertas',
     'private-requests': 'Tours Privados',
     'reports': 'Reportes',
