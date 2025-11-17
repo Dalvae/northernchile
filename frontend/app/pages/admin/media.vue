@@ -30,11 +30,11 @@ const selectedItems = ref([])
 const columns = [
   { id: 'select', key: 'select', label: '' },
   { id: 'thumbnail', key: 'thumbnail', label: '' },
-  { key: 'filename', label: 'Archivo', sortable: true },
-  { key: 'type', label: 'Tipo', sortable: true },
-  { key: 'tags', label: 'Etiquetas' },
-  { key: 'takenAt', label: 'Fecha', sortable: true },
-  { key: 'size', label: 'Tamaño', sortable: true },
+  { id: 'filename', key: 'filename', label: 'Archivo', sortable: true },
+  { id: 'type', key: 'type', label: 'Tipo', sortable: true },
+  { id: 'tags', key: 'tags', label: 'Etiquetas' },
+  { id: 'takenAt', key: 'takenAt', label: 'Fecha', sortable: true },
+  { id: 'size', key: 'size', label: 'Tamaño', sortable: true },
   { id: 'actions', key: 'actions', label: '' }
 ]
 
