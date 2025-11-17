@@ -408,6 +408,7 @@ public class MediaService {
 
     /**
      * Get all media for a schedule gallery (with display order).
+     * Includes inherited media from parent tour + schedule-specific media.
      */
     public List<MediaRes> getScheduleGallery(UUID scheduleId, UUID requesterId) {
         log.info("Getting gallery for schedule: {}", scheduleId);
@@ -420,14 +421,30 @@ public class MediaService {
             throw new AccessDeniedException("You don't have permission to view this schedule");
         }
 
+        List<MediaRes> result = new java.util.ArrayList<>();
+
+        // 1. Get inherited media from parent tour
+        UUID tourId = schedule.getTour().getId();
+        List<TourMedia> tourMediaList = tourMediaRepository.findByTourIdOrderByDisplayOrderAsc(tourId);
+
+        for (TourMedia tm : tourMediaList) {
+            MediaRes res = mediaMapper.toMediaRes(tm.getMedia());
+            res.setDisplayOrder(tm.getDisplayOrder());
+            res.setIsHero(tm.getIsHero());
+            res.setIsInherited(true); // Mark as inherited from tour
+            result.add(res);
+        }
+
+        // 2. Get schedule-specific media
         List<ScheduleMedia> scheduleMediaList = scheduleMediaRepository.findByScheduleIdOrderByDisplayOrderAsc(scheduleId);
 
-        return scheduleMediaList.stream()
-                .map(sm -> {
-                    MediaRes res = mediaMapper.toMediaRes(sm.getMedia());
-                    res.setDisplayOrder(sm.getDisplayOrder());
-                    return res;
-                })
-                .toList();
+        for (ScheduleMedia sm : scheduleMediaList) {
+            MediaRes res = mediaMapper.toMediaRes(sm.getMedia());
+            res.setDisplayOrder(sm.getDisplayOrder());
+            res.setIsInherited(false); // Mark as schedule-specific
+            result.add(res);
+        }
+
+        return result;
     }
 }

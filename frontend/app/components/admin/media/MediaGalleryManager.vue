@@ -75,6 +75,9 @@ async function setHero(mediaId: string) {
 async function moveUp(index: number) {
   if (index === 0) return
 
+  // Don't allow moving above inherited photos (for schedules)
+  if (props.scheduleId && gallery.value[index - 1]?.isInherited) return
+
   const temp = gallery.value[index]
   gallery.value[index] = gallery.value[index - 1]
   gallery.value[index - 1] = temp
@@ -98,7 +101,12 @@ async function saveOrder() {
   if (!props.tourId && !props.scheduleId) return
 
   try {
-    const orders = gallery.value.map((m, index) => ({
+    // For schedules, only reorder non-inherited photos
+    const photosToReorder = props.scheduleId
+      ? gallery.value.filter(m => !m.isInherited)
+      : gallery.value
+
+    const orders = photosToReorder.map((m, index) => ({
       mediaId: m.id,
       displayOrder: index
     }))
@@ -217,42 +225,63 @@ watch(() => [props.tourId, props.scheduleId], () => {
           Destacada
         </UBadge>
 
+        <!-- Inherited badge (for schedule galleries) -->
+        <UBadge
+          v-if="item.isInherited"
+          color="info"
+          variant="soft"
+          class="absolute top-2 right-2"
+        >
+          <UIcon name="i-heroicons-arrow-down-tray" class="w-3 h-3" />
+          Del Tour
+        </UBadge>
+
         <!-- Actions overlay -->
         <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
-          <!-- Move up -->
-          <UButton
-            v-if="index > 0"
-            icon="i-heroicons-arrow-up"
-            size="sm"
-            color="neutral"
-            @click="moveUp(index)"
-          />
+          <!-- Inherited photos are read-only -->
+          <template v-if="!item.isInherited">
+            <!-- Move up (not available if previous item is inherited) -->
+            <UButton
+              v-if="index > 0 && !gallery[index - 1]?.isInherited"
+              icon="i-heroicons-arrow-up"
+              size="sm"
+              color="neutral"
+              @click="moveUp(index)"
+            />
 
-          <!-- Move down -->
-          <UButton
-            v-if="index < gallery.length - 1"
-            icon="i-heroicons-arrow-down"
-            size="sm"
-            color="neutral"
-            @click="moveDown(index)"
-          />
+            <!-- Move down -->
+            <UButton
+              v-if="index < gallery.length - 1"
+              icon="i-heroicons-arrow-down"
+              size="sm"
+              color="neutral"
+              @click="moveDown(index)"
+            />
 
-          <!-- Set hero (only for tours) -->
-          <UButton
-            v-if="tourId && !item.isHero"
-            icon="i-heroicons-star"
-            size="sm"
-            color="primary"
-            @click="setHero(item.id)"
-          />
+            <!-- Set hero (only for tours) -->
+            <UButton
+              v-if="tourId && !item.isHero"
+              icon="i-heroicons-star"
+              size="sm"
+              color="primary"
+              @click="setHero(item.id)"
+            />
 
-          <!-- Remove -->
-          <UButton
-            icon="i-heroicons-trash"
-            size="sm"
-            color="error"
-            @click="removeFromGallery(item.id)"
-          />
+            <!-- Remove -->
+            <UButton
+              icon="i-heroicons-trash"
+              size="sm"
+              color="error"
+              @click="removeFromGallery(item.id)"
+            />
+          </template>
+
+          <!-- Info badge for inherited photos -->
+          <template v-else>
+            <div class="bg-neutral-900/90 text-white text-xs px-3 py-1.5 rounded">
+              Heredada del tour (solo lectura)
+            </div>
+          </template>
         </div>
 
         <!-- Display order badge -->

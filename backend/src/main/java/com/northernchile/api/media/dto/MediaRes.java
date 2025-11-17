@@ -33,6 +33,7 @@ public class MediaRes {
     // Additional fields for gallery context
     private Integer displayOrder;
     private Boolean isHero;
+    private Boolean isInherited; // True if media is inherited from parent tour (in schedule gallery context)
 
     public MediaRes() {
     }
@@ -188,6 +189,14 @@ public class MediaRes {
 
     public void setIsHero(Boolean isHero) {
         this.isHero = isHero;
+    }
+
+    public Boolean getIsInherited() {
+        return isInherited;
+    }
+
+    public void setIsInherited(Boolean isInherited) {
+        this.isInherited = isInherited;
     }
 
     @Override
