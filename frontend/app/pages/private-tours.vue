@@ -20,7 +20,6 @@ const state = reactive({
   preferredTime: 'evening',
   tourType: 'ASTRONOMICAL',
   specialRequests: '',
-  budget: '',
   loading: false
 })
 
@@ -38,7 +37,7 @@ const tourTypeOptions = [
 const timeOptions = [
   { label: t('privateTours.form.time_options.morning'), value: 'morning' },
   { label: t('privateTours.form.time_options.afternoon'), value: 'afternoon' },
-  { label: t('privateTours.form.time_options.night'), value: 'evening' },
+  { label: t('privateTours.form.time_options.evening'), value: 'evening' },
   { label: t('privateTours.form.time_options.flexible'), value: 'flexible' }
 ]
 
@@ -113,7 +112,6 @@ async function submitRequest() {
     state.preferredTime = 'evening'
     state.tourType = 'ASTRONOMICAL'
     state.specialRequests = ''
-    state.budget = ''
   } catch (error) {
     toast.add({
       title: t('privateTours.form.toast.error_title'),
@@ -320,20 +318,6 @@ async function submitRequest() {
                   option-attribute="label"
                   value-attribute="value"
                   size="lg"
-                  class="w-full"
-                />
-              </div>
-
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
-                >
-                  {{ t("privateTours.form.budget_label") }}
-                </label>
-                <UInput
-                  v-model="state.budget"
-                  size="lg"
-                  :placeholder="t('privateTours.form.budget_placeholder')"
                   class="w-full"
                 />
               </div>

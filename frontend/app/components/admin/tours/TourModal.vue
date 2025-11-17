@@ -96,6 +96,9 @@ const form = ref()
 // Variable para guardar los errores de validación
 const formErrors = ref<FormError[]>([])
 
+// Main tabs state
+const mainTab = ref('general')
+
 // Funciones para manejar imágenes
 const handleImageUploaded = (data: { key: string, url: string }) => {
   if (!state.imageUrls) {
@@ -373,9 +376,22 @@ const statusOptions = [
             @click="emit('close')"
           />
         </div>
+
+        <!-- Main tabs for General and Gallery -->
+        <div class="border-b border-neutral-200 dark:border-neutral-800 px-5">
+          <UTabs
+            v-model="mainTab"
+            :items="[
+              { key: 'general', label: 'Información General', icon: 'i-heroicons-information-circle' },
+              { key: 'gallery', label: 'Galería', icon: 'i-heroicons-photo', disabled: !isEditing }
+            ]"
+          />
+        </div>
+
         <div class="flex-1 overflow-y-auto max-h-[60vh]">
           <div class="p-5">
-            <div class="space-y-8">
+            <!-- General tab content -->
+            <div v-show="mainTab === 'general'" class="space-y-8">
               <UForm
                 ref="form"
                 :schema="fullSchema"
@@ -1074,15 +1090,26 @@ const statusOptions = [
                 </div>
               </UForm>
             </div>
+
+            <!-- Gallery tab content -->
+            <div v-show="mainTab === 'gallery' && isEditing">
+              <AdminMediaMediaGalleryManager
+                v-if="tour?.id"
+                :tour-id="tour.id"
+              />
+            </div>
           </div>
         </div>
          <div
           class="flex justify-between items-center p-5 pt-4 border-t border-default flex-shrink-0"
         >
            <div class="text-sm text-muted">
-            {{
-              isEditing ? "Modificando tour existente" : "Creando nuevo tour"
-            }}
+            <template v-if="mainTab === 'general'">
+              {{ isEditing ? "Modificando tour existente" : "Creando nuevo tour" }}
+            </template>
+            <template v-else>
+              Gestiona la galería de fotos
+            </template>
           </div>
           <div class="flex gap-3">
             <!-- ✅ Botón cancelar cierra el modal -->
@@ -1094,6 +1121,7 @@ const statusOptions = [
               @click="emit('close')"
             />
             <UButton
+              v-if="mainTab === 'general'"
               :label="isEditing ? 'Guardar Cambios' : 'Crear Tour'"
               color="primary"
               :loading="loading"

@@ -163,6 +163,10 @@ const typeOptions = [
   { label: 'Adulto', value: 'ADULT' },
   { label: 'Niño', value: 'CHILD' }
 ]
+
+// Active tab
+const activeTab = ref('participants')
+
 </script>
 
 <template>
@@ -206,6 +210,17 @@ const typeOptions = [
       </div>
     </div>
 
+    <!-- Tabs -->
+    <div class="mb-6">
+      <UTabs
+        v-model="activeTab"
+        :items="[
+          { key: 'participants', label: 'Participantes', icon: 'i-lucide-users' },
+          { key: 'gallery', label: 'Galería', icon: 'i-lucide-image' }
+        ]"
+      />
+    </div>
+
     <!-- Loading state -->
     <div
       v-if="pending"
@@ -241,6 +256,8 @@ const typeOptions = [
 
     <!-- Content -->
     <div v-else-if="participantsData">
+      <!-- Participants Tab -->
+      <div v-show="activeTab === 'participants'">
       <!-- Stats Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div
@@ -504,6 +521,14 @@ const typeOptions = [
             </tbody>
           </table>
         </div>
+      </div>
+      </div>
+
+      <!-- Gallery Tab -->
+      <div v-show="activeTab === 'gallery'">
+        <AdminMediaMediaGalleryManager
+          :schedule-id="scheduleId"
+        />
       </div>
     </div>
   </div>

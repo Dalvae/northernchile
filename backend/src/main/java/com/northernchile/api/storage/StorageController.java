@@ -44,9 +44,9 @@ public class StorageController {
             return ResponseEntity.badRequest().body(Map.of("error", "Only image files are allowed"));
         }
 
-        // Validate file size (max 5MB)
-        if (file.getSize() > 5 * 1024 * 1024) {
-            return ResponseEntity.badRequest().body(Map.of("error", "File size must not exceed 5MB"));
+        // Validate file size (max 10MB)
+        if (file.getSize() > 10 * 1024 * 1024) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File size must not exceed 10MB"));
         }
 
         try {
