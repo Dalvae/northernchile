@@ -170,6 +170,7 @@ function getTypeBadgeColor(type) {
                 v-model="state.altTranslations.es"
                 placeholder="Descripción de la imagen"
                 size="lg"
+                class="w-full"
               />
             </template>
             <template #en>
@@ -177,6 +178,7 @@ function getTypeBadgeColor(type) {
                 v-model="state.altTranslations.en"
                 placeholder="Image description"
                 size="lg"
+                class="w-full"
               />
             </template>
             <template #pt>
@@ -184,6 +186,7 @@ function getTypeBadgeColor(type) {
                 v-model="state.altTranslations.pt"
                 placeholder="Descrição da imagem"
                 size="lg"
+                class="w-full"
               />
             </template>
           </UTabs>
@@ -208,6 +211,7 @@ function getTypeBadgeColor(type) {
                 placeholder="Leyenda o contexto adicional"
                 :rows="2"
                 size="lg"
+                class="w-full"
               />
             </template>
             <template #en>
@@ -216,6 +220,7 @@ function getTypeBadgeColor(type) {
                 placeholder="Caption or additional context"
                 :rows="2"
                 size="lg"
+                class="w-full"
               />
             </template>
             <template #pt>
@@ -224,6 +229,7 @@ function getTypeBadgeColor(type) {
                 placeholder="Legenda ou contexto adicional"
                 :rows="2"
                 size="lg"
+                class="w-full"
               />
             </template>
           </UTabs>
@@ -243,6 +249,7 @@ function getTypeBadgeColor(type) {
             searchable
             placeholder="Añade etiquetas para organizar"
             size="lg"
+            class="w-full"
           />
 
           <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
@@ -260,6 +267,7 @@ function getTypeBadgeColor(type) {
             v-model="state.takenAt"
             type="datetime-local"
             size="lg"
+            class="w-full"
           />
 
           <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">

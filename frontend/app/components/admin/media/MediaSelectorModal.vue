@@ -125,6 +125,7 @@ function formatFileSize(bytes: number) {
           icon="i-heroicons-magnifying-glass"
           placeholder="Buscar fotos..."
           size="lg"
+          class="w-full"
           @update:model-value="fetchMedia"
         />
 

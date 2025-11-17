@@ -309,6 +309,7 @@ function formatFileSize(bytes: number) {
                   v-model="metadata.altTranslations.es"
                   placeholder="Descripción de la imagen en español"
                   size="lg"
+                  class="w-full"
                 />
               </template>
               <template #en>
@@ -316,6 +317,7 @@ function formatFileSize(bytes: number) {
                   v-model="metadata.altTranslations.en"
                   placeholder="Image description in English"
                   size="lg"
+                  class="w-full"
                 />
               </template>
               <template #pt>
@@ -323,6 +325,7 @@ function formatFileSize(bytes: number) {
                   v-model="metadata.altTranslations.pt"
                   placeholder="Descrição da imagem em português"
                   size="lg"
+                  class="w-full"
                 />
               </template>
             </UTabs>
@@ -341,6 +344,7 @@ function formatFileSize(bytes: number) {
               searchable
               placeholder="Añade etiquetas (ej: noche, estrellas, grupo)"
               size="lg"
+              class="w-full"
             />
             <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
               Presiona Enter para crear una nueva etiqueta
@@ -356,6 +360,7 @@ function formatFileSize(bytes: number) {
               v-model="metadata.takenAt"
               type="datetime-local"
               size="lg"
+              class="w-full"
             />
             <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
               Si no se proporciona, se usará la fecha de subida
