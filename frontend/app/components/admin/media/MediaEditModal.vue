@@ -30,9 +30,30 @@ const isOpen = computed({
 const state = ref({
   altTranslations: { es: '', en: '', pt: '' },
   captionTranslations: { es: '', en: '', pt: '' },
-  tags: [],
+  tags: [] as string[],
   takenAt: ''
 })
+
+const tagInput = ref('')
+
+function addTag() {
+  const tag = tagInput.value.trim()
+  if (tag && !state.value.tags.includes(tag)) {
+    state.value.tags.push(tag)
+    tagInput.value = ''
+  }
+}
+
+function removeTag(index: number) {
+  state.value.tags.splice(index, 1)
+}
+
+function handleTagKeydown(event: KeyboardEvent) {
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    addTag()
+  }
+}
 
 // Load media data
 watch(() => props.media, (media) => {
@@ -111,21 +132,22 @@ function getTypeBadgeColor(type) {
 <template>
   <UModal v-model:open="isOpen" :ui="{ width: 'sm:max-w-2xl' }">
     <template #content>
-      <!-- Header -->
-      <div class="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
-        <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-          Editar Medio
-        </h3>
-        <UButton
-          icon="i-heroicons-x-mark"
-          variant="ghost"
-          color="neutral"
-          @click="isOpen = false"
-        />
-      </div>
+      <div class="p-6">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
+          <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+            Editar Medio
+          </h3>
+          <UButton
+            icon="i-heroicons-x-mark"
+            variant="ghost"
+            color="neutral"
+            @click="isOpen = false"
+          />
+        </div>
 
-      <!-- Content -->
-      <div v-if="media" class="py-6 space-y-6">
+        <!-- Content -->
+        <div v-if="media" class="py-6 space-y-6 max-h-[70vh] overflow-y-auto">
         <!-- Preview -->
         <div class="flex gap-4">
           <img
@@ -241,19 +263,32 @@ function getTypeBadgeColor(type) {
             Etiquetas
           </label>
 
-          <USelectMenu
-            v-model="state.tags"
-            :items="[]"
-            multiple
-            creatable
-            searchable
+          <!-- Tags display -->
+          <div v-if="state.tags.length > 0" class="flex flex-wrap gap-2 mb-2">
+            <UBadge
+              v-for="(tag, index) in state.tags"
+              :key="index"
+              color="primary"
+              variant="soft"
+              class="cursor-pointer"
+              @click="removeTag(index)"
+            >
+              {{ tag }}
+              <UIcon name="i-heroicons-x-mark" class="w-3 h-3 ml-1" />
+            </UBadge>
+          </div>
+
+          <!-- Tag input -->
+          <UInput
+            v-model="tagInput"
             placeholder="Añade etiquetas para organizar"
             size="lg"
             class="w-full"
+            @keydown="handleTagKeydown"
           />
 
           <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
-            Útil para buscar y filtrar medios
+            Presiona Enter para agregar. Click en la etiqueta para eliminar.
           </p>
         </div>
 
@@ -288,24 +323,25 @@ function getTypeBadgeColor(type) {
             </div>
           </div>
         </div>
-      </div>
+        </div>
 
-      <!-- Footer -->
-      <div class="flex justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-800">
-        <UButton
-          variant="outline"
-          color="neutral"
-          @click="isOpen = false"
-        >
-          Cancelar
-        </UButton>
+        <!-- Footer -->
+        <div class="flex justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+          <UButton
+            variant="outline"
+            color="neutral"
+            @click="isOpen = false"
+          >
+            Cancelar
+          </UButton>
 
-        <UButton
-          color="primary"
-          @click="save"
-        >
-          Guardar Cambios
-        </UButton>
+          <UButton
+            color="primary"
+            @click="save"
+          >
+            Guardar Cambios
+          </UButton>
+        </div>
       </div>
     </template>
   </UModal>

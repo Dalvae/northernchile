@@ -12,6 +12,7 @@ const emit = defineEmits(['update:modelValue', 'success'])
 const toast = useToast()
 const { uploadFile } = useS3Upload()
 const authStore = useAuthStore()
+const fileInput = ref<HTMLInputElement | null>(null)
 
 const headers = computed(() => {
   const headers: Record<string, string> = {
@@ -40,9 +41,30 @@ const uploadingFiles = ref<Array<{
 const metadata = ref({
   altTranslations: { es: '', en: '', pt: '' },
   captionTranslations: { es: '', en: '', pt: '' },
-  tags: [],
+  tags: [] as string[],
   takenAt: ''
 })
+
+const tagInput = ref('')
+
+function addTag() {
+  const tag = tagInput.value.trim()
+  if (tag && !metadata.value.tags.includes(tag)) {
+    metadata.value.tags.push(tag)
+    tagInput.value = ''
+  }
+}
+
+function removeTag(index: number) {
+  metadata.value.tags.splice(index, 1)
+}
+
+function handleTagKeydown(event: KeyboardEvent) {
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    addTag()
+  }
+}
 
 // File handling
 function onFilesSelected(event: Event) {
@@ -160,26 +182,31 @@ function formatFileSize(bytes: number) {
   const mb = kb / 1024
   return `${mb.toFixed(1)} MB`
 }
+
+function openFileDialog() {
+  fileInput.value?.click()
+}
 </script>
 
 <template>
   <UModal v-model:open="isOpen" :ui="{ width: 'sm:max-w-3xl' }">
     <template #content>
-      <!-- Header -->
-      <div class="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
-        <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-          Subir Fotos
-        </h3>
-        <UButton
-          icon="i-heroicons-x-mark"
-          variant="ghost"
-          color="neutral"
-          @click="isOpen = false"
-        />
-      </div>
+      <div class="p-6">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
+          <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+            Subir Fotos
+          </h3>
+          <UButton
+            icon="i-heroicons-x-mark"
+            variant="ghost"
+            color="neutral"
+            @click="isOpen = false"
+          />
+        </div>
 
-      <!-- Content -->
-      <div class="py-6 space-y-6">
+        <!-- Content -->
+        <div class="py-6 space-y-6 max-h-[70vh] overflow-y-auto">
         <!-- Drop zone -->
         <div
           class="border-2 border-dashed rounded-lg p-8 text-center transition-colors"
@@ -203,18 +230,18 @@ function formatFileSize(bytes: number) {
             Máximo 10MB por archivo. Formatos: JPG, PNG, WEBP
           </p>
 
-          <label class="cursor-pointer">
-            <UButton color="primary" variant="soft">
-              Seleccionar Archivos
-            </UButton>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              class="hidden"
-              @change="onFilesSelected"
-            />
-          </label>
+          <UButton color="primary" variant="soft" @click="openFileDialog">
+            Seleccionar Archivos
+          </UButton>
+
+          <input
+            ref="fileInput"
+            type="file"
+            multiple
+            accept="image/*"
+            class="hidden"
+            @change="onFilesSelected"
+          />
         </div>
 
         <!-- File list -->
@@ -336,18 +363,32 @@ function formatFileSize(bytes: number) {
             <label class="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
               Etiquetas
             </label>
-            <USelectMenu
-              v-model="metadata.tags"
-              :items="[]"
-              multiple
-              creatable
-              searchable
+
+            <!-- Tags display -->
+            <div v-if="metadata.tags.length > 0" class="flex flex-wrap gap-2 mb-2">
+              <UBadge
+                v-for="(tag, index) in metadata.tags"
+                :key="index"
+                color="primary"
+                variant="soft"
+                class="cursor-pointer"
+                @click="removeTag(index)"
+              >
+                {{ tag }}
+                <UIcon name="i-heroicons-x-mark" class="w-3 h-3 ml-1" />
+              </UBadge>
+            </div>
+
+            <!-- Tag input -->
+            <UInput
+              v-model="tagInput"
               placeholder="Añade etiquetas (ej: noche, estrellas, grupo)"
               size="lg"
               class="w-full"
+              @keydown="handleTagKeydown"
             />
             <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
-              Presiona Enter para crear una nueva etiqueta
+              Presiona Enter para agregar. Click en la etiqueta para eliminar.
             </p>
           </div>
 
@@ -367,26 +408,27 @@ function formatFileSize(bytes: number) {
             </p>
           </div>
         </div>
-      </div>
+        </div>
 
-      <!-- Footer -->
-      <div class="flex justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-800">
-        <UButton
-          variant="outline"
-          color="neutral"
-          @click="isOpen = false"
-        >
-          Cancelar
-        </UButton>
+        <!-- Footer -->
+        <div class="flex justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+          <UButton
+            variant="outline"
+            color="neutral"
+            @click="isOpen = false"
+          >
+            Cancelar
+          </UButton>
 
-        <UButton
-          color="primary"
-          :disabled="uploadingFiles.length === 0"
-          :loading="uploadingFiles.some(f => f.status === 'uploading')"
-          @click="startUpload"
-        >
-          Subir {{ uploadingFiles.length }} {{ uploadingFiles.length === 1 ? 'Foto' : 'Fotos' }}
-        </UButton>
+          <UButton
+            color="primary"
+            :disabled="uploadingFiles.length === 0"
+            :loading="uploadingFiles.some(f => f.status === 'uploading')"
+            @click="startUpload"
+          >
+            Subir {{ uploadingFiles.length }} {{ uploadingFiles.length === 1 ? 'Foto' : 'Fotos' }}
+          </UButton>
+        </div>
       </div>
     </template>
   </UModal>
