@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useAuthStore } from '~/stores/auth'
+
 const props = defineProps<{
   modelValue: boolean
 }>()
@@ -6,7 +8,17 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue', 'selected'])
 
 const toast = useToast()
-const apiClient = useApiClient()
+const authStore = useAuthStore()
+
+const headers = computed(() => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+  if (authStore.token) {
+    headers.Authorization = `Bearer ${authStore.token}`
+  }
+  return headers
+})
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -26,16 +38,17 @@ const totalItems = ref(0)
 async function fetchMedia() {
   loading.value = true
   try {
-    const response = await apiClient.get('/admin/media', {
+    const response = await $fetch('/api/admin/media', {
       params: {
         page: page.value - 1,
         size: pageSize.value,
         search: search.value || undefined
-      }
+      },
+      headers: headers.value
     })
 
-    media.value = response.data.content || []
-    totalItems.value = response.data.totalElements || 0
+    media.value = response.content || []
+    totalItems.value = response.totalElements || 0
   } catch (error) {
     console.error('Error fetching media:', error)
     toast.add({ color: 'error', title: 'Error al cargar medios' })

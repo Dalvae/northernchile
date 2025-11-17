@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useAuthStore } from '~/stores/auth'
+
 const props = defineProps<{
   modelValue: boolean
   tourId?: string
@@ -9,7 +11,17 @@ const emit = defineEmits(['update:modelValue', 'success'])
 
 const toast = useToast()
 const { uploadFile } = useS3Upload()
-const apiClient = useApiClient()
+const authStore = useAuthStore()
+
+const headers = computed(() => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+  if (authStore.token) {
+    headers.Authorization = `Bearer ${authStore.token}`
+  }
+  return headers
+})
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -75,18 +87,22 @@ async function startUpload() {
       })
 
       // Create media record in DB
-      await apiClient.post('/admin/media', {
-        url: result.url,
-        s3Key: result.key,
-        tourId: props.tourId,
-        scheduleId: props.scheduleId,
-        originalFilename: item.file.name,
-        sizeBytes: item.file.size,
-        contentType: item.file.type,
-        altTranslations: metadata.value.altTranslations,
-        captionTranslations: metadata.value.captionTranslations,
-        tags: metadata.value.tags,
-        takenAt: metadata.value.takenAt ? new Date(metadata.value.takenAt).toISOString() : null
+      await $fetch('/api/admin/media', {
+        method: 'POST',
+        body: {
+          url: result.url,
+          s3Key: result.key,
+          tourId: props.tourId,
+          scheduleId: props.scheduleId,
+          originalFilename: item.file.name,
+          sizeBytes: item.file.size,
+          contentType: item.file.type,
+          altTranslations: metadata.value.altTranslations,
+          captionTranslations: metadata.value.captionTranslations,
+          tags: metadata.value.tags,
+          takenAt: metadata.value.takenAt ? new Date(metadata.value.takenAt).toISOString() : null
+        },
+        headers: headers.value
       })
 
       item.status = 'success'

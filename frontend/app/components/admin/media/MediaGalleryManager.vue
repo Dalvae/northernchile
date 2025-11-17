@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useAuthStore } from '~/stores/auth'
+
 const props = defineProps<{
   tourId?: string
   scheduleId?: string
@@ -7,7 +9,17 @@ const props = defineProps<{
 const emit = defineEmits(['update'])
 
 const toast = useToast()
-const apiClient = useApiClient()
+const authStore = useAuthStore()
+
+const headers = computed(() => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+  if (authStore.token) {
+    headers.Authorization = `Bearer ${authStore.token}`
+  }
+  return headers
+})
 
 // State
 const gallery = ref([])
@@ -21,11 +33,10 @@ async function fetchGallery() {
   loading.value = true
   try {
     const endpoint = props.tourId
-      ? `/admin/media/tour/${props.tourId}/gallery`
-      : `/admin/media/schedule/${props.scheduleId}/gallery`
+      ? `/api/admin/media/tour/${props.tourId}/gallery`
+      : `/api/admin/media/schedule/${props.scheduleId}/gallery`
 
-    const response = await apiClient.get(endpoint)
-    gallery.value = response.data || []
+    gallery.value = await $fetch(endpoint, { headers: headers.value })
   } catch (error) {
     console.error('Error fetching gallery:', error)
     toast.add({ color: 'error', title: 'Error al cargar galería' })
@@ -55,7 +66,10 @@ async function setHero(mediaId: string) {
   if (!props.tourId) return
 
   try {
-    await apiClient.put(`/admin/media/tour/${props.tourId}/hero/${mediaId}`)
+    await $fetch(`/api/admin/media/tour/${props.tourId}/hero/${mediaId}`, {
+      method: 'PUT',
+      headers: headers.value
+    })
 
     // Update local state
     gallery.value = gallery.value.map(m => ({
@@ -112,10 +126,14 @@ async function saveOrder() {
     }))
 
     const endpoint = props.tourId
-      ? `/admin/media/tour/${props.tourId}/reorder`
-      : `/admin/media/schedule/${props.scheduleId}/reorder`
+      ? `/api/admin/media/tour/${props.tourId}/reorder`
+      : `/api/admin/media/schedule/${props.scheduleId}/reorder`
 
-    await apiClient.put(endpoint, orders)
+    await $fetch(endpoint, {
+      method: 'PUT',
+      body: orders,
+      headers: headers.value
+    })
     emit('update')
   } catch (error) {
     console.error('Error saving order:', error)
@@ -128,12 +146,16 @@ async function saveOrder() {
 async function handleMediaSelected(selectedMediaIds: string[]) {
   try {
     const endpoint = props.tourId
-      ? `/admin/media/tour/${props.tourId}/assign`
-      : `/admin/media/schedule/${props.scheduleId}/assign`
+      ? `/api/admin/media/tour/${props.tourId}/assign`
+      : `/api/admin/media/schedule/${props.scheduleId}/assign`
 
-    await apiClient.post(endpoint, {
-      targetId: props.tourId || props.scheduleId,
-      mediaIds: selectedMediaIds
+    await $fetch(endpoint, {
+      method: 'POST',
+      body: {
+        targetId: props.tourId || props.scheduleId,
+        mediaIds: selectedMediaIds
+      },
+      headers: headers.value
     })
 
     toast.add({

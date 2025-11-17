@@ -1,10 +1,23 @@
 <script setup lang="ts">
+import { useAuthStore } from '~/stores/auth'
+
 definePageMeta({
   layout: 'admin',
   middleware: 'auth-admin'
 })
 
 const toast = useToast()
+const authStore = useAuthStore()
+
+const headers = computed(() => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+  if (authStore.token) {
+    headers.Authorization = `Bearer ${authStore.token}`
+  }
+  return headers
+})
 
 // State
 const media = ref([])
@@ -42,17 +55,17 @@ const columns = [
 async function fetchMedia() {
   loading.value = true
   try {
-    const apiClient = useApiClient()
-    const response = await apiClient.get('/admin/media', {
+    const response = await $fetch('/api/admin/media', {
       params: {
         page: page.value - 1,
         size: pageSize.value,
         search: filters.value.search || undefined
-      }
+      },
+      headers: headers.value
     })
 
-    media.value = response.data.content || []
-    totalItems.value = response.data.totalElements || 0
+    media.value = response.content || []
+    totalItems.value = response.totalElements || 0
   } catch (error) {
     console.error('Error fetching media:', error)
     toast.add({ color: 'error', title: 'Error al cargar medios' })
@@ -66,8 +79,10 @@ async function deleteMedia(id) {
   if (!confirm('¿Estás seguro de eliminar este medio? Esta acción no se puede deshacer.')) return
 
   try {
-    const apiClient = useApiClient()
-    await apiClient.delete(`/admin/media/${id}`)
+    await $fetch(`/api/admin/media/${id}`, {
+      method: 'DELETE',
+      headers: headers.value
+    })
     toast.add({ color: 'success', title: 'Medio eliminado' })
     await fetchMedia()
   } catch (error) {
@@ -124,12 +139,14 @@ function toggleSelect(id) {
 async function bulkDelete() {
   if (!confirm(`¿Eliminar ${selectedItems.value.length} ${selectedItems.value.length === 1 ? 'medio' : 'medios'}? Esta acción no se puede deshacer.`)) return
 
-  const apiClient = useApiClient()
   let deleted = 0
 
   for (const id of selectedItems.value) {
     try {
-      await apiClient.delete(`/admin/media/${id}`)
+      await $fetch(`/api/admin/media/${id}`, {
+        method: 'DELETE',
+        headers: headers.value
+      })
       deleted++
     } catch (error) {
       console.error(`Error deleting media ${id}:`, error)

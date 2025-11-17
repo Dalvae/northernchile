@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useAuthStore } from '~/stores/auth'
+
 const props = defineProps<{
   modelValue: boolean
   media: any | null
@@ -7,7 +9,17 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue', 'success'])
 
 const toast = useToast()
-const apiClient = useApiClient()
+const authStore = useAuthStore()
+
+const headers = computed(() => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+  if (authStore.token) {
+    headers.Authorization = `Bearer ${authStore.token}`
+  }
+  return headers
+})
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -44,11 +56,15 @@ function formatForInput(isoString: string) {
 
 async function save() {
   try {
-    await apiClient.patch(`/admin/media/${props.media.id}`, {
-      altTranslations: state.value.altTranslations,
-      captionTranslations: state.value.captionTranslations,
-      tags: state.value.tags,
-      takenAt: state.value.takenAt ? new Date(state.value.takenAt).toISOString() : null
+    await $fetch(`/api/admin/media/${props.media.id}`, {
+      method: 'PATCH',
+      body: {
+        altTranslations: state.value.altTranslations,
+        captionTranslations: state.value.captionTranslations,
+        tags: state.value.tags,
+        takenAt: state.value.takenAt ? new Date(state.value.takenAt).toISOString() : null
+      },
+      headers: headers.value
     })
 
     toast.add({ color: 'success', title: 'Medio actualizado' })
