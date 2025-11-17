@@ -23,8 +23,12 @@ const uploadModalOpen = ref(false)
 const editModalOpen = ref(false)
 const selectedMedia = ref(null)
 
+// Bulk selection
+const selectedItems = ref([])
+
 // Table columns
 const columns = [
+  { key: 'select', label: '' },
   { key: 'thumbnail', label: '' },
   { key: 'filename', label: 'Archivo', sortable: true },
   { key: 'type', label: 'Tipo', sortable: true },
@@ -98,6 +102,49 @@ function openEditModal(mediaItem) {
   editModalOpen.value = true
 }
 
+// Bulk selection handlers
+function toggleSelectAll() {
+  if (selectedItems.value.length === media.value.length) {
+    selectedItems.value = []
+  } else {
+    selectedItems.value = media.value.map(m => m.id)
+  }
+}
+
+function toggleSelect(id) {
+  const index = selectedItems.value.indexOf(id)
+  if (index > -1) {
+    selectedItems.value.splice(index, 1)
+  } else {
+    selectedItems.value.push(id)
+  }
+}
+
+// Bulk delete
+async function bulkDelete() {
+  if (!confirm(`¿Eliminar ${selectedItems.value.length} ${selectedItems.value.length === 1 ? 'medio' : 'medios'}? Esta acción no se puede deshacer.`)) return
+
+  const apiClient = useApiClient()
+  let deleted = 0
+
+  for (const id of selectedItems.value) {
+    try {
+      await apiClient.delete(`/admin/media/${id}`)
+      deleted++
+    } catch (error) {
+      console.error(`Error deleting media ${id}:`, error)
+    }
+  }
+
+  toast.add({
+    color: 'success',
+    title: `${deleted} ${deleted === 1 ? 'medio eliminado' : 'medios eliminados'}`
+  })
+
+  selectedItems.value = []
+  await fetchMedia()
+}
+
 function formatFileSize(bytes) {
   if (!bytes) return '-'
   const kb = bytes / 1024
@@ -169,6 +216,34 @@ onMounted(() => fetchMedia())
       </div>
     </UCard>
 
+    <!-- Bulk actions bar -->
+    <div
+      v-if="selectedItems.length > 0"
+      class="flex items-center justify-between p-4 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg"
+    >
+      <span class="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+        {{ selectedItems.length }} {{ selectedItems.length === 1 ? 'medio seleccionado' : 'medios seleccionados' }}
+      </span>
+
+      <div class="flex gap-2">
+        <UButton
+          icon="i-heroicons-trash"
+          color="error"
+          variant="soft"
+          @click="bulkDelete"
+        >
+          Eliminar
+        </UButton>
+        <UButton
+          variant="outline"
+          color="neutral"
+          @click="selectedItems = []"
+        >
+          Cancelar
+        </UButton>
+      </div>
+    </div>
+
     <!-- Table -->
     <UCard>
       <UTable
@@ -180,6 +255,23 @@ onMounted(() => fetchMedia())
           label: 'No hay medios aún. ¡Sube tu primera foto!'
         }"
       >
+        <!-- Select checkbox header -->
+        <template #select-header>
+          <UCheckbox
+            :model-value="selectedItems.length === media.length && media.length > 0"
+            :indeterminate="selectedItems.length > 0 && selectedItems.length < media.length"
+            @update:model-value="toggleSelectAll"
+          />
+        </template>
+
+        <!-- Select checkbox data -->
+        <template #select-data="{ row }">
+          <UCheckbox
+            :model-value="selectedItems.includes(row.id)"
+            @update:model-value="toggleSelect(row.id)"
+          />
+        </template>
+
         <!-- Thumbnail -->
         <template #thumbnail-data="{ row }">
           <img
