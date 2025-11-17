@@ -156,6 +156,18 @@ public class MediaController {
     }
 
     /**
+     * Reorder media in a schedule gallery.
+     * PUT /api/admin/media/schedule/{scheduleId}/reorder
+     */
+    @PutMapping("/schedule/{scheduleId}/reorder")
+    public ResponseEntity<Void> reorderScheduleMedia(@PathVariable UUID scheduleId,
+                                                     @Valid @RequestBody List<MediaOrderReq> orders,
+                                                     @CurrentUser User currentUser) {
+        mediaService.reorderScheduleMedia(scheduleId, orders, currentUser.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * Get schedule gallery (all media assigned to a schedule).
      * GET /api/admin/media/schedule/{scheduleId}/gallery
      */

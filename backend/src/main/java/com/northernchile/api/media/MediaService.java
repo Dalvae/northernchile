@@ -380,6 +380,33 @@ public class MediaService {
     }
 
     /**
+     * Reorder media in a schedule gallery.
+     */
+    @Transactional
+    public void reorderScheduleMedia(UUID scheduleId, List<MediaOrderReq> orders, UUID requesterId) {
+        log.info("Reordering media for schedule: {}", scheduleId);
+
+        TourSchedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
+
+        // Verify ownership
+        if (!schedule.getTour().getOwner().getId().equals(requesterId)) {
+            throw new AccessDeniedException("You don't have permission to modify this schedule");
+        }
+
+        for (MediaOrderReq order : orders) {
+            ScheduleMedia.ScheduleMediaId id = new ScheduleMedia.ScheduleMediaId(scheduleId, order.getMediaId());
+            ScheduleMedia scheduleMedia = scheduleMediaRepository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("ScheduleMedia not found"));
+
+            scheduleMedia.setDisplayOrder(order.getDisplayOrder());
+            scheduleMediaRepository.save(scheduleMedia);
+        }
+
+        log.info("Successfully reordered media for schedule: {}", scheduleId);
+    }
+
+    /**
      * Get all media for a schedule gallery (with display order).
      */
     public List<MediaRes> getScheduleGallery(UUID scheduleId, UUID requesterId) {

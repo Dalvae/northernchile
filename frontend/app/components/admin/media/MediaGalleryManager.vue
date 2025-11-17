@@ -95,7 +95,7 @@ async function moveDown(index: number) {
 
 // Save order to backend
 async function saveOrder() {
-  if (!props.tourId) return
+  if (!props.tourId && !props.scheduleId) return
 
   try {
     const orders = gallery.value.map((m, index) => ({
@@ -103,7 +103,11 @@ async function saveOrder() {
       displayOrder: index
     }))
 
-    await apiClient.put(`/admin/media/tour/${props.tourId}/reorder`, orders)
+    const endpoint = props.tourId
+      ? `/admin/media/tour/${props.tourId}/reorder`
+      : `/admin/media/schedule/${props.scheduleId}/reorder`
+
+    await apiClient.put(endpoint, orders)
     emit('update')
   } catch (error) {
     console.error('Error saving order:', error)
