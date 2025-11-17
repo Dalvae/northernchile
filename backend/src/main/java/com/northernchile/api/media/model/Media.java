@@ -181,7 +181,7 @@ public class Media {
     }
 
     public void setContentType(String contentType) {
-        this.content Type = contentType;
+        this.contentType = contentType;
     }
 
     public String getOriginalFilename() {
