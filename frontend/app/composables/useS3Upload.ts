@@ -22,11 +22,13 @@ export const useS3Upload = () => {
    * Upload a file to S3 via backend API
    * @param file - The file to upload
    * @param folder - The S3 folder (e.g., "tours", "profiles")
+   * @param onProgress - Optional callback for upload progress
    * @returns The uploaded file URL and key
    */
   const uploadFile = async (
     file: File,
-    folder: string = 'general'
+    folder: string = 'general',
+    onProgress?: (progress: number) => void
   ): Promise<UploadResponse | null> => {
     if (!file) {
       toast.add({
@@ -47,14 +49,19 @@ export const useS3Upload = () => {
       return null
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
       toast.add({
         title: 'Error',
-        description: 'File size must not exceed 5MB',
+        description: 'File size must not exceed 10MB',
         color: 'error'
       })
       return null
+    }
+
+    // Call progress callback if provided
+    if (onProgress) {
+      onProgress(10)
     }
 
     const formData = new FormData()
@@ -64,6 +71,10 @@ export const useS3Upload = () => {
     try {
       isUploading.value = true
       uploadProgress.value = 0
+
+      if (onProgress) {
+        onProgress(20)
+      }
 
       const response = await $fetch<UploadResponse>(
         `${config.public.apiBase}/api/storage/upload`,
@@ -89,6 +100,10 @@ export const useS3Upload = () => {
           // }
         }
       )
+
+      if (onProgress) {
+        onProgress(100)
+      }
 
       toast.add({
         title: 'Success',

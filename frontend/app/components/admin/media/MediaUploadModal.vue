@@ -108,6 +108,10 @@ async function startUpload() {
         item.progress = progress
       })
 
+      if (!result) {
+        throw new Error('Error al subir a S3 - verifica las credenciales de AWS')
+      }
+
       // Create media record in DB
       await $fetch('/api/admin/media', {
         method: 'POST',
