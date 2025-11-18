@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAuthStore } from '~/stores/auth'
+import type { MediaRes, PageMediaRes } from 'api-client'
 
 definePageMeta({
   layout: 'admin',
@@ -7,82 +7,80 @@ definePageMeta({
 })
 
 const toast = useToast()
-const authStore = useAuthStore()
+const { fetchAdminMedia, deleteAdminMedia } = useAdminData()
 
-const headers = computed(() => {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json'
-  }
-  if (authStore.token) {
-    headers.Authorization = `Bearer ${authStore.token}`
-  }
-  return headers
-})
+// Modals
+const uploadModalOpen = ref(false)
+const editModalOpen = ref(false)
+const selectedMedia = ref<MediaRes | null>(null)
 
-// State
-const media = ref([])
-const loading = ref(false)
-const totalItems = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
+// Bulk selection
+const selectedItems = ref<string[]>([])
 
 // Filters
 const filters = ref({
   search: ''
 })
 
-// Modals
-const uploadModalOpen = ref(false)
-const editModalOpen = ref(false)
-const selectedMedia = ref(null)
+const page = ref(0)
+const pageSize = ref(20)
 
-// Bulk selection
-const selectedItems = ref([])
+// Fetch media with useAsyncData
+const {
+  data: mediaResponse,
+  pending: loading,
+  refresh
+} = useAsyncData<PageMediaRes>(
+  'admin-media',
+  () => fetchAdminMedia({
+    page: page.value.toString(),
+    size: pageSize.value.toString(),
+    search: filters.value.search || undefined
+  }),
+  {
+    server: false,
+    lazy: true,
+    default: () => ({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      pageable: { pageNumber: 0, pageSize: 20 },
+      last: true,
+      numberOfElements: 0,
+      size: 20,
+      number: 0,
+      first: true,
+      empty: true
+    })
+  }
+)
+
+const media = computed(() => mediaResponse.value?.content || [])
+const totalItems = computed(() => mediaResponse.value?.totalElements || 0)
 
 // Table columns
 const columns = [
   { id: 'select', key: 'select', label: '' },
   { id: 'thumbnail', key: 'thumbnail', label: '' },
-  { id: 'filename', key: 'filename', label: 'Archivo', sortable: true },
-  { id: 'type', key: 'type', label: 'Tipo', sortable: true },
-  { id: 'tags', key: 'tags', label: 'Etiquetas' },
-  { id: 'takenAt', key: 'takenAt', label: 'Fecha', sortable: true },
-  { id: 'size', key: 'size', label: 'Tamaño', sortable: true },
+  { id: 'filename', accessorKey: 'originalFilename', header: 'Archivo' },
+  { id: 'type', accessorKey: 'type', header: 'Tipo' },
+  { id: 'tags', accessorKey: 'tags', header: 'Etiquetas' },
+  { id: 'takenAt', accessorKey: 'takenAt', header: 'Fecha' },
+  { id: 'size', accessorKey: 'sizeBytes', header: 'Tamaño' },
   { id: 'actions', key: 'actions', label: '' }
 ]
 
-// Fetch media
+// Fetch media function
 async function fetchMedia() {
-  loading.value = true
-  try {
-    const response = await $fetch('/api/admin/media', {
-      params: {
-        page: page.value - 1,
-        size: pageSize.value,
-        search: filters.value.search || undefined
-      },
-      headers: headers.value
-    })
-
-    media.value = response.content || []
-    totalItems.value = response.totalElements || 0
-  } catch (error) {
-    console.error('Error fetching media:', error)
-    toast.add({ color: 'error', title: 'Error al cargar medios' })
-  } finally {
-    loading.value = false
-  }
+  await refresh()
 }
 
 // Delete media
-async function deleteMedia(id) {
+async function deleteMediaItem(id: string) {
   if (!confirm('¿Estás seguro de eliminar este medio? Esta acción no se puede deshacer.')) return
 
   try {
-    await $fetch(`/api/admin/media/${id}`, {
-      method: 'DELETE',
-      headers: headers.value
-    })
+    await deleteAdminMedia(id)
     toast.add({ color: 'success', title: 'Medio eliminado' })
     await fetchMedia()
   } catch (error) {
@@ -92,7 +90,7 @@ async function deleteMedia(id) {
 }
 
 // Actions per row
-function getRowActions(row) {
+function getRowActions(row: MediaRes) {
   return [
     [{
       label: 'Editar',
@@ -107,12 +105,12 @@ function getRowActions(row) {
     [{
       label: 'Eliminar',
       icon: 'i-heroicons-trash',
-      click: () => deleteMedia(row.id)
+      click: () => deleteMediaItem(row.id!)
     }]
   ]
 }
 
-function openEditModal(mediaItem) {
+function openEditModal(mediaItem: MediaRes) {
   selectedMedia.value = mediaItem
   editModalOpen.value = true
 }
@@ -122,11 +120,11 @@ function toggleSelectAll() {
   if (selectedItems.value.length === media.value.length) {
     selectedItems.value = []
   } else {
-    selectedItems.value = media.value.map(m => m.id)
+    selectedItems.value = media.value.map(m => m.id!)
   }
 }
 
-function toggleSelect(id) {
+function toggleSelect(id: string) {
   const index = selectedItems.value.indexOf(id)
   if (index > -1) {
     selectedItems.value.splice(index, 1)
@@ -143,10 +141,7 @@ async function bulkDelete() {
 
   for (const id of selectedItems.value) {
     try {
-      await $fetch(`/api/admin/media/${id}`, {
-        method: 'DELETE',
-        headers: headers.value
-      })
+      await deleteAdminMedia(id)
       deleted++
     } catch (error) {
       console.error(`Error deleting media ${id}:`, error)
@@ -162,7 +157,7 @@ async function bulkDelete() {
   await fetchMedia()
 }
 
-function formatFileSize(bytes) {
+function formatFileSize(bytes?: number) {
   if (!bytes) return '-'
   const kb = bytes / 1024
   if (kb < 1024) return `${kb.toFixed(1)} KB`
@@ -170,30 +165,28 @@ function formatFileSize(bytes) {
   return `${mb.toFixed(1)} MB`
 }
 
-function formatDate(dateString) {
+function formatDate(dateString?: string) {
   if (!dateString) return '-'
   return new Date(dateString).toLocaleDateString('es-CL')
 }
 
-function getTypeLabel(type) {
-  const labels = {
+function getTypeLabel(type?: string) {
+  const labels: Record<string, string> = {
     TOUR: 'Tour',
     SCHEDULE: 'Programa',
     LOOSE: 'Suelto'
   }
-  return labels[type] || type
+  return labels[type || ''] || type || '-'
 }
 
-function getTypeBadgeColor(type) {
-  const colors = {
+function getTypeBadgeColor(type?: string) {
+  const colors: Record<string, string> = {
     TOUR: 'primary',
     SCHEDULE: 'secondary',
     LOOSE: 'neutral'
   }
-  return colors[type] || 'neutral'
+  return colors[type || ''] || 'neutral'
 }
-
-onMounted(() => fetchMedia())
 </script>
 
 <template>
