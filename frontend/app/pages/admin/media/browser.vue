@@ -1,282 +1,195 @@
 <script setup lang="ts">
-import type { MediaHierarchyNode } from '~/composables/useMediaHierarchy'
-
 definePageMeta({
   layout: 'admin',
   middleware: 'auth-admin'
 })
 
-const router = useRouter()
-const route = useRoute()
+const { fetchAdminTours } = useAdminData()
 
-const { loading, tours, loadTours, buildTree, buildScheduleNodes } = useMediaHierarchy()
-
-// Tree state
-const treeItems = ref<MediaHierarchyNode[]>([])
-const expandedItems = ref<string[]>(['media-root'])
-const selectedItems = ref<MediaHierarchyNode | undefined>(undefined)
-
-// Selected item state from URL query params
-const selectedTourId = computed(() => route.query.tour as string | undefined)
-const selectedScheduleId = computed(() => route.query.schedule as string | undefined)
-
-// Find selected node from route params
-const selectedNode = computed<MediaHierarchyNode | null>(() => {
-  if (selectedScheduleId.value) {
-    // Find schedule node in tree
-    for (const rootNode of treeItems.value) {
-      if (rootNode.children) {
-        for (const tourNode of rootNode.children) {
-          if (tourNode.children) {
-            const scheduleNode = tourNode.children.find(s => s.scheduleId === selectedScheduleId.value) as MediaHierarchyNode | undefined
-            if (scheduleNode) return scheduleNode
-          }
-        }
-      }
-    }
+// Fetch all tours
+const {
+  data: tours,
+  pending: loading
+} = useAsyncData(
+  'admin-media-tours',
+  () => fetchAdminTours(),
+  {
+    server: false,
+    lazy: true,
+    default: () => []
   }
+)
 
-  if (selectedTourId.value) {
-    // Find tour node in tree
-    for (const rootNode of treeItems.value) {
-      if (rootNode.children) {
-        const tourNode = rootNode.children.find(t => t.tourId === selectedTourId.value) as MediaHierarchyNode | undefined
-        if (tourNode) return tourNode
-      }
-    }
-  }
-
-  return null
-})
-
-// Debug
-const debugInfo = ref('')
-
-// Load tours on mount
-onMounted(async () => {
-  console.log('[Browser] onMounted - loading tours...')
-  debugInfo.value = 'Loading tours...'
-  await loadTours()
-  console.log('[Browser] Tours loaded:', tours.value.length)
-  debugInfo.value = `Loaded ${tours.value.length} tours`
-
-  const tree = buildTree()
-  console.log('[Browser] Built tree:', tree)
-  debugInfo.value += ` | Tree nodes: ${tree.length}`
-
-  treeItems.value = tree
-  console.log('[Browser] Tree items set:', treeItems.value)
-
-  // Load schedules for initially selected tour if needed
-  if (selectedTourId.value) {
-    const parentItem = treeItems.value[0]
-    const tourItem = parentItem?.children?.find((t: any) => t.tourId === selectedTourId.value) as MediaHierarchyNode | undefined
-    if (tourItem && (!tourItem.children || tourItem.children.length === 0)) {
-      const scheduleNodes = await buildScheduleNodes(selectedTourId.value)
-      tourItem.children = scheduleNodes
-      // Expand the tour node
-      if (!expandedItems.value.includes(selectedTourId.value)) {
-        expandedItems.value.push(selectedTourId.value)
-      }
-    }
-  }
-})
-
-// Handle tree item toggle (expand/collapse)
-async function onToggle(e: any, item: MediaHierarchyNode) {
-  console.log('[Browser] onToggle:', item.type, item.id, item)
-
-  if (item.type === 'tour' && item.tourId) {
-    // Load schedules for this tour when expanded
-    const parentItem = treeItems.value[0] as MediaHierarchyNode | undefined
-    if (!parentItem?.children) return
-
-    const tourChildren = parentItem.children as MediaHierarchyNode[]
-    const tourItem = tourChildren.find((t) => t.id === item.tourId)
-
-    if (tourItem && (!tourItem.children || tourItem.children.length === 0)) {
-      console.log('[Browser] Loading schedules for tour:', item.tourId)
-      // Load schedules
-      const scheduleNodes = await buildScheduleNodes(item.tourId)
-      console.log('[Browser] Loaded schedules:', scheduleNodes.length)
-      tourItem.children = scheduleNodes
-    }
-  }
-}
-
-// Handle tree item selection - navigate to URL with query params
-function onSelect(e: any, item: MediaHierarchyNode) {
-  console.log('[Browser] onSelect:', item.type, item.id, item)
-
-  if (item.type === 'tour' && item.tourId) {
-    // Navigate to tour view
-    router.push({
-      query: { tour: item.tourId }
-    })
-  } else if (item.type === 'schedule' && item.scheduleId) {
-    // Navigate to schedule view
-    router.push({
-      query: { schedule: item.scheduleId }
-    })
-  } else if (item.type === 'root') {
-    // Clear selection
-    router.push({
-      query: {}
-    })
-  }
-}
+// Computed: Published tours count
+const publishedCount = computed(() => tours.value.filter(t => t.status === 'PUBLISHED').length)
 </script>
 
 <template>
   <div class="space-y-6">
-    <!-- Debug Panel (remove in production) -->
-    <UCard v-if="debugInfo">
-      <div class="text-xs font-mono text-neutral-600 dark:text-neutral-400">
-        Debug: {{ debugInfo }} | Loading: {{ loading }} | Tours: {{ tours.length }} | Tree items: {{ treeItems.length }}
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+          Explorador de Medios
+        </h1>
+        <p class="text-neutral-600 dark:text-neutral-400 mt-1">
+          Navega por tus tours para gestionar sus fotos
+        </p>
       </div>
-    </UCard>
 
-    <div class="flex h-[calc(100vh-300px)] gap-6">
-      <!-- Left Sidebar - Tree Navigation -->
-      <div class="w-80 shrink-0">
-        <UCard class="h-full">
-          <template #header>
-            <div class="flex items-center justify-between">
-              <div>
-                <h2 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-                  Explorador
-                </h2>
-                <p class="text-sm text-neutral-600 dark:text-neutral-400">
-                  Navega por tours y fechas
-                </p>
-              </div>
-
-              <NuxtLink to="/admin/media">
-                <UButton
-                  icon="i-lucide-grid-3x3"
-                  variant="ghost"
-                  color="neutral"
-                  size="sm"
-                  title="Vista de tabla"
-                />
-              </NuxtLink>
-            </div>
-          </template>
-
-          <!-- Loading State -->
-          <div v-if="loading && tours.length === 0" class="flex flex-col items-center justify-center py-12 space-y-4">
-            <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary-500" />
-            <p class="text-sm text-neutral-600 dark:text-neutral-400">
-              Cargando tours...
-            </p>
-          </div>
-
-          <!-- Tree Navigation -->
-          <div v-else-if="treeItems.length > 0" class="overflow-y-auto max-h-[calc(100vh-420px)]">
-            <UTree
-              v-model="selectedItems"
-              v-model:expanded="expandedItems"
-              :items="treeItems"
-              :get-key="(item: MediaHierarchyNode) => item.id"
-              color="primary"
-              size="md"
-              @toggle="onToggle"
-              @select="onSelect"
-            >
-              <!-- Custom label with photo count -->
-              <template #item-label="{ item }">
-                <div class="flex items-center justify-between w-full">
-                  <span class="truncate">{{ item.label }}</span>
-                  <UBadge
-                    v-if="item.type === 'tour' && item.photoCount !== undefined"
-                    size="xs"
-                    color="neutral"
-                    variant="soft"
-                    class="ml-2"
-                  >
-                    {{ item.photoCount }}
-                  </UBadge>
-                </div>
-              </template>
-            </UTree>
-          </div>
-
-          <!-- Empty State -->
-          <div
-            v-else
-            class="text-center py-12"
+      <div class="flex gap-2">
+        <NuxtLink to="/admin/media">
+          <UButton
+            icon="i-lucide-table"
+            size="lg"
+            color="neutral"
+            variant="outline"
+            title="Vista de tabla"
           >
-            <UIcon name="i-lucide-folder-x" class="w-12 h-12 mx-auto mb-4 text-neutral-400" />
-            <p class="text-neutral-600 dark:text-neutral-400 mb-4">
-              No hay tours aún
-            </p>
-            <NuxtLink to="/admin/tours">
-              <UButton color="primary" variant="soft">
-                Crear Primer Tour
-              </UButton>
-            </NuxtLink>
-          </div>
-        </UCard>
-      </div>
-
-      <!-- Right Content Area - Photo Grid -->
-      <div class="flex-1 overflow-hidden">
-        <UCard class="h-full">
-          <template #header>
-            <div class="flex items-center justify-between">
-              <div>
-                <h2 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-                  {{ selectedNode?.label || 'Selecciona un tour o fecha' }}
-                </h2>
-                <p class="text-sm text-neutral-600 dark:text-neutral-400">
-                  <template v-if="selectedNode?.type === 'tour'">
-                    Galería principal del tour
-                  </template>
-                  <template v-else-if="selectedNode?.type === 'schedule'">
-                    Fotos específicas de esta fecha
-                  </template>
-                  <template v-else>
-                    Selecciona un item en el árbol para ver sus fotos
-                  </template>
-                </p>
-              </div>
-            </div>
-          </template>
-
-          <!-- Gallery Preview Grid -->
-          <div class="overflow-y-auto max-h-[calc(100vh-450px)]">
-            <!-- Show gallery for selected tour -->
-            <ClientOnly>
-              <AdminMediaGalleryManager
-                v-if="selectedTourId && !selectedScheduleId"
-                :tour-id="selectedTourId"
-                :key="`tour-${selectedTourId}`"
-              />
-
-              <!-- Show gallery for selected schedule -->
-              <AdminMediaGalleryManager
-                v-else-if="selectedScheduleId"
-                :schedule-id="selectedScheduleId"
-                :key="`schedule-${selectedScheduleId}`"
-              />
-
-              <!-- Empty state when nothing selected -->
-              <div
-                v-else
-                class="flex flex-col items-center justify-center py-24 text-center"
-              >
-                <UIcon name="i-lucide-image" class="w-16 h-16 mb-4 text-neutral-300 dark:text-neutral-700" />
-                <p class="text-neutral-600 dark:text-neutral-400 mb-2">
-                  Navega por el árbol de la izquierda
-                </p>
-                <p class="text-sm text-neutral-500 dark:text-neutral-500">
-                  Selecciona un tour o una fecha para ver y gestionar sus fotos
-                </p>
-              </div>
-            </ClientOnly>
-          </div>
-        </UCard>
+            Vista Tabla
+          </UButton>
+        </NuxtLink>
       </div>
     </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <UCard>
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+            <UIcon name="i-lucide-folder-open" class="w-6 h-6 text-primary-600 dark:text-primary-400" />
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
+              {{ tours.length }}
+            </p>
+            <p class="text-sm text-neutral-600 dark:text-neutral-400">
+              Tours Totales
+            </p>
+          </div>
+        </div>
+      </UCard>
+
+      <UCard>
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-success-100 dark:bg-success-900/30 rounded-lg">
+            <UIcon name="i-lucide-check-circle" class="w-6 h-6 text-success-600 dark:text-success-400" />
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
+              {{ publishedCount }}
+            </p>
+            <p class="text-sm text-neutral-600 dark:text-neutral-400">
+              Tours Publicados
+            </p>
+          </div>
+        </div>
+      </UCard>
+
+      <UCard>
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-info-100 dark:bg-info-900/30 rounded-lg">
+            <UIcon name="i-lucide-image" class="w-6 h-6 text-info-600 dark:text-info-400" />
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
+              {{ tours.reduce((sum, t) => sum + (t.images?.length || 0), 0) }}
+            </p>
+            <p class="text-sm text-neutral-600 dark:text-neutral-400">
+              Fotos Totales
+            </p>
+          </div>
+        </div>
+      </UCard>
+    </div>
+
+    <!-- Loading State -->
+    <div v-if="loading" class="flex items-center justify-center py-12">
+      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary-500" />
+    </div>
+
+    <!-- Tours Grid -->
+    <div v-else-if="tours.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <NuxtLink
+        v-for="tour in tours"
+        :key="tour.id"
+        :to="`/admin/media/${tour.slug}`"
+        class="group"
+      >
+        <UCard
+          class="h-full hover:shadow-lg transition-shadow cursor-pointer"
+        >
+          <!-- Tour Cover Image -->
+          <div class="aspect-video bg-neutral-100 dark:bg-neutral-800 rounded-lg mb-4 overflow-hidden relative">
+            <img
+              v-if="tour.images && tour.images.length > 0"
+              :src="tour.images[0].variants?.medium || tour.images[0].url"
+              :alt="tour.nameTranslations?.es || 'Tour'"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div v-else class="flex items-center justify-center h-full">
+              <UIcon name="i-lucide-image" class="w-12 h-12 text-neutral-300 dark:text-neutral-700" />
+            </div>
+
+            <!-- Image Count Badge -->
+            <div
+              v-if="tour.images && tour.images.length > 0"
+              class="absolute top-3 right-3"
+            >
+              <UBadge color="neutral" variant="solid" size="md">
+                <UIcon name="i-lucide-images" class="w-3 h-3 mr-1" />
+                {{ tour.images.length }}
+              </UBadge>
+            </div>
+          </div>
+
+          <!-- Tour Info -->
+          <div class="space-y-3">
+            <div>
+              <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                {{ tour.nameTranslations?.es || 'Sin nombre' }}
+              </h3>
+              <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+                {{ tour.category }}
+              </p>
+            </div>
+
+            <!-- Status & Stats -->
+            <div class="flex items-center justify-between">
+              <UBadge
+                :color="tour.status === 'PUBLISHED' ? 'success' : tour.status === 'DRAFT' ? 'warning' : 'neutral'"
+                variant="soft"
+                size="xs"
+              >
+                {{ tour.status === 'PUBLISHED' ? 'Publicado' : tour.status === 'DRAFT' ? 'Borrador' : tour.status }}
+              </UBadge>
+
+              <div class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                <UIcon name="i-lucide-arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </div>
+        </UCard>
+      </NuxtLink>
+    </div>
+
+    <!-- Empty State -->
+    <UCard v-else>
+      <div class="text-center py-12">
+        <UIcon name="i-lucide-folder-x" class="w-16 h-16 mx-auto mb-4 text-neutral-300 dark:text-neutral-700" />
+        <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+          No hay tours aún
+        </h3>
+        <p class="text-neutral-600 dark:text-neutral-400 mb-6">
+          Crea tu primer tour para comenzar a gestionar sus fotos
+        </p>
+        <NuxtLink to="/admin/tours">
+          <UButton color="primary" size="lg">
+            <UIcon name="i-lucide-plus" class="w-4 h-4 mr-2" />
+            Crear Primer Tour
+          </UButton>
+        </NuxtLink>
+      </div>
+    </UCard>
   </div>
 </template>
