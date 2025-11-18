@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAuthStore } from '~/stores/auth'
+import { formatFileSize } from '~/utils/media'
 
 const props = defineProps<{
   modelValue: boolean
@@ -8,17 +8,7 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue', 'selected'])
 
 const toast = useToast()
-const authStore = useAuthStore()
-
-const headers = computed(() => {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json'
-  }
-  if (authStore.token) {
-    headers.Authorization = `Bearer ${authStore.token}`
-  }
-  return headers
-})
+const { fetchAdminMedia } = useAdminData()
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -38,13 +28,10 @@ const totalItems = ref(0)
 async function fetchMedia() {
   loading.value = true
   try {
-    const response = await $fetch('/api/admin/media', {
-      params: {
-        page: page.value - 1,
-        size: pageSize.value,
-        search: search.value || undefined
-      },
-      headers: headers.value
+    const response = await fetchAdminMedia({
+      page: page.value - 1,
+      size: pageSize.value,
+      search: search.value || undefined
     })
 
     media.value = response.content || []
@@ -86,14 +73,6 @@ watch(isOpen, (open) => {
     fetchMedia()
   }
 })
-
-function formatFileSize(bytes: number) {
-  if (!bytes) return '-'
-  const kb = bytes / 1024
-  if (kb < 1024) return `${kb.toFixed(1)} KB`
-  const mb = kb / 1024
-  return `${mb.toFixed(1)} MB`
-}
 </script>
 
 <template>
