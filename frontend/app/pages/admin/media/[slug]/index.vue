@@ -13,10 +13,6 @@ const slug = computed(() => route.params.slug as string)
 const { fetchAdminTours } = useAdminData()
 const { buildScheduleNodes } = useMediaHierarchy()
 
-// Current tour
-const tour = ref<any>(null)
-const loading = ref(true)
-
 // Schedules tree for this tour
 const schedules = ref<MediaHierarchyNode[]>([])
 const expandedSchedules = ref<string[]>([])
@@ -24,53 +20,48 @@ const expandedSchedules = ref<string[]>([])
 // Selected schedule (from query param)
 const selectedScheduleId = computed(() => route.query.schedule as string | undefined)
 
-// Load tour by slug
-async function loadTour() {
-  loading.value = true
-  console.log('[MediaSlug] Loading tour with slug:', slug.value)
+// Load tour by slug with useAsyncData
+const {
+  data: tour,
+  pending: loading,
+  refresh
+} = useAsyncData(
+  `media-tour-${slug.value}`,
+  async () => {
+    console.log('[MediaSlug] Loading tour with slug:', slug.value)
 
-  try {
     const tours = await fetchAdminTours()
     console.log('[MediaSlug] Fetched tours:', tours.length)
     console.log('[MediaSlug] Tour slugs:', tours.map((t: any) => t.slug))
 
-    tour.value = tours.find((t: any) => t.slug === slug.value)
-    console.log('[MediaSlug] Found tour:', tour.value ? tour.value.nameTranslations?.es : 'NOT FOUND')
+    const foundTour = tours.find((t: any) => t.slug === slug.value)
+    console.log('[MediaSlug] Found tour:', foundTour ? foundTour.nameTranslations?.es : 'NOT FOUND')
 
-    if (!tour.value) {
+    if (!foundTour) {
       console.error('[MediaSlug] Tour not found for slug:', slug.value)
       // Redirect to media list if tour not found
       await router.push('/admin/media')
-      return
+      return null
     }
 
     // Load schedules for this tour (optional - don't fail if empty)
-    if (tour.value.id) {
+    if (foundTour.id) {
       try {
-        schedules.value = await buildScheduleNodes(tour.value.id)
+        schedules.value = await buildScheduleNodes(foundTour.id)
         console.log('[MediaSlug] Loaded schedules:', schedules.value.length)
       } catch (scheduleError) {
         console.warn('[MediaSlug] Error loading schedules (non-fatal):', scheduleError)
         schedules.value = [] // Empty schedules is OK
       }
     }
-  } catch (error) {
-    console.error('[MediaSlug] Fatal error loading tour:', error)
-    // Only redirect on fatal errors (e.g., tour not found)
-    await router.push('/admin/media')
-  } finally {
-    loading.value = false
+
+    return foundTour
+  },
+  {
+    server: false,
+    watch: [slug]
   }
-}
-
-onMounted(() => {
-  loadTour()
-})
-
-// Watch for slug changes
-watch(slug, () => {
-  loadTour()
-})
+)
 
 // Handle schedule selection
 function onScheduleSelect(schedule: any) {
