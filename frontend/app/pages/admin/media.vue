@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { h, resolveComponent } from 'vue'
 import type { MediaRes, PageMediaRes } from 'api-client'
+import { formatFileSize, formatDate, getMediaTypeLabel, getMediaTypeBadgeColor } from '~/utils/media'
 
 definePageMeta({
   layout: 'admin',
@@ -96,7 +97,7 @@ const columns = [
     header: 'Tipo',
     cell: ({ row }: { row: { original: MediaRes } }) => {
       const type = row.original.type
-      return h('span', { class: `badge badge-${getTypeBadgeColor(type)}` }, getTypeLabel(type))
+      return h('span', { class: `badge badge-${getMediaTypeBadgeColor(type)}` }, getMediaTypeLabel(type))
     }
   },
   { id: 'tags', accessorKey: 'tags' as const, header: 'Etiquetas' },
@@ -242,37 +243,6 @@ async function bulkDelete() {
 
   selectedItems.value = []
   await fetchMedia()
-}
-
-function formatFileSize(bytes?: number) {
-  if (!bytes) return '-'
-  const kb = bytes / 1024
-  if (kb < 1024) return `${kb.toFixed(1)} KB`
-  const mb = kb / 1024
-  return `${mb.toFixed(1)} MB`
-}
-
-function formatDate(dateString?: string) {
-  if (!dateString) return '-'
-  return new Date(dateString).toLocaleDateString('es-CL')
-}
-
-function getTypeLabel(type?: string) {
-  const labels: Record<string, string> = {
-    TOUR: 'Tour',
-    SCHEDULE: 'Salida',
-    LOOSE: 'Suelto'
-  }
-  return labels[type || ''] || type || '-'
-}
-
-function getTypeBadgeColor(type?: string) {
-  const colors: Record<string, string> = {
-    TOUR: 'primary',
-    SCHEDULE: 'secondary',
-    LOOSE: 'neutral'
-  }
-  return colors[type || ''] || 'neutral'
 }
 </script>
 

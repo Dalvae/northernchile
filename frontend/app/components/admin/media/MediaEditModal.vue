@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
+import { formatFileSize, formatDateTime, getMediaTypeLabel, getMediaTypeBadgeColor, formatForDateTimeInput } from '~/utils/media'
 
 const props = defineProps<{
   modelValue: boolean
@@ -44,7 +45,7 @@ const { data: tours } = useAsyncData('tours-for-media', () => fetchAdminTours(),
   default: () => []
 })
 
-const { data: schedules } = useAsyncData('schedules-for-media', () => fetchAdminSchedules(), {
+const { data: schedules } = useAsyncData('schedules-for-media', () => fetchAdminSchedules({ mode: 'past' }), {
   server: false,
   lazy: true,
   default: () => []
@@ -91,20 +92,12 @@ watch(() => props.media, (media) => {
       altTranslations: media.altTranslations || { es: '', en: '', pt: '' },
       captionTranslations: media.captionTranslations || { es: '', en: '', pt: '' },
       tags: media.tags || [],
-      takenAt: media.takenAt ? formatForInput(media.takenAt) : '',
+      takenAt: media.takenAt ? formatForDateTimeInput(media.takenAt) : '',
       tourId: media.tourId || null,
       scheduleId: media.scheduleId || null
     }
   }
 }, { immediate: true })
-
-function formatForInput(isoString: string) {
-  // Convert ISO to datetime-local format
-  const date = new Date(isoString)
-  const offset = date.getTimezoneOffset() * 60000
-  const localDate = new Date(date.getTime() - offset)
-  return localDate.toISOString().slice(0, 16)
-}
 
 async function save() {
   try {
@@ -128,37 +121,6 @@ async function save() {
     console.error('Error updating media:', error)
     toast.add({ color: 'error', title: 'Error al actualizar' })
   }
-}
-
-function formatFileSize(bytes) {
-  if (!bytes) return '-'
-  const kb = bytes / 1024
-  if (kb < 1024) return `${kb.toFixed(1)} KB`
-  const mb = kb / 1024
-  return `${mb.toFixed(1)} MB`
-}
-
-function formatDate(dateString) {
-  if (!dateString) return '-'
-  return new Date(dateString).toLocaleString('es-CL')
-}
-
-function getTypeLabel(type) {
-  const labels = {
-    TOUR: 'Tour',
-    SCHEDULE: 'Salida',
-    LOOSE: 'Suelto'
-  }
-  return labels[type] || type
-}
-
-function getTypeBadgeColor(type) {
-  const colors = {
-    TOUR: 'primary',
-    SCHEDULE: 'secondary',
-    LOOSE: 'neutral'
-  }
-  return colors[type] || 'neutral'
 }
 </script>
 
@@ -199,13 +161,13 @@ function getTypeBadgeColor(type) {
             <div class="flex gap-2 text-sm text-neutral-600 dark:text-neutral-400">
               <span>{{ formatFileSize(media.sizeBytes) }}</span>
               <span>•</span>
-              <span>{{ formatDate(media.uploadedAt) }}</span>
+              <span>{{ formatDateTime(media.uploadedAt) }}</span>
             </div>
             <UBadge
-              :color="getTypeBadgeColor(media.type)"
+              :color="getMediaTypeBadgeColor(media.type)"
               variant="soft"
             >
-              {{ getTypeLabel(media.type) }}
+              {{ getMediaTypeLabel(media.type) }}
             </UBadge>
           </div>
         </div>

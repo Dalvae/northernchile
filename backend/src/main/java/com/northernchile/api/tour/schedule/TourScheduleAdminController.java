@@ -55,20 +55,33 @@ public class TourScheduleAdminController {
     }
 
     /**
-     * GET /api/admin/schedules?start=2025-11-01&end=2025-11-14
+     * GET /api/admin/schedules?start=2025-11-01&end=2025-11-14&mode=future
      * Obtiene todos los schedules en un rango de fechas (para el calendario)
-     * Si no se proporcionan fechas, devuelve los próximos 90 días desde hoy
+     * Si no se proporcionan fechas:
+     *   - mode=future (default): próximos 90 días
+     *   - mode=past: últimos 90 días (para asignar medios a tours pasados)
      */
     @GetMapping
     @Transactional(readOnly = true)
     public ResponseEntity<List<TourScheduleRes>> getSchedules(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            @RequestParam(required = false, defaultValue = "future") String mode,
             @CurrentUser User currentUser) {
 
-        // Default: next 90 days from today
-        LocalDate defaultStart = start != null ? start : LocalDate.now();
-        LocalDate defaultEnd = end != null ? end : LocalDate.now().plusDays(90);
+        // Defaults based on mode
+        LocalDate defaultStart;
+        LocalDate defaultEnd;
+
+        if ("past".equals(mode)) {
+            // For media management: last 90 days
+            defaultStart = start != null ? start : LocalDate.now().minusDays(90);
+            defaultEnd = end != null ? end : LocalDate.now();
+        } else {
+            // Default (future): next 90 days
+            defaultStart = start != null ? start : LocalDate.now();
+            defaultEnd = end != null ? end : LocalDate.now().plusDays(90);
+        }
 
         Instant startInstant = DateTimeUtils.toInstantStartOfDay(defaultStart);
         Instant endInstant = DateTimeUtils.toInstantEndOfDay(defaultEnd);
