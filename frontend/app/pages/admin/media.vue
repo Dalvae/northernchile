@@ -97,7 +97,11 @@ const columns = [
     header: 'Tipo',
     cell: ({ row }: { row: { original: MediaRes } }) => {
       const type = row.original.type
-      return h('span', { class: `badge badge-${getMediaTypeBadgeColor(type)}` }, getMediaTypeLabel(type))
+      return h(resolveComponent('UBadge'), {
+        color: getMediaTypeBadgeColor(type),
+        variant: 'soft',
+        size: 'xs'
+      }, () => getMediaTypeLabel(type))
     }
   },
   { id: 'tags', accessorKey: 'tags' as const, header: 'Etiquetas' },

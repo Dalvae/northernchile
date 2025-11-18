@@ -131,14 +131,21 @@ export const useAdminData = () => {
       $fetch<PageMediaRes>('/api/admin/media', { params, headers: headers.value }),
     fetchAdminMediaById: (id: string) =>
       $fetch<MediaRes>(`/api/admin/media/${id}`, { headers: headers.value }),
-    uploadAdminMedia: (formData: FormData) =>
+    uploadAdminMedia: (formData: FormData, onProgress?: (progress: number) => void) =>
       $fetch<MediaRes>('/api/admin/media', {
         method: 'POST',
         body: formData,
         headers: {
           Authorization: headers.value.Authorization || ''
           // Don't set Content-Type, let browser set it with boundary for multipart
-        }
+        },
+        ...(onProgress && {
+          onUploadProgress: (event: any) => {
+            if (event.total) {
+              onProgress(Math.round((event.loaded / event.total) * 100))
+            }
+          }
+        })
       }),
     updateAdminMedia: (id: string, mediaData: MediaUpdateReq) =>
       $fetch<MediaRes>(`/api/admin/media/${id}`, {
@@ -149,6 +156,40 @@ export const useAdminData = () => {
     deleteAdminMedia: (id: string) =>
       $fetch<void>(`/api/admin/media/${id}`, {
         method: 'DELETE',
+        headers: headers.value
+      }),
+    // Media gallery management
+    fetchTourGallery: (tourId: string) =>
+      $fetch<MediaRes[]>(`/api/admin/media/tour/${tourId}/gallery`, { headers: headers.value }),
+    fetchScheduleGallery: (scheduleId: string) =>
+      $fetch<MediaRes[]>(`/api/admin/media/schedule/${scheduleId}/gallery`, { headers: headers.value }),
+    setTourHeroImage: (tourId: string, mediaId: string) =>
+      $fetch<void>(`/api/admin/media/tour/${tourId}/hero/${mediaId}`, {
+        method: 'PUT',
+        headers: headers.value
+      }),
+    assignMediaToTour: (tourId: string, mediaIds: string[]) =>
+      $fetch<void>(`/api/admin/media/tour/${tourId}/assign`, {
+        method: 'POST',
+        body: { targetId: tourId, mediaIds },
+        headers: headers.value
+      }),
+    assignMediaToSchedule: (scheduleId: string, mediaIds: string[]) =>
+      $fetch<void>(`/api/admin/media/schedule/${scheduleId}/assign`, {
+        method: 'POST',
+        body: { targetId: scheduleId, mediaIds },
+        headers: headers.value
+      }),
+    reorderTourGallery: (tourId: string, orders: Array<{ mediaId: string; displayOrder: number }>) =>
+      $fetch<void>(`/api/admin/media/tour/${tourId}/reorder`, {
+        method: 'PUT',
+        body: orders,
+        headers: headers.value
+      }),
+    reorderScheduleGallery: (scheduleId: string, orders: Array<{ mediaId: string; displayOrder: number }>) =>
+      $fetch<void>(`/api/admin/media/schedule/${scheduleId}/reorder`, {
+        method: 'PUT',
+        body: orders,
         headers: headers.value
       })
   }
