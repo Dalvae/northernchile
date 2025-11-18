@@ -68,7 +68,21 @@ const navigationLinks = [
   {
     label: 'Medios',
     icon: 'i-lucide-image',
-    to: '/admin/media'
+    defaultOpen: true,
+    children: [
+      {
+        label: 'Vista Tabla',
+        description: 'Todos los archivos',
+        icon: 'i-lucide-table',
+        to: '/admin/media'
+      },
+      {
+        label: 'Explorador',
+        description: 'Navegar por tours',
+        icon: 'i-lucide-folder-tree',
+        to: '/admin/media/browser'
+      }
+    ]
   },
   {
     label: 'Reservas',
