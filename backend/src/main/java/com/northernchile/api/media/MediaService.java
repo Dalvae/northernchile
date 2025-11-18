@@ -275,6 +275,24 @@ public class MediaService {
         // Update only editable fields
         mediaMapper.updateMediaFromReq(req, media);
 
+        // Update tour assignment (or unassign if null)
+        if (req.getTourId() != null) {
+            Tour tour = tourRepository.findById(req.getTourId())
+                    .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + req.getTourId()));
+            media.setTour(tour);
+        } else {
+            media.setTour(null);
+        }
+
+        // Update schedule assignment (or unassign if null)
+        if (req.getScheduleId() != null) {
+            TourSchedule schedule = scheduleRepository.findById(req.getScheduleId())
+                    .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + req.getScheduleId()));
+            media.setSchedule(schedule);
+        } else {
+            media.setSchedule(null);
+        }
+
         Media updated = mediaRepository.save(media);
         log.info("Media updated: {}", id);
 

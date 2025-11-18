@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Request DTO for updating media metadata.
@@ -15,6 +16,8 @@ public class MediaUpdateReq {
     private Map<String, String> captionTranslations;
     private String[] tags;
     private Instant takenAt;
+    private UUID tourId;
+    private UUID scheduleId;
 
     public MediaUpdateReq() {
     }
@@ -50,5 +53,21 @@ public class MediaUpdateReq {
 
     public void setTakenAt(Instant takenAt) {
         this.takenAt = takenAt;
+    }
+
+    public UUID getTourId() {
+        return tourId;
+    }
+
+    public void setTourId(UUID tourId) {
+        this.tourId = tourId;
+    }
+
+    public UUID getScheduleId() {
+        return scheduleId;
+    }
+
+    public void setScheduleId(UUID scheduleId) {
+        this.scheduleId = scheduleId;
     }
 }

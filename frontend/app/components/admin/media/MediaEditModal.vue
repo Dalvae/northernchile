@@ -31,8 +31,37 @@ const state = ref({
   altTranslations: { es: '', en: '', pt: '' },
   captionTranslations: { es: '', en: '', pt: '' },
   tags: [] as string[],
-  takenAt: ''
+  takenAt: '',
+  tourId: null as string | null,
+  scheduleId: null as string | null
 })
+
+// Fetch tours for assignment
+const { fetchAdminTours, fetchAdminSchedules } = useAdminData()
+const { data: tours } = useAsyncData('tours-for-media', () => fetchAdminTours(), {
+  server: false,
+  lazy: true,
+  default: () => []
+})
+
+const { data: schedules } = useAsyncData('schedules-for-media', () => fetchAdminSchedules(), {
+  server: false,
+  lazy: true,
+  default: () => []
+})
+
+const tourOptions = computed(() => [
+  { label: 'Sin asignar', value: null },
+  ...(tours.value?.map(t => ({ label: t.nameTranslations?.es || 'Sin nombre', value: t.id })) || [])
+])
+
+const scheduleOptions = computed(() => [
+  { label: 'Sin asignar', value: null },
+  ...(schedules.value?.map(s => ({
+    label: `${s.tourName} - ${new Date(s.startDatetime).toLocaleDateString('es-CL')}`,
+    value: s.id
+  })) || [])
+])
 
 const tagInput = ref('')
 
@@ -62,7 +91,9 @@ watch(() => props.media, (media) => {
       altTranslations: media.altTranslations || { es: '', en: '', pt: '' },
       captionTranslations: media.captionTranslations || { es: '', en: '', pt: '' },
       tags: media.tags || [],
-      takenAt: media.takenAt ? formatForInput(media.takenAt) : ''
+      takenAt: media.takenAt ? formatForInput(media.takenAt) : '',
+      tourId: media.tourId || null,
+      scheduleId: media.scheduleId || null
     }
   }
 }, { immediate: true })
@@ -83,7 +114,9 @@ async function save() {
         altTranslations: state.value.altTranslations,
         captionTranslations: state.value.captionTranslations,
         tags: state.value.tags,
-        takenAt: state.value.takenAt ? new Date(state.value.takenAt).toISOString() : null
+        takenAt: state.value.takenAt ? new Date(state.value.takenAt).toISOString() : null,
+        tourId: state.value.tourId,
+        scheduleId: state.value.scheduleId
       },
       headers: headers.value
     })
@@ -113,7 +146,7 @@ function formatDate(dateString) {
 function getTypeLabel(type) {
   const labels = {
     TOUR: 'Tour',
-    SCHEDULE: 'Programa',
+    SCHEDULE: 'Salida',
     LOOSE: 'Suelto'
   }
   return labels[type] || type
@@ -158,6 +191,9 @@ function getTypeBadgeColor(type) {
 
           <div class="flex-1 space-y-2">
             <p class="font-medium text-neutral-900 dark:text-neutral-100">
+              {{ media.altTranslations?.es || media.originalFilename }}
+            </p>
+            <p class="text-sm text-neutral-600 dark:text-neutral-400">
               {{ media.originalFilename }}
             </p>
             <div class="flex gap-2 text-sm text-neutral-600 dark:text-neutral-400">
@@ -307,6 +343,48 @@ function getTypeBadgeColor(type) {
 
           <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
             Fecha en que se tomó la fotografía
+          </p>
+        </div>
+
+        <!-- Assign to Tour -->
+        <div>
+          <label class="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+            Asignar a Tour
+          </label>
+
+          <USelect
+            v-model="state.tourId"
+            :options="tourOptions"
+            option-attribute="label"
+            value-attribute="value"
+            placeholder="Selecciona un tour"
+            size="lg"
+            class="w-full"
+          />
+
+          <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+            Asocia esta imagen a un tour específico
+          </p>
+        </div>
+
+        <!-- Assign to Schedule -->
+        <div>
+          <label class="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+            Asignar a Salida
+          </label>
+
+          <USelect
+            v-model="state.scheduleId"
+            :options="scheduleOptions"
+            option-attribute="label"
+            value-attribute="value"
+            placeholder="Selecciona una salida"
+            size="lg"
+            class="w-full"
+          />
+
+          <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+            Asocia esta imagen a una salida específica de un tour
           </p>
         </div>
 

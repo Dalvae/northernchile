@@ -57,16 +57,21 @@ public class TourScheduleAdminController {
     /**
      * GET /api/admin/schedules?start=2025-11-01&end=2025-11-14
      * Obtiene todos los schedules en un rango de fechas (para el calendario)
+     * Si no se proporcionan fechas, devuelve los próximos 90 días desde hoy
      */
     @GetMapping
     @Transactional(readOnly = true)
     public ResponseEntity<List<TourScheduleRes>> getSchedules(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
             @CurrentUser User currentUser) {
 
-        Instant startInstant = DateTimeUtils.toInstantStartOfDay(start);
-        Instant endInstant = DateTimeUtils.toInstantEndOfDay(end);
+        // Default: next 90 days from today
+        LocalDate defaultStart = start != null ? start : LocalDate.now();
+        LocalDate defaultEnd = end != null ? end : LocalDate.now().plusDays(90);
+
+        Instant startInstant = DateTimeUtils.toInstantStartOfDay(defaultStart);
+        Instant endInstant = DateTimeUtils.toInstantEndOfDay(defaultEnd);
 
         List<TourSchedule> schedules = tourScheduleRepository.findByStartDatetimeBetweenWithTour(
                 startInstant,

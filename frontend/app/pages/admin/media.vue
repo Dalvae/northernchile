@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { h, resolveComponent } from 'vue'
 import type { MediaRes, PageMediaRes } from 'api-client'
 
 definePageMeta({
@@ -13,6 +14,8 @@ const { fetchAdminMedia, deleteAdminMedia } = useAdminData()
 const uploadModalOpen = ref(false)
 const editModalOpen = ref(false)
 const selectedMedia = ref<MediaRes | null>(null)
+const lightboxOpen = ref(false)
+const lightboxIndex = ref(0)
 
 // Bulk selection
 const selectedItems = ref<string[]>([])
@@ -22,7 +25,7 @@ const filters = ref({
   search: ''
 })
 
-const page = ref(0)
+const page = ref(1)
 const pageSize = ref(20)
 
 // Fetch media with useAsyncData
@@ -33,7 +36,7 @@ const {
 } = useAsyncData<PageMediaRes>(
   'admin-media',
   () => fetchAdminMedia({
-    page: page.value.toString(),
+    page: (page.value - 1).toString(),
     size: pageSize.value.toString(),
     search: filters.value.search || undefined
   }),
@@ -60,14 +63,90 @@ const totalItems = computed(() => mediaResponse.value?.totalElements || 0)
 
 // Table columns
 const columns = [
-  { id: 'select', key: 'select', label: '' },
-  { id: 'thumbnail', key: 'thumbnail', label: '' },
-  { id: 'filename', accessorKey: 'originalFilename', header: 'Archivo' },
-  { id: 'type', accessorKey: 'type', header: 'Tipo' },
-  { id: 'tags', accessorKey: 'tags', header: 'Etiquetas' },
-  { id: 'takenAt', accessorKey: 'takenAt', header: 'Fecha' },
-  { id: 'size', accessorKey: 'sizeBytes', header: 'Tamaño' },
-  { id: 'actions', key: 'actions', label: '' }
+  { id: 'select', header: '' },
+  {
+    id: 'thumbnail',
+    header: '',
+    cell: ({ row }: { row: { original: MediaRes } }) => {
+      const media = row.original
+      return h('img', {
+        src: media.variants?.thumbnail || media.url,
+        alt: media.altTranslations?.es || media.originalFilename,
+        class: 'w-16 h-16 object-cover rounded-lg shadow-sm cursor-pointer hover:opacity-80 transition-opacity',
+        onClick: () => openLightbox(media)
+      })
+    }
+  },
+  {
+    id: 'description',
+    header: 'Descripción',
+    cell: ({ row }: { row: { original: MediaRes } }) => {
+      const media = row.original
+      const altText = media.altTranslations?.es || media.originalFilename
+      const caption = media.captionTranslations?.es
+      return h('div', [
+        h('p', { class: 'font-medium text-neutral-900 dark:text-neutral-100 truncate max-w-xs' }, altText),
+        caption ? h('p', { class: 'text-sm text-neutral-600 dark:text-neutral-400 truncate max-w-xs' }, caption) : null
+      ].filter(Boolean))
+    }
+  },
+  {
+    id: 'type',
+    accessorKey: 'type' as const,
+    header: 'Tipo',
+    cell: ({ row }: { row: { original: MediaRes } }) => {
+      const type = row.original.type
+      return h('span', { class: `badge badge-${getTypeBadgeColor(type)}` }, getTypeLabel(type))
+    }
+  },
+  { id: 'tags', accessorKey: 'tags' as const, header: 'Etiquetas' },
+  {
+    id: 'takenAt',
+    accessorKey: 'takenAt' as const,
+    header: 'Fecha',
+    cell: ({ row }: { row: { original: MediaRes } }) => {
+      const media = row.original
+      const date = media.takenAt || media.uploadedAt
+      return h('div', { class: 'text-sm text-neutral-600 dark:text-neutral-400' }, formatDate(date))
+    }
+  },
+  {
+    id: 'size',
+    accessorKey: 'sizeBytes' as const,
+    header: 'Tamaño',
+    cell: ({ row }: { row: { original: MediaRes } }) => {
+      return h('div', { class: 'text-sm text-neutral-600 dark:text-neutral-400' }, formatFileSize(row.original.sizeBytes))
+    }
+  },
+  {
+    id: 'actions',
+    header: '',
+    cell: ({ row }: { row: { original: MediaRes } }) => {
+      return h('div', { class: 'flex justify-end' }, [
+        h(resolveComponent('UButton'), {
+          icon: 'i-heroicons-pencil',
+          size: 'sm',
+          color: 'primary',
+          variant: 'ghost',
+          onClick: () => openEditModal(row.original)
+        }),
+        h(resolveComponent('UButton'), {
+          icon: 'i-heroicons-arrow-down-tray',
+          size: 'sm',
+          color: 'neutral',
+          variant: 'ghost',
+          onClick: () => window.open(row.original.url, '_blank')
+        }),
+        h(resolveComponent('UButton'), {
+          icon: 'i-heroicons-trash',
+          size: 'sm',
+          color: 'error',
+          variant: 'ghost',
+          onClick: () => deleteMediaItem(row.original.id!)
+        })
+      ])
+    }
+  }
 ]
 
 // Fetch media function
@@ -113,6 +192,14 @@ function getRowActions(row: MediaRes) {
 function openEditModal(mediaItem: MediaRes) {
   selectedMedia.value = mediaItem
   editModalOpen.value = true
+}
+
+function openLightbox(mediaItem: MediaRes) {
+  const index = media.value.findIndex(m => m.id === mediaItem.id)
+  if (index !== -1) {
+    lightboxIndex.value = index
+    lightboxOpen.value = true
+  }
 }
 
 // Bulk selection handlers
@@ -173,7 +260,7 @@ function formatDate(dateString?: string) {
 function getTypeLabel(type?: string) {
   const labels: Record<string, string> = {
     TOUR: 'Tour',
-    SCHEDULE: 'Programa',
+    SCHEDULE: 'Salida',
     LOOSE: 'Suelto'
   }
   return labels[type || ''] || type || '-'
@@ -257,7 +344,7 @@ function getTypeBadgeColor(type?: string) {
     <!-- Table -->
     <UCard>
       <UTable
-        :rows="media"
+        :data="media"
         :columns="columns"
         :loading="loading"
         :empty-state="{
@@ -277,48 +364,16 @@ function getTypeBadgeColor(type?: string) {
         <!-- Select checkbox data -->
         <template #select-data="{ row }">
           <UCheckbox
-            :model-value="selectedItems.includes(row.id)"
-            @update:model-value="toggleSelect(row.id)"
+            :model-value="selectedItems.includes(row.original.id)"
+            @update:model-value="toggleSelect(row.original.id)"
           />
-        </template>
-
-        <!-- Thumbnail -->
-        <template #thumbnail-data="{ row }">
-          <img
-            :src="row.variants?.thumbnail || row.url"
-            :alt="row.altTranslations?.es || row.originalFilename"
-            class="w-16 h-16 object-cover rounded-lg shadow-sm cursor-pointer hover:opacity-80 transition-opacity"
-            @click="selectedMedia = row"
-          />
-        </template>
-
-        <!-- Filename -->
-        <template #filename-data="{ row }">
-          <div>
-            <p class="font-medium text-neutral-900 dark:text-neutral-100 truncate max-w-xs">
-              {{ row.originalFilename }}
-            </p>
-            <p v-if="row.captionTranslations?.es" class="text-sm text-neutral-600 dark:text-neutral-400 truncate max-w-xs">
-              {{ row.captionTranslations.es }}
-            </p>
-          </div>
-        </template>
-
-        <!-- Type badge -->
-        <template #type-data="{ row }">
-          <UBadge
-            :color="getTypeBadgeColor(row.type)"
-            variant="soft"
-          >
-            {{ getTypeLabel(row.type) }}
-          </UBadge>
         </template>
 
         <!-- Tags -->
         <template #tags-data="{ row }">
           <div class="flex flex-wrap gap-1 max-w-xs">
             <UBadge
-              v-for="tag in row.tags?.slice(0, 3)"
+              v-for="tag in row.original.tags?.slice(0, 3)"
               :key="tag"
               size="xs"
               color="neutral"
@@ -327,40 +382,16 @@ function getTypeBadgeColor(type?: string) {
               {{ tag }}
             </UBadge>
             <UBadge
-              v-if="row.tags && row.tags.length > 3"
+              v-if="row.original.tags && row.original.tags.length > 3"
               size="xs"
               color="neutral"
               variant="soft"
             >
-              +{{ row.tags.length - 3 }}
+              +{{ row.original.tags.length - 3 }}
             </UBadge>
           </div>
         </template>
 
-        <!-- Date -->
-        <template #takenAt-data="{ row }">
-          <div class="text-sm text-neutral-600 dark:text-neutral-400">
-            {{ row.takenAt ? formatDate(row.takenAt) : formatDate(row.uploadedAt) }}
-          </div>
-        </template>
-
-        <!-- Size -->
-        <template #size-data="{ row }">
-          <div class="text-sm text-neutral-600 dark:text-neutral-400">
-            {{ formatFileSize(row.sizeBytes) }}
-          </div>
-        </template>
-
-        <!-- Actions -->
-        <template #actions-data="{ row }">
-          <UDropdownMenu :items="getRowActions(row)">
-            <UButton
-              icon="i-heroicons-ellipsis-vertical"
-              variant="ghost"
-              color="neutral"
-            />
-          </UDropdownMenu>
-        </template>
       </UTable>
 
       <!-- Pagination -->
@@ -390,6 +421,12 @@ function getTypeBadgeColor(type?: string) {
       v-model="editModalOpen"
       :media="selectedMedia"
       @success="fetchMedia"
+    />
+
+    <AdminMediaLightbox
+      v-model="lightboxOpen"
+      :media="media"
+      :initial-index="lightboxIndex"
     />
   </div>
 </template>
