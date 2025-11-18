@@ -10,7 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,13 +31,28 @@ public class MediaController {
     }
 
     /**
-     * Create new media.
+     * Upload file and create media record.
      * POST /api/admin/media
      */
     @PostMapping
-    public ResponseEntity<MediaRes> createMedia(@Valid @RequestBody MediaCreateReq req,
-                                                @CurrentUser User currentUser) {
-        MediaRes created = mediaService.createMedia(req, currentUser.getId());
+    public ResponseEntity<MediaRes> createMedia(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "tourId", required = false) UUID tourId,
+            @RequestParam(value = "scheduleId", required = false) UUID scheduleId,
+            @RequestParam(value = "tags", required = false) String[] tags,
+            @RequestParam(value = "altText", required = false) String altText,
+            @RequestParam(value = "caption", required = false) String caption,
+            @CurrentUser User currentUser) throws IOException {
+
+        MediaRes created = mediaService.uploadAndCreateMedia(
+                file,
+                tourId,
+                scheduleId,
+                tags,
+                altText,
+                caption,
+                currentUser.getId()
+        );
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 

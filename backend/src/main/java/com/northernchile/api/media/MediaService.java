@@ -23,8 +23,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -63,9 +67,106 @@ public class MediaService {
     }
 
     /**
-     * Create new media record.
+     * Upload file to S3 and create media record in one step.
      */
     @Transactional
+    public MediaRes uploadAndCreateMedia(
+            MultipartFile file,
+            UUID tourId,
+            UUID scheduleId,
+            String[] tags,
+            String altText,
+            String caption,
+            UUID ownerId) throws IOException {
+
+        log.info("Uploading and creating media for owner: {}", ownerId);
+
+        // Validate file
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("File is empty");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("Only image files are allowed");
+        }
+
+        if (file.getSize() > 10 * 1024 * 1024) {
+            throw new IllegalArgumentException("File size must not exceed 10MB");
+        }
+
+        // Get owner
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + ownerId));
+
+        // Upload to S3
+        String folder = "media";
+        String s3Key = s3StorageService.uploadFile(file, folder);
+        String url = s3StorageService.getPublicUrl(s3Key);
+
+        log.info("File uploaded to S3: {}", s3Key);
+
+        // Create media entity
+        Media media = new Media();
+        media.setOwner(owner);
+        media.setS3Key(s3Key);
+        media.setUrl(url);
+        media.setSizeBytes(file.getSize());
+        media.setContentType(contentType);
+        media.setOriginalFilename(file.getOriginalFilename());
+        media.setTags(tags);
+
+        // Set translations if provided
+        if (altText != null && !altText.isBlank()) {
+            Map<String, String> altTranslations = new HashMap<>();
+            altTranslations.put("es", altText);
+            media.setAltTranslations(altTranslations);
+        }
+
+        if (caption != null && !caption.isBlank()) {
+            Map<String, String> captionTranslations = new HashMap<>();
+            captionTranslations.put("es", caption);
+            media.setCaptionTranslations(captionTranslations);
+        }
+
+        // Set tour if provided
+        if (tourId != null) {
+            Tour tour = tourRepository.findById(tourId)
+                    .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
+
+            // Verify ownership
+            if (!tour.getOwner().getId().equals(ownerId)) {
+                throw new AccessDeniedException("You don't have permission to add media to this tour");
+            }
+
+            media.setTour(tour);
+        }
+
+        // Set schedule if provided
+        if (scheduleId != null) {
+            TourSchedule schedule = scheduleRepository.findById(scheduleId)
+                    .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
+
+            // Verify ownership through tour
+            if (!schedule.getTour().getOwner().getId().equals(ownerId)) {
+                throw new AccessDeniedException("You don't have permission to add media to this schedule");
+            }
+
+            media.setSchedule(schedule);
+        }
+
+        // Save to database
+        Media saved = mediaRepository.save(media);
+        log.info("Media created with ID: {}", saved.getId());
+
+        return mediaMapper.toMediaRes(saved);
+    }
+
+    /**
+     * Create new media record from existing S3 file (deprecated - use uploadAndCreateMedia instead).
+     */
+    @Transactional
+    @Deprecated
     public MediaRes createMedia(MediaCreateReq req, UUID ownerId) {
         log.info("Creating media for owner: {}", ownerId);
 
