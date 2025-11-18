@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useAuthStore } from '~/stores/auth'
 import { formatFileSize, formatDateTime, getMediaTypeLabel, getMediaTypeBadgeColor, formatForDateTimeInput } from '~/utils/media'
 
 const props = defineProps<{
@@ -10,17 +9,6 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue', 'success'])
 
 const toast = useToast()
-const authStore = useAuthStore()
-
-const headers = computed(() => {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json'
-  }
-  if (authStore.token) {
-    headers.Authorization = `Bearer ${authStore.token}`
-  }
-  return headers
-})
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -38,7 +26,7 @@ const state = ref({
 })
 
 // Fetch tours for assignment
-const { fetchAdminTours, fetchAdminSchedules } = useAdminData()
+const { fetchAdminTours, fetchAdminSchedules, updateAdminMedia } = useAdminData()
 const { data: tours } = useAsyncData('tours-for-media', () => fetchAdminTours(), {
   server: false,
   lazy: true,
@@ -101,17 +89,13 @@ watch(() => props.media, (media) => {
 
 async function save() {
   try {
-    await $fetch(`/api/admin/media/${props.media.id}`, {
-      method: 'PATCH',
-      body: {
-        altTranslations: state.value.altTranslations,
-        captionTranslations: state.value.captionTranslations,
-        tags: state.value.tags,
-        takenAt: state.value.takenAt ? new Date(state.value.takenAt).toISOString() : null,
-        tourId: state.value.tourId,
-        scheduleId: state.value.scheduleId
-      },
-      headers: headers.value
+    await updateAdminMedia(props.media.id, {
+      altTranslations: state.value.altTranslations,
+      captionTranslations: state.value.captionTranslations,
+      tags: state.value.tags,
+      takenAt: state.value.takenAt ? new Date(state.value.takenAt).toISOString() : null,
+      tourId: state.value.tourId,
+      scheduleId: state.value.scheduleId
     })
 
     toast.add({ color: 'success', title: 'Medio actualizado' })
