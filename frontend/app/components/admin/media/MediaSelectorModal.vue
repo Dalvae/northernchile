@@ -78,8 +78,9 @@ watch(isOpen, (open) => {
 <template>
   <UModal v-model:open="isOpen" :ui="{ width: 'sm:max-w-5xl' }">
     <template #content>
-      <!-- Header -->
-      <div class="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
+      <div class="p-6">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
         <div>
           <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
             Seleccionar Fotos
@@ -176,23 +177,24 @@ watch(isOpen, (open) => {
         </div>
       </div>
 
-      <!-- Footer -->
-      <div class="flex justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-800">
-        <UButton
-          variant="outline"
-          color="neutral"
-          @click="isOpen = false"
-        >
-          Cancelar
-        </UButton>
+        <!-- Footer -->
+        <div class="flex justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+          <UButton
+            variant="outline"
+            color="neutral"
+            @click="isOpen = false"
+          >
+            Cancelar
+          </UButton>
 
-        <UButton
-          color="primary"
-          :disabled="selectedItems.length === 0"
-          @click="addSelected"
-        >
-          Añadir {{ selectedItems.length > 0 ? `(${selectedItems.length})` : '' }}
-        </UButton>
+          <UButton
+            color="primary"
+            :disabled="selectedItems.length === 0"
+            @click="addSelected"
+          >
+            Añadir {{ selectedItems.length > 0 ? `(${selectedItems.length})` : '' }}
+          </UButton>
+        </div>
       </div>
     </template>
   </UModal>

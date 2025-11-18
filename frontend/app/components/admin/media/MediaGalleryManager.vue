@@ -21,6 +21,7 @@ const {
 const gallery = ref([])
 const loading = ref(false)
 const selectorModalOpen = ref(false)
+const uploadModalOpen = ref(false)
 
 // Fetch gallery
 async function fetchGallery() {
@@ -171,13 +172,24 @@ watch(() => [props.tourId, props.scheduleId], () => {
         </p>
       </div>
 
-      <UButton
-        icon="i-heroicons-plus"
-        color="primary"
-        @click="selectorModalOpen = true"
-      >
-        Añadir Fotos
-      </UButton>
+      <div class="flex gap-2">
+        <UButton
+          icon="i-heroicons-cloud-arrow-up"
+          color="secondary"
+          variant="outline"
+          @click="uploadModalOpen = true"
+        >
+          Subir Fotos
+        </UButton>
+
+        <UButton
+          icon="i-heroicons-plus"
+          color="primary"
+          @click="selectorModalOpen = true"
+        >
+          Asignar Fotos
+        </UButton>
+      </div>
     </div>
 
     <!-- Loading state -->
@@ -194,13 +206,25 @@ watch(() => [props.tourId, props.scheduleId], () => {
       <p class="text-neutral-600 dark:text-neutral-400 mb-4">
         No hay fotos en la galería
       </p>
-      <UButton
-        color="primary"
-        variant="soft"
-        @click="selectorModalOpen = true"
-      >
-        Añadir Primera Foto
-      </UButton>
+      <div class="flex gap-2 justify-center">
+        <UButton
+          icon="i-heroicons-cloud-arrow-up"
+          color="secondary"
+          variant="soft"
+          @click="uploadModalOpen = true"
+        >
+          Subir Fotos
+        </UButton>
+
+        <UButton
+          icon="i-heroicons-plus"
+          color="primary"
+          variant="soft"
+          @click="selectorModalOpen = true"
+        >
+          Asignar Primera Foto
+        </UButton>
+      </div>
     </div>
 
     <!-- Gallery grid -->
@@ -298,6 +322,14 @@ watch(() => [props.tourId, props.scheduleId], () => {
     <AdminMediaSelectorModal
       v-model="selectorModalOpen"
       @selected="handleMediaSelected"
+    />
+
+    <!-- Upload modal -->
+    <AdminMediaUploadModal
+      v-model="uploadModalOpen"
+      :tour-id="tourId"
+      :schedule-id="scheduleId"
+      @success="fetchGallery"
     />
   </div>
 </template>
