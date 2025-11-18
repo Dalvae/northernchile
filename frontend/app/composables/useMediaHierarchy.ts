@@ -1,6 +1,7 @@
 import type { TourRes, TourScheduleRes } from 'api-client'
+import type { TreeItem } from '@nuxt/ui'
 
-export interface MediaHierarchyNode {
+export interface MediaHierarchyNode extends TreeItem {
   id: string
   label: string
   icon?: string

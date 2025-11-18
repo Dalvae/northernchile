@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { TreeItem } from '@nuxt/ui'
 import type { MediaHierarchyNode } from '~/composables/useMediaHierarchy'
 
 definePageMeta({
@@ -7,16 +6,48 @@ definePageMeta({
   middleware: 'auth-admin'
 })
 
+const router = useRouter()
+const route = useRoute()
+
 const { loading, tours, loadTours, buildTree, buildScheduleNodes } = useMediaHierarchy()
 
 // Tree state
-const treeItems = ref<TreeItem[]>([])
+const treeItems = ref<MediaHierarchyNode[]>([])
 const expandedItems = ref<string[]>(['media-root'])
+const selectedItems = ref<MediaHierarchyNode | undefined>(undefined)
 
-// Selected item state
-const selectedNode = ref<MediaHierarchyNode | null>(null)
-const selectedTourId = ref<string | null>(null)
-const selectedScheduleId = ref<string | null>(null)
+// Selected item state from URL query params
+const selectedTourId = computed(() => route.query.tour as string | undefined)
+const selectedScheduleId = computed(() => route.query.schedule as string | undefined)
+
+// Find selected node from route params
+const selectedNode = computed<MediaHierarchyNode | null>(() => {
+  if (selectedScheduleId.value) {
+    // Find schedule node in tree
+    for (const rootNode of treeItems.value) {
+      if (rootNode.children) {
+        for (const tourNode of rootNode.children) {
+          if (tourNode.children) {
+            const scheduleNode = tourNode.children.find(s => s.scheduleId === selectedScheduleId.value) as MediaHierarchyNode | undefined
+            if (scheduleNode) return scheduleNode
+          }
+        }
+      }
+    }
+  }
+
+  if (selectedTourId.value) {
+    // Find tour node in tree
+    for (const rootNode of treeItems.value) {
+      if (rootNode.children) {
+        const tourNode = rootNode.children.find(t => t.tourId === selectedTourId.value) as MediaHierarchyNode | undefined
+        if (tourNode) return tourNode
+      }
+    }
+  }
+
+  return null
+})
 
 // Debug
 const debugInfo = ref('')
@@ -33,43 +64,65 @@ onMounted(async () => {
   console.log('[Browser] Built tree:', tree)
   debugInfo.value += ` | Tree nodes: ${tree.length}`
 
-  treeItems.value = tree as TreeItem[]
+  treeItems.value = tree
   console.log('[Browser] Tree items set:', treeItems.value)
+
+  // Load schedules for initially selected tour if needed
+  if (selectedTourId.value) {
+    const parentItem = treeItems.value[0]
+    const tourItem = parentItem?.children?.find((t: any) => t.tourId === selectedTourId.value) as MediaHierarchyNode | undefined
+    if (tourItem && (!tourItem.children || tourItem.children.length === 0)) {
+      const scheduleNodes = await buildScheduleNodes(selectedTourId.value)
+      tourItem.children = scheduleNodes
+      // Expand the tour node
+      if (!expandedItems.value.includes(selectedTourId.value)) {
+        expandedItems.value.push(selectedTourId.value)
+      }
+    }
+  }
 })
 
 // Handle tree item toggle (expand/collapse)
 async function onToggle(e: any, item: MediaHierarchyNode) {
-  console.log('[Browser] onToggle:', item.type, item.id)
+  console.log('[Browser] onToggle:', item.type, item.id, item)
 
   if (item.type === 'tour' && item.tourId) {
     // Load schedules for this tour when expanded
-    const parentItem = treeItems.value[0]
-    const tourItem = parentItem?.children?.find((t: any) => t.id === item.tourId)
+    const parentItem = treeItems.value[0] as MediaHierarchyNode | undefined
+    if (!parentItem?.children) return
+
+    const tourChildren = parentItem.children as MediaHierarchyNode[]
+    const tourItem = tourChildren.find((t) => t.id === item.tourId)
 
     if (tourItem && (!tourItem.children || tourItem.children.length === 0)) {
       console.log('[Browser] Loading schedules for tour:', item.tourId)
       // Load schedules
       const scheduleNodes = await buildScheduleNodes(item.tourId)
       console.log('[Browser] Loaded schedules:', scheduleNodes.length)
-      tourItem.children = scheduleNodes as TreeItem[]
+      tourItem.children = scheduleNodes
     }
   }
 }
 
-// Handle tree item selection
+// Handle tree item selection - navigate to URL with query params
 function onSelect(e: any, item: MediaHierarchyNode) {
-  console.log('[Browser] onSelect:', item.type, item.id)
-  selectedNode.value = item
+  console.log('[Browser] onSelect:', item.type, item.id, item)
 
-  if (item.type === 'tour') {
-    selectedTourId.value = item.tourId || null
-    selectedScheduleId.value = null
-  } else if (item.type === 'schedule') {
-    selectedTourId.value = null
-    selectedScheduleId.value = item.scheduleId || null
+  if (item.type === 'tour' && item.tourId) {
+    // Navigate to tour view
+    router.push({
+      query: { tour: item.tourId }
+    })
+  } else if (item.type === 'schedule' && item.scheduleId) {
+    // Navigate to schedule view
+    router.push({
+      query: { schedule: item.scheduleId }
+    })
   } else if (item.type === 'root') {
-    selectedTourId.value = null
-    selectedScheduleId.value = null
+    // Clear selection
+    router.push({
+      query: {}
+    })
   }
 }
 </script>
@@ -121,6 +174,7 @@ function onSelect(e: any, item: MediaHierarchyNode) {
           <!-- Tree Navigation -->
           <div v-else-if="treeItems.length > 0" class="overflow-y-auto max-h-[calc(100vh-420px)]">
             <UTree
+              v-model="selectedItems"
               v-model:expanded="expandedItems"
               :items="treeItems"
               :get-key="(item: MediaHierarchyNode) => item.id"
@@ -194,7 +248,7 @@ function onSelect(e: any, item: MediaHierarchyNode) {
             <!-- Show gallery for selected tour -->
             <ClientOnly>
               <AdminMediaGalleryManager
-                v-if="selectedTourId"
+                v-if="selectedTourId && !selectedScheduleId"
                 :tour-id="selectedTourId"
                 :key="`tour-${selectedTourId}`"
               />
