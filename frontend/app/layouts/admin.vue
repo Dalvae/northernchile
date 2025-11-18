@@ -7,7 +7,7 @@ import { useAuthStore } from '~/stores/auth'
 
 const authStore = useAuthStore()
 const route = useRoute()
-const { fetchAdminAlertsCount } = useAdminData()
+const { fetchAdminAlertsCount, fetchAdminTours } = useAdminData()
 
 // Sidebar state (mobile)
 const sidebarOpen = ref(false)
@@ -38,6 +38,24 @@ const { data: alertsCount, refresh: refreshAlertsCount } = await useAsyncData(
   }
 )
 
+// Fetch tours for Media accordion
+const { data: tours } = await useAsyncData(
+  'admin-sidebar-tours',
+  async () => {
+    try {
+      return await fetchAdminTours()
+    } catch (error) {
+      console.error('Error fetching tours:', error)
+      return []
+    }
+  },
+  {
+    server: false,
+    lazy: true,
+    default: () => []
+  }
+)
+
 // Refresh alerts count every 5 minutes
 const alertsRefreshInterval = setInterval(() => {
   refreshAlertsCount()
@@ -48,68 +66,79 @@ onUnmounted(() => {
   clearInterval(alertsRefreshInterval)
 })
 
-// Navigation links
-const navigationLinks = [
-  {
-    label: 'Dashboard',
-    icon: 'i-lucide-layout-dashboard',
-    to: '/admin'
-  },
-  {
-    label: 'Tours',
-    icon: 'i-lucide-map',
-    to: '/admin/tours'
-  },
-  {
-    label: 'Calendario',
-    icon: 'i-lucide-calendar-days',
-    to: '/admin/calendar'
-  },
-  {
-    label: 'Medios',
-    icon: 'i-lucide-image',
-    defaultOpen: true,
-    children: [
-      {
-        label: 'Vista Tabla',
-        description: 'Todos los archivos',
-        icon: 'i-lucide-table',
-        to: '/admin/media'
-      },
-      {
-        label: 'Explorador',
-        description: 'Navegar por tours',
-        icon: 'i-lucide-folder-tree',
-        to: '/admin/media/browser'
-      }
-    ]
-  },
-  {
-    label: 'Reservas',
-    icon: 'i-lucide-book-marked',
-    to: '/admin/bookings'
-  },
-  {
-    label: 'Tours Privados',
-    icon: 'i-lucide-star',
-    to: '/admin/private-requests'
-  },
-  {
-    label: 'Usuarios',
-    icon: 'i-lucide-users',
-    to: '/admin/users'
-  },
-  {
-    label: 'Reportes',
-    icon: 'i-lucide-bar-chart-3',
-    to: '/admin/reports'
-  },
-  {
-    label: 'Configuración',
-    icon: 'i-lucide-settings',
-    to: '/admin/settings'
+// Navigation links - computed to include dynamic tours
+const navigationLinks = computed(() => {
+  // Build Media children: "Todos los Archivos" + tour list
+  const mediaChildren = [
+    {
+      label: 'Todos los Archivos',
+      description: 'Vista de tabla',
+      icon: 'i-lucide-table',
+      to: '/admin/media'
+    }
+  ]
+
+  // Add tours dynamically
+  if (tours.value && tours.value.length > 0) {
+    tours.value.forEach((tour: any) => {
+      mediaChildren.push({
+        label: tour.nameTranslations?.es || 'Sin nombre',
+        description: tour.category || '',
+        icon: 'i-lucide-image',
+        to: `/admin/media/${tour.slug}`
+      })
+    })
   }
-]
+
+  return [
+    {
+      label: 'Dashboard',
+      icon: 'i-lucide-layout-dashboard',
+      to: '/admin'
+    },
+    {
+      label: 'Tours',
+      icon: 'i-lucide-map',
+      to: '/admin/tours'
+    },
+    {
+      label: 'Calendario',
+      icon: 'i-lucide-calendar-days',
+      to: '/admin/calendar'
+    },
+    {
+      label: 'Medios',
+      icon: 'i-lucide-image',
+      defaultOpen: true,
+      children: mediaChildren
+    },
+    {
+      label: 'Reservas',
+      icon: 'i-lucide-book-marked',
+      to: '/admin/bookings'
+    },
+    {
+      label: 'Tours Privados',
+      icon: 'i-lucide-star',
+      to: '/admin/private-requests'
+    },
+    {
+      label: 'Usuarios',
+      icon: 'i-lucide-users',
+      to: '/admin/users'
+    },
+    {
+      label: 'Reportes',
+      icon: 'i-lucide-bar-chart-3',
+      to: '/admin/reports'
+    },
+    {
+      label: 'Configuración',
+      icon: 'i-lucide-settings',
+      to: '/admin/settings'
+    }
+  ]
+})
 
 // Handle logout
 async function handleLogout() {
@@ -142,13 +171,29 @@ const breadcrumbItems = computed(() => {
   const items = [{ label: 'Inicio', to: '/admin' }]
 
   let currentPath = ''
-  segments.slice(1).forEach((segment) => {
+  const adminSegments = segments.slice(1) // Remove 'admin'
+
+  for (let i = 0; i < adminSegments.length; i++) {
+    const segment = adminSegments[i]
     currentPath += `/${segment}`
+
+    // If previous segment was 'media' and this looks like a tour slug
+    if (i > 0 && adminSegments[i - 1] === 'media' && segment !== 'browser') {
+      const tour = tours.value?.find((t: any) => t.slug === segment)
+      if (tour) {
+        items.push({
+          label: tour.nameTranslations?.es || segment,
+          to: `/admin${currentPath}`
+        })
+        continue
+      }
+    }
+
     items.push({
       label: formatSegment(segment),
       to: `/admin${currentPath}`
     })
-  })
+  }
 
   return items
 })
@@ -163,7 +208,8 @@ function formatSegment(segment: string) {
     'alerts': 'Alertas',
     'private-requests': 'Tours Privados',
     'reports': 'Reportes',
-    'settings': 'Configuración'
+    'settings': 'Configuración',
+    'browser': 'Explorador'
   }
   return labels[segment] || segment
 }
