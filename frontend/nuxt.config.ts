@@ -11,16 +11,7 @@ export default defineNuxtConfig({
   ],
 
   devtools: {
-    enabled: false,
-  },
-
-  // Completely disable devtools globally
-  hooks: {
-    "vite:extendConfig"(config) {
-      config.define = config.define || {};
-      config.define.__VUE_PROD_DEVTOOLS__ = false;
-      config.define.__VUE_PROD_HYDRATION_MISMATCH_DETAILS__ = false;
-    },
+    enabled: process.env.NODE_ENV === "development",
   },
   app: {
     head: {
@@ -83,46 +74,10 @@ export default defineNuxtConfig({
         changeOrigin: true,
       },
     },
-    // Always stub devtools modules in SSR to prevent production errors
-    alias: {
-      "@vue/devtools-api": fileURLToPath(
-        new URL("./stubs/devtools-stub.mjs", import.meta.url)
-      ),
-      "@vue/devtools-kit": fileURLToPath(
-        new URL("./stubs/devtools-stub.mjs", import.meta.url)
-      ),
-      "perfect-debounce": fileURLToPath(
-        new URL("./stubs/perfect-debounce-stub.mjs", import.meta.url)
-      ),
-    },
-    replace: {
-      __VUE_PROD_DEVTOOLS__: "false",
-      __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: "false",
-    },
   },
 
   vite: {
     plugins: [viteTsconfigPaths()],
-    // Always use stubs to prevent any SSR/ESM issues
-    resolve: {
-      alias: {
-        "@vue/devtools-api": fileURLToPath(
-          new URL("./stubs/devtools-stub.mjs", import.meta.url)
-        ),
-        "@vue/devtools-kit": fileURLToPath(
-          new URL("./stubs/devtools-stub.mjs", import.meta.url)
-        ),
-        "perfect-debounce": fileURLToPath(
-          new URL("./stubs/perfect-debounce-stub.mjs", import.meta.url)
-        ),
-      },
-    },
-    ssr: {
-      noExternal: ["perfect-debounce"],
-    },
-    optimizeDeps: {
-      exclude: ["@vue/devtools-kit", "@vue/devtools-api"],
-    },
   },
 
   eslint: {
@@ -136,16 +91,6 @@ export default defineNuxtConfig({
 
   alias: {
     "api-client": fileURLToPath(new URL("./lib/api-client", import.meta.url)),
-    // Always stub devtools to prevent SSR/ESM errors
-    "@vue/devtools-api": fileURLToPath(
-      new URL("./stubs/devtools-stub.mjs", import.meta.url)
-    ),
-    "@vue/devtools-kit": fileURLToPath(
-      new URL("./stubs/devtools-stub.mjs", import.meta.url)
-    ),
-    "perfect-debounce": fileURLToPath(
-      new URL("./stubs/perfect-debounce-stub.mjs", import.meta.url)
-    ),
   },
 
   i18n: {

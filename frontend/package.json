@@ -2,11 +2,6 @@
   "name": "frontend-app",
   "private": true,
   "type": "module",
-  "pnpm": {
-    "hooks": {
-      "readPackage": "import('./pnpm-hooks.mjs').then(hooks => hooks.readPackage)"
-    }
-  },
   "scripts": {
     "generate:api": "curl -f ${OPENAPI_URL:-http://localhost:8080/api-docs} -o openapi.json && pnpm openapi-generator-cli generate -i openapi.json -g typescript-axios -o ./lib/api-client --additional-properties=supportsES6=true,typescriptThreePlus=true",
     "predev": "pnpm generate:api",
