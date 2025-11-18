@@ -27,21 +27,36 @@ const selectedScheduleId = computed(() => route.query.schedule as string | undef
 // Load tour by slug
 async function loadTour() {
   loading.value = true
+  console.log('[MediaSlug] Loading tour with slug:', slug.value)
+
   try {
     const tours = await fetchAdminTours()
-    tour.value = tours.find(t => t.slug === slug.value)
+    console.log('[MediaSlug] Fetched tours:', tours.length)
+    console.log('[MediaSlug] Tour slugs:', tours.map((t: any) => t.slug))
+
+    tour.value = tours.find((t: any) => t.slug === slug.value)
+    console.log('[MediaSlug] Found tour:', tour.value ? tour.value.nameTranslations?.es : 'NOT FOUND')
 
     if (!tour.value) {
-      throw new Error('Tour not found')
+      console.error('[MediaSlug] Tour not found for slug:', slug.value)
+      // Redirect to media list if tour not found
+      await router.push('/admin/media')
+      return
     }
 
-    // Load schedules for this tour
+    // Load schedules for this tour (optional - don't fail if empty)
     if (tour.value.id) {
-      schedules.value = await buildScheduleNodes(tour.value.id)
+      try {
+        schedules.value = await buildScheduleNodes(tour.value.id)
+        console.log('[MediaSlug] Loaded schedules:', schedules.value.length)
+      } catch (scheduleError) {
+        console.warn('[MediaSlug] Error loading schedules (non-fatal):', scheduleError)
+        schedules.value = [] // Empty schedules is OK
+      }
     }
   } catch (error) {
-    console.error('Error loading tour:', error)
-    // Redirect to media list if tour not found
+    console.error('[MediaSlug] Fatal error loading tour:', error)
+    // Only redirect on fatal errors (e.g., tour not found)
     await router.push('/admin/media')
   } finally {
     loading.value = false
@@ -74,6 +89,18 @@ function clearScheduleSelection() {
 
 <template>
   <div class="space-y-6">
+    <!-- Debug Panel (temporary) -->
+    <UCard v-if="!loading">
+      <div class="text-xs font-mono space-y-1">
+        <p><strong>Slug from URL:</strong> {{ slug }}</p>
+        <p><strong>Tour found:</strong> {{ tour ? 'YES' : 'NO' }}</p>
+        <p v-if="tour"><strong>Tour name:</strong> {{ tour.nameTranslations?.es }}</p>
+        <p v-if="tour"><strong>Tour ID:</strong> {{ tour.id }}</p>
+        <p v-if="tour"><strong>Images count:</strong> {{ tour.images?.length || 0 }}</p>
+        <p><strong>Schedules loaded:</strong> {{ schedules.length }}</p>
+      </div>
+    </UCard>
+
     <!-- Loading State -->
     <div v-if="loading" class="flex items-center justify-center py-12">
       <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary-500" />
