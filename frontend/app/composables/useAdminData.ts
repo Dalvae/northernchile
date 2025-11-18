@@ -12,7 +12,10 @@ import type {
   UserCreateReq,
   UserUpdateReq,
   UserRes,
-  AdminPasswordChangeReq
+  AdminPasswordChangeReq,
+  MediaRes,
+  MediaUpdateReq,
+  PageMediaRes
 } from 'api-client'
 
 export const useAdminData = () => {
@@ -122,6 +125,31 @@ export const useAdminData = () => {
          method: 'PATCH',
          body: settings,
          headers: headers.value
-       })
+       }),
+    // Media management
+    fetchAdminMedia: (params?: Record<string, any>) =>
+      $fetch<PageMediaRes>('/api/admin/media', { params, headers: headers.value }),
+    fetchAdminMediaById: (id: string) =>
+      $fetch<MediaRes>(`/api/admin/media/${id}`, { headers: headers.value }),
+    uploadAdminMedia: (formData: FormData) =>
+      $fetch<MediaRes>('/api/admin/media', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Authorization: headers.value.Authorization || ''
+          // Don't set Content-Type, let browser set it with boundary for multipart
+        }
+      }),
+    updateAdminMedia: (id: string, mediaData: MediaUpdateReq) =>
+      $fetch<MediaRes>(`/api/admin/media/${id}`, {
+        method: 'PATCH',
+        body: mediaData,
+        headers: headers.value
+      }),
+    deleteAdminMedia: (id: string) =>
+      $fetch<void>(`/api/admin/media/${id}`, {
+        method: 'DELETE',
+        headers: headers.value
+      })
   }
 }
