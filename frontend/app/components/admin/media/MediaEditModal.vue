@@ -300,7 +300,7 @@ async function save() {
 
           <USelect
             v-model="state.tourId"
-            :options="tourOptions"
+            :items="tourOptions"
             option-attribute="label"
             value-attribute="value"
             placeholder="Selecciona un tour"
@@ -321,7 +321,7 @@ async function save() {
 
           <USelect
             v-model="state.scheduleId"
-            :options="scheduleOptions"
+            :items="scheduleOptions"
             option-attribute="label"
             value-attribute="value"
             placeholder="Selecciona una salida"
