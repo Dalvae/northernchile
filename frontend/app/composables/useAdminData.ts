@@ -131,14 +131,21 @@ export const useAdminData = () => {
       $fetch<PageMediaRes>('/api/admin/media', { params, headers: headers.value }),
     fetchAdminMediaById: (id: string) =>
       $fetch<MediaRes>(`/api/admin/media/${id}`, { headers: headers.value }),
-    uploadAdminMedia: (formData: FormData) =>
+    uploadAdminMedia: (formData: FormData, onProgress?: (progress: number) => void) =>
       $fetch<MediaRes>('/api/admin/media', {
         method: 'POST',
         body: formData,
         headers: {
           Authorization: headers.value.Authorization || ''
           // Don't set Content-Type, let browser set it with boundary for multipart
-        }
+        },
+        ...(onProgress && {
+          onUploadProgress: (event: any) => {
+            if (event.total) {
+              onProgress(Math.round((event.loaded / event.total) * 100))
+            }
+          }
+        })
       }),
     updateAdminMedia: (id: string, mediaData: MediaUpdateReq) =>
       $fetch<MediaRes>(`/api/admin/media/${id}`, {

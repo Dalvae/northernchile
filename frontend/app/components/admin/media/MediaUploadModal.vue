@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAuthStore } from '~/stores/auth'
+import { formatFileSize } from '~/utils/media'
 
 const props = defineProps<{
   modelValue: boolean
@@ -10,18 +10,8 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue', 'success'])
 
 const toast = useToast()
-const authStore = useAuthStore()
+const { uploadAdminMedia } = useAdminData()
 const fileInput = ref<HTMLInputElement | null>(null)
-
-const headers = computed(() => {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json'
-  }
-  if (authStore.token) {
-    headers.Authorization = `Bearer ${authStore.token}`
-  }
-  return headers
-})
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -126,24 +116,14 @@ async function startUpload() {
         formData.append('caption', metadata.value.captionTranslations.es)
       }
 
-      // Upload file and create media record in one step
-      const result = await $fetch('/api/admin/media', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          Authorization: headers.value.Authorization || ''
-          // Don't set Content-Type - browser will set it with boundary
-        },
-        onUploadProgress: (event) => {
-          if (event.total) {
-            item.progress = Math.round((event.loaded / event.total) * 100)
-          }
-        }
+      // Upload file using useAdminData
+      const result = await uploadAdminMedia(formData, (progress) => {
+        item.progress = progress
       })
 
       item.status = 'success'
       item.url = result.url
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error)
       item.status = 'error'
       item.error = error.message || 'Error al subir'
@@ -188,13 +168,6 @@ function onDrop(event: DragEvent) {
   if (event.dataTransfer?.files) {
     processFiles(Array.from(event.dataTransfer.files))
   }
-}
-
-function formatFileSize(bytes: number) {
-  const kb = bytes / 1024
-  if (kb < 1024) return `${kb.toFixed(1)} KB`
-  const mb = kb / 1024
-  return `${mb.toFixed(1)} MB`
 }
 
 function openFileDialog() {
