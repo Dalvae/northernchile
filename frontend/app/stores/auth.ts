@@ -95,7 +95,10 @@ export const useAuthStore = defineStore('auth', {
         if (response && response.token) {
           // Guardar en el state y en localStorage
           this.token = response.token
-          setToStorage('auth_token', response.token)
+          // Save token as plain string (not JSON stringified)
+          if (import.meta.client) {
+            localStorage.setItem('auth_token', response.token)
+          }
 
           // Backend now returns user object in response - use it directly
           if (response.user) {
@@ -193,7 +196,10 @@ export const useAuthStore = defineStore('auth', {
       // Limpiar state y localStorage
       this.token = null
       this.user = null
-      setToStorage('auth_token', null)
+      // Remove token as plain string
+      if (import.meta.client) {
+        localStorage.removeItem('auth_token')
+      }
       setToStorage('user', null)
 
       // Solo redirigir si estamos en el cliente y no estamos ya en /auth
@@ -245,7 +251,8 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
       try {
          // Cargar desde localStorage si está disponible
-         const savedToken = getFromStorage('auth_token')
+         // Read token as plain string (not JSON parsed)
+         const savedToken = import.meta.client ? localStorage.getItem('auth_token') : null
          const savedUser = getFromStorage('user')
 
         if (savedToken) {
@@ -256,7 +263,9 @@ export const useAuthStore = defineStore('auth', {
                  // Token expirado
               this.token = null
               this.user = null
-              setToStorage('auth_token', null)
+              if (import.meta.client) {
+                localStorage.removeItem('auth_token')
+              }
               setToStorage('user', null)
             } else {
               // Token válido
@@ -284,7 +293,9 @@ export const useAuthStore = defineStore('auth', {
              // Token inválido
             this.token = null
             this.user = null
-            setToStorage('auth_token', null)
+            if (import.meta.client) {
+              localStorage.removeItem('auth_token')
+            }
             setToStorage('user', null)
           }
         } else {
@@ -293,7 +304,9 @@ export const useAuthStore = defineStore('auth', {
         console.error('[Auth] Error in initializeAuth:', error)
         this.token = null
         this.user = null
-        setToStorage('auth_token', null)
+        if (import.meta.client) {
+          localStorage.removeItem('auth_token')
+        }
         setToStorage('user', null)
       } finally {
         this.loading = false
