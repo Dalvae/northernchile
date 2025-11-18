@@ -263,14 +263,28 @@ async function bulkDelete() {
         </p>
       </div>
 
-      <UButton
-        icon="i-heroicons-cloud-arrow-up"
-        size="lg"
-        color="primary"
-        @click="uploadModalOpen = true"
-      >
-        Subir Fotos
-      </UButton>
+      <div class="flex gap-2">
+        <NuxtLink to="/admin/media/browser">
+          <UButton
+            icon="i-lucide-folder-tree"
+            size="lg"
+            color="neutral"
+            variant="outline"
+            title="Vista de explorador"
+          >
+            Explorador
+          </UButton>
+        </NuxtLink>
+
+        <UButton
+          icon="i-heroicons-cloud-arrow-up"
+          size="lg"
+          color="primary"
+          @click="uploadModalOpen = true"
+        >
+          Subir Fotos
+        </UButton>
+      </div>
     </div>
 
     <!-- Filters -->
