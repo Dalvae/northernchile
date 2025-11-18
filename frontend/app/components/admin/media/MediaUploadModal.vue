@@ -10,7 +10,6 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue', 'success'])
 
 const toast = useToast()
-const { uploadFile } = useS3Upload()
 const authStore = useAuthStore()
 const fileInput = ref<HTMLInputElement | null>(null)
 
@@ -102,33 +101,44 @@ async function startUpload() {
     item.status = 'uploading'
 
     try {
-      // Upload to S3
-      const folder = props.tourId ? 'tours' : props.scheduleId ? 'schedules' : 'media'
-      const result = await uploadFile(item.file, folder, (progress) => {
-        item.progress = progress
-      })
+      // Create FormData with file and metadata
+      const formData = new FormData()
+      formData.append('file', item.file)
 
-      if (!result) {
-        throw new Error('Error al subir a S3 - verifica las credenciales de AWS')
+      // Add optional fields
+      if (props.tourId) {
+        formData.append('tourId', props.tourId)
+      }
+      if (props.scheduleId) {
+        formData.append('scheduleId', props.scheduleId)
       }
 
-      // Create media record in DB
-      await $fetch('/api/admin/media', {
+      // Add metadata
+      if (metadata.value.tags.length > 0) {
+        metadata.value.tags.forEach(tag => formData.append('tags', tag))
+      }
+
+      if (metadata.value.altTranslations.es) {
+        formData.append('altText', metadata.value.altTranslations.es)
+      }
+
+      if (metadata.value.captionTranslations.es) {
+        formData.append('caption', metadata.value.captionTranslations.es)
+      }
+
+      // Upload file and create media record in one step
+      const result = await $fetch('/api/admin/media', {
         method: 'POST',
-        body: {
-          url: result.url,
-          s3Key: result.key,
-          tourId: props.tourId,
-          scheduleId: props.scheduleId,
-          originalFilename: item.file.name,
-          sizeBytes: item.file.size,
-          contentType: item.file.type,
-          altTranslations: metadata.value.altTranslations,
-          captionTranslations: metadata.value.captionTranslations,
-          tags: metadata.value.tags,
-          takenAt: metadata.value.takenAt ? new Date(metadata.value.takenAt).toISOString() : null
+        body: formData,
+        headers: {
+          Authorization: headers.value.Authorization || ''
+          // Don't set Content-Type - browser will set it with boundary
         },
-        headers: headers.value
+        onUploadProgress: (event) => {
+          if (event.total) {
+            item.progress = Math.round((event.loaded / event.total) * 100)
+          }
+        }
       })
 
       item.status = 'success'
