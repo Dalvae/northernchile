@@ -80,6 +80,11 @@
 </template>
 
 <script setup lang="ts">
+// Accept critical prop from parent (nuxt-booster)
+defineProps<{
+  critical?: boolean
+}>()
+
 const { t } = useI18n()
 
 const quickFeatures = computed(() => [
