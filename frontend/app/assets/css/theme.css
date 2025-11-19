@@ -3,7 +3,6 @@
 @theme {
   --font-display: "Playfair Display", serif;
   --font-body: "Inter", sans-serif;
-  --font-artesanal: 'Cormorant Garamond', serif;
 
   /* Colores Artesanales (Desierto y Cultura) */
   --color-atacama-50: oklch(96% 0.01 70);

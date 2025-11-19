@@ -5,6 +5,7 @@ export default defineNuxtConfig({
   modules: [
     "@nuxt/eslint",
     "@nuxt/ui",
+    "@nuxt/fonts",
     "@nuxtjs/i18n",
     "@pinia/nuxt",
     "@vueuse/nuxt",
@@ -13,25 +14,23 @@ export default defineNuxtConfig({
   devtools: {
     enabled: process.env.NODE_ENV === "development",
   },
-  app: {
-    head: {
-      link: [
-        // Preconnect to Google Fonts (reduce critical path latency)
-        {
-          rel: "preconnect",
-          href: "https://fonts.googleapis.com",
-        },
-        {
-          rel: "preconnect",
-          href: "https://fonts.gstatic.com",
-          crossorigin: "anonymous",
-        },
-        // Load fonts with display=swap to prevent render blocking
-        {
-          rel: "stylesheet",
-          href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;600&display=swap",
-        },
-      ],
+
+  // Font optimization with @nuxt/fonts
+  fonts: {
+    families: [
+      { name: "Playfair Display", provider: "google", weights: [400, 700] },
+      { name: "Inter", provider: "google", weights: [400, 600] },
+    ],
+    defaults: {
+      weights: [400],
+      styles: ["normal"],
+      subsets: ["latin"],
+    },
+    // Local download for better performance
+    local: true,
+    // Automatic font metric optimization
+    experimental: {
+      processCSSVariables: true,
     },
   },
 
@@ -97,9 +96,9 @@ export default defineNuxtConfig({
       // CSP: Content Security Policy
       "Content-Security-Policy": [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-        "font-src 'self' https://fonts.gstatic.com data:",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        "style-src 'self' 'unsafe-inline'",
+        "font-src 'self' data:",
         "img-src 'self' data: https: blob:",
         "connect-src 'self' http://localhost:8080 https://api.openweathermap.org",
         "frame-ancestors 'self'",
