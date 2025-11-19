@@ -1,9 +1,4 @@
 <script setup lang="ts">
-// Accept critical prop from parent (nuxt-booster)
-defineProps<{
-  critical?: boolean
-}>()
-
 const items = [
   {
     title: 'Astronomía con Alma',

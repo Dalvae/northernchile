@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import TourCard from '~/components/tour/TourCard.vue'
 
-// Nuxt Booster: Lazy hydration for non-critical components
-const hydrate = useBoosterHydrate()
-
-// Lazy-load below-fold sections (not in initial viewport)
-const HomeExperience = hydrate(defineAsyncComponent(() => import('~/components/home/Experience.vue')))
-const HomeWhyChooseUs = hydrate(defineAsyncComponent(() => import('~/components/home/WhyChooseUs.vue')))
-
 const { fetchAll } = useTours()
 const { data: toursData } = await fetchAll()
 
@@ -36,16 +29,16 @@ useSeoMeta({
 <template>
   <div>
     <!-- Hero Section - CRITICAL: In initial viewport -->
-    <HomeHeroSection critical />
+    <HomeHeroSection />
 
-    <!-- Experience Section - Lazy hydrated (below fold) -->
-    <HomeExperience />
+    <!-- Experience Section - Lazy loaded (below fold) -->
+    <LazyHomeExperience />
 
     <!-- Tours Destacados -->
     <section class="relative py-24 z-10 overflow-hidden">
       <!-- Background Gradient -->
       <div class="absolute inset-0 bg-gradient-to-b from-neutral-950 to-neutral-900 z-0" />
-      
+
       <UContainer class="relative z-10">
         <div class="text-center mb-16">
           <h2 class="text-4xl md:text-5xl font-display font-bold text-white mb-4 text-glow">
@@ -80,8 +73,8 @@ useSeoMeta({
       </UContainer>
     </section>
 
-    <!-- Why Choose Us Section - Lazy hydrated (below fold) -->
-    <HomeWhyChooseUs />
+    <!-- Why Choose Us Section - Lazy loaded (below fold) -->
+    <LazyHomeWhyChooseUs />
 
     <!-- Call to Action -->
     <section class="relative py-32 z-10">
