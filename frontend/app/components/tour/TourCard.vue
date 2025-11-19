@@ -126,6 +126,7 @@
               icon="i-lucide-arrow-right"
               variant="ghost"
               color="primary"
+              :aria-label="`Ver tour ${title}`"
               class="group-hover:translate-x-1 transition-transform"
             />
           </div>
