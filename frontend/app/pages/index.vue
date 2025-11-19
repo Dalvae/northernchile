@@ -123,7 +123,7 @@ useSeoMeta({
             <h3 class="text-2xl font-display font-bold text-white mb-4">
               {{ feature.title }}
             </h3>
-            <p class="text-neutral-400 leading-relaxed">
+            <p class="text-neutral-300 leading-relaxed">
               {{ feature.description }}
             </p>
           </div>

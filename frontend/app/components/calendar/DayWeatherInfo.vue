@@ -6,7 +6,7 @@
       class="flex items-center gap-1 text-xs"
     >
       <span class="text-lg">{{ moonPhase.icon }}</span>
-      <span class="text-neutral-600 dark:text-neutral-400">{{ moonPhase.illumination }}%</span>
+      <span class="text-neutral-600 dark:text-neutral-300">{{ moonPhase.illumination }}%</span>
     </div>
 
     <!-- Clima -->

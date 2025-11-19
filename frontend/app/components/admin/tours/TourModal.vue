@@ -473,7 +473,7 @@ const statusOptions = [
                   <h4 class="text-base font-semibold text-default border-b border-default pb-2">
                     Bloques de Contenido Estructurado
                   </h4>
-                  <p class="text-sm text-neutral-500 dark:text-neutral-400">
+                  <p class="text-sm text-neutral-500 dark:text-neutral-300">
                     Crea contenido estructurado con títulos, párrafos y listas para una mejor presentación.
                   </p>
                   <UTabs

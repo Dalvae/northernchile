@@ -85,7 +85,7 @@ watch(isOpen, (open) => {
           <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
             Seleccionar Fotos
           </h3>
-          <p class="text-sm text-neutral-600 dark:text-neutral-400">
+          <p class="text-sm text-neutral-600 dark:text-neutral-300">
             Elige las fotos que quieres añadir a la galería
           </p>
         </div>
@@ -110,13 +110,13 @@ watch(isOpen, (open) => {
         />
 
         <!-- Selected count -->
-        <div v-if="selectedItems.length > 0" class="text-sm text-neutral-600 dark:text-neutral-400">
+        <div v-if="selectedItems.length > 0" class="text-sm text-neutral-600 dark:text-neutral-300">
           {{ selectedItems.length }} {{ selectedItems.length === 1 ? 'foto seleccionada' : 'fotos seleccionadas' }}
         </div>
 
         <!-- Loading -->
         <div v-if="loading" class="flex justify-center py-12">
-          <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-neutral-400" />
+          <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-neutral-300" />
         </div>
 
         <!-- Empty -->
@@ -124,8 +124,8 @@ watch(isOpen, (open) => {
           v-else-if="media.length === 0"
           class="text-center py-12"
         >
-          <UIcon name="i-heroicons-photo" class="w-12 h-12 mx-auto mb-4 text-neutral-400" />
-          <p class="text-neutral-600 dark:text-neutral-400">
+          <UIcon name="i-heroicons-photo" class="w-12 h-12 mx-auto mb-4 text-neutral-300" />
+          <p class="text-neutral-600 dark:text-neutral-300">
             No hay fotos en la biblioteca
           </p>
         </div>

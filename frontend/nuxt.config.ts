@@ -125,6 +125,37 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [viteTsconfigPaths()],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            // Vendor splitting for better caching
+            if (id.includes('node_modules')) {
+              // Vue core
+              if (id.includes('vue') || id.includes('@vue')) {
+                return 'vendor-vue'
+              }
+              // Nuxt UI and related
+              if (id.includes('@nuxt/ui') || id.includes('@headlessui')) {
+                return 'vendor-ui'
+              }
+              // i18n
+              if (id.includes('i18n') || id.includes('intl')) {
+                return 'vendor-i18n'
+              }
+              // Icons (can be large)
+              if (id.includes('@iconify')) {
+                return 'vendor-icons'
+              }
+              // Other vendor code
+              return 'vendor'
+            }
+          },
+        },
+      },
+      // Increase chunk size warning limit
+      chunkSizeWarningLimit: 1000,
+    },
   },
 
   eslint: {

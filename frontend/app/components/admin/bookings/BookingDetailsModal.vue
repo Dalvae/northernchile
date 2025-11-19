@@ -148,20 +148,20 @@ function getStatusLabel(status: string): string {
                     </span>
                   </div>
                   <div v-if="participant.nationality">
-                    <span class="text-neutral-600 dark:text-neutral-400">Nacionalidad:</span>
+                    <span class="text-neutral-600 dark:text-neutral-300">Nacionalidad:</span>
                     <span class="ml-2 text-neutral-900 dark:text-white inline-flex items-center gap-1.5">
                       <span class="text-lg">{{ getCountryFlag(participant.nationality) }}</span>
                       {{ getCountryLabel(participant.nationality) || participant.nationality }}
                     </span>
                   </div>
                   <div v-if="participant.age">
-                    <span class="text-neutral-600 dark:text-neutral-400">Edad:</span>
+                    <span class="text-neutral-600 dark:text-neutral-300">Edad:</span>
                      <span class="ml-2 text-default">
                       {{ participant.age }} años
                     </span>
                   </div>
                   <div v-if="participant.pickupAddress">
-                    <span class="text-neutral-600 dark:text-neutral-400">Dirección:</span>
+                    <span class="text-neutral-600 dark:text-neutral-300">Dirección:</span>
                      <span class="ml-2 text-default">
                       {{ participant.pickupAddress }}
                     </span>

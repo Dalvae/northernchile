@@ -37,7 +37,7 @@ function proceedToCheckout() {
         <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
           {{ t('cart.title') }}
         </h1>
-        <p class="text-neutral-600 dark:text-neutral-400">
+        <p class="text-neutral-600 dark:text-neutral-300">
           {{
             isEmpty
               ? t('cart.empty')
@@ -60,7 +60,7 @@ function proceedToCheckout() {
         >
           {{ t('cart.empty') }}
         </h2>
-        <p class="text-neutral-600 dark:text-neutral-400 mb-6">
+        <p class="text-neutral-600 dark:text-neutral-300 mb-6">
           {{ t('cart.empty_description') }}
         </p>
         <UButton
@@ -93,7 +93,7 @@ function proceedToCheckout() {
                   {{ item.tourName }}
                 </h3>
                 <div
-                  class="space-y-1 text-sm text-neutral-600 dark:text-neutral-400"
+                  class="space-y-1 text-sm text-neutral-600 dark:text-neutral-300"
                 >
                   <p
                     v-if="item.startDatetime"
@@ -162,7 +162,7 @@ function proceedToCheckout() {
 
             <div class="space-y-4 mb-6">
               <div
-                class="flex justify-between text-neutral-600 dark:text-neutral-400"
+                class="flex justify-between text-neutral-600 dark:text-neutral-300"
               >
                 <span>{{ t('common.subtotal') }}</span>
                 <span class="font-semibold">{{
@@ -170,7 +170,7 @@ function proceedToCheckout() {
                 }}</span>
               </div>
               <div
-                class="flex justify-between text-neutral-600 dark:text-neutral-400"
+                class="flex justify-between text-neutral-600 dark:text-neutral-300"
               >
                 <span>{{ t('common.tax') }} (19%)</span>
                 <span class="font-semibold">{{ formatPrice(tax) }}</span>
@@ -211,7 +211,7 @@ function proceedToCheckout() {
               class="mt-6 pt-6 border-t border-neutral-200 dark:border-neutral-700"
             >
               <div
-                class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400 mb-2"
+                class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300 mb-2"
               >
                 <UIcon
                   name="i-lucide-shield-check"
@@ -220,7 +220,7 @@ function proceedToCheckout() {
                 <span>{{ t('cart.secure_payment') }}</span>
               </div>
               <div
-                class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400"
+                class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300"
               >
                 <UIcon
                   name="i-lucide-rotate-ccw"

@@ -228,7 +228,7 @@ const formatCurrency = (value: number | null | undefined) => value != null ? for
         :value="stats.total"
         icon="i-lucide-inbox"
         icon-color="bg-neutral-100 dark:bg-neutral-800"
-        icon-text-color="text-neutral-600 dark:text-neutral-400"
+        icon-text-color="text-neutral-600 dark:text-neutral-300"
       />
       <AdminDashboardStat
         label="Pendientes"

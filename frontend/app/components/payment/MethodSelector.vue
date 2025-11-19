@@ -109,7 +109,7 @@ function formatAmount(amount: number, currency: string) {
       <h3 class="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
         {{ t('payment.select_method') }}
       </h3>
-      <p class="text-sm text-neutral-600 dark:text-neutral-400">
+      <p class="text-sm text-neutral-600 dark:text-neutral-300">
         {{ t('payment.select_method_description') }}
       </p>
     </div>
@@ -147,7 +147,7 @@ function formatAmount(amount: number, currency: string) {
             :class="[
               isSelected(option)
                 ? 'bg-primary/20 text-primary'
-                : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400'
+                : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
             ]"
           >
             <UIcon
@@ -170,10 +170,10 @@ function formatAmount(amount: number, currency: string) {
                 {{ t('common.coming_soon') }}
               </UBadge>
             </div>
-            <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">
+            <p class="text-sm text-neutral-600 dark:text-neutral-300 mb-2">
               {{ option.description }}
             </p>
-            <div class="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400">
+            <div class="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-300">
               <span class="flex items-center gap-1">
                 <UIcon
                   name="i-lucide-map-pin"
@@ -216,7 +216,7 @@ function formatAmount(amount: number, currency: string) {
           v-if="option.method === PaymentMethod.PIX && isSelected(option)"
           class="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700"
         >
-          <div class="flex items-start gap-2 text-xs text-neutral-600 dark:text-neutral-400">
+          <div class="flex items-start gap-2 text-xs text-neutral-600 dark:text-neutral-300">
             <UIcon
               name="i-lucide-info"
               class="w-4 h-4 flex-shrink-0 mt-0.5 text-primary"
@@ -232,7 +232,7 @@ function formatAmount(amount: number, currency: string) {
           v-if="option.method === PaymentMethod.WEBPAY && isSelected(option)"
           class="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700"
         >
-          <div class="flex items-start gap-2 text-xs text-neutral-600 dark:text-neutral-400">
+          <div class="flex items-start gap-2 text-xs text-neutral-600 dark:text-neutral-300">
             <UIcon
               name="i-lucide-info"
               class="w-4 h-4 flex-shrink-0 mt-0.5 text-primary"
@@ -256,7 +256,7 @@ function formatAmount(amount: number, currency: string) {
           <p class="font-medium text-neutral-900 dark:text-white mb-1">
             {{ t('payment.security.title') }}
           </p>
-          <p class="text-neutral-600 dark:text-neutral-400">
+          <p class="text-neutral-600 dark:text-neutral-300">
             {{ t('payment.security.description') }}
           </p>
         </div>

@@ -63,7 +63,7 @@ const items = [
               {{ item.title }}
             </h3>
 
-            <p class="text-lg text-neutral-400 leading-relaxed">
+            <p class="text-lg text-neutral-300 leading-relaxed">
               {{ item.description }}
             </p>
 

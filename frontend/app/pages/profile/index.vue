@@ -7,7 +7,7 @@
           <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
             {{ t("user.profile") }}
           </h1>
-          <p class="text-neutral-600 dark:text-neutral-400">
+          <p class="text-neutral-600 dark:text-neutral-300">
             {{ t("profile.profile_description") }}
           </p>
         </div>
@@ -72,7 +72,7 @@
               v-if="isLoading"
               class="py-12 text-center"
             >
-              <p class="text-neutral-600 dark:text-neutral-400">
+              <p class="text-neutral-600 dark:text-neutral-300">
                 Cargando...
               </p>
             </div>

@@ -172,13 +172,13 @@ async function handleBookingSaved() {
         >
           <UIcon
             name="i-lucide-calendar-x"
-            class="w-12 h-12 text-neutral-400"
+            class="w-12 h-12 text-neutral-300"
           />
         </div>
         <h3 class="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
           No tienes reservas
         </h3>
-        <p class="text-neutral-600 dark:text-neutral-400 mb-6">
+        <p class="text-neutral-600 dark:text-neutral-300 mb-6">
           Aún no has realizado ninguna reserva. Explora nuestros tours y
           comienza tu aventura.
         </p>
@@ -205,7 +205,7 @@ async function handleBookingSaved() {
         <template #header>
           <div class="flex justify-between items-start">
             <div>
-              <p class="text-sm text-neutral-500 dark:text-neutral-400">
+              <p class="text-sm text-neutral-500 dark:text-neutral-300">
                 Reserva #{{ booking.id.substring(0, 8) }}
               </p>
               <p
@@ -226,7 +226,7 @@ async function handleBookingSaved() {
         <div class="space-y-4">
           <!-- Tour Info -->
           <div class="p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
-            <div class="space-y-2 text-sm text-neutral-600 dark:text-neutral-400">
+            <div class="space-y-2 text-sm text-neutral-600 dark:text-neutral-300">
               <p class="flex items-center gap-2">
                 <UIcon
                   name="i-lucide-calendar"
@@ -261,13 +261,13 @@ async function handleBookingSaved() {
                 <div class="flex items-start gap-2 text-sm">
                   <UIcon
                     name="i-lucide-user"
-                    class="w-4 h-4 mt-0.5 flex-shrink-0 text-neutral-500 dark:text-neutral-400"
+                    class="w-4 h-4 mt-0.5 flex-shrink-0 text-neutral-500 dark:text-neutral-300"
                   />
                   <div class="flex-1">
                     <p class="font-medium text-neutral-900 dark:text-white">
                       {{ participant.fullName }}
                     </p>
-                    <p class="text-neutral-600 dark:text-neutral-400 text-xs mt-0.5 flex items-center gap-1">
+                    <p class="text-neutral-600 dark:text-neutral-300 text-xs mt-0.5 flex items-center gap-1">
                       <span>{{ participant.documentId }}</span>
                       <span v-if="participant.nationality" class="flex items-center gap-1">
                         <span>•</span>
@@ -277,7 +277,7 @@ async function handleBookingSaved() {
                     </p>
                     <div
                       v-if="participant.pickupAddress"
-                      class="flex items-start gap-1.5 mt-2 text-xs text-neutral-600 dark:text-neutral-400"
+                      class="flex items-start gap-1.5 mt-2 text-xs text-neutral-600 dark:text-neutral-300"
                     >
                       <UIcon
                         name="i-lucide-map-pin"
@@ -287,7 +287,7 @@ async function handleBookingSaved() {
                     </div>
                     <div
                       v-if="participant.specialRequirements"
-                      class="flex items-start gap-1.5 mt-2 text-xs text-neutral-600 dark:text-neutral-400"
+                      class="flex items-start gap-1.5 mt-2 text-xs text-neutral-600 dark:text-neutral-300"
                     >
                       <UIcon
                         name="i-lucide-info"
@@ -305,13 +305,13 @@ async function handleBookingSaved() {
           <UDivider />
           <div class="space-y-2">
             <div
-              class="flex justify-between text-sm text-neutral-600 dark:text-neutral-400"
+              class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
             >
               <span>Subtotal</span>
               <span>{{ formatCurrency(booking.subtotal) }}</span>
             </div>
             <div
-              class="flex justify-between text-sm text-neutral-600 dark:text-neutral-400"
+              class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
             >
               <span>IVA (19%)</span>
               <span>{{ formatCurrency(booking.taxAmount) }}</span>
@@ -328,7 +328,7 @@ async function handleBookingSaved() {
         <template #footer>
           <div class="flex justify-between items-center">
             <div
-              class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400"
+              class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300"
             >
               <UIcon
                 name="i-lucide-info"

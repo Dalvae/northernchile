@@ -82,7 +82,7 @@ async function saveChanges() {
           <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
             Editar Reserva
           </h3>
-          <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+          <p class="text-sm text-neutral-500 dark:text-neutral-300 mt-1">
             #{{ booking.id.substring(0, 8) }} - {{ booking.tourName }}
           </p>
         </div>
@@ -129,7 +129,7 @@ async function saveChanges() {
                 <div class="flex items-center gap-2">
                   <UIcon
                     name="i-lucide-user"
-                    class="w-4 h-4 text-neutral-500 dark:text-neutral-400"
+                    class="w-4 h-4 text-neutral-500 dark:text-neutral-300"
                   />
                   <span class="font-medium text-neutral-900 dark:text-white">
                     {{ participant.fullName }}
@@ -179,7 +179,7 @@ async function saveChanges() {
                       size="lg"
                       class="w-full"
                     />
-                    <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                    <p class="text-xs text-neutral-500 dark:text-neutral-300 mt-1">
                       Para contactarte y enviarte fotos
                     </p>
                   </div>
@@ -197,7 +197,7 @@ async function saveChanges() {
                       size="lg"
                       class="w-full"
                     />
-                    <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                    <p class="text-xs text-neutral-500 dark:text-neutral-300 mt-1">
                       Para enviarte fotos del tour
                     </p>
                   </div>

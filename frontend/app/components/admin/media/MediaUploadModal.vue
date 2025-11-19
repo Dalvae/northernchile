@@ -206,14 +206,14 @@ function openFileDialog() {
         >
           <UIcon
             name="i-heroicons-cloud-arrow-up"
-            class="w-12 h-12 mx-auto mb-4 text-neutral-400"
+            class="w-12 h-12 mx-auto mb-4 text-neutral-300"
           />
 
           <p class="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
             Arrastra fotos aquí o haz clic para seleccionar
           </p>
 
-          <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
+          <p class="text-sm text-neutral-600 dark:text-neutral-300 mb-4">
             Máximo 10MB por archivo. Formatos: JPG, PNG, WEBP
           </p>
 
@@ -253,7 +253,7 @@ function openFileDialog() {
                 v-else
                 class="w-12 h-12 bg-neutral-200 dark:bg-neutral-800 rounded flex items-center justify-center"
               >
-                <UIcon name="i-heroicons-photo" class="w-6 h-6 text-neutral-400" />
+                <UIcon name="i-heroicons-photo" class="w-6 h-6 text-neutral-300" />
               </div>
 
               <!-- Info -->
@@ -261,7 +261,7 @@ function openFileDialog() {
                 <p class="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
                   {{ item.file.name }}
                 </p>
-                <p class="text-xs text-neutral-600 dark:text-neutral-400">
+                <p class="text-xs text-neutral-600 dark:text-neutral-300">
                   {{ formatFileSize(item.file.size) }}
                 </p>
 
@@ -374,7 +374,7 @@ function openFileDialog() {
               class="w-full"
               @keydown="handleTagKeydown"
             />
-            <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+            <p class="text-xs text-neutral-600 dark:text-neutral-300 mt-1">
               Presiona Enter para agregar. Click en la etiqueta para eliminar.
             </p>
           </div>
@@ -390,7 +390,7 @@ function openFileDialog() {
               size="lg"
               class="w-full"
             />
-            <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+            <p class="text-xs text-neutral-600 dark:text-neutral-300 mt-1">
               Si no se proporciona, se usará la fecha de subida
             </p>
           </div>

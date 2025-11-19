@@ -167,7 +167,7 @@ watch(() => [props.tourId, props.scheduleId], () => {
         <h4 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
           Galería de Fotos
         </h4>
-        <p class="text-sm text-neutral-600 dark:text-neutral-400">
+        <p class="text-sm text-neutral-600 dark:text-neutral-300">
           Gestiona las fotos de este {{ tourId ? 'tour' : 'programa' }}
         </p>
       </div>
@@ -194,7 +194,7 @@ watch(() => [props.tourId, props.scheduleId], () => {
 
     <!-- Loading state -->
     <div v-if="loading" class="flex justify-center py-8">
-      <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-neutral-400" />
+      <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-neutral-300" />
     </div>
 
     <!-- Empty state -->
@@ -202,8 +202,8 @@ watch(() => [props.tourId, props.scheduleId], () => {
       v-else-if="gallery.length === 0"
       class="text-center py-12 border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-lg"
     >
-      <UIcon name="i-heroicons-photo" class="w-12 h-12 mx-auto mb-4 text-neutral-400" />
-      <p class="text-neutral-600 dark:text-neutral-400 mb-4">
+      <UIcon name="i-heroicons-photo" class="w-12 h-12 mx-auto mb-4 text-neutral-300" />
+      <p class="text-neutral-600 dark:text-neutral-300 mb-4">
         No hay fotos en la galería
       </p>
       <div class="flex gap-2 justify-center">

@@ -46,7 +46,7 @@
             class="w-12 h-12 text-neutral-500"
           />
         </div>
-        <p class="text-neutral-400">
+        <p class="text-neutral-300">
           {{ isDragging ? 'Suelta la imagen aquí' : 'Arrastra una imagen o haz clic para seleccionar' }}
         </p>
         <p class="text-sm text-neutral-500">
@@ -62,7 +62,7 @@
           :value="uploadProgress"
           color="primary"
         />
-        <p class="text-sm text-neutral-400">
+        <p class="text-sm text-neutral-300">
           Subiendo... {{ uploadProgress }}%
         </p>
       </div>

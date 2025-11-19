@@ -391,7 +391,7 @@ defineExpose({
         name="i-lucide-loader-2"
         class="w-8 h-8 animate-spin text-primary mx-auto"
       />
-      <p class="mt-4 text-neutral-600 dark:text-neutral-400">
+      <p class="mt-4 text-neutral-600 dark:text-neutral-300">
         {{ t("tours.calendar.loading") || "Cargando calendario..." }}
       </p>
     </div>
@@ -408,7 +408,7 @@ defineExpose({
         <div class="space-y-3">
           <!-- Tour legend -->
           <div v-if="tours.length > 0">
-            <p class="text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-2">
+            <p class="text-xs font-medium text-neutral-600 dark:text-neutral-300 mb-2">
               {{ t("tours.calendar.tours") || "Tours" }}
             </p>
             <div class="flex flex-wrap gap-3">
@@ -430,7 +430,7 @@ defineExpose({
 
           <!-- Other legend items -->
           <div>
-            <p class="text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-2">
+            <p class="text-xs font-medium text-neutral-600 dark:text-neutral-300 mb-2">
               {{ t("tours.calendar.conditions") || "Condiciones" }}
             </p>
             <div class="flex flex-wrap gap-4 text-sm">

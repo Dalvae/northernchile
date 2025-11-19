@@ -311,7 +311,7 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
                 </span>
                 <span
                   v-if="!row.original.participantPhone && row.original.bookingUserPhone"
-                  class="text-xs text-neutral-500 dark:text-neutral-400"
+                  class="text-xs text-neutral-500 dark:text-neutral-300"
                 >
                   (teléfono del contacto {{ row.original.bookingUserName }})
                 </span>
@@ -325,7 +325,7 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
                   name="i-lucide-mail"
                    class="w-3.5 h-3.5 text-muted"
                 />
-                <span class="text-xs text-neutral-600 dark:text-neutral-400">
+                <span class="text-xs text-neutral-600 dark:text-neutral-300">
                   {{ row.original.participantEmail }}
                 </span>
               </div>

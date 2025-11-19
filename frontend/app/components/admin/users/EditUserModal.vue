@@ -247,7 +247,7 @@ async function handleSubmit() {
                 <h4 class="font-medium text-neutral-900 dark:text-white">
                   Restablecer Contraseña
                 </h4>
-                <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                <p class="text-sm text-neutral-600 dark:text-neutral-300">
                   Establece una nueva contraseña para este usuario
                 </p>
               </div>

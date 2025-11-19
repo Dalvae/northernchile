@@ -97,7 +97,7 @@ useSeoMeta({
               
               <!-- Floating Price Badge -->
               <div class="absolute bottom-6 right-6 backdrop-blur-md bg-neutral-900/80 border border-white/10 px-6 py-3 rounded-full">
-                <span class="text-sm text-neutral-400 uppercase tracking-wider mr-2">{{ t('tours.price_from') }}</span>
+                <span class="text-sm text-neutral-300 uppercase tracking-wider mr-2">{{ t('tours.price_from') }}</span>
                 <span class="text-xl font-bold text-white">{{ formatPrice(tour.price) }}</span>
               </div>
             </div>
@@ -133,7 +133,7 @@ useSeoMeta({
               {{ getTourDescription(tour) }}
             </p>
 
-            <div class="flex flex-wrap gap-6 text-neutral-400 py-4 border-y border-white/10">
+            <div class="flex flex-wrap gap-6 text-neutral-300 py-4 border-y border-white/10">
               <div class="flex items-center gap-2">
                 <UIcon name="i-lucide-clock" class="w-5 h-5 text-primary" />
                 <span>{{ t('tours.duration_hours', { hours: tour.durationHours }) }}</span>
@@ -170,12 +170,12 @@ useSeoMeta({
           <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-4 text-glow">
             {{ t("tours.calendar_title") || "Calendario de Disponibilidad" }}
           </h2>
-          <p class="text-neutral-400">
+          <p class="text-neutral-300">
             Planifica tu visita. Revisa las fechas disponibles para todas nuestras experiencias.
           </p>
         </div>
 
-        <TourCalendar
+        <LazyTourCalendar
           :tours="sortedTours"
           @schedule-click="handleScheduleClick"
           class="atacama-card rounded-xl overflow-hidden shadow-2xl"
@@ -191,7 +191,7 @@ useSeoMeta({
               </p>
             </div>
           </template>
-        </TourCalendar>
+        </LazyTourCalendar>
       </div>
     </UContainer>
   </div>

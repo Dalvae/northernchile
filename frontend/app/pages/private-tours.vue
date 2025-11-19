@@ -172,7 +172,7 @@ async function submitRequest() {
               >
                 {{ benefit.title }}
               </h3>
-              <p class="text-neutral-600 dark:text-neutral-400 text-sm">
+              <p class="text-neutral-600 dark:text-neutral-300 text-sm">
                 {{ benefit.description }}
               </p>
             </div>
@@ -191,7 +191,7 @@ async function submitRequest() {
             >
               {{ t("privateTours.form.title") }}
             </h2>
-            <p class="text-neutral-600 dark:text-neutral-400">
+            <p class="text-neutral-600 dark:text-neutral-300">
               {{ t("privateTours.form.subtitle") }}
             </p>
           </div>
@@ -359,7 +359,7 @@ async function submitRequest() {
 
           <!-- Contact Info -->
           <div class="mt-12 text-center">
-            <p class="text-neutral-600 dark:text-neutral-400">
+            <p class="text-neutral-600 dark:text-neutral-300">
               {{ t("privateTours.form.contact_info") }}
             </p>
           </div>
@@ -387,7 +387,7 @@ async function submitRequest() {
               >
                 {{ t("privateTours.popular_tours.astrophotography.title") }}
               </h3>
-              <p class="text-neutral-600 dark:text-neutral-400 text-sm">
+              <p class="text-neutral-600 dark:text-neutral-300 text-sm">
                 {{
                   t("privateTours.popular_tours.astrophotography.description")
                 }}
@@ -406,7 +406,7 @@ async function submitRequest() {
               >
                 {{ t("privateTours.popular_tours.romantic_experience.title") }}
               </h3>
-              <p class="text-neutral-600 dark:text-neutral-400 text-sm">
+              <p class="text-neutral-600 dark:text-neutral-300 text-sm">
                 {{
                   t(
                     "privateTours.popular_tours.romantic_experience.description"
@@ -427,7 +427,7 @@ async function submitRequest() {
               >
                 {{ t("privateTours.popular_tours.family_tour.title") }}
               </h3>
-              <p class="text-neutral-600 dark:text-neutral-400 text-sm">
+              <p class="text-neutral-600 dark:text-neutral-300 text-sm">
                 {{ t("privateTours.popular_tours.family_tour.description") }}
               </p>
             </div>

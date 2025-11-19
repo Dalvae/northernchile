@@ -113,7 +113,7 @@ function clearFilters() {
       <!-- Contador de resultados -->
       <div
         v-if="showResultsCount"
-        class="flex items-center justify-between text-sm text-neutral-400 pt-2"
+        class="flex items-center justify-between text-sm text-neutral-300 pt-2"
         role="status"
         aria-live="polite"
       >

@@ -105,7 +105,7 @@
                     </div>
                     <UIcon
                       name="i-lucide-chevron-down"
-                      class="w-4 h-4 text-neutral-400"
+                      class="w-4 h-4 text-neutral-300"
                     />
                   </div>
                 </UButton>
@@ -205,7 +205,7 @@
                   >
                     {{ authStore.user?.fullName }}
                   </p>
-                   <p class="text-xs text-neutral-400">
+                   <p class="text-xs text-neutral-300">
                     {{ authStore.user?.email }}
                   </p>
                 </div>
