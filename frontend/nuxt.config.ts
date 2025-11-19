@@ -16,15 +16,15 @@ export default defineNuxtConfig({
     enabled: process.env.NODE_ENV === "development",
   },
 
-  // Nuxt Booster - holistic performance optimization
+  //  Booster - holistic performance optimization
   booster: {
     // Auto-optimize SSR: inline critical CSS, remove unnecessary preloads/prefetches
     optimizeSSR: {
       cleanPreloads: true,
       cleanPrefetches: true,
       inlineStyles: true,
-      // Increase size limit for inlined critical CSS (15KB should cover hero + nav)
-      inlinedStylesSize: 15000,
+      // MAX size for inlined critical CSS - inline almost everything
+      inlinedStylesSize: 50000, // 50KB - inline most CSS
     },
 
     // Performance detection (optional - can disable for simpler setup)
