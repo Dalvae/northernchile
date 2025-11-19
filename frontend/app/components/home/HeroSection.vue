@@ -95,19 +95,55 @@ function scrollToContent() {
 </script>
 
 <style scoped>
-/* Animación adicional para el título si lo deseas */
+/* Optimized animations for LCP performance */
+
+/* Reserve space to prevent layout shift */
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
+  /* Hint browser to optimize transform/opacity */
+  will-change: transform, opacity;
+}
+
+.delay-300 {
+  animation-delay: 150ms;
+}
+
+.delay-500 {
+  animation-delay: 250ms;
+}
+
+.delay-700 {
+  animation-delay: 350ms;
+}
+
 h1 {
-  animation: fadeInUp 1s ease-out;
+  animation: fadeInUp 0.4s ease-out;
+  will-change: transform, opacity;
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Remove will-change after animation completes to save memory */
+.animate-fade-in-up,
+h1 {
+  animation-fill-mode: forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  h1 {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }
 </style>
