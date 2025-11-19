@@ -8,6 +8,9 @@ const { formatPrice } = useCurrency()
 const { fetchAll } = useTours()
 const { data: allTours } = await fetchAll()
 
+// Calendar visibility (on-demand loading to reduce unused JavaScript)
+const showCalendar = ref(false)
+
 // Tours sorted by name or priority (if we had one)
 const sortedTours = computed(() => {
   return (allTours.value || [])
@@ -91,6 +94,7 @@ useSeoMeta({
               <img
                 :src="getTourImage(tour)"
                 :alt="getTourName(tour)"
+                :fetchpriority="index === 0 ? 'high' : 'auto'"
                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
               <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-transparent to-transparent opacity-60" />
@@ -170,12 +174,28 @@ useSeoMeta({
           <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-4 text-glow">
             {{ t("tours.calendar_title") || "Calendario de Disponibilidad" }}
           </h2>
-          <p class="text-neutral-300">
+          <p class="text-neutral-300 mb-8">
             Planifica tu visita. Revisa las fechas disponibles para todas nuestras experiencias.
           </p>
+
+          <!-- Show Calendar Button (only if not already shown) -->
+          <div v-if="!showCalendar" class="flex justify-center">
+            <UButton
+              size="xl"
+              color="primary"
+              variant="solid"
+              icon="i-lucide-calendar"
+              class="px-8 py-3 text-lg font-bold cobre-glow hover:scale-105 transition-transform"
+              @click="showCalendar = true"
+            >
+              Ver Calendario de Disponibilidad
+            </UButton>
+          </div>
         </div>
 
+        <!-- Calendar (loaded on-demand) -->
         <LazyTourCalendar
+          v-if="showCalendar"
           :tours="sortedTours"
           @schedule-click="handleScheduleClick"
           class="atacama-card rounded-xl overflow-hidden shadow-2xl"

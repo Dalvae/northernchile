@@ -115,6 +115,7 @@ export default defineNuxtConfig({
 
   routeRules: {
     "/": { prerender: true },
+    "/tours": { swr: 3600 }, // Cache SSR for 1 hour with stale-while-revalidate
     "/auth": { ssr: false },
     "/cart": { ssr: false },
     "/admin/**": { ssr: false },
