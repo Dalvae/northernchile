@@ -67,6 +67,7 @@
   "tours": {
     "all": "Todos os Tours",
     "featured": "Tours em Destaque",
+    "view_details": "Ver Detalhes",
     "search_placeholder": "Buscar tours por nome ou descrição...",
     "filter_by_category": "Filtrar por categoria",
     "all_categories": "Todas as categorias",
@@ -280,20 +281,29 @@
       "og_description": "Consulte as fases lunares e planeje a melhor data para sua experiência astronômica no deserto do Atacama com céus limpos."
     }
   },
-  "hero": {
-    "badge": "Tours astronômicos no deserto mais claro do mundo",
-    "title1": "Descubra as Estrelas",
-    "title2": "do Deserto do Atacama",
-    "subtitle": "Viva uma experiência única observando o universo em um dos céus mais claros do planeta",
-    "buttonExplore": "Explorar Tours",
-    "buttonContact": "Contato",
-    "discoverMore": "Descubra mais",
-    "features": {
-      "proTelescopes": "Telescópios Pro",
-      "expertGuides": "Guias Especializados",
-      "clearSkies": "Céus Claros",
-      "freeCancellation": "Cancelamento Grátis"
-    }
+  "home": {
+    "hero": {
+      "badge": "Tours astronômicos no deserto mais claro do mundo",
+      "title_line1": "Descubra as Estrelas",
+      "title_line2": "do Deserto do Atacama",
+      "subtitle": "Viva uma experiência única observando o universo em um dos céus mais claros do planeta",
+      "cta_primary": "Explorar Tours",
+      "cta_secondary": "Contato",
+      "features": {
+        "proTelescopes": "Telescópios Pro",
+        "expertGuides": "Guias Especializados",
+        "clearSkies": "Céus Claros",
+        "freeCancellation": "Cancelamento Grátis"
+      }
+    },
+    "featured_tours_title": "Experiências em Destaque",
+    "featured_tours_subtitle": "Descubra o melhor do Deserto do Atacama",
+    "view_all_tours": "Ver todos os tours",
+    "why_us_title": "Por que nos escolher?",
+    "cta_title": "Pronto para explorar o universo?",
+    "cta_subtitle": "Junte-se a nós em uma aventura astronômica inesquecível",
+    "book_now": "Reservar Agora",
+    "contact_us": "Entre em Contato"
   },
   "about": {
     "seo": {

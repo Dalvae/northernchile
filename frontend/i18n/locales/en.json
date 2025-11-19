@@ -281,22 +281,21 @@
       "og_description": "Check lunar phases and plan the best date for your astronomical experience in the Atacama Desert with clear skies."
     }
   },
-  "hero": {
-    "badge": "Astronomical tours in the clearest desert in the world",
-    "title1": "Discover the Stars",
-    "title2": "of the Atacama Desert",
-    "subtitle": "Live a unique experience observing the universe in one of the clearest skies on the planet",
-    "buttonExplore": "Explore Tours",
-    "buttonContact": "Contact",
-    "discoverMore": "Discover more",
-    "features": {
-      "proTelescopes": "Pro Telescopes",
-      "expertGuides": "Expert Guides",
-      "clearSkies": "Clear Skies",
-      "freeCancellation": "Free Cancellation"
-    }
-  },
   "home": {
+    "hero": {
+      "badge": "Astronomical tours in the clearest desert in the world",
+      "title_line1": "Discover the Stars",
+      "title_line2": "of the Atacama Desert",
+      "subtitle": "Live a unique experience observing the universe in one of the clearest skies on the planet",
+      "cta_primary": "Explore Tours",
+      "cta_secondary": "Contact",
+      "features": {
+        "proTelescopes": "Pro Telescopes",
+        "expertGuides": "Expert Guides",
+        "clearSkies": "Clear Skies",
+        "freeCancellation": "Free Cancellation"
+      }
+    },
     "featured_tours_title": "Featured Experiences",
     "featured_tours_subtitle": "Discover the best of the Atacama Desert",
     "view_all_tours": "View all tours",
