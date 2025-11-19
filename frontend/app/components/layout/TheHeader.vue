@@ -1,21 +1,21 @@
 <template>
   <header
-    class="sticky top-0 z-50 bg-gradient-to-b from-bg-elevated/90 to-bg-default/95 backdrop-blur-sm border-b border-default"
+    class="sticky top-0 z-50 bg-[var(--color-paranal-950)]/80 backdrop-blur-md border-b border-white/10"
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
+      <div class="flex items-center justify-between h-20">
         <!-- Logo -->
         <div class="flex-shrink-0">
           <NuxtLink
             :to="localePath('/')"
-            class="flex items-center gap-2 group"
+            class="flex items-center gap-3 group"
             aria-label="Ir a la página de inicio de Northern Chile"
           >
             <UIcon
               name="i-lucide-telescope"
-              class="w-6 h-6 text-primary group-hover:rotate-12 transition-transform"
+              class="w-8 h-8 text-primary group-hover:rotate-12 transition-transform"
             />
-            <span class="font-display font-bold text-xl text-highlighted">
+            <span class="font-display font-bold text-2xl text-white text-glow tracking-wide">
               Northern Chile
             </span>
           </NuxtLink>
@@ -23,7 +23,7 @@
 
         <!-- Desktop Navigation -->
         <nav
-          class="hidden md:flex items-center gap-1"
+          class="hidden md:flex items-center gap-2"
           role="navigation"
           aria-label="Navegación principal"
         >
@@ -32,15 +32,15 @@
             :key="link.label"
             :to="link.to"
             variant="ghost"
-            color="neutral"
-            class="font-medium"
+            color="white"
+            class="font-medium text-neutral-300 hover:text-white hover:bg-white/10 transition-colors"
           >
             {{ link.label }}
           </UButton>
         </nav>
 
         <!-- Right Actions -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3">
           <!-- Language Switcher -->
           <LanguageSwitcher />
 
@@ -53,10 +53,10 @@
           <UButton
             :to="localePath('/cart')"
             variant="ghost"
-            color="neutral"
+            color="white"
             icon="i-lucide-shopping-cart"
             :aria-label="t('nav.cart')"
-            class="relative"
+            class="relative hover:bg-white/10"
           >
             <UBadge
               v-if="cartItemsCount > 0"
@@ -73,9 +73,9 @@
                     <UButton
                       :to="localePath('/auth')"
                       variant="ghost"
-                      color="neutral"
+                      color="white"
                       icon="i-lucide-log-in"
-                      class="hidden sm:flex"
+                      class="hidden sm:flex hover:bg-white/10"
                     >
                 {{ t("nav.login") }}
               </UButton>
@@ -86,14 +86,14 @@
               <UDropdownMenu :items="userMenuItems">
                 <UButton
                   variant="ghost"
-                  color="neutral"
+                  color="white"
                   square
-                  class="hidden sm:flex"
+                  class="hidden sm:flex hover:bg-white/10"
                   aria-label="Menú de usuario"
                 >
-                  <div class="flex items-center gap-1">
+                  <div class="flex items-center gap-2">
                     <div
-                       class="w-8 h-8 rounded-full bg-accented/10 flex items-center justify-center"
+                       class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30"
                     >
                       <UIcon
                         name="i-lucide-user"
@@ -102,7 +102,7 @@
                     </div>
                     <UIcon
                       name="i-lucide-chevron-down"
-                      class="w-4 h-4 text-neutral-500 dark:text-neutral-300"
+                      class="w-4 h-4 text-neutral-400"
                     />
                   </div>
                 </UButton>
@@ -113,9 +113,9 @@
           <!-- Mobile Menu Button -->
           <UButton
             variant="ghost"
-            color="neutral"
+            color="white"
             icon="i-lucide-menu"
-            class="md:hidden"
+            class="md:hidden hover:bg-white/10"
             aria-label="Abrir menú de navegación"
             @click="mobileMenuOpen = true"
           />
@@ -127,21 +127,22 @@
     <USlideover
       v-model="mobileMenuOpen"
       side="right"
+      :ui="{ background: 'bg-[var(--color-paranal-950)]', overlay: { background: 'bg-black/50 backdrop-blur-sm' } }"
     >
       <template #content>
-        <div class="p-6 space-y-6">
+        <div class="p-6 space-y-6 bg-[var(--color-paranal-950)] h-full border-l border-white/10">
           <!-- Close Button -->
           <div
-             class="flex justify-between items-center pb-4 border-b border-default"
+             class="flex justify-between items-center pb-4 border-b border-white/10"
           >
             <h2
-              class="text-lg font-semibold text-neutral-900 dark:text-neutral-50"
+              class="text-xl font-display font-bold text-white"
             >
               {{ t("common.menu") || "Menú" }}
             </h2>
             <UButton
               icon="i-lucide-x"
-              color="neutral"
+              color="white"
               variant="ghost"
               @click="mobileMenuOpen = false"
             />
@@ -158,9 +159,9 @@
               :key="link.label"
               :to="link.to"
               variant="ghost"
-              color="neutral"
+              color="white"
               block
-              class="justify-start"
+              class="justify-start text-lg"
               @click="mobileMenuOpen = false"
             >
               {{ link.label }}
@@ -169,7 +170,7 @@
 
           <!-- Auth Actions -->
           <div
-             class="space-y-2 pt-4 border-t border-default"
+             class="space-y-4 pt-4 border-t border-white/10"
           >
             <ClientOnly>
               <template v-if="!authStore.isAuthenticated">
@@ -178,6 +179,7 @@
                   color="primary"
                   block
                   icon="i-lucide-log-in"
+                  class="cobre-glow"
                   @click="mobileMenuOpen = false"
                 >
                   {{ t("nav.login") }}
@@ -187,14 +189,14 @@
               <template v-else>
                 <!-- User Info -->
                 <div
-                  class="p-3 bg-neutral-100 dark:bg-neutral-800/50 rounded-lg mb-4"
+                  class="p-4 bg-white/5 rounded-xl mb-4 border border-white/10"
                 >
                   <p
-                     class="text-sm font-medium text-default"
+                     class="text-sm font-medium text-white"
                   >
                     {{ authStore.user?.fullName }}
                   </p>
-                   <p class="text-xs text-muted">
+                   <p class="text-xs text-neutral-400">
                     {{ authStore.user?.email }}
                   </p>
                 </div>
@@ -203,7 +205,7 @@
                   v-if="isAdmin"
                   :to="localePath('/admin')"
                   variant="outline"
-                  color="neutral"
+                  color="white"
                   block
                   icon="i-lucide-shield-check"
                   @click="mobileMenuOpen = false"
@@ -214,7 +216,7 @@
                 <UButton
                   :to="localePath('/profile')"
                   variant="outline"
-                  color="neutral"
+                  color="white"
                   block
                   icon="i-lucide-user"
                   @click="mobileMenuOpen = false"
@@ -225,7 +227,7 @@
                 <UButton
                   :to="localePath('/profile/bookings')"
                   variant="outline"
-                  color="neutral"
+                  color="white"
                   block
                   icon="i-lucide-book-marked"
                   @click="mobileMenuOpen = false"
@@ -235,7 +237,7 @@
 
                 <UButton
                   variant="outline"
-                  color="error"
+                  color="red"
                   block
                   icon="i-lucide-log-out"
                   @click="handleLogout"

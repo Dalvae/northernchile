@@ -18,9 +18,9 @@
   overflow: hidden;
   background: linear-gradient(
     to bottom,
-    var(--color-atacama-shadow-950) 0%,
-    var(--color-atacama-shadow-800) 50%,
-    var(--color-atacama-shadow-700) 100%
+    var(--ui-color-neutral-950) 0%,
+    var(--ui-color-neutral-900) 50%,
+    var(--ui-color-neutral-800) 100%
   );
 }
 

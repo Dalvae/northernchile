@@ -63,7 +63,7 @@ function clearFilters() {
 </script>
 
 <template>
-  <UCard>
+  <div class="backdrop-blur-sm bg-white/5 rounded-xl p-6 border border-white/10">
     <div class="space-y-4">
       <!-- Primera fila: Búsqueda -->
       <div>
@@ -71,8 +71,10 @@ function clearFilters() {
           v-model="localSearchQuery"
           icon="i-lucide-search"
           :placeholder="t('tours.search_placeholder')"
-          size="lg"
-          class="w-full"
+          size="xl"
+          variant="ghost"
+          class="w-full bg-white/5 text-white placeholder-neutral-400 focus:ring-primary-500"
+          :ui="{ icon: { trailing: { pointer: '' } } }"
           aria-label="Buscar tours"
         />
       </div>
@@ -86,8 +88,9 @@ function clearFilters() {
             option-attribute="label"
             value-attribute="value"
             :placeholder="t('tours.filter_by_category')"
-            size="lg"
-            class="w-full"
+            size="xl"
+            variant="ghost"
+            class="w-full bg-white/5 text-white"
             aria-label="Filtrar por categoría"
           />
         </div>
@@ -99,8 +102,9 @@ function clearFilters() {
             option-attribute="label"
             value-attribute="value"
             :placeholder="t('tours.sort_by')"
-            size="lg"
-            class="w-full"
+            size="xl"
+            variant="ghost"
+            class="w-full bg-white/5 text-white"
             aria-label="Ordenar tours"
           />
         </div>
@@ -109,7 +113,7 @@ function clearFilters() {
       <!-- Contador de resultados -->
       <div
         v-if="showResultsCount"
-        class="flex items-center justify-between text-sm text-neutral-600 dark:text-neutral-400"
+        class="flex items-center justify-between text-sm text-neutral-400 pt-2"
         role="status"
         aria-live="polite"
       >
@@ -128,6 +132,7 @@ function clearFilters() {
           variant="ghost"
           size="sm"
           icon="i-lucide-x"
+          class="hover:text-white"
           @click="clearFilters"
         >
           {{ t("tours.clear_filters") }}
@@ -137,5 +142,5 @@ function clearFilters() {
       <!-- Slot for additional filters -->
       <slot name="additional-filters" />
     </div>
-  </UCard>
+  </div>
 </template>

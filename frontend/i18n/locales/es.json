@@ -65,6 +65,7 @@
   "tours": {
     "all": "Todos los Tours",
     "featured": "Tours Destacados",
+    "view_details": "Ver Detalles",
     "search_placeholder": "Buscar tours por nombre o descripción...",
     "filter_by_category": "Filtrar por categoría",
     "all_categories": "Todas las categorías",
@@ -272,20 +273,29 @@
       "waning_crescent": "Luna Menguante"
     }
   },
-  "hero": {
-    "badge": "Tours astronómicos en el desierto más claro del mundo",
-    "title1": "Descubre las Estrellas",
-    "title2": "del Desierto de Atacama",
-    "subtitle": "Vive una experiencia única observando el universo en uno de los cielos más claros del planeta",
-    "buttonExplore": "Explorar Tours",
-    "buttonContact": "Contactar",
-    "discoverMore": "Descubre más",
-    "features": {
-      "proTelescopes": "Telescopios Pro",
-      "expertGuides": "Guías Expertos",
-      "clearSkies": "Cielos Claros",
-      "freeCancellation": "Cancelación Gratis"
-    }
+  "home": {
+    "hero": {
+      "badge": "Tours astronómicos en el desierto más claro del mundo",
+      "title_line1": "Descubre las Estrellas",
+      "title_line2": "del Desierto de Atacama",
+      "subtitle": "Vive una experiencia única observando el universo en uno de los cielos más claros del planeta",
+      "cta_primary": "Explorar Tours",
+      "cta_secondary": "Contactar",
+      "features": {
+        "proTelescopes": "Telescopios Pro",
+        "expertGuides": "Guías Expertos",
+        "clearSkies": "Cielos Claros",
+        "freeCancellation": "Cancelación Gratis"
+      }
+    },
+    "featured_tours_title": "Experiencias Destacadas",
+    "featured_tours_subtitle": "Descubre lo mejor del desierto de Atacama",
+    "view_all_tours": "Ver todos los tours",
+    "why_us_title": "¿Por qué elegirnos?",
+    "cta_title": "¿Listo para explorar el universo?",
+    "cta_subtitle": "Únete a nosotros en una aventura astronómica inolvidable",
+    "book_now": "Reservar Ahora",
+    "contact_us": "Contáctanos"
   },
   "about": {
     "seo": {

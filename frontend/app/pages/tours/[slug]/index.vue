@@ -86,357 +86,195 @@ async function goToSchedule() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-white dark:bg-neutral-800">
-    <UContainer class="py-8">
-      <div
-        v-if="tourPending"
-        class="text-center text-neutral-600 dark:text-neutral-400"
-      >
-        Cargando tour...
-      </div>
-      <div
-        v-else-if="tourError"
-        class="text-center"
-      >
-        <UAlert
-          color="error"
-          :title="tourError.message"
-        />
-      </div>
-      <div
-        v-else-if="tour"
-        class="space-y-8"
-      >
-        <!-- Hero Section -->
-        <div>
-          <h1 class="text-4xl font-bold mb-4 text-neutral-900 dark:text-white">
+  <div class="min-h-screen bg-neutral-950 relative">
+    <div
+      v-if="tourPending"
+      class="h-screen flex items-center justify-center text-neutral-400"
+    >
+      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin" />
+    </div>
+    
+    <div
+      v-else-if="tourError"
+      class="h-screen flex items-center justify-center"
+    >
+      <UAlert
+        color="error"
+        :title="tourError.message"
+        class="max-w-md"
+      />
+    </div>
+
+    <div v-else-if="tour">
+      <!-- Full Screen Header -->
+      <div class="relative h-screen min-h-[600px] w-full overflow-hidden">
+        <img
+          :src="heroImage"
+          :alt="translatedName"
+          class="absolute inset-0 w-full h-full object-cover"
+        >
+        <div class="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent" />
+        
+        <div class="absolute bottom-0 left-0 right-0 p-8 pb-24 sm:p-16 sm:pb-32 max-w-7xl mx-auto">
+          <UBadge
+            v-if="tour.category"
+            :label="tour.category"
+            color="primary"
+            variant="solid"
+            class="mb-4 backdrop-blur-md"
+          />
+          <h1 class="text-5xl md:text-7xl font-display font-bold text-white mb-6 text-glow leading-tight">
             {{ translatedName }}
           </h1>
-          <img
-            :src="heroImage"
-            :alt="translatedName"
-            class="w-full h-96 object-cover rounded-lg shadow-lg"
-          >
-        </div>
-
-        <!-- Description blocks from API -->
-        <div
-          v-if="descriptionBlocks.length"
-          class="prose dark:prose-invert max-w-none space-y-4"
-        >
-             <component
-               :is="block.type === 'heading' ? 'h2' : 'p'"
-               v-for="(block, index) in descriptionBlocks"
-               :key="index"
-               class="text-lg text-neutral-900 dark:text-neutral-100"
-             >
-            {{ block.content }}
-          </component>
-        </div>
-
-        <!-- Fallback plain description -->
-        <div
-          v-else-if="translatedDescription"
-          class="prose dark:prose-invert max-w-none"
-        >
-          <p class="text-lg text-neutral-600 dark:text-neutral-400">
-            {{ translatedDescription }}
-          </p>
-        </div>
-
-         <!-- Itinerario desde API (TourRes.itinerary mapeado en backend) -->
-         <div
-           v-if="tour?.itinerary && tour.itinerary.length"
-           class="space-y-4 mt-8"
-         >
-           <UCard>
-             <template #header>
-               <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">
-                 Itinerário
-               </h2>
-             </template>
-             <div
-               v-for="item in tour.itinerary"
-               :key="item.time + item.description"
-               class="flex items-center gap-4 py-2 border-b border-neutral-300 dark:border-neutral-700 last:border-b-0"
-             >
-               <span class="font-bold shrink-0 w-40 text-primary">
-                 {{ item.time }}
-               </span>
-               <p class="text-neutral-900 dark:text-neutral-100">
-                 {{ item.description }}
-               </p>
+          <div class="flex flex-wrap gap-6 text-lg text-neutral-200">
+             <div class="flex items-center gap-2">
+               <UIcon name="i-lucide-clock" class="w-5 h-5 text-primary" />
+               <span>{{ tour.durationHours }} Horas</span>
              </div>
-           </UCard>
-         </div>
-
-         <!-- Renderizar contenido ENRIQUECIDO legacy (contentKey) solo como fallback -->
-         <div
-           v-else-if="translatedContent"
-           class="space-y-8 mt-8"
-         >
-           <UCard v-if="translatedContent.guide">
-             <template #header>
-               <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">
-                 Tu Guía
-               </h2>
-             </template>
-             <p class="text-neutral-900 dark:text-neutral-100">
-               {{ translatedContent.guide.bio }}
-             </p>
-             <ul class="mt-4 space-y-1 list-disc list-inside">
-               <li
-                 v-for="cred in translatedContent.guide.credentials"
-                 :key="cred"
-                 class="text-neutral-900 dark:text-neutral-100"
-               >
-                 {{ cred }}
-               </li>
-             </ul>
-           </UCard>
-
-           <UCard v-if="translatedContent.itinerary?.length">
-             <template #header>
-               <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">
-                 Itinerário
-               </h2>
-             </template>
-             <div
-               v-for="item in translatedContent.itinerary"
-               :key="item.time + item.description"
-               class="flex gap-4 py-2 border-b border-neutral-300 dark:border-neutral-700 last:border-b-0"
-             >
-               <span class="font-bold w-24 text-primary">
-                 {{ item.time }}
-               </span>
-               <p class="text-neutral-900 dark:text-neutral-100">
-                 {{ item.description }}
-               </p>
+             <div class="flex items-center gap-2">
+               <UIcon name="i-lucide-users" class="w-5 h-5 text-primary" />
+               <span>Max {{ tour.defaultMaxParticipants }} personas</span>
              </div>
-           </UCard>
-
-           <UCard v-if="translatedContent.equipment?.length">
-             <template #header>
-               <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">
-                 Nosso Equipamento Técnico
-               </h2>
-             </template>
-             <ul class="list-disc list-inside">
-               <li
-                 v-for="item in translatedContent.equipment"
-                 :key="item"
-                 class="text-neutral-900 dark:text-neutral-100"
-               >
-                 {{ item }}
-               </li>
-             </ul>
-           </UCard>
-
-           <UCard v-if="translatedContent.includes?.length">
-             <template #header>
-               <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">
-                 Inclui
-               </h2>
-             </template>
-             <ul class="list-disc list-inside">
-               <li
-                 v-for="item in translatedContent.includes"
-                 :key="item"
-                 class="text-neutral-900 dark:text-neutral-100"
-               >
-                 {{ item }}
-               </li>
-             </ul>
-           </UCard>
-         </div>
-
-        <!-- Gallery -->
-        <div v-if="tour.images && tour.images.length > 1">
-          <h2
-            class="text-2xl font-semibold mb-4 text-neutral-900 dark:text-white"
-          >
-            Galería
-          </h2>
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <img
-              v-for="(image, index) in tour.images"
-              :key="image.id || index"
-              :src="image.imageUrl"
-              :alt="
-                image.altTextTranslations?.[locale]
-                  || image.altTextTranslations?.['es']
-                  || translatedName + ' image ' + index
-              "
-              class="w-full h-32 object-cover rounded-lg shadow-md hover:shadow-xl transition-shadow"
-            >
+             <div class="flex items-center gap-2">
+               <UIcon name="i-lucide-dollar-sign" class="w-5 h-5 text-primary" />
+               <span>Desde ${{ tour.price }}</span>
+             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Tour Details Card -->
-        <UCard>
-          <template #header>
-            <h2 class="text-2xl font-semibold text-neutral-900 dark:text-white">
-              Detalles del Tour
-            </h2>
-          </template>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="flex items-center gap-3">
-              <UIcon
-                name="i-lucide-tag"
-                class="w-5 h-5 text-primary"
-              />
-              <div>
-                <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                  Categoría
-                </p>
-                <p class="font-medium text-neutral-900 dark:text-white">
-                  {{ tour.category }}
-                </p>
+      <UContainer class="relative z-10 -mt-20 pb-24">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <!-- Main Content (Left 2/3) -->
+          <div class="lg:col-span-2 space-y-12">
+            
+            <!-- Description -->
+            <div class="prose prose-lg prose-invert max-w-none">
+               <div
+                v-if="descriptionBlocks.length"
+                class="space-y-6"
+              >
+                   <component
+                     :is="block.type === 'heading' ? 'h2' : 'p'"
+                     v-for="(block, index) in descriptionBlocks"
+                     :key="index"
+                     :class="block.type === 'heading' ? 'text-3xl font-display font-bold text-white mt-8 mb-4' : 'text-neutral-300 leading-relaxed'"
+                   >
+                  {{ block.content }}
+                </component>
               </div>
+              <p v-else-if="translatedDescription" class="text-neutral-300 leading-relaxed">
+                {{ translatedDescription }}
+              </p>
             </div>
 
-            <div class="flex items-center gap-3">
-              <UIcon
-                name="i-lucide-dollar-sign"
-                class="w-5 h-5 text-primary"
-              />
-              <div>
-                <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                  Precio
-                </p>
-                <p class="font-medium text-neutral-900 dark:text-white">
-                  ${{ tour.price }}
-                </p>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-3">
-              <UIcon
-                name="i-lucide-clock"
-                class="w-5 h-5 text-primary"
-              />
-              <div>
-                <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                  Duración
-                </p>
-                <p class="font-medium text-neutral-900 dark:text-white">
-                  {{ tour.durationHours }} horas
-                </p>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-3">
-              <UIcon
-                name="i-lucide-users"
-                class="w-5 h-5 text-primary"
-              />
-              <div>
-                <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                  Máximo Participantes
-                </p>
-                <p class="font-medium text-neutral-900 dark:text-white">
-                  {{ tour.defaultMaxParticipants }}
-                </p>
-              </div>
-            </div>
-
-            <div
-              v-if="tour.isWindSensitive"
-              class="flex items-center gap-3"
-            >
-              <UIcon
-                name="i-lucide-wind"
-                class="w-5 h-5 text-info"
-              />
-              <div>
-                <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                  Sensible al Viento
-                </p>
-                <UBadge
-                  color="info"
-                  size="sm"
+            <!-- Itinerary (Vertical Timeline) -->
+            <div v-if="tour.itinerary && tour.itinerary.length" class="space-y-8">
+              <h2 class="text-3xl font-display font-bold text-white">Itinerario Estelar</h2>
+              <div class="relative border-l-2 border-primary/30 ml-4 space-y-12 py-4">
+                <div
+                  v-for="(item, index) in tour.itinerary"
+                  :key="index"
+                  class="relative pl-8"
                 >
-                  Sí
-                </UBadge>
+                  <div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-primary border-4 border-neutral-950 shadow-[0_0_10px_var(--ui-color-primary-500)]" />
+                  <span class="text-primary font-bold text-lg block mb-1">{{ item.time }}</span>
+                  <p class="text-neutral-300">{{ item.description }}</p>
+                </div>
               </div>
             </div>
 
-            <div
-              v-if="tour.isMoonSensitive"
-              class="flex items-center gap-3"
-            >
-              <UIcon
-                name="i-lucide-moon"
-                class="w-5 h-5 text-tertiary"
-              />
-              <div>
-                <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                  Sensible a la Luna
-                </p>
-                <UBadge
-                  color="tertiary"
-                  size="sm"
-                >
-                  Sí
-                </UBadge>
-              </div>
-            </div>
-
-            <div
-              v-if="tour.isCloudSensitive"
-              class="flex items-center gap-3"
-            >
-              <UIcon
-                name="i-lucide-cloud"
-                class="w-5 h-5 text-neutral"
-              />
-              <div>
-                <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                  Sensible a la Nubosidad
-                </p>
-                <UBadge
-                  color="neutral"
-                  size="sm"
-                >
-                  Sí
-                </UBadge>
-              </div>
+            <!-- Gallery Carousel -->
+            <div v-if="tour.images && tour.images.length > 1" class="space-y-6">
+              <h2 class="text-3xl font-display font-bold text-white">Galería</h2>
+              <UCarousel
+                v-slot="{ item }"
+                :items="tour.images.slice(1)"
+                :ui="{ item: 'basis-full md:basis-1/2 lg:basis-1/3 px-2' }"
+                class="rounded-xl overflow-hidden"
+                arrows
+              >
+                <div class="relative aspect-[4/3] rounded-xl overflow-hidden atacama-card group">
+                  <img 
+                    :src="item.imageUrl" 
+                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                    draggable="false"
+                  >
+                  <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </div>
+              </UCarousel>
             </div>
           </div>
 
-          <template #footer>
-            <div class="flex justify-between items-center">
-              <UButton
-                to="/tours"
-                color="neutral"
-                variant="ghost"
-                icon="i-lucide-arrow-left"
-              >
-                Volver a Tours
-              </UButton>
-              <UButton
-                color="primary"
-                size="lg"
-                icon="i-lucide-calendar"
-                trailing
-                @click="goToSchedule"
-              >
-                Ver Horarios Disponibles
-              </UButton>
+          <!-- Sidebar (Right 1/3) -->
+          <div class="space-y-8">
+            <!-- Sticky Booking Card -->
+            <div class="sticky top-24 space-y-6">
+              <div class="atacama-card p-6 rounded-xl space-y-6 backdrop-blur-xl bg-neutral-900/80">
+                <h3 class="text-xl font-bold text-white">Reserva tu Experiencia</h3>
+                
+                <!-- Weather / Moon Info -->
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="bg-white/5 p-3 rounded-lg text-center">
+                    <UIcon name="i-lucide-moon" class="w-6 h-6 text-tertiary mb-1 mx-auto" />
+                    <span class="text-xs text-neutral-400 block">Fase Lunar</span>
+                    <span class="text-sm font-medium text-white">Visible</span>
+                  </div>
+                  <div class="bg-white/5 p-3 rounded-lg text-center">
+                    <UIcon name="i-lucide-thermometer" class="w-6 h-6 text-info mb-1 mx-auto" />
+                    <span class="text-xs text-neutral-400 block">Clima</span>
+                    <span class="text-sm font-medium text-white">Despejado</span>
+                  </div>
+                </div>
+
+                <div class="space-y-2">
+                  <div class="flex justify-between text-sm">
+                    <span class="text-neutral-400">Precio por persona</span>
+                    <span class="text-white font-bold">${{ tour.price }}</span>
+                  </div>
+                  <div class="flex justify-between text-sm">
+                    <span class="text-neutral-400">Duración</span>
+                    <span class="text-white">{{ tour.durationHours }}h</span>
+                  </div>
+                </div>
+
+                <UButton
+                  block
+                  size="xl"
+                  color="primary"
+                  class="cobre-glow font-bold"
+                  @click="goToSchedule"
+                >
+                  Ver Disponibilidad
+                </UButton>
+                
+                <p class="text-xs text-center text-neutral-500">
+                  Cancelación gratuita hasta 24h antes
+                </p>
+              </div>
+
+              <!-- Sensitivities -->
+              <div v-if="tour.isWindSensitive || tour.isMoonSensitive || tour.isCloudSensitive" class="atacama-card p-6 rounded-xl space-y-4">
+                <h3 class="text-lg font-bold text-white">Condiciones</h3>
+                <ul class="space-y-3">
+                  <li v-if="tour.isMoonSensitive" class="flex items-center gap-3 text-sm text-neutral-300">
+                    <UIcon name="i-lucide-moon" class="w-5 h-5 text-tertiary shrink-0" />
+                    <span>Sensible a la fase lunar (mejor en Luna Nueva)</span>
+                  </li>
+                  <li v-if="tour.isWindSensitive" class="flex items-center gap-3 text-sm text-neutral-300">
+                    <UIcon name="i-lucide-wind" class="w-5 h-5 text-info shrink-0" />
+                    <span>Sujeto a condiciones de viento</span>
+                  </li>
+                  <li v-if="tour.isCloudSensitive" class="flex items-center gap-3 text-sm text-neutral-300">
+                    <UIcon name="i-lucide-cloud" class="w-5 h-5 text-neutral-400 shrink-0" />
+                    <span>Requiere cielos despejados</span>
+                  </li>
+                </ul>
+              </div>
             </div>
-          </template>
-        </UCard>
-      </div>
-      <div
-        v-else
-        class="text-center"
-      >
-        <UAlert
-          color="warning"
-          title="Tour no encontrado"
-        />
-      </div>
-    </UContainer>
+          </div>
+        </div>
+      </UContainer>
+    </div>
   </div>
 </template>

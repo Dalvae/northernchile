@@ -75,167 +75,135 @@ const values = [
 </script>
 
 <template>
-  <div>
+  <div class="min-h-screen relative overflow-hidden">
+    <!-- Background Gradient -->
+    <div class="absolute inset-0 bg-gradient-to-b from-neutral-950 to-neutral-900 z-0" />
+    <div class="estrellas-atacama absolute inset-0 z-0" />
+
     <!-- Hero Section -->
-    <section
-      class="relative py-20 bg-gradient-to-b from-neutral-900 to-neutral-800 text-white"
-    >
-      <UContainer>
-        <div class="max-w-3xl mx-auto text-center">
-          <h1 class="text-4xl md:text-5xl font-bold mb-6">
-            {{ t("about.title") }}
-          </h1>
-          <p class="text-xl text-neutral-300">
-            {{ t("about.subtitle") }}
-          </p>
-        </div>
+    <section class="relative pt-32 pb-20 z-10">
+      <UContainer class="text-center">
+        <h1 class="text-5xl md:text-7xl font-display font-bold text-white mb-8 text-glow">
+          {{ t("about.title") || "Sobre Nosotros" }}
+        </h1>
+        <p class="text-xl md:text-2xl text-neutral-300 max-w-3xl mx-auto font-light leading-relaxed">
+          {{ t("about.subtitle") || "Conectando la tierra con el cielo en el corazón del desierto más árido del mundo." }}
+        </p>
       </UContainer>
     </section>
 
     <!-- Nuestra Historia -->
-    <section class="py-16 bg-white dark:bg-neutral-800">
+    <section class="relative py-20 z-10">
       <UContainer>
-        <div class="max-w-4xl mx-auto">
-          <h2
-            class="text-3xl font-bold text-neutral-900 dark:text-white mb-8 text-center"
-          >
-            {{ t("about.historyTitle") }}
-          </h2>
-          <div class="prose prose-lg dark:prose-invert max-w-none">
-            <p
-              class="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6"
-            >
-              {{ t("about.historyP1") }}
-            </p>
-            <p
-              class="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6"
-            >
-              <span v-html="t('about.historyP2')" />
-            </p>
-            <p
-              class="text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6"
-            >
-              {{ t("about.historyP3") }}
-            </p>
-            <p class="text-neutral-600 dark:text-neutral-400 leading-relaxed">
-              {{ t("about.historyP4") }}
-            </p>
+        <div class="atacama-card p-8 md:p-12 rounded-xl backdrop-blur-sm">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+              <h2 class="text-3xl md:text-4xl font-display font-bold text-white">
+                {{ t("about.history_title") || "Nuestra Historia" }}
+              </h2>
+              <div class="space-y-4 text-neutral-300 text-lg leading-relaxed">
+                <p>
+                  Nacimos bajo los cielos de San Pedro de Atacama con una misión clara: compartir la magia del universo combinando la ciencia astronómica con la cosmovisión ancestral de los pueblos andinos.
+                </p>
+                <p>
+                  Northern Chile no es solo una agencia de tours; es un puente entre el pasado y el futuro, entre la tierra (Pachamama) y el cosmos.
+                </p>
+              </div>
+            </div>
+            <div class="relative h-80 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+              <!-- Placeholder image -->
+              <div class="absolute inset-0 bg-neutral-800 flex items-center justify-center">
+                <UIcon name="i-lucide-mountain" class="w-20 h-20 text-neutral-700" />
+              </div>
+              <div class="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent" />
+            </div>
           </div>
         </div>
       </UContainer>
     </section>
 
     <!-- Nuestros Valores -->
-    <section class="py-16 bg-neutral-50 dark:bg-neutral-800/50">
+    <section class="relative py-20 z-10">
       <UContainer>
-        <h2
-          class="text-3xl font-bold text-neutral-900 dark:text-white mb-12 text-center"
-        >
-          {{ t("about.valuesTitle") }}
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div
-            v-for="value in values"
-            :key="value.title"
-            class="text-center"
-          >
-            <div
-              class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 mb-4"
-            >
-              <UIcon
-                :name="value.icon"
-                class="w-8 h-8 text-primary-600 dark:text-primary-400"
-              />
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-4xl font-display font-bold text-white text-glow">
+            {{ t("about.values_title") || "Nuestros Valores" }}
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="atacama-card p-8 rounded-xl hover:bg-white/5 transition-colors group">
+            <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
+              <UIcon name="i-lucide-heart-handshake" class="w-7 h-7 text-primary" />
             </div>
-            <h3
-              class="text-xl font-semibold text-neutral-900 dark:text-white mb-2"
-            >
-              {{ value.title }}
-            </h3>
-            <p class="text-neutral-600 dark:text-neutral-400">
-              {{ value.description }}
+            <h3 class="text-xl font-bold text-white mb-3">Respeto Ancestral</h3>
+            <p class="text-neutral-400">
+              Honramos las tradiciones y la tierra que nos acoge, trabajando en armonía con las comunidades locales.
+            </p>
+          </div>
+
+          <div class="atacama-card p-8 rounded-xl hover:bg-white/5 transition-colors group">
+            <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
+              <UIcon name="i-lucide-graduation-cap" class="w-7 h-7 text-primary" />
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">Excelencia Científica</h3>
+            <p class="text-neutral-400">
+              Nuestros guías son expertos en astronomía, garantizando una experiencia educativa de primer nivel.
+            </p>
+          </div>
+
+          <div class="atacama-card p-8 rounded-xl hover:bg-white/5 transition-colors group">
+            <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
+              <UIcon name="i-lucide-sparkles" class="w-7 h-7 text-primary" />
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">Magia y Conexión</h3>
+            <p class="text-neutral-400">
+              Creamos momentos inolvidables que conectan a nuestros viajeros con la inmensidad del universo.
             </p>
           </div>
         </div>
       </UContainer>
     </section>
 
-    <!-- Nuestro Equipo -->
-    <section class="py-16 bg-white dark:bg-neutral-800">
+    <!-- Nuestro Equipo (Placeholder) -->
+    <section class="relative py-20 z-10">
       <UContainer>
-        <h2
-          class="text-3xl font-bold text-neutral-900 dark:text-white mb-12 text-center"
-        >
-          {{ t("about.teamTitle") }}
-        </h2>
-        <div class="max-w-5xl mx-auto space-y-12">
-          <div
-            v-for="member in teamMembers"
-            :key="member.name"
-            class="flex flex-col md:flex-row items-center gap-8"
-          >
-            <img
-              :src="member.image"
-              :alt="member.name"
-              class="w-40 h-40 rounded-full flex-shrink-0"
-            >
-            <div class="flex-1 text-center md:text-left">
-              <h3
-                class="text-2xl font-semibold text-neutral-900 dark:text-white mb-2"
-              >
-                {{ member.name }}
-              </h3>
-              <p
-                class="text-primary-600 dark:text-primary-400 font-medium text-lg mb-4"
-              >
-                {{ member.role }}
-              </p>
-              <p class="text-neutral-600 dark:text-neutral-400 mb-4">
-                {{ member.bio }}
-              </p>
-              <div
-                class="space-y-2 text-sm text-neutral-600 dark:text-neutral-400"
-              >
-                <p
-                  v-for="credential in member.credentials"
-                  :key="credential.text"
-                  class="flex items-center gap-2 justify-center md:justify-start"
-                >
-                  <UIcon
-                    :name="credential.icon"
-                    class="w-4 h-4 text-primary-600"
-                  />
-                  {{ credential.text }}
-                </p>
-              </div>
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-4xl font-display font-bold text-white text-glow">
+            {{ t("about.team_title") || "Nuestro Equipo" }}
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div v-for="i in 4" :key="i" class="atacama-card p-6 rounded-xl text-center group">
+            <div class="w-32 h-32 mx-auto rounded-full bg-neutral-800 mb-4 overflow-hidden border-2 border-primary/30 group-hover:border-primary transition-colors">
+              <UIcon name="i-lucide-user" class="w-full h-full p-6 text-neutral-600" />
             </div>
+            <h3 class="text-lg font-bold text-white">Guía Experto {{ i }}</h3>
+            <p class="text-primary text-sm mb-2">Astrónomo</p>
+            <p class="text-neutral-400 text-sm">
+              Apasionado por las estrellas y la historia del desierto.
+            </p>
           </div>
         </div>
       </UContainer>
     </section>
 
     <!-- CTA Final -->
-    <section
-      class="py-16 bg-gradient-to-r from-primary-600 to-primary-700 text-white"
-    >
-      <UContainer>
-        <div class="max-w-3xl mx-auto text-center">
-          <h2 class="text-3xl font-bold mb-4">
-            {{ t("about.cta.title") }}
-          </h2>
-          <p class="text-xl mb-8 text-primary-100">
-            {{ t("about.cta.subtitle") }}
-          </p>
-          <UButton
-            to="/tours"
-            size="xl"
-            color="neutral"
-            variant="solid"
-            icon="i-lucide-telescope"
-          >
-            {{ t("about.cta.button") }}
-          </UButton>
-        </div>
+    <section class="relative py-24 z-10">
+      <div class="absolute inset-0 atacama-gradient opacity-50 z-0" />
+      <UContainer class="relative z-10 text-center">
+        <h2 class="text-4xl font-display font-bold text-white mb-8 text-glow">
+          Únete a la Aventura
+        </h2>
+        <UButton
+          to="/tours"
+          size="xl"
+          color="primary"
+          class="px-12 py-4 text-lg font-bold cobre-glow hover:scale-105 transition-transform"
+        >
+          Ver Tours Disponibles
+        </UButton>
       </UContainer>
     </section>
   </div>

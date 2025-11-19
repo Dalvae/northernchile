@@ -65,6 +65,7 @@
   "tours": {
     "all": "All Tours",
     "featured": "Featured Tours",
+    "view_details": "View Details",
     "search_placeholder": "Search tours by name or description...",
     "filter_by_category": "Filter by category",
     "all_categories": "All categories",
@@ -286,6 +287,16 @@
       "clearSkies": "Clear Skies",
       "freeCancellation": "Free Cancellation"
     }
+  },
+  "home": {
+    "featured_tours_title": "Featured Experiences",
+    "featured_tours_subtitle": "Discover the best of the Atacama Desert",
+    "view_all_tours": "View all tours",
+    "why_us_title": "Why choose us?",
+    "cta_title": "Ready to explore the universe?",
+    "cta_subtitle": "Join us on an unforgettable astronomical adventure",
+    "book_now": "Book Now",
+    "contact_us": "Contact Us"
   },
   "about": {
     "seo": {

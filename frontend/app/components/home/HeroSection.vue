@@ -1,94 +1,78 @@
 <template>
-  <section class="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden bg-default">
-    <!-- Fondo animado de estrellas -->
-    <UiBgStars />
-
-    <!-- Overlay gradient -->
-    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-[var(--ui-bg-soft)] to-[var(--ui-bg-strong)]" />
+  <section class="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
+    <!-- Background Image with Overlay -->
+    <div class="absolute inset-0 z-0">
+      <div class="absolute inset-0 bg-neutral-950/40 z-10" />
+      <div class="absolute inset-0 bg-gradient-to-b from-neutral-950/30 via-transparent to-neutral-950 z-20" />
+      <!-- Placeholder for Hero Image -->
+      <div class="w-full h-full bg-neutral-900" />
+      <UiBgStars />
+    </div>
 
     <!-- Content -->
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center">
-        <!-- Badge superior (opcional) -->
+    <div class="relative z-30 text-center px-4 max-w-5xl mx-auto">
+      <div class="animate-fade-in-up">
         <UBadge
+          variant="outline"
           color="primary"
-          variant="soft"
-          size="lg"
-          class="mb-6"
+          class="mb-6 px-4 py-1 text-sm tracking-widest uppercase backdrop-blur-md border-primary/30"
         >
-          <span class="flex items-center gap-2">
-            <UIcon
-              name="i-lucide-sparkles"
-              class="w-4 h-4"
-            />
-            {{ t('hero.badge') }}
-          </span>
+          {{ t("home.hero.badge") }}
         </UBadge>
-
-        <!-- Título principal -->
-        <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-default mb-6">
-          <span class="block">{{ t('hero.title1') }}</span>
-          <span class="block text-primary mt-2">{{ t('hero.title2') }}</span>
+        
+        <h1 class="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-white mb-6 leading-tight text-glow">
+          <span class="block">{{ t("home.hero.title_line1") }}</span>
+          <span class="block texto-cobre">{{ t("home.hero.title_line2") }}</span>
         </h1>
 
-        <!-- Subtítulo -->
-        <p class="text-lg sm:text-xl md:text-2xl text-muted mb-8 max-w-3xl mx-auto">
-          {{ t('hero.subtitle') }}
+        <p class="text-xl md:text-2xl text-neutral-200 mb-10 max-w-2xl mx-auto font-light animate-fade-in-up delay-300">
+          {{ t("home.hero.subtitle") }}
         </p>
 
-        <!-- CTAs -->
-        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up delay-500">
           <UButton
-            :label="t('hero.buttonExplore')"
             to="/tours"
+            size="xl"
             color="primary"
-            size="xl"
-            icon="i-lucide-telescope"
-            class="w-full sm:w-auto"
-          />
-          <UButton
-            :label="t('hero.buttonContact')"
-            to="/contact"
-            color="neutral"
-            variant="outline"
-            size="xl"
-            icon="i-lucide-mail"
-            class="w-full sm:w-auto"
-          />
-        </div>
-
-        <!-- Features rápidos -->
-        <div class="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-          <div
-            v-for="feature in quickFeatures"
-            :key="feature.label"
-            class="flex flex-col items-center gap-2 text-default"
+            variant="solid"
+            class="px-8 py-3 text-lg font-bold min-w-[200px] justify-center cobre-glow hover:scale-105 transition-transform"
           >
-            <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-              <UIcon
-                :name="feature.icon"
-                class="w-6 h-6 text-primary"
-              />
-            </div>
-            <span class="text-sm font-medium">{{ feature.label }}</span>
+            {{ t("home.hero.cta_primary") }}
+          </UButton>
+          <UButton
+            to="/contact"
+            size="xl"
+            variant="ghost"
+            color="white"
+            class="px-8 py-3 text-lg min-w-[200px] justify-center backdrop-blur-sm hover:bg-white/10 border border-white/20"
+          >
+            {{ t("home.hero.cta_secondary") }}
+          </UButton>
+        </div>
+      </div>
+
+      <!-- Quick Features -->
+      <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 animate-fade-in-up delay-700">
+        <div v-for="stat in stats" :key="stat.label" class="flex flex-col items-center">
+          <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2 border border-primary/20">
+            <UIcon :name="stat.icon" class="w-6 h-6 text-primary" />
           </div>
+          <span class="text-white font-bold text-lg">{{ stat.value }}</span>
+          <span class="text-sm text-neutral-400 uppercase tracking-wider">{{ stat.label }}</span>
         </div>
       </div>
     </div>
 
-    <!-- Scroll indicator -->
-    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
-      <button
-        type="button"
-        class="flex flex-col items-center gap-2 text-muted hover:text-default transition-colors"
+    <!-- Scroll Indicator -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 animate-bounce">
+      <UButton
+        variant="ghost"
+        color="white"
+        icon="i-lucide-chevron-down"
+        class="rounded-full p-2 hover:bg-white/10"
+        aria-label="Scroll down"
         @click="scrollToContent"
-      >
-        <span class="text-sm">{{ t('hero.discoverMore') }}</span>
-        <UIcon
-          name="i-lucide-chevron-down"
-          class="w-6 h-6 animate-bounce"
-        />
-      </button>
+      />
     </div>
   </section>
 </template>
@@ -97,10 +81,10 @@
 const { t } = useI18n()
 
 const quickFeatures = computed(() => [
-  { icon: 'i-lucide-telescope', label: t('hero.features.proTelescopes') },
-  { icon: 'i-lucide-users', label: t('hero.features.expertGuides') },
-  { icon: 'i-lucide-star', label: t('hero.features.clearSkies') },
-  { icon: 'i-lucide-shield-check', label: t('hero.features.freeCancellation') }
+  { icon: 'i-lucide-telescope', label: t('home.hero.features.proTelescopes') },
+  { icon: 'i-lucide-users', label: t('home.hero.features.expertGuides') },
+  { icon: 'i-lucide-star', label: t('home.hero.features.clearSkies') },
+  { icon: 'i-lucide-shield-check', label: t('home.hero.features.freeCancellation') }
 ])
 
 function scrollToContent() {

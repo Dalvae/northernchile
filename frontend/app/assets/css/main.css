@@ -1,4 +1,5 @@
 /* 1. Importaciones esenciales (SOLO UNA VEZ) */
+/* stylelint-disable at-rule-no-unknown */
 @import "tailwindcss";
 @import "@nuxt/ui";
 @import "./theme.css";
@@ -15,35 +16,44 @@
 }
 
 body {
-  @apply antialiased text-default bg-default;
+  @apply antialiased font-body bg-neutral-950 text-neutral-50;
   min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply font-display;
 }
 
 /* 4. Efectos Atacama Nocturna OKLCH */
 @layer utilities {
   .atacama-gradient {
-    background: linear-gradient(
-      135deg,
-      oklch(0.15 0.02 260) 0%,
-      oklch(0.2 0.03 260) 100%
-    );
+    background: linear-gradient(180deg,
+        var(--ui-color-neutral-900) 0%,
+        var(--ui-color-neutral-950) 100%);
   }
 
   .atacama-card {
-    background: oklch(0.2 0.03 260);
-    border: 1px solid oklch(0.43 0.14 45);
+    @apply bg-neutral-900/60 backdrop-blur-xl border border-white/10;
   }
 
   .cobre-glow {
-    box-shadow: 0 0 20px oklch(0.58 0.16 55 / 0.3);
+    box-shadow: 0 0 20px var(--ui-color-primary-500);
+    opacity: 0.8;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
   }
 
   .cielo-hover:hover {
-    background: linear-gradient(
-      135deg,
-      oklch(0.43 0.14 45),
-      oklch(0.5 0.16 55)
-    );
+    background: linear-gradient(135deg,
+        var(--ui-color-primary-800),
+        var(--ui-color-primary-600));
     transition: all 0.3s ease;
   }
 
@@ -52,31 +62,30 @@ body {
     position: absolute;
     inset: 0;
     background-image:
-      radial-gradient(oklch(0.74 0.14 70) 1px, transparent 1px),
-      radial-gradient(oklch(0.55 0.11 247) 1px, transparent 1px);
+      radial-gradient(var(--ui-color-neutral-200) 1px, transparent 1px),
+      radial-gradient(var(--ui-color-primary-200) 1px, transparent 1px);
     background-size:
       25px 25px,
       50px 50px;
     opacity: 0.1;
     z-index: 0;
+    pointer-events: none;
   }
 
   .texto-cobre {
-    background: linear-gradient(
-      45deg,
-      oklch(0.58 0.16 55),
-      oklch(0.74 0.14 70)
-    );
+    background: linear-gradient(45deg,
+        var(--ui-color-primary-500),
+        var(--ui-color-primary-300));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .lagoon-text {
-    color: oklch(0.6 0.06 230);
+    color: var(--ui-color-tertiary-500);
   }
 
   .sky-text {
-    color: oklch(0.55 0.11 247);
+    color: var(--ui-color-info-500);
   }
 }

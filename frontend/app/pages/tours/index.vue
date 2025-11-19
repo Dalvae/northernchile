@@ -1,68 +1,18 @@
 <script setup lang="ts">
 import type { TourRes, TourScheduleRes } from 'api-client'
-import TourCard from '~/components/tour/TourCard.vue'
 
 const router = useRouter()
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const { formatPrice } = useCurrency()
 
 const { fetchAll } = useTours()
 const { data: allTours } = await fetchAll()
 
-// Filtros
-const searchQuery = ref('')
-const selectedCategory = ref<string | null>(null)
-const sortBy = ref<'name' | 'price-asc' | 'price-desc' | 'duration'>('name')
-
-// Tours filtrados y ordenados
-const filteredTours = computed(() => {
-  let tours = (allTours.value || []).filter(t => t.status === 'PUBLISHED')
-
-  // Filtrar por búsqueda
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    tours = tours.filter((t) => {
-      const name = (t.nameTranslations?.es || '').toLowerCase()
-      const description = (t.descriptionTranslations?.es || '').toLowerCase()
-      return name.includes(query) || description.includes(query)
-    })
-  }
-
-  // Filtrar por categoría
-  if (selectedCategory.value) {
-    tours = tours.filter(t => t.category === selectedCategory.value)
-  }
-
-  // Ordenar
-    if (sortBy.value === 'price-asc') {
-      tours = tours.sort((a, b) => (a.price || 0) - (b.price || 0))
-    } else if (sortBy.value === 'price-desc') {
-      tours = tours.sort((a, b) => (b.price || 0) - (a.price || 0))
-  } else if (sortBy.value === 'duration') {
-    tours = tours.sort((a, b) => (a.durationHours || 0) - (b.durationHours || 0))
-  } else {
-    tours = tours.sort((a, b) =>
-      (a.nameTranslations?.es || '').localeCompare(b.nameTranslations?.es || '')
-    )
-  }
-
-  return tours
-})
-
-// Paginación
-const page = ref(1)
-const pageSize = 9
-const totalPages = computed(() =>
-  Math.ceil(filteredTours.value.length / pageSize)
-)
-const paginatedTours = computed(() => {
-  const start = (page.value - 1) * pageSize
-  const end = start + pageSize
-  return filteredTours.value.slice(start, end)
-})
-
-// Reset página cuando cambian los filtros
-watch([searchQuery, selectedCategory, sortBy], () => {
-  page.value = 1
+// Tours sorted by name or priority (if we had one)
+const sortedTours = computed(() => {
+  return (allTours.value || [])
+    .filter(t => t.status === 'PUBLISHED')
+    .sort((a, b) => (a.price || 0) - (b.price || 0)) // Sort by price for now, or maybe by popularity
 })
 
 // Handle calendar schedule click
@@ -70,6 +20,30 @@ function handleScheduleClick(schedule: TourScheduleRes, tour: TourRes) {
   if (tour?.slug) {
     router.push(`/tours/${tour.slug}/schedule`)
   }
+}
+
+// Helper to get localized name
+const getTourName = (tour: TourRes) => 
+  tour.nameTranslations?.[locale.value] || tour.nameTranslations?.es || 'Tour'
+
+// Helper to get localized description
+const getTourDescription = (tour: TourRes) => {
+  const blocks = (tour as any).descriptionBlocksTranslations?.[locale.value]
+    || (tour as any).descriptionBlocksTranslations?.es
+  if (Array.isArray(blocks) && blocks.length) {
+    const firstText = blocks.find((b: any) => b?.content)?.content
+    if (firstText) return firstText
+  }
+  return (tour as any).descriptionTranslations?.[locale.value]
+    || (tour as any).descriptionTranslations?.es
+    || ''
+}
+
+// Helper to get image
+const getTourImage = (tour: TourRes) => {
+  const hero = tour.images?.find(img => (img as any).isHeroImage)?.imageUrl
+  const first = tour.images?.[0]?.imageUrl || (tour as any).images?.[0]
+  return hero || first || '/images/tour-placeholder.svg'
 }
 
 // SEO
@@ -86,114 +60,134 @@ useSeoMeta({
 </script>
 
 <template>
-  <div class="min-h-screen bg-white dark:bg-neutral-900">
-    <UContainer class="py-8 sm:py-12">
+  <div class="min-h-screen relative overflow-hidden">
+    <!-- Background Gradient -->
+    <div class="absolute inset-0 bg-gradient-to-b from-neutral-950 to-neutral-900 z-0" />
+    <div class="estrellas-atacama absolute inset-0 z-0" />
+
+    <UContainer class="py-16 relative z-10">
       <!-- Header -->
-      <div class="mb-8">
-        <h1 class="text-4xl font-bold text-neutral-900 dark:text-white mb-4">
+      <div class="mb-20 text-center">
+        <h1 class="text-5xl md:text-7xl font-display font-bold text-white mb-6 text-glow">
           {{ t("tours.all") }}
         </h1>
-        <p class="text-lg text-neutral-600 dark:text-neutral-400">
-          Descubre todas nuestras experiencias bajo las estrellas del Atacama
+        <p class="text-xl text-neutral-300 max-w-3xl mx-auto font-light">
+          Descubre nuestras experiencias exclusivas bajo los cielos más limpios del mundo.
+          Cada tour es una invitación a conectar con el cosmos.
         </p>
       </div>
 
-      <!-- Filters Bar -->
-      <div class="mb-8">
-        <TourFilters
-          v-model:search-query="searchQuery"
-          v-model:selected-category="selectedCategory"
-          v-model:sort-by="sortBy"
-          :results-count="filteredTours.length"
-        />
-      </div>
-
-      <!-- Tours Grid -->
-      <div
-        v-if="paginatedTours.length > 0"
-        class="space-y-8 mb-12"
-      >
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <TourCard
-            v-for="tour in paginatedTours"
-            :key="tour.id"
-            :tour="tour"
-            variant="list"
-          />
-        </div>
-
-        <!-- Paginación -->
+      <!-- Tours List (Alternating Layout) -->
+      <div class="space-y-32 mb-32">
         <div
-          v-if="totalPages > 1"
-          class="flex justify-center"
+          v-for="(tour, index) in sortedTours"
+          :key="tour.id"
+          class="group relative flex flex-col lg:flex-row gap-12 items-center"
+          :class="{ 'lg:flex-row-reverse': index % 2 !== 0 }"
         >
-          <UPagination
-            v-model="page"
-            :total="filteredTours.length"
-            :page-size="pageSize"
-            show-first
-            show-last
-          />
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <UCard
-        v-else
-        class="text-center py-12 mb-12"
-      >
-        <div class="space-y-4">
-          <div
-            class="w-16 h-16 mx-auto rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center"
-          >
-            <UIcon
-              name="i-lucide-telescope"
-              class="w-8 h-8 text-neutral-400"
+          <!-- Image Section -->
+          <div class="w-full lg:w-1/2 relative">
+            <div class="relative aspect-[4/3] rounded-2xl overflow-hidden atacama-card group-hover:shadow-2xl group-hover:shadow-primary-500/20 transition-all duration-700">
+              <img
+                :src="getTourImage(tour)"
+                :alt="getTourName(tour)"
+                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/80 via-transparent to-transparent opacity-60" />
+              
+              <!-- Floating Price Badge -->
+              <div class="absolute bottom-6 right-6 backdrop-blur-md bg-neutral-900/80 border border-white/10 px-6 py-3 rounded-full">
+                <span class="text-sm text-neutral-400 uppercase tracking-wider mr-2">{{ t('tours.price_from') }}</span>
+                <span class="text-xl font-bold text-white">{{ formatPrice(tour.price) }}</span>
+              </div>
+            </div>
+            
+            <!-- Decorative Elements behind image -->
+            <div 
+              class="absolute -z-10 w-full h-full border border-primary/30 rounded-2xl top-4 transition-transform duration-500"
+              :class="index % 2 === 0 ? 'left-4 group-hover:translate-x-2 group-hover:translate-y-2' : 'right-4 group-hover:-translate-x-2 group-hover:translate-y-2'"
             />
           </div>
-          <div>
-            <h3
-              class="text-lg font-semibold text-neutral-900 dark:text-white mb-2"
-            >
-              {{ t("tours.no_results") }}
-            </h3>
-            <p class="text-neutral-600 dark:text-neutral-400">
-              Intenta ajustar los filtros o realizar una nueva búsqueda
-            </p>
-          </div>
-          <UButton
-            v-if="searchQuery || selectedCategory"
-            color="primary"
-            variant="outline"
-            icon="i-lucide-refresh-cw"
-            @click="
-              searchQuery = '';
-              selectedCategory = null;
-            "
-          >
-            {{ t("tours.clear_filters") }}
-          </UButton>
-        </div>
-      </UCard>
 
-      <!-- Calendar Section (AFTER tours list) -->
-      <div>
-        <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-6">
-          {{ t("tours.calendar_title") || "Calendario de Disponibilidad" }}
-        </h2>
+          <!-- Content Section -->
+          <div class="w-full lg:w-1/2 space-y-6">
+            <div class="flex items-center gap-3 mb-2">
+              <UBadge
+                color="primary"
+                variant="soft"
+                class="uppercase tracking-widest"
+              >
+                {{ t(`tours.category.${tour.category}`, tour.category) }}
+              </UBadge>
+              <div v-if="tour.moonSensitive" class="flex items-center gap-1 text-xs text-tertiary-400">
+                <UIcon name="i-lucide-moon" class="w-3 h-3" />
+                <span>{{ t('tours.sensitive.moon') }}</span>
+              </div>
+            </div>
+
+            <h2 class="text-4xl md:text-5xl font-display font-bold text-white text-glow leading-tight">
+              {{ getTourName(tour) }}
+            </h2>
+
+            <p class="text-lg text-neutral-300 leading-relaxed line-clamp-4">
+              {{ getTourDescription(tour) }}
+            </p>
+
+            <div class="flex flex-wrap gap-6 text-neutral-400 py-4 border-y border-white/10">
+              <div class="flex items-center gap-2">
+                <UIcon name="i-lucide-clock" class="w-5 h-5 text-primary" />
+                <span>{{ t('tours.duration_hours', { hours: tour.durationHours }) }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <UIcon name="i-lucide-users" class="w-5 h-5 text-primary" />
+                <span>{{ t('tours.max_participants', { count: (tour as any).maxParticipants }) }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <UIcon name="i-lucide-map-pin" class="w-5 h-5 text-primary" />
+                <span>San Pedro de Atacama</span>
+              </div>
+            </div>
+
+            <div class="pt-4">
+              <UButton
+                :to="`/tours/${tour.slug || tour.id}`"
+                size="xl"
+                color="primary"
+                variant="solid"
+                class="px-8 py-3 text-lg font-bold cobre-glow hover:scale-105 transition-transform"
+                trailing-icon="i-lucide-arrow-right"
+              >
+                {{ t('tours.view_details') || 'Ver Detalles' }}
+              </UButton>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calendar Section -->
+      <div class="mt-32">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-4 text-glow">
+            {{ t("tours.calendar_title") || "Calendario de Disponibilidad" }}
+          </h2>
+          <p class="text-neutral-400">
+            Planifica tu visita. Revisa las fechas disponibles para todas nuestras experiencias.
+          </p>
+        </div>
 
         <TourCalendar
-          :tours="filteredTours"
+          :tours="sortedTours"
           @schedule-click="handleScheduleClick"
+          class="atacama-card rounded-xl overflow-hidden shadow-2xl"
         >
           <template #info>
-            <div class="mt-4 p-4 bg-info/10 dark:bg-info/20 rounded-lg">
-              <p class="text-sm text-info dark:text-info">
-                <UIcon
-                  name="i-lucide-info"
-                  class="inline w-4 h-4 mr-1"
-                />
-                {{ t("tours.calendar.info_text") || "Haz clic en un evento para reservar. Los filtros afectan qué tours se muestran en el calendario." }}
+            <div class="mt-4 p-4 bg-info/10 rounded-lg border border-info/20 flex items-start gap-3">
+              <UIcon
+                name="i-lucide-info"
+                class="w-5 h-5 text-info-400 mt-0.5"
+              />
+              <p class="text-sm text-info-200">
+                {{ t("tours.calendar.info_text") || "Haz clic en un evento para reservar. Los cupos son limitados para garantizar una experiencia íntima y personalizada." }}
               </p>
             </div>
           </template>

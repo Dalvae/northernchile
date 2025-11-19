@@ -1,133 +1,137 @@
 <template>
   <NuxtLink
     :to="linkTo"
-    class="block"
+    class="block h-full group"
     :aria-label="`Ver detalles del tour ${title}`"
   >
-    <UCard
-      :ui="cardUi"
-      class="overflow-hidden transition-all duration-300 hover:-translate-y-1 h-full"
+    <div
+      class="relative h-[500px] rounded-xl overflow-hidden atacama-card transition-all duration-500 hover:shadow-2xl hover:shadow-primary-500/20 hover:border-primary/50"
     >
-      <div
-        class="relative overflow-hidden"
-        :class="imageWrapperClass"
-      >
+      <!-- Image Background (80% height initially, or full height with overlay) -->
+      <div class="absolute inset-0 h-full w-full">
         <img
           :src="imageSrc"
           :alt="title"
-          class="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+          class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         >
-
-        <div
-          v-if="showCategory && categoryLabel"
-          class="absolute top-3 left-3"
-        >
-          <UBadge
-            :color="categoryColor"
-            variant="solid"
-            size="md"
-          >
-            {{ categoryLabel }}
-          </UBadge>
-        </div>
-
-        <div
-          v-if="showSensitivityBadges && (tour.moonSensitive || tour.windSensitive)"
-          class="absolute top-3 right-3 flex gap-1"
-        >
-          <UTooltip
-            v-if="tour.moonSensitive"
-            :text="$t('tours.sensitive.moon')"
-          >
-            <UBadge
-              color="tertiary"
-              variant="solid"
-              size="sm"
-            >
-              <UIcon
-                name="i-lucide-moon"
-                class="w-3 h-3"
-              />
-            </UBadge>
-          </UTooltip>
-          <UTooltip
-            v-if="tour.windSensitive"
-            :text="$t('tours.sensitive.wind')"
-          >
-            <UBadge
-              color="info"
-              variant="solid"
-              size="sm"
-            >
-              <UIcon
-                name="i-lucide-wind"
-                class="w-3 h-3"
-              />
-            </UBadge>
-          </UTooltip>
-        </div>
+        <!-- Gradient Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent opacity-90 group-hover:opacity-80 transition-opacity duration-500" />
       </div>
 
-      <div class="p-5 space-y-3 flex flex-col h-full">
-        <div>
+      <!-- Content Container -->
+      <div class="absolute inset-0 flex flex-col justify-end p-6 z-10">
+        <!-- Badges (Top) -->
+        <div class="absolute top-4 left-4 right-4 flex justify-between items-start">
+          <div v-if="showCategory && categoryLabel">
+             <UBadge
+              :color="categoryColor"
+              variant="solid"
+              size="md"
+              class="backdrop-blur-md shadow-lg"
+            >
+              {{ categoryLabel }}
+            </UBadge>
+          </div>
+          
+          <div
+            v-if="showSensitivityBadges && (tour.moonSensitive || tour.windSensitive)"
+            class="flex gap-1"
+          >
+            <UTooltip
+              v-if="tour.moonSensitive"
+              :text="$t('tours.sensitive.moon')"
+            >
+              <UBadge
+                color="tertiary"
+                variant="solid"
+                size="sm"
+                class="backdrop-blur-md"
+              >
+                <UIcon
+                  name="i-lucide-moon"
+                  class="w-3 h-3"
+                />
+              </UBadge>
+            </UTooltip>
+            <UTooltip
+              v-if="tour.windSensitive"
+              :text="$t('tours.sensitive.wind')"
+            >
+              <UBadge
+                color="info"
+                variant="solid"
+                size="sm"
+                class="backdrop-blur-md"
+              >
+                <UIcon
+                  name="i-lucide-wind"
+                  class="w-3 h-3"
+                />
+              </UBadge>
+            </UTooltip>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="transform transition-transform duration-500 translate-y-4 group-hover:translate-y-0">
           <h3
-            class="font-semibold line-clamp-2"
-            :class="titleClass"
+            class="text-2xl font-display font-bold text-white mb-2 text-glow leading-tight"
           >
             {{ title }}
           </h3>
-          <p
-            v-if="showDescription && description"
-            class="mt-1 text-sm line-clamp-2"
-            :class="descriptionClass"
-          >
-            {{ description }}
-          </p>
-        </div>
+          
+          <div class="h-0 overflow-hidden group-hover:h-auto transition-all duration-500 opacity-0 group-hover:opacity-100">
+             <p
+              v-if="showDescription && description"
+              class="text-sm text-neutral-200 line-clamp-3 mb-4"
+            >
+              {{ description }}
+            </p>
+          </div>
 
-        <div
-          v-if="showMeta"
-          class="flex items-center gap-4 text-sm"
-          :class="metaClass"
-        >
+          <!-- Meta Info -->
           <div
-            v-if="tour.durationHours"
-            class="flex items-center gap-1"
+            v-if="showMeta"
+            class="flex items-center gap-4 text-sm text-neutral-300 mt-2"
           >
-            <UIcon name="i-lucide-clock" class="w-4 h-4" />
-            <span>{{ $t('tours.duration_hours', { hours: tour.durationHours }) }}</span>
-          </div>
+            <div
+              v-if="tour.durationHours"
+              class="flex items-center gap-1"
+            >
+              <UIcon name="i-lucide-clock" class="w-4 h-4 text-primary" />
+              <span>{{ $t('tours.duration_hours', { hours: tour.durationHours }) }}</span>
+            </div>
 
-           <div
-            v-if="(tour as any).maxParticipants != null"
-            class="flex items-center gap-1"
-           >
-            <UIcon name="i-lucide-users" class="w-4 h-4" />
-            <span>{{ $t('tours.max_participants', { count: (tour as any).maxParticipants }) }}</span>
+             <div
+              v-if="(tour as any).maxParticipants != null"
+              class="flex items-center gap-1"
+             >
+              <UIcon name="i-lucide-users" class="w-4 h-4 text-primary" />
+              <span>{{ $t('tours.max_participants', { count: (tour as any).maxParticipants }) }}</span>
+            </div>
           </div>
-
-          <div
-            v-if="(tour as any).rating && showRating"
-            class="flex items-center gap-1"
-          >
-            <UIcon name="i-lucide-star" class="w-4 h-4 text-warning" />
-             <span>{{ (tour as any).rating }}</span>
+          
+          <!-- Price and Action -->
+          <div class="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
+             <div v-if="showPrice">
+              <p class="text-xs text-neutral-400 uppercase tracking-wider">
+                {{ $t('tours.price_from') }}
+              </p>
+              <p class="text-xl font-bold text-white">
+                {{ formatPrice(tour.price) }}
+              </p>
+            </div>
+            
+            <UButton
+              icon="i-lucide-arrow-right"
+              variant="ghost"
+              color="primary"
+              class="group-hover:translate-x-1 transition-transform"
+            />
           </div>
-        </div>
-
-        <div
-          v-if="showPrice"
-          class="pt-3 mt-auto flex flex-col"
-        >
-          <p class="text-xs text-neutral-400">
-            {{ $t('tours.price_from') }}
-          </p>
-          <p class="text-xl font-semibold">
-            {{ formatPrice(tour.price) }}
-          </p>
         </div>
       </div>
-    </UCard>
+    </div>
   </NuxtLink>
 </template>
 
@@ -198,34 +202,5 @@ const categoryColor = computed((): BadgeColor => {
 
 const categoryLabel = computed(() =>
   (useI18n().t(`tours.category.${props.tour.category}`, props.tour.category || 'REGULAR') as string)
-)
-
-const cardUi = computed(() => ({
-  root: 'overflow-hidden rounded-xl shadow-lg hover:shadow-xl ring-1 ring-neutral-300',
-  body: 'p-0'
-}))
-
-const imageWrapperClass = computed(() =>
-  props.variant === 'list'
-    ? 'relative h-40'
-    : 'relative h-48'
-)
-
-const titleClass = computed(() =>
-  props.variant === 'list'
-    ? 'text-lg text-neutral-900 dark:text-neutral-50'
-    : 'text-lg text-neutral-50'
-)
-
-const descriptionClass = computed(() =>
-  props.variant === 'list'
-    ? 'text-neutral-600 dark:text-neutral-300'
-    : 'text-neutral-300'
-)
-
-const metaClass = computed(() =>
-  props.variant === 'list'
-    ? 'text-neutral-600 dark:text-neutral-300'
-    : 'text-neutral-300'
 )
 </script>
