@@ -5,6 +5,7 @@ export default defineNuxtConfig({
   modules: [
     "@nuxt/eslint",
     "@nuxt/ui",
+    "nuxt-booster",
     "@nuxt/fonts",
     "@nuxtjs/i18n",
     "@pinia/nuxt",
@@ -13,6 +14,35 @@ export default defineNuxtConfig({
 
   devtools: {
     enabled: process.env.NODE_ENV === "development",
+  },
+
+  // Nuxt Booster - holistic performance optimization
+  booster: {
+    // Auto-optimize SSR: inline critical CSS, remove unnecessary preloads/prefetches
+    optimizeSSR: {
+      cleanPreloads: true,
+      cleanPrefetches: true,
+      inlineStyles: true,
+    },
+
+    // Performance detection (optional - can disable for simpler setup)
+    detection: {
+      performance: false, // Disable performance layer for now
+      browserSupport: false,
+      battery: false,
+    },
+
+    // Lazy hydration offset for components and assets (viewport based)
+    lazyOffset: {
+      component: "10%", // Load components 10% before viewport
+      asset: "20%", // Load images 20% before viewport
+    },
+
+    // Target formats for optimized images
+    targetFormats: ["webp", "avif", "jpg|jpeg|png|gif"],
+
+    // Disable auto-import to avoid conflicts with Nuxt UI
+    componentAutoImport: false,
   },
 
   // Font optimization with @nuxt/fonts
