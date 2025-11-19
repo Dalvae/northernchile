@@ -33,7 +33,7 @@
             :to="link.to"
             variant="ghost"
             color="white"
-            class="font-medium text-neutral-300 hover:text-white hover:bg-white/10 transition-colors"
+            class="font-medium text-neutral-200 hover:text-white hover:bg-white/10 transition-colors"
           >
             {{ link.label }}
           </UButton>
@@ -144,6 +144,7 @@
               icon="i-lucide-x"
               color="white"
               variant="ghost"
+              :aria-label="t('common.close') || 'Cerrar menú'"
               @click="mobileMenuOpen = false"
             />
           </div>

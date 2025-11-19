@@ -123,7 +123,7 @@ function clearScheduleSelection() {
             <button
               @click="clearScheduleSelection"
               class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-              :class="!selectedScheduleId ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400' : 'text-neutral-700 dark:text-neutral-300'"
+              :class="!selectedScheduleId ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400' : 'text-neutral-700 dark:text-neutral-200'"
             >
               <UIcon name="i-lucide-image" class="w-4 h-4" />
               <span class="font-medium">Galería Principal</span>
@@ -156,7 +156,7 @@ function clearScheduleSelection() {
                 :key="schedule.id"
                 @click="onScheduleSelect(schedule)"
                 class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-left"
-                :class="selectedScheduleId === schedule.scheduleId ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400' : 'text-neutral-700 dark:text-neutral-300'"
+                :class="selectedScheduleId === schedule.scheduleId ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400' : 'text-neutral-700 dark:text-neutral-200'"
               >
                 <UIcon name="i-lucide-calendar" class="w-4 h-4 shrink-0" />
                 <span class="text-sm truncate">{{ schedule.label }}</span>
@@ -166,7 +166,7 @@ function clearScheduleSelection() {
 
           <!-- No Schedules -->
           <div v-else class="text-center py-8">
-            <UIcon name="i-lucide-calendar-x" class="w-12 h-12 mx-auto mb-2 text-neutral-300 dark:text-neutral-700" />
+            <UIcon name="i-lucide-calendar-x" class="w-12 h-12 mx-auto mb-2 text-neutral-200 dark:text-neutral-700" />
             <p class="text-sm text-neutral-600 dark:text-neutral-400">
               No hay fechas realizadas
             </p>

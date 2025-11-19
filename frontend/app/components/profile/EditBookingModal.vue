@@ -100,7 +100,7 @@ async function saveChanges() {
           <!-- Special Requests -->
           <div>
             <label
-              class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-4"
+              class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-4"
             >
               Solicitudes Especiales
             </label>
@@ -117,7 +117,7 @@ async function saveChanges() {
 
           <!-- Participants -->
           <div>
-            <h4 class="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-4">
+            <h4 class="text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-4">
               Información de Participantes
             </h4>
             <div class="space-y-4">
@@ -138,7 +138,7 @@ async function saveChanges() {
 
                 <div>
                   <label
-                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                   >
                     Dirección de Recogida
                   </label>
@@ -152,7 +152,7 @@ async function saveChanges() {
 
                 <div>
                   <label
-                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                   >
                     Requisitos Especiales
                   </label>
@@ -168,7 +168,7 @@ async function saveChanges() {
                 <div class="grid grid-cols-2 gap-4">
                   <div>
                     <label
-                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                     >
                       Teléfono
                     </label>
@@ -186,7 +186,7 @@ async function saveChanges() {
 
                   <div>
                     <label
-                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                     >
                       Email
                     </label>

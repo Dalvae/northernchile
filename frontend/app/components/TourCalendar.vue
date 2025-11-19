@@ -421,7 +421,7 @@ defineExpose({
                   class="w-4 h-4 rounded"
                   :style="{ backgroundColor: getTourColor(tour.id!) }"
                 />
-                <span class="text-sm text-neutral-700 dark:text-neutral-300">
+                <span class="text-sm text-neutral-700 dark:text-neutral-200">
                   {{ tour.nameTranslations?.[locale] || tour.nameTranslations?.es }}
                 </span>
               </div>
@@ -436,25 +436,25 @@ defineExpose({
             <div class="flex flex-wrap gap-4 text-sm">
               <div class="flex items-center gap-2">
                 <span class="text-lg">🌑🌒🌓🌔🌕🌖🌗🌘</span>
-                <span class="text-neutral-700 dark:text-neutral-300">
+                <span class="text-neutral-700 dark:text-neutral-200">
                   {{ t("schedule.legend.moon_phases") || "Fases lunares" }}
                 </span>
               </div>
               <div class="flex items-center gap-2">
                 <span class="text-lg">💨</span>
-                <span class="text-neutral-700 dark:text-neutral-300">
+                <span class="text-neutral-700 dark:text-neutral-200">
                   {{ t("schedule.legend.high_wind") || "Viento fuerte" }}
                 </span>
               </div>
               <div class="flex items-center gap-2">
                 <span class="text-lg">☁️</span>
-                <span class="text-neutral-700 dark:text-neutral-300">
+                <span class="text-neutral-700 dark:text-neutral-200">
                   {{ t("schedule.legend.cloudy") || "Nublado" }}
                 </span>
               </div>
               <div class="flex items-center gap-2">
                 <span class="text-lg">🌧️</span>
-                <span class="text-neutral-700 dark:text-neutral-300">
+                <span class="text-neutral-700 dark:text-neutral-200">
                   {{ t("schedule.legend.rain") || "Lluvia" }}
                 </span>
               </div>

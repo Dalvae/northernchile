@@ -248,7 +248,7 @@ async function handleBookingSaved() {
           <!-- Participants -->
           <div v-if="booking.participants && booking.participants.length > 0">
             <h4
-              class="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+              class="text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
             >
               Participantes
             </h4>

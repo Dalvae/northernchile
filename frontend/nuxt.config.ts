@@ -16,6 +16,17 @@ export default defineNuxtConfig({
   app: {
     head: {
       link: [
+        // Preconnect to Google Fonts (reduce critical path latency)
+        {
+          rel: "preconnect",
+          href: "https://fonts.googleapis.com",
+        },
+        {
+          rel: "preconnect",
+          href: "https://fonts.gstatic.com",
+          crossorigin: "anonymous",
+        },
+        // Load fonts with display=swap to prevent render blocking
         {
           rel: "stylesheet",
           href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;600&display=swap",
@@ -73,6 +84,28 @@ export default defineNuxtConfig({
         target: "http://localhost:8080/api",
         changeOrigin: true,
       },
+    },
+    headers: {
+      // Security headers for production
+      "X-Frame-Options": "SAMEORIGIN",
+      "X-Content-Type-Options": "nosniff",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+      // HSTS: Force HTTPS (enable in production)
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+      // CSP: Content Security Policy
+      "Content-Security-Policy": [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self' https://fonts.gstatic.com data:",
+        "img-src 'self' data: https: blob:",
+        "connect-src 'self' http://localhost:8080 https://api.openweathermap.org",
+        "frame-ancestors 'self'",
+        "base-uri 'self'",
+        "form-action 'self'",
+      ].join("; "),
     },
   },
 

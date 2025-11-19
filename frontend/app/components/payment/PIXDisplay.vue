@@ -207,7 +207,7 @@ watch(
         {{ t('payment.pix.copy_paste_option') }}
       </p>
       <div class="flex items-center gap-2">
-        <div class="flex-1 p-3 bg-white dark:bg-neutral-700 rounded border border-neutral-200 dark:border-neutral-600 font-mono text-xs text-neutral-700 dark:text-neutral-300 overflow-hidden">
+        <div class="flex-1 p-3 bg-white dark:bg-neutral-700 rounded border border-neutral-200 dark:border-neutral-600 font-mono text-xs text-neutral-700 dark:text-neutral-200 overflow-hidden">
           <span class="block truncate">{{ payment.pixCode }}</span>
         </div>
         <UButton

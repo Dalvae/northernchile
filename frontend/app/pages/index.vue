@@ -69,7 +69,7 @@ useSeoMeta({
           <h2 class="text-4xl md:text-5xl font-display font-bold text-white mb-4 text-glow">
             {{ t("home.featured_tours_title") || "Experiencias Destacadas" }}
           </h2>
-          <p class="text-xl text-neutral-300 max-w-2xl mx-auto">
+          <p class="text-xl text-neutral-200 max-w-2xl mx-auto">
             {{ t("home.featured_tours_subtitle") || "Descubre lo mejor del desierto de Atacama" }}
           </p>
         </div>

@@ -86,7 +86,7 @@ const values = [
         <h1 class="text-5xl md:text-7xl font-display font-bold text-neutral-50 dark:text-neutral-50 mb-8 text-glow">
           {{ t("about.title") || "Sobre Nosotros" }}
         </h1>
-        <p class="text-xl md:text-2xl text-neutral-300 dark:text-neutral-300 max-w-3xl mx-auto font-light leading-relaxed">
+        <p class="text-xl md:text-2xl text-neutral-200 dark:text-neutral-200 max-w-3xl mx-auto font-light leading-relaxed">
           {{ t("about.subtitle") || "Conectando la tierra con el cielo en el corazón del desierto más árido del mundo." }}
         </p>
       </UContainer>
@@ -101,7 +101,7 @@ const values = [
             <h2 class="text-3xl md:text-4xl font-display font-bold text-neutral-50 dark:text-neutral-50 mb-8">
               {{ t("about.historyTitle") }}
             </h2>
-            <div class="space-y-5 text-neutral-300 dark:text-neutral-300 text-base md:text-lg leading-relaxed">
+            <div class="space-y-5 text-neutral-200 dark:text-neutral-200 text-base md:text-lg leading-relaxed">
               <p class="pl-4 border-l-4 border-primary-500/50 dark:border-primary-400/50">
                 {{ t("about.historyP1") }}
               </p>
@@ -233,14 +233,14 @@ const values = [
                 <p class="text-primary-500 dark:text-primary-400 font-medium text-lg md:text-xl mb-4">
                   {{ member.role }}
                 </p>
-                <p class="text-neutral-300 dark:text-neutral-300 mb-6 text-base md:text-lg leading-relaxed">
+                <p class="text-neutral-200 dark:text-neutral-200 mb-6 text-base md:text-lg leading-relaxed">
                   {{ member.bio }}
                 </p>
                 <div class="space-y-3">
                   <div
                     v-for="credential in member.credentials"
                     :key="credential.text"
-                    class="flex items-start gap-3 justify-center md:justify-start text-neutral-400 dark:text-neutral-400 hover:text-neutral-300 dark:hover:text-neutral-300 transition-colors"
+                    class="flex items-start gap-3 justify-center md:justify-start text-neutral-400 dark:text-neutral-400 hover:text-neutral-200 dark:hover:text-neutral-200 transition-colors"
                   >
                     <UIcon :name="credential.icon" class="w-5 h-5 text-primary-500 dark:text-primary-400 flex-shrink-0 mt-0.5" />
                     <span class="text-sm md:text-base">{{ credential.text }}</span>
@@ -260,7 +260,7 @@ const values = [
         <h2 class="text-4xl md:text-5xl font-display font-bold text-neutral-50 dark:text-neutral-50 mb-4 text-glow">
           {{ t("about.cta.title") }}
         </h2>
-        <p class="text-xl text-neutral-300 dark:text-neutral-300 mb-8 max-w-2xl mx-auto">
+        <p class="text-xl text-neutral-200 dark:text-neutral-200 mb-8 max-w-2xl mx-auto">
           {{ t("about.cta.subtitle") }}
         </p>
         <UButton

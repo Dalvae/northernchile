@@ -53,7 +53,7 @@ function proceedToCheckout() {
       >
         <UIcon
           name="i-lucide-shopping-cart"
-          class="w-20 h-20 text-neutral-300 dark:text-neutral-600 mx-auto mb-6"
+          class="w-20 h-20 text-neutral-200 dark:text-neutral-600 mx-auto mb-6"
         />
         <h2
           class="text-2xl font-semibold text-neutral-900 dark:text-white mb-4"

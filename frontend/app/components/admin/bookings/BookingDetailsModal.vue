@@ -79,7 +79,7 @@ function getStatusLabel(status: string): string {
         <div class="py-4 space-y-6 max-h-[60vh] overflow-y-auto">
           <!-- Status -->
           <div>
-            <label class="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            <label class="text-sm font-medium text-neutral-700 dark:text-neutral-200">
               Estado
             </label>
             <div class="mt-1">
@@ -115,7 +115,7 @@ function getStatusLabel(status: string): string {
 
           <!-- Client Info -->
           <div>
-            <label class="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            <label class="text-sm font-medium text-neutral-700 dark:text-neutral-200">
               Cliente
             </label>
             <p class="mt-1 text-neutral-900 dark:text-white">
@@ -125,7 +125,7 @@ function getStatusLabel(status: string): string {
 
           <!-- Participants -->
           <div>
-            <label class="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2 block">
+            <label class="text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2 block">
               Participantes ({{ booking.participants?.length || 0 }})
             </label>
             <div class="space-y-3">
@@ -183,7 +183,7 @@ function getStatusLabel(status: string): string {
 
           <!-- Special Requests -->
           <div v-if="booking.specialRequests">
-            <label class="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            <label class="text-sm font-medium text-neutral-700 dark:text-neutral-200">
               Solicitudes Especiales
             </label>
             <p class="mt-1 text-neutral-900 dark:text-white">
