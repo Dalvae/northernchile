@@ -12,6 +12,11 @@ export default defineNuxtConfig({
     "@vueuse/nuxt",
   ],
 
+  // Experimental features for better performance
+  experimental: {
+    inlineSSRStyles: true, // Force inline ALL SSR styles (eliminates render-blocking CSS)
+  },
+
   devtools: {
     enabled: process.env.NODE_ENV === "development",
   },
@@ -23,8 +28,8 @@ export default defineNuxtConfig({
       cleanPreloads: true,
       cleanPrefetches: true,
       inlineStyles: true,
-      // MAX size for inlined critical CSS - inline almost everything
-      inlinedStylesSize: 50000, // 50KB - inline most CSS
+      // MAX size for inlined critical CSS - inline EVERYTHING
+      inlinedStylesSize: 100000, // 100KB - inline ALL CSS to eliminate render-blocking
     },
 
     // Performance detection (optional - can disable for simpler setup)
@@ -115,7 +120,9 @@ export default defineNuxtConfig({
 
   routeRules: {
     "/": { prerender: true },
-    "/tours": { swr: 3600 }, // Cache SSR for 1 hour with stale-while-revalidate
+    "/tours": {
+      isr: 3600, // Regenerate every hour (ISR allows CSS inlining like prerender)
+    },
     "/auth": { ssr: false },
     "/cart": { ssr: false },
     "/admin/**": { ssr: false },
