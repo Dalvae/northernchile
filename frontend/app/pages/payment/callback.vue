@@ -9,6 +9,13 @@ const paymentStore = usePaymentStore()
 const cartStore = useCartStore()
 const { formatDateTime } = useDateTime()
 
+// SEO: Prevent indexing of payment callback page
+useHead({
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' }
+  ]
+})
+
 // Page state
 const isLoading = ref(true)
 const paymentStatus = ref<PaymentStatus | null>(null)

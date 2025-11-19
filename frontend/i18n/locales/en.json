@@ -271,6 +271,12 @@
       "waning_gibbous": "Waning Gibbous",
       "last_quarter": "Last Quarter",
       "waning_crescent": "Waning Crescent"
+    },
+    "seo": {
+      "title": "Moon Calendar - Northern Chile Tours",
+      "description": "Check moon phases to plan your astronomical tours in San Pedro de Atacama. Discover the best dates to observe the sky in the clearest desert in the world.",
+      "og_title": "Atacama Moon Calendar - Plan Your Astronomical Tour",
+      "og_description": "Check lunar phases and plan the best date for your astronomical experience in the Atacama Desert with clear skies."
     }
   },
   "hero": {

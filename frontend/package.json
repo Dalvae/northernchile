@@ -23,7 +23,7 @@
     "@iconify-json/lucide": "^1.2.70",
     "@iconify-json/simple-icons": "^1.2.54",
     "@nuxt/ui": "^4.0.1",
-    "@nuxtjs/i18n": "10.1.1",
+    "@nuxtjs/i18n": "^10.2.1",
     "@pinia/nuxt": "^0.11.2",
     "@vueuse/nuxt": "^10.11.0",
     "date-fns": "^3.6.0",

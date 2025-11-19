@@ -232,6 +232,16 @@ definePageMeta({
   layout: 'default'
 })
 
+// SEO
+useSeoMeta({
+  title: t('moon.seo.title'),
+  description: t('moon.seo.description'),
+  ogTitle: t('moon.seo.og_title'),
+  ogDescription: t('moon.seo.og_description'),
+  ogImage: 'https://www.northernchile.cl/og-image-moon-calendar.jpg',
+  twitterCard: 'summary_large_image'
+})
+
 // State
 const currentDate = ref(new Date())
 const pending = ref(false)

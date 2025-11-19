@@ -9,6 +9,13 @@ const toast = useToast()
 const { locale, t } = useI18n()
 const { countries } = useCountries()
 
+// SEO: Prevent indexing of checkout page
+useHead({
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' }
+  ]
+})
+
 // Redirect if cart is empty
 if (cartStore.cart.items.length === 0) {
   router.push('/cart')
