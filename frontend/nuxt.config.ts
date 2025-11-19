@@ -228,23 +228,32 @@ export default defineNuxtConfig({
       },
       // Increase chunk size warning limit
       chunkSizeWarningLimit: 600,
+      // Enable source maps for production debugging
+      sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true,
       // More aggressive minification
       minify: 'terser',
       terserOptions: {
         compress: {
           drop_console: process.env.NODE_ENV === 'production',
           drop_debugger: true,
-          passes: 3, // Multiple passes for better compression
+          passes: 2, // Reduced from 3 to avoid over-optimization bugs
           pure_funcs: process.env.NODE_ENV === 'production' ? ['console.log', 'console.info', 'console.debug'] : [],
           dead_code: true,
           unused: true,
+          // Prevent aggressive optimizations that can break code
+          keep_fargs: false,
+          keep_fnames: false,
         },
         mangle: {
           safari10: true,
+          // Keep class names to avoid circular dependency issues
+          keep_classnames: false,
+          keep_fnames: false,
         },
         format: {
           comments: false, // Remove comments in production
         },
+        sourceMap: process.env.NODE_ENV === 'production',
       },
       // Enable CSS code splitting
       cssCodeSplit: true,
