@@ -79,6 +79,36 @@ const heroImage = computed(
   () => tour.value?.images?.[0]?.imageUrl || 'default-image.jpg'
 )
 
+// SEO Description: Extract first paragraph or first 200 chars from description
+const seoDescription = computed(() => {
+  // Try to get text from description blocks
+  if (descriptionBlocks.value.length > 0) {
+    const firstTextBlock = descriptionBlocks.value.find((b: any) => b.type === 'paragraph')
+    if (firstTextBlock?.content) {
+      return firstTextBlock.content.substring(0, 200)
+    }
+  }
+  // Fallback to translatedDescription
+  if (translatedDescription.value) {
+    return translatedDescription.value.substring(0, 200)
+  }
+  return `Descubre ${translatedName.value} en San Pedro de Atacama con Northern Chile Tours`
+})
+
+// Dynamic SEO Metadata
+useSeoMeta({
+  title: () => `${translatedName.value} - Northern Chile Tours`,
+  description: seoDescription,
+  ogTitle: () => `${translatedName.value} - Tours Astronómicos en Atacama`,
+  ogDescription: seoDescription,
+  ogImage: heroImage,
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+  twitterTitle: () => `${translatedName.value} - Northern Chile Tours`,
+  twitterDescription: seoDescription,
+  twitterImage: heroImage
+})
+
 async function goToSchedule() {
   const schedulePath = `/tours/${tourSlug}/schedule`
   await navigateTo(schedulePath)

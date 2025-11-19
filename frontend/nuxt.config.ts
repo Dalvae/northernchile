@@ -95,9 +95,9 @@ export default defineNuxtConfig({
 
   i18n: {
     locales: [
-      { code: "es", iso: "es-CL", name: "Español", file: "es.json" },
-      { code: "en", iso: "en-US", name: "English", file: "en.json" },
-      { code: "pt", iso: "pt-BR", name: "Português", file: "pt.json" },
+      { code: "es", language: "es-CL", name: "Español", file: "es.json" },
+      { code: "en", language: "en-US", name: "English", file: "en.json" },
+      { code: "pt", language: "pt-BR", name: "Português", file: "pt.json" },
     ],
     defaultLocale: "es",
     strategy: "prefix_except_default",
