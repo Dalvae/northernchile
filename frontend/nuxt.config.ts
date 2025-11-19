@@ -159,24 +159,59 @@ export default defineNuxtConfig({
       rollupOptions: {
         output: {
           manualChunks(id) {
-            // Vendor splitting for better caching
+            // Aggressive vendor splitting for better caching and smaller bundles
             if (id.includes('node_modules')) {
-              // Vue core
+              // Vue core - critical
               if (id.includes('vue') || id.includes('@vue')) {
                 return 'vendor-vue'
               }
-              // Nuxt UI and related
-              if (id.includes('@nuxt/ui') || id.includes('@headlessui')) {
+
+              // Nuxt UI and related - split into smaller chunks
+              if (id.includes('@nuxt/ui')) {
                 return 'vendor-ui'
               }
-              // i18n
+              if (id.includes('@headlessui') || id.includes('@floating-ui')) {
+                return 'vendor-ui-deps'
+              }
+
+              // i18n - can be large with all locales
               if (id.includes('i18n') || id.includes('intl')) {
                 return 'vendor-i18n'
               }
-              // Icons (can be large)
+
+              // Icons - separate iconify from lucide
+              if (id.includes('@iconify-json/lucide')) {
+                return 'vendor-icons-lucide'
+              }
               if (id.includes('@iconify')) {
                 return 'vendor-icons'
               }
+
+              // Date libraries
+              if (id.includes('date-fns')) {
+                return 'vendor-date'
+              }
+
+              // FullCalendar - large library
+              if (id.includes('fullcalendar')) {
+                return 'vendor-calendar'
+              }
+
+              // API client / Axios
+              if (id.includes('axios') || id.includes('api-client')) {
+                return 'vendor-api'
+              }
+
+              // Pinia store
+              if (id.includes('pinia')) {
+                return 'vendor-store'
+              }
+
+              // VueUse utilities
+              if (id.includes('@vueuse')) {
+                return 'vendor-vueuse'
+              }
+
               // Other vendor code
               return 'vendor'
             }
@@ -185,6 +220,14 @@ export default defineNuxtConfig({
       },
       // Increase chunk size warning limit
       chunkSizeWarningLimit: 1000,
+      // More aggressive minification
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: process.env.NODE_ENV === 'production',
+          drop_debugger: true,
+        },
+      },
     },
   },
 
