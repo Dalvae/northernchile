@@ -10,7 +10,9 @@
     "admin": "Admin",
     "my_account": "Mi Cuenta",
     "cart": "Carrito",
-    "bookings": "Mis Reservas"
+    "bookings": "Mis Reservas",
+    "language": "Idioma",
+    "theme": "Tema"
   },
   "common": {
     "menu": "Menú",

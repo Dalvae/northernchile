@@ -41,25 +41,29 @@
 
         <!-- Right Actions -->
         <div class="flex items-center gap-3">
-          <!-- Language Switcher -->
-          <LanguageSwitcher />
+          <!-- Language Switcher - Desktop only -->
+          <div class="hidden md:block">
+            <LanguageSwitcher />
+          </div>
 
-          <!-- Theme Switcher -->
-          <ClientOnly>
-            <ThemeSwitcher />
-            <template #fallback>
-              <USkeleton class="h-10 w-10 rounded-md" />
-            </template>
-          </ClientOnly>
+          <!-- Theme Switcher - Desktop only -->
+          <div class="hidden md:block">
+            <ClientOnly>
+              <ThemeSwitcher />
+              <template #fallback>
+                <USkeleton class="h-10 w-10 rounded-md" />
+              </template>
+            </ClientOnly>
+          </div>
 
-          <!-- Cart Button -->
+          <!-- Cart Button - Desktop only -->
           <UButton
             :to="localePath('/cart')"
             variant="ghost"
             color="white"
             icon="i-lucide-shopping-cart"
             :aria-label="t('nav.cart')"
-            class="relative hover:bg-white/10"
+            class="relative hover:bg-white/10 hidden md:flex"
           >
             <UBadge
               v-if="cartItemsCount > 0"
@@ -176,6 +180,47 @@
               {{ link.label }}
             </UButton>
           </nav>
+
+          <!-- Mobile Actions (Language, Theme, Cart) -->
+          <div class="space-y-3 pt-4 border-t border-white/10">
+            <!-- Cart Link -->
+            <UButton
+              :to="localePath('/cart')"
+              variant="ghost"
+              color="white"
+              block
+              icon="i-lucide-shopping-cart"
+              class="justify-start text-lg"
+              @click="mobileMenuOpen = false"
+            >
+              <span class="flex items-center gap-2">
+                {{ t('nav.cart') }}
+                <UBadge
+                  v-if="cartItemsCount > 0"
+                  :label="cartItemsCount.toString()"
+                  color="primary"
+                  size="xs"
+                />
+              </span>
+            </UButton>
+
+            <!-- Language & Theme Switchers -->
+            <div class="flex items-center gap-3 px-4">
+              <div class="flex-1">
+                <p class="text-sm text-neutral-300 mb-2">{{ t('nav.language') || 'Idioma' }}</p>
+                <LanguageSwitcher />
+              </div>
+              <div class="flex-1">
+                <p class="text-sm text-neutral-300 mb-2">{{ t('nav.theme') || 'Tema' }}</p>
+                <ClientOnly>
+                  <ThemeSwitcher />
+                  <template #fallback>
+                    <USkeleton class="h-10 w-full rounded-md" />
+                  </template>
+                </ClientOnly>
+              </div>
+            </div>
+          </div>
 
           <!-- Auth Actions -->
           <div
