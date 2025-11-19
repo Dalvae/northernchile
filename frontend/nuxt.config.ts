@@ -18,17 +18,32 @@ export default defineNuxtConfig({
   // Font optimization with @nuxt/fonts
   fonts: {
     families: [
-      { name: "Playfair Display", provider: "google", weights: [400, 700] },
-      { name: "Inter", provider: "google", weights: [400, 600] },
+      {
+        name: "Playfair Display",
+        provider: "google",
+        weights: [400, 700],
+        // Fallback to Georgia for serif display font (reduces CLS)
+        fallbacks: ["Georgia", "serif"],
+      },
+      {
+        name: "Inter",
+        provider: "google",
+        weights: [400, 600],
+        // Fallback to system fonts (reduces CLS)
+        fallbacks: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Arial", "sans-serif"],
+      },
     ],
     defaults: {
       weights: [400],
       styles: ["normal"],
       subsets: ["latin"],
+      // Use 'optional' instead of 'swap' to prevent FOIT/FOUT
+      // Browser decides if font is ready or uses fallback immediately
+      display: "optional",
     },
-    // Local download for better performance
+    // Local download for better performance (self-hosted WOFF2)
     local: true,
-    // Automatic font metric optimization
+    // Automatic font metric optimization with fontaine
     experimental: {
       processCSSVariables: true,
     },
