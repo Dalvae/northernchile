@@ -1,13 +1,14 @@
 <script setup lang="ts">
+import type { FormError, FormSubmitEvent } from '@nuxt/ui'
+
 const { t } = useI18n()
 const toast = useToast()
 
 useSeoMeta({
-  title: 'Contacto - Northern Chile',
-  description:
-    'Contáctanos para consultas sobre tours astronómicos, reservas especiales y más información sobre nuestros servicios.',
-  ogTitle: 'Contacto - Northern Chile',
-  ogDescription: 'Contáctanos para consultas sobre tours astronómicos',
+  title: t('contact.seo.title'),
+  description: t('contact.seo.description'),
+  ogTitle: t('contact.seo.og_title'),
+  ogDescription: t('contact.seo.og_description'),
   twitterCard: 'summary_large_image'
 })
 
@@ -16,313 +17,306 @@ const state = reactive({
   email: '',
   phone: '',
   subject: '',
-  message: '',
-  loading: false
+  message: ''
 })
 
-const contactInfo = [
+type Schema = typeof state
+
+function validate(state: Partial<Schema>): FormError[] {
+  const errors = []
+  if (!state.name) errors.push({ name: 'name', message: t('contact.form.validation.name_required') })
+  if (!state.email) errors.push({ name: 'email', message: t('contact.form.validation.email_required') })
+  if (!state.subject) errors.push({ name: 'subject', message: t('contact.form.validation.subject_required') })
+  if (!state.message) errors.push({ name: 'message', message: t('contact.form.validation.message_required') })
+  return errors
+}
+
+const contactInfo = computed(() => [
   {
     icon: 'i-lucide-map-pin',
-    title: 'Ubicación',
-    details: ['San Pedro de Atacama', 'Región de Antofagasta, Chile']
+    title: t('contact.info.location.title'),
+    details: [
+      t('contact.info.location.city'),
+      t('contact.info.location.region')
+    ]
   },
   {
     icon: 'i-lucide-phone',
-    title: 'Teléfono',
-    details: ['Disponible vía formulario', 'Te contactaremos a la brevedad']
+    title: t('contact.info.phone.title'),
+    details: [
+      t('contact.info.phone.number'),
+      t('contact.info.phone.hours')
+    ]
   },
   {
     icon: 'i-lucide-mail',
-    title: 'Email',
-    details: ['info@northernchile.cl', 'reservas@northernchile.cl']
-  },
-  {
-    icon: 'i-lucide-clock',
-    title: 'Horarios',
-    details: ['Lun - Dom: 9:00 - 20:00', 'Respuesta rápida por formulario']
+    title: t('contact.info.email.title'),
+    details: [
+      t('contact.info.email.info'),
+      t('contact.info.email.reservations')
+    ]
   }
-]
+])
 
-const faqs = [
+const faqs = computed(() => [
   {
-    question: '¿Necesito experiencia previa en astronomía?',
-    answer:
-      'No, nuestros tours están diseñados para todos los niveles. Nuestros guías explicarán todo lo necesario.'
+    label: t('contact.faq.q1.question'),
+    content: t('contact.faq.q1.answer')
   },
   {
-    question: '¿Qué pasa si hay mal clima?',
-    answer:
-      'Monitoreamos constantemente las condiciones climáticas. Si se cancela por mal clima, ofrecemos reprogramación o reembolso completo.'
+    label: t('contact.faq.q2.question'),
+    content: t('contact.faq.q2.answer')
   },
   {
-    question: '¿Los tours incluyen transporte?',
-    answer:
-      'Sí, todos nuestros tours incluyen transporte desde tu alojamiento en San Pedro de Atacama.'
+    label: t('contact.faq.q3.question'),
+    content: t('contact.faq.q3.answer')
   },
   {
-    question: '¿Puedo hacer una reserva privada?',
-    answer:
-      'Sí, ofrecemos tours privados. Contáctanos para coordinar una experiencia personalizada.'
+    label: t('contact.faq.q4.question'),
+    content: t('contact.faq.q4.answer')
   }
-]
+])
 
-async function submitForm() {
-  state.loading = true
+async function onSubmit(event: FormSubmitEvent<Schema>) {
   try {
-    // Simular envío (aquí iría la llamada real a API)
+    // Simular envío
     await new Promise(resolve => setTimeout(resolve, 1500))
 
     toast.add({
-      title: 'Mensaje enviado',
-      description: 'Gracias por contactarnos. Te responderemos pronto.',
-      color: 'success'
+      title: t('contact.form.toast.success_title'),
+      description: t('contact.form.toast.success_description'),
+      color: 'success',
+      icon: 'i-heroicons-check-circle'
     })
 
-    // Reset form
     state.name = ''
     state.email = ''
     state.phone = ''
     state.subject = ''
     state.message = ''
-  } catch (error) {
+  } catch {
     toast.add({
-      title: 'Error',
-      description: 'No se pudo enviar el mensaje. Intenta nuevamente.',
-      color: 'error'
+      title: t('contact.form.toast.error_title'),
+      description: t('contact.form.toast.error_description'),
+      color: 'error',
+      icon: 'i-heroicons-exclamation-circle'
     })
-  } finally {
-    state.loading = false
   }
 }
 </script>
 
 <template>
-  <div>
-    <!-- Hero Section -->
-    <section
-      class="relative py-20 bg-gradient-to-b from-neutral-900 to-neutral-800 text-white"
-    >
-      <UContainer>
-        <div class="max-w-3xl mx-auto text-center">
-          <h1 class="text-4xl md:text-5xl font-bold mb-6">
-            Contáctanos
-          </h1>
-          <p class="text-xl text-neutral-300">
-            Estamos aquí para responder tus preguntas y ayudarte a planificar tu
-            aventura astronómica
-          </p>
-        </div>
-      </UContainer>
-    </section>
+  <div class="min-h-screen bg-white dark:bg-neutral-950">
+    <!-- Simple Header with Stars Background -->
+    <div class="relative h-64 md:h-80 flex items-center justify-center overflow-hidden">
+      <UiBgStars />
+      <div class="absolute inset-0 bg-gradient-to-b from-neutral-900/80 to-neutral-900/40 dark:from-neutral-950/80 dark:to-neutral-950/40" />
 
-    <!-- Contact Info Grid -->
-    <section class="py-16 bg-white dark:bg-neutral-800">
-      <UContainer>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-          <div
-            v-for="info in contactInfo"
-            :key="info.title"
-            class="text-center"
-          >
+      <div class="relative z-10 text-center px-4">
+        <h1 class="text-3xl md:text-5xl font-bold text-white mb-4">
+          {{ t("contact.hero.title") }}
+        </h1>
+        <p class="text-lg text-neutral-200 max-w-xl mx-auto font-light">
+          {{ t("contact.hero.subtitle") }}
+        </p>
+      </div>
+    </div>
+
+    <UContainer class="py-16 md:py-24">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
+        <!-- Left Column: Contact Info & Context -->
+        <div class="space-y-12">
+          <div>
+            <h2 class="text-3xl font-bold text-neutral-900 dark:text-white mb-6">
+              {{ t("contact.section_title") }}
+            </h2>
+            <p class="text-neutral-600 dark:text-neutral-400 text-lg leading-relaxed">
+              {{ t("contact.section_description") }}
+            </p>
+          </div>
+
+          <!-- Contact Details List -->
+          <div class="space-y-8">
             <div
-              class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 mb-4"
+              v-for="info in contactInfo"
+              :key="info.title"
+              class="flex items-start gap-6"
             >
-              <UIcon
-                :name="info.icon"
-                class="w-8 h-8 text-primary-600 dark:text-primary-400"
+              <div class="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-50 dark:bg-primary-900/20">
+                <UIcon
+                  :name="info.icon"
+                  class="w-6 h-6 text-primary-600 dark:text-primary-400"
+                />
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-neutral-900 dark:text-white mb-1">
+                  {{ info.title }}
+                </h3>
+                <div class="space-y-0.5">
+                  <p
+                    v-for="detail in info.details"
+                    :key="detail"
+                    class="text-neutral-600 dark:text-neutral-400"
+                  >
+                    {{ detail }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Social Links -->
+          <div>
+            <h3 class="text-sm font-semibold text-neutral-900 dark:text-white uppercase tracking-wider mb-4">
+              {{ t("contact.social.title") }}
+            </h3>
+            <div class="flex gap-4">
+              <UButton
+                v-for="social in ['facebook', 'instagram', 'whatsapp']"
+                :key="social"
+                :to="`https://${social}.com`"
+                target="_blank"
+                color="neutral"
+                variant="ghost"
+                size="lg"
+                :icon="`i-simple-icons-${social}`"
+                class="hover:bg-neutral-100 dark:hover:bg-neutral-800"
               />
             </div>
-            <h3
-              class="text-lg font-semibold text-neutral-900 dark:text-white mb-3"
-            >
-              {{ info.title }}
-            </h3>
-            <div class="space-y-1">
-              <p
-                v-for="detail in info.details"
-                :key="detail"
-                class="text-neutral-600 dark:text-neutral-400 text-sm"
-              >
-                {{ detail }}
-              </p>
-            </div>
           </div>
         </div>
 
-        <!-- Contact Form + Map -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <!-- Form -->
+        <!-- Right Column: Form -->
+        <div class="bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl p-8 md:p-10 border border-neutral-200 dark:border-neutral-800">
+          <UForm
+            :state="state"
+            :validate="validate"
+            class="space-y-6"
+            @submit="onSubmit"
+          >
+            <UFormField
+              :label="t('contact.form.name_label')"
+              name="name"
+              required
+            >
+              <UInput
+                v-model="state.name"
+                :placeholder="t('contact.form.name_placeholder')"
+                size="xl"
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField
+              :label="t('contact.form.email_label')"
+              name="email"
+              required
+            >
+              <UInput
+                v-model="state.email"
+                type="email"
+                :placeholder="t('contact.form.email_placeholder')"
+                size="xl"
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField
+              :label="t('contact.form.phone_label')"
+              name="phone"
+            >
+              <UInput
+                v-model="state.phone"
+                :placeholder="t('contact.form.phone_placeholder')"
+                size="xl"
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField
+              :label="t('contact.form.subject_label')"
+              name="subject"
+              required
+            >
+              <UInput
+                v-model="state.subject"
+                :placeholder="t('contact.form.subject_placeholder')"
+                size="xl"
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField
+              :label="t('contact.form.message_label')"
+              name="message"
+              required
+            >
+              <UTextarea
+                v-model="state.message"
+                :rows="6"
+                :placeholder="t('contact.form.message_placeholder')"
+                size="xl"
+                class="w-full"
+              />
+            </UFormField>
+
+            <UButton
+              type="submit"
+              block
+              size="xl"
+              color="primary"
+              class="font-semibold"
+            >
+              {{ t("contact.form.submit") }}
+            </UButton>
+          </UForm>
+        </div>
+      </div>
+
+      <!-- FAQ & Map Section -->
+      <div class="mt-24 pt-16 border-t border-neutral-200 dark:border-neutral-800">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          <!-- FAQ -->
           <div>
-            <h2
-              class="text-2xl font-bold text-neutral-900 dark:text-white mb-6"
-            >
-              Envíanos un mensaje
+            <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-8">
+              {{ t("contact.faq.title") }}
             </h2>
-            <form
-              class="space-y-6"
-              @submit.prevent="submitForm"
-            >
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
-                >
-                  Nombre completo
-                </label>
-                <UInput
-                  v-model="state.name"
-                  size="lg"
-                  placeholder="Juan Pérez"
-                  class="w-full"
-                  required
-                />
-              </div>
-
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
-                >
-                  Email
-                </label>
-                <UInput
-                  v-model="state.email"
-                  type="email"
-                  size="lg"
-                  placeholder="juan@email.com"
-                  class="w-full"
-                  required
-                />
-              </div>
-
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
-                >
-                  Teléfono
-                </label>
-                <UInput
-                  v-model="state.phone"
-                  size="lg"
-                  placeholder="+56 9 1234 5678"
-                  class="w-full"
-                />
-              </div>
-
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
-                >
-                  Asunto
-                </label>
-                <UInput
-                  v-model="state.subject"
-                  size="lg"
-                  placeholder="Consulta sobre tours astronómicos"
-                  class="w-full"
-                  required
-                />
-              </div>
-
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
-                >
-                  Mensaje
-                </label>
-                <UTextarea
-                  v-model="state.message"
-                  :rows="6"
-                  size="lg"
-                  placeholder="Escribe tu mensaje aquí..."
-                  class="w-full"
-                  required
-                />
-              </div>
-
-              <UButton
-                type="submit"
-                size="lg"
-                color="primary"
-                :loading="state.loading"
-                block
-              >
-                {{ state.loading ? "Enviando..." : "Enviar mensaje" }}
-              </UButton>
-            </form>
+            <UAccordion
+              :items="faqs"
+              color="neutral"
+              variant="soft"
+              size="md"
+            />
           </div>
 
-          <!-- Map Placeholder + Social -->
+          <!-- Simple Map Link -->
           <div>
-            <h2
-              class="text-2xl font-bold text-neutral-900 dark:text-white mb-6"
-            >
-              Encuéntranos
+            <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-8">
+              {{ t("contact.map.title") }}
             </h2>
-
-            <!-- Map placeholder -->
-            <div
-              class="w-full h-64 bg-neutral-200 dark:bg-neutral-800 rounded-xl mb-6 flex items-center justify-center overflow-hidden"
-            >
-              <div class="text-center p-8">
-                <UIcon
-                  name="i-lucide-map"
-                  class="w-12 h-12 text-neutral-400 mx-auto mb-3"
-                />
-                <p class="text-neutral-600 dark:text-neutral-400 text-sm">
-                  San Pedro de Atacama<br>
-                  Región de Antofagasta, Chile
-                </p>
-              </div>
-            </div>
-
-            <!-- Social Media -->
-            <div>
-              <h3
-                class="text-lg font-semibold text-neutral-900 dark:text-white mb-4"
+            <div class="bg-neutral-100 dark:bg-neutral-800 rounded-xl overflow-hidden h-[300px] relative group">
+              <!-- Static Image for performance/design -->
+              <img
+                src="https://images.unsplash.com/photo-1518558997970-4ddc236affcd?q=80&w=1000&auto=format&fit=crop"
+                alt="San Pedro de Atacama"
+                class="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500"
               >
-                Síguenos en redes sociales
-              </h3>
-              <div class="flex gap-4">
+              <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors">
                 <UButton
-                  icon="i-simple-icons-facebook"
+                  to="https://maps.google.com/?q=San+Pedro+de+Atacama"
+                  target="_blank"
                   color="neutral"
-                  variant="soft"
+                  variant="solid"
+                  icon="i-lucide-map-pin"
                   size="lg"
-                  square
-                  external
-                  to="https://facebook.com"
-                />
-                <UButton
-                  icon="i-simple-icons-instagram"
-                  color="neutral"
-                  variant="soft"
-                  size="lg"
-                  square
-                  external
-                  to="https://instagram.com"
-                />
+                >
+                  {{ t("contact.map.button") }}
+                </UButton>
               </div>
             </div>
           </div>
         </div>
-      </UContainer>
-    </section>
-
-    <!-- FAQs -->
-    <section class="py-16 bg-neutral-50 dark:bg-neutral-800/50">
-      <UContainer>
-        <h2
-          class="text-3xl font-bold text-neutral-900 dark:text-white mb-12 text-center"
-        >
-          Preguntas Frecuentes
-        </h2>
-        <div class="max-w-3xl mx-auto space-y-4">
-          <UAccordion
-            :items="
-              faqs.map((faq) => ({ label: faq.question, content: faq.answer }))
-            "
-          />
-        </div>
-      </UContainer>
-    </section>
+      </div>
+    </UContainer>
   </div>
 </template>

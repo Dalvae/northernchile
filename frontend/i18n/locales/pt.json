@@ -297,10 +297,10 @@
     "title": "Sobre Northern Chile",
     "subtitle": "Conectando pessoas com o universo do deserto mais claro do mundo",
     "historyTitle": "Nossa História",
-    "historyP1": "Northern Chile nasceu de 15 anos de paixão pelo turismo astronômico no deserto do Atacama e na Bolívia. Não vendemos apenas um tour, vendemos uma experiência de conhecimento, um verdadeiro show sob as estrelas.",
-    "historyP2": "Criamos um \"Auditório ao Céu Aberto\" onde nossos visitantes se deitam aos pés do deserto para conectar o céu com o solo. É uma experiência natural que envolve caminhar pelas dunas, equipado com telescópios profissionais (Celestron 8se, Skywatcher equatorial, Celestron 114 LSM, Seestar S50zvw) e câmeras para capturar a magia do momento.",
-    "historyP3": "Fomos premiados com o prêmio de melhor tour do Atacama no ano passado, e nossa agência foi selecionada entre as 9 melhores de San Pedro por emissários do turismo. Nosso fundador participou como locutor do tour astronômico na feira VIVA Antofagasta e colaborou com o Museu do Meteorito.",
-    "historyP4": "Os céus do Atacama são totalmente diferentes a cada 6 meses, oferecendo experiências únicas dependendo da época do ano. Convidamos você a descobrir por que o deserto do Atacama é considerado um dos melhores lugares do mundo para observação astronômica.",
+    "historyP1": "A Northern Chile nasce de 15 anos de paixão pelo turismo astronômico no deserto do Atacama. Não vendemos simplesmente um passeio, vendemos uma experiência de conhecimento, um verdadeiro show sob as estrelas.",
+    "historyP2": "Criamos um \"Auditório a Céu Aberto\" onde nossos visitantes se deitam aos pés do deserto para conectar o céu com o solo. É uma experiência natural que envolve caminhar pelas dunas, equipados com telescópios profissionais (Celestron 8se, Skywatcher equatorial, Celestron 114 LSM, Seestar S50zvw) e câmeras para capturar a magia do momento.",
+    "historyP3": "Fomos premiados com o \"melhor tour do Atacama\" no ano passado, e nossa agência foi selecionada entre as 9 melhores de San Pedro por representantes turísticos. Nosso fundador participou como a voz em off do tour astronômico na feira VIVA Antofagasta.",
+    "historyP4": "Os céus do Atacama são totalmente diferentes a cada 6 meses, oferecendo experiências únicas conforme a época do ano. Convidamos você a descobrir por que o deserto do Atacama é considerado um dos melhores lugares do mundo para a observação astronômica.",
     "valuesTitle": "Nossos Valores",
     "values": {
       "experience_title": "Experiência de Conhecimento",
@@ -546,6 +546,88 @@
       "high_wind": "Vento forte",
       "cloudy": "Nublado",
       "rain": "Chuva"
+    }
+  },
+  "contact": {
+    "seo": {
+      "title": "Contato - Northern Chile",
+      "description": "Entre em contato para consultas sobre tours astronômicos, reservas especiais e mais informações sobre nossos serviços",
+      "og_title": "Contato - Northern Chile",
+      "og_description": "Entre em contato para consultas sobre tours astronômicos"
+    },
+    "hero": {
+      "title": "Entre em Contato",
+      "subtitle": "Estamos aqui para ajudá-lo a planejar sua experiência sob as estrelas"
+    },
+    "section_title": "Entre em contato",
+    "section_description": "Tem dúvidas sobre nossos tours ou precisa de uma experiência personalizada? Preencha o formulário e nossa equipe responderá em breve.",
+    "info": {
+      "location": {
+        "title": "Localização",
+        "city": "San Pedro de Atacama",
+        "region": "Região de Antofagasta, Chile"
+      },
+      "phone": {
+        "title": "Telefone",
+        "number": "+56 9 1234 5678",
+        "hours": "Seg - Dom: 9:00 - 20:00"
+      },
+      "email": {
+        "title": "Email",
+        "info": "info{'@'}northernchile.cl",
+        "reservations": "reservas{'@'}northernchile.cl"
+      }
+    },
+    "social": {
+      "title": "Siga-nos"
+    },
+    "form": {
+      "name_label": "Nome completo",
+      "name_placeholder": "Seu nome",
+      "email_label": "Email",
+      "email_placeholder": "seu{'@'}email.com",
+      "phone_label": "Telefone",
+      "phone_placeholder": "+56 9 ...",
+      "subject_label": "Assunto",
+      "subject_placeholder": "Como podemos ajudá-lo?",
+      "message_label": "Mensagem",
+      "message_placeholder": "Escreva sua mensagem...",
+      "submit": "Enviar Mensagem",
+      "validation": {
+        "name_required": "O nome é obrigatório",
+        "email_required": "O email é obrigatório",
+        "subject_required": "O assunto é obrigatório",
+        "message_required": "A mensagem é obrigatória"
+      },
+      "toast": {
+        "success_title": "Mensagem enviada",
+        "success_description": "Obrigado por entrar em contato. Responderemos em breve.",
+        "error_title": "Erro",
+        "error_description": "Não foi possível enviar a mensagem. Tente novamente."
+      }
+    },
+    "faq": {
+      "title": "Perguntas Frequentes",
+      "q1": {
+        "question": "Preciso de experiência prévia em astronomia?",
+        "answer": "Não, nossos tours são projetados para todos os níveis. Nossos guias explicarão tudo o que você precisa saber."
+      },
+      "q2": {
+        "question": "O que acontece se houver mau tempo?",
+        "answer": "Monitoramos constantemente as condições climáticas. Se cancelado devido ao mau tempo, oferecemos reagendamento ou reembolso total."
+      },
+      "q3": {
+        "question": "Os tours incluem transporte?",
+        "answer": "Sim, todos os nossos tours incluem transporte de sua acomodação em San Pedro de Atacama."
+      },
+      "q4": {
+        "question": "Posso fazer uma reserva privada?",
+        "answer": "Sim, oferecemos tours privados. Entre em contato para coordenar uma experiência personalizada."
+      }
+    },
+    "map": {
+      "title": "Localização",
+      "button": "Ver no Google Maps"
     }
   },
   "errors": {

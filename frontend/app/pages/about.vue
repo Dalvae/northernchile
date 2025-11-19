@@ -83,10 +83,10 @@ const values = [
     <!-- Hero Section -->
     <section class="relative pt-32 pb-20 z-10">
       <UContainer class="text-center">
-        <h1 class="text-5xl md:text-7xl font-display font-bold text-white mb-8 text-glow">
+        <h1 class="text-5xl md:text-7xl font-display font-bold text-neutral-50 dark:text-neutral-50 mb-8 text-glow">
           {{ t("about.title") || "Sobre Nosotros" }}
         </h1>
-        <p class="text-xl md:text-2xl text-neutral-300 max-w-3xl mx-auto font-light leading-relaxed">
+        <p class="text-xl md:text-2xl text-neutral-300 dark:text-neutral-300 max-w-3xl mx-auto font-light leading-relaxed">
           {{ t("about.subtitle") || "Conectando la tierra con el cielo en el corazón del desierto más árido del mundo." }}
         </p>
       </UContainer>
@@ -95,27 +95,49 @@ const values = [
     <!-- Nuestra Historia -->
     <section class="relative py-20 z-10">
       <UContainer>
-        <div class="atacama-card p-8 md:p-12 rounded-xl backdrop-blur-sm">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div class="space-y-6">
-              <h2 class="text-3xl md:text-4xl font-display font-bold text-white">
-                {{ t("about.history_title") || "Nuestra Historia" }}
-              </h2>
-              <div class="space-y-4 text-neutral-300 text-lg leading-relaxed">
-                <p>
-                  Nacimos bajo los cielos de San Pedro de Atacama con una misión clara: compartir la magia del universo combinando la ciencia astronómica con la cosmovisión ancestral de los pueblos andinos.
-                </p>
-                <p>
-                  Northern Chile no es solo una agencia de tours; es un puente entre el pasado y el futuro, entre la tierra (Pachamama) y el cosmos.
-                </p>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          <!-- Contenido de texto -->
+          <div class="space-y-6">
+            <h2 class="text-3xl md:text-4xl font-display font-bold text-neutral-50 dark:text-neutral-50 mb-8">
+              {{ t("about.historyTitle") }}
+            </h2>
+            <div class="space-y-5 text-neutral-300 dark:text-neutral-300 text-base md:text-lg leading-relaxed">
+              <p class="pl-4 border-l-4 border-primary-500/50 dark:border-primary-400/50">
+                {{ t("about.historyP1") }}
+              </p>
+              <p>{{ t("about.historyP2") }}</p>
+              <p>{{ t("about.historyP3") }}</p>
+              <p>{{ t("about.historyP4") }}</p>
+            </div>
+          </div>
+
+          <!-- Área visual - Grid de imágenes/elementos -->
+          <div class="grid grid-cols-2 gap-4 h-full">
+            <!-- Imagen destacada grande -->
+            <div class="col-span-2 atacama-card rounded-xl overflow-hidden h-64 relative group">
+              <div class="absolute inset-0 bg-gradient-to-br from-primary-900/30 via-neutral-900/50 to-tertiary-900/30 flex items-center justify-center">
+                <div class="text-center space-y-3">
+                  <UIcon name="i-lucide-telescope" class="w-16 h-16 text-primary-400 mx-auto cobre-glow" />
+                  <p class="text-neutral-200 font-medium text-lg">Equipamiento Profesional</p>
+                  <p class="text-neutral-400 text-sm px-4">4 telescopios de alta gama</p>
+                </div>
               </div>
             </div>
-            <div class="relative h-80 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
-              <!-- Placeholder image -->
-              <div class="absolute inset-0 bg-neutral-800 flex items-center justify-center">
-                <UIcon name="i-lucide-mountain" class="w-20 h-20 text-neutral-700" />
+
+            <!-- Tarjeta premio -->
+            <div class="atacama-card rounded-xl p-6 relative group hover:bg-neutral-100/5 transition-all">
+              <div class="flex flex-col items-center justify-center h-full space-y-3">
+                <UIcon name="i-lucide-award" class="w-12 h-12 text-primary-500 dark:text-primary-400 cobre-glow" />
+                <p class="text-neutral-200 text-center text-sm font-medium">Mejor Tour de Atacama</p>
               </div>
-              <div class="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent" />
+            </div>
+
+            <!-- Tarjeta experiencia -->
+            <div class="atacama-card rounded-xl p-6 relative group hover:bg-neutral-100/5 transition-all">
+              <div class="flex flex-col items-center justify-center h-full space-y-3">
+                <div class="text-4xl font-bold text-primary-500 dark:text-primary-400">15</div>
+                <p class="text-neutral-200 text-center text-sm font-medium">Años de Experiencia</p>
+              </div>
             </div>
           </div>
         </div>
@@ -126,64 +148,106 @@ const values = [
     <section class="relative py-20 z-10">
       <UContainer>
         <div class="text-center mb-16">
-          <h2 class="text-3xl md:text-4xl font-display font-bold text-white text-glow">
-            {{ t("about.values_title") || "Nuestros Valores" }}
+          <h2 class="text-3xl md:text-4xl font-display font-bold text-neutral-50 dark:text-neutral-50 text-glow">
+            {{ t("about.valuesTitle") }}
           </h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="atacama-card p-8 rounded-xl hover:bg-white/5 transition-colors group">
-            <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
-              <UIcon name="i-lucide-heart-handshake" class="w-7 h-7 text-primary" />
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="atacama-card p-6 rounded-xl hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-colors group">
+            <div class="w-14 h-14 rounded-full bg-primary-500/10 dark:bg-primary-500/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
+              <UIcon name="i-lucide-sparkles" class="w-7 h-7 text-primary-500 dark:text-primary-400" />
             </div>
-            <h3 class="text-xl font-bold text-white mb-3">Respeto Ancestral</h3>
-            <p class="text-neutral-400">
-              Honramos las tradiciones y la tierra que nos acoge, trabajando en armonía con las comunidades locales.
+            <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
+              {{ t("about.values.experience_title") }}
+            </h3>
+            <p class="text-neutral-400 dark:text-neutral-400 text-sm">
+              {{ t("about.values.experience_description") }}
             </p>
           </div>
 
-          <div class="atacama-card p-8 rounded-xl hover:bg-white/5 transition-colors group">
-            <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
-              <UIcon name="i-lucide-graduation-cap" class="w-7 h-7 text-primary" />
+          <div class="atacama-card p-6 rounded-xl hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-colors group">
+            <div class="w-14 h-14 rounded-full bg-primary-500/10 dark:bg-primary-500/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
+              <UIcon name="i-lucide-telescope" class="w-7 h-7 text-primary-500 dark:text-primary-400" />
             </div>
-            <h3 class="text-xl font-bold text-white mb-3">Excelencia Científica</h3>
-            <p class="text-neutral-400">
-              Nuestros guías son expertos en astronomía, garantizando una experiencia educativa de primer nivel.
+            <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
+              {{ t("about.values.equipment_title") }}
+            </h3>
+            <p class="text-neutral-400 dark:text-neutral-400 text-sm">
+              {{ t("about.values.equipment_description") }}
             </p>
           </div>
 
-          <div class="atacama-card p-8 rounded-xl hover:bg-white/5 transition-colors group">
-            <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
-              <UIcon name="i-lucide-sparkles" class="w-7 h-7 text-primary" />
+          <div class="atacama-card p-6 rounded-xl hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-colors group">
+            <div class="w-14 h-14 rounded-full bg-primary-500/10 dark:bg-primary-500/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
+              <UIcon name="i-lucide-award" class="w-7 h-7 text-primary-500 dark:text-primary-400" />
             </div>
-            <h3 class="text-xl font-bold text-white mb-3">Magia y Conexión</h3>
-            <p class="text-neutral-400">
-              Creamos momentos inolvidables que conectan a nuestros viajeros con la inmensidad del universo.
+            <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
+              {{ t("about.values.quality_title") }}
+            </h3>
+            <p class="text-neutral-400 dark:text-neutral-400 text-sm">
+              {{ t("about.values.quality_description") }}
+            </p>
+          </div>
+
+          <div class="atacama-card p-6 rounded-xl hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-colors group">
+            <div class="w-14 h-14 rounded-full bg-primary-500/10 dark:bg-primary-500/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
+              <UIcon name="i-lucide-mountain" class="w-7 h-7 text-primary-500 dark:text-primary-400" />
+            </div>
+            <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
+              {{ t("about.values.auditorium_title") }}
+            </h3>
+            <p class="text-neutral-400 dark:text-neutral-400 text-sm">
+              {{ t("about.values.auditorium_description") }}
             </p>
           </div>
         </div>
       </UContainer>
     </section>
 
-    <!-- Nuestro Equipo (Placeholder) -->
+    <!-- Nuestro Equipo -->
     <section class="relative py-20 z-10">
       <UContainer>
         <div class="text-center mb-16">
-          <h2 class="text-3xl md:text-4xl font-display font-bold text-white text-glow">
-            {{ t("about.team_title") || "Nuestro Equipo" }}
+          <h2 class="text-3xl md:text-4xl font-display font-bold text-neutral-50 dark:text-neutral-50 text-glow">
+            {{ t("about.teamTitle") || "Nuestro Equipo" }}
           </h2>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div v-for="i in 4" :key="i" class="atacama-card p-6 rounded-xl text-center group">
-            <div class="w-32 h-32 mx-auto rounded-full bg-neutral-800 mb-4 overflow-hidden border-2 border-primary/30 group-hover:border-primary transition-colors">
-              <UIcon name="i-lucide-user" class="w-full h-full p-6 text-neutral-600" />
+        <div class="max-w-5xl mx-auto space-y-8">
+          <div
+            v-for="member in teamMembers"
+            :key="member.name"
+            class="atacama-card p-8 rounded-xl backdrop-blur-sm hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-all group"
+          >
+            <div class="flex flex-col md:flex-row items-center gap-8">
+              <img
+                :src="member.image"
+                :alt="member.name"
+                class="w-40 h-40 rounded-full flex-shrink-0 border-4 border-primary-500/30 dark:border-primary-400/30 group-hover:border-primary-500/50 dark:group-hover:border-primary-400/50 transition-colors"
+              >
+              <div class="flex-1 text-center md:text-left">
+                <h3 class="text-2xl md:text-3xl font-bold text-neutral-50 dark:text-neutral-50 mb-2">
+                  {{ member.name }}
+                </h3>
+                <p class="text-primary-500 dark:text-primary-400 font-medium text-lg md:text-xl mb-4">
+                  {{ member.role }}
+                </p>
+                <p class="text-neutral-300 dark:text-neutral-300 mb-6 text-base md:text-lg leading-relaxed">
+                  {{ member.bio }}
+                </p>
+                <div class="space-y-3">
+                  <div
+                    v-for="credential in member.credentials"
+                    :key="credential.text"
+                    class="flex items-start gap-3 justify-center md:justify-start text-neutral-400 dark:text-neutral-400 hover:text-neutral-300 dark:hover:text-neutral-300 transition-colors"
+                  >
+                    <UIcon :name="credential.icon" class="w-5 h-5 text-primary-500 dark:text-primary-400 flex-shrink-0 mt-0.5" />
+                    <span class="text-sm md:text-base">{{ credential.text }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <h3 class="text-lg font-bold text-white">Guía Experto {{ i }}</h3>
-            <p class="text-primary text-sm mb-2">Astrónomo</p>
-            <p class="text-neutral-400 text-sm">
-              Apasionado por las estrellas y la historia del desierto.
-            </p>
           </div>
         </div>
       </UContainer>
@@ -193,16 +257,19 @@ const values = [
     <section class="relative py-24 z-10">
       <div class="absolute inset-0 atacama-gradient opacity-50 z-0" />
       <UContainer class="relative z-10 text-center">
-        <h2 class="text-4xl font-display font-bold text-white mb-8 text-glow">
-          Únete a la Aventura
+        <h2 class="text-4xl md:text-5xl font-display font-bold text-neutral-50 dark:text-neutral-50 mb-4 text-glow">
+          {{ t("about.cta.title") }}
         </h2>
+        <p class="text-xl text-neutral-300 dark:text-neutral-300 mb-8 max-w-2xl mx-auto">
+          {{ t("about.cta.subtitle") }}
+        </p>
         <UButton
           to="/tours"
           size="xl"
           color="primary"
           class="px-12 py-4 text-lg font-bold cobre-glow hover:scale-105 transition-transform"
         >
-          Ver Tours Disponibles
+          {{ t("about.cta.button") }}
         </UButton>
       </UContainer>
     </section>

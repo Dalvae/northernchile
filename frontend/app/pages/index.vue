@@ -56,6 +56,9 @@ useSeoMeta({
     <!-- Hero Section -->
     <HomeHeroSection />
 
+    <!-- Experience Section -->
+    <HomeExperience />
+
     <!-- Tours Destacados -->
     <section class="relative py-24 z-10 overflow-hidden">
       <!-- Background Gradient -->

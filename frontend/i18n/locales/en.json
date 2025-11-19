@@ -307,10 +307,10 @@
     },
     "title": "About Northern Chile",
     "subtitle": "Connecting people with the universe from the clearest desert in the world",
-    "historyTitle": "Our History",
-    "historyP1": "Northern Chile was born from 15 years of passion for astronomical tourism in the Atacama Desert and Bolivia. We don't just sell a tour, we sell a knowledge experience, a true show under the stars.",
-    "historyP2": "We created an \"Open-Air Auditorium\" where our visitors lie down at the foot of the desert to connect the sky with the ground. It is a natural experience that involves walking through the dunes, equipped with professional telescopes (Celestron 8se, equatorial Skywatcher, Celestron 114 LSM, Seestar S50zvw) and cameras to capture the magic of the moment.",
-    "historyP3": "We were awarded the best Atacama tour award last year, and our agency was selected among the 9 best in San Pedro by tourism emissaries. Our founder participated as a voice-over for the astronomical tour at the VIVA Antofagasta fair and collaborated with the Meteorite Museum.",
+    "historyTitle": "Our Story",
+    "historyP1": "Northern Chile was born from 15 years of passion for astronomical tourism in the Atacama Desert. We do not simply sell a tour; we sell an experience of knowledge, a true show under the stars.",
+    "historyP2": "We created an \"Open-Air Auditorium\" where our visitors lie down at the foot of the desert to connect the sky with the ground. It is a natural experience that involves walking through the dunes, equipped with professional telescopes (Celestron 8se, Skywatcher equatorial, Celestron 114 LSM, Seestar S50zvw) and cameras to capture the magic of the moment.",
+    "historyP3": "We were awarded the \"Best Tour of Atacama\" prize last year, and our agency was selected among the top 9 in San Pedro by tourism representatives. Our founder participated as the voice-over for the astronomical tour at the VIVA Antofagasta fair.",
     "historyP4": "The Atacama skies are completely different every 6 months, offering unique experiences depending on the time of year. We invite you to discover why the Atacama Desert is considered one of the best places in the world for astronomical observation.",
     "valuesTitle": "Our Values",
     "values": {
@@ -557,6 +557,88 @@
       "high_wind": "Strong wind",
       "cloudy": "Cloudy",
       "rain": "Rain"
+    }
+  },
+  "contact": {
+    "seo": {
+      "title": "Contact - Northern Chile",
+      "description": "Contact us for inquiries about astronomical tours, special reservations and more information about our services",
+      "og_title": "Contact - Northern Chile",
+      "og_description": "Contact us for inquiries about astronomical tours"
+    },
+    "hero": {
+      "title": "Contact Us",
+      "subtitle": "We're here to help you plan your experience under the stars"
+    },
+    "section_title": "Get in touch",
+    "section_description": "Have questions about our tours or need a personalized experience? Fill out the form and our team will respond shortly.",
+    "info": {
+      "location": {
+        "title": "Location",
+        "city": "San Pedro de Atacama",
+        "region": "Antofagasta Region, Chile"
+      },
+      "phone": {
+        "title": "Phone",
+        "number": "+56 9 1234 5678",
+        "hours": "Mon - Sun: 9:00 AM - 8:00 PM"
+      },
+      "email": {
+        "title": "Email",
+        "info": "info{'@'}northernchile.cl",
+        "reservations": "reservations{'@'}northernchile.cl"
+      }
+    },
+    "social": {
+      "title": "Follow us"
+    },
+    "form": {
+      "name_label": "Full name",
+      "name_placeholder": "Your name",
+      "email_label": "Email",
+      "email_placeholder": "your{'@'}email.com",
+      "phone_label": "Phone",
+      "phone_placeholder": "+56 9 ...",
+      "subject_label": "Subject",
+      "subject_placeholder": "How can we help you?",
+      "message_label": "Message",
+      "message_placeholder": "Write your message...",
+      "submit": "Send Message",
+      "validation": {
+        "name_required": "Name is required",
+        "email_required": "Email is required",
+        "subject_required": "Subject is required",
+        "message_required": "Message is required"
+      },
+      "toast": {
+        "success_title": "Message sent",
+        "success_description": "Thank you for contacting us. We will respond soon.",
+        "error_title": "Error",
+        "error_description": "Could not send message. Please try again."
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "q1": {
+        "question": "Do I need previous astronomy experience?",
+        "answer": "No, our tours are designed for all levels. Our guides will explain everything you need to know."
+      },
+      "q2": {
+        "question": "What happens if there is bad weather?",
+        "answer": "We constantly monitor weather conditions. If canceled due to bad weather, we offer rescheduling or full refund."
+      },
+      "q3": {
+        "question": "Do tours include transportation?",
+        "answer": "Yes, all our tours include transportation from your accommodation in San Pedro de Atacama."
+      },
+      "q4": {
+        "question": "Can I make a private reservation?",
+        "answer": "Yes, we offer private tours. Contact us to coordinate a personalized experience."
+      }
+    },
+    "map": {
+      "title": "Location",
+      "button": "View on Google Maps"
     }
   },
   "errors": {

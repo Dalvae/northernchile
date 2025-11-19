@@ -387,15 +387,10 @@ async function submitRequest() {
               >
                 {{ t("privateTours.popular_tours.astrophotography.title") }}
               </h3>
-              <p class="text-neutral-600 dark:text-neutral-400 text-sm mb-4">
+              <p class="text-neutral-600 dark:text-neutral-400 text-sm">
                 {{
                   t("privateTours.popular_tours.astrophotography.description")
                 }}
-              </p>
-              <p
-                class="text-2xl font-bold text-primary-600 dark:text-primary-400"
-              >
-                {{ t("privateTours.popular_tours.astrophotography.price") }}
               </p>
             </div>
           </UCard>
@@ -411,17 +406,12 @@ async function submitRequest() {
               >
                 {{ t("privateTours.popular_tours.romantic_experience.title") }}
               </h3>
-              <p class="text-neutral-600 dark:text-neutral-400 text-sm mb-4">
+              <p class="text-neutral-600 dark:text-neutral-400 text-sm">
                 {{
                   t(
                     "privateTours.popular_tours.romantic_experience.description"
                   )
                 }}
-              </p>
-              <p
-                class="text-2xl font-bold text-primary-600 dark:text-primary-400"
-              >
-                {{ t("privateTours.popular_tours.romantic_experience.price") }}
               </p>
             </div>
           </UCard>
@@ -437,13 +427,8 @@ async function submitRequest() {
               >
                 {{ t("privateTours.popular_tours.family_tour.title") }}
               </h3>
-              <p class="text-neutral-600 dark:text-neutral-400 text-sm mb-4">
+              <p class="text-neutral-600 dark:text-neutral-400 text-sm">
                 {{ t("privateTours.popular_tours.family_tour.description") }}
-              </p>
-              <p
-                class="text-2xl font-bold text-primary-600 dark:text-primary-400"
-              >
-                {{ t("privateTours.popular_tours.family_tour.price") }}
               </p>
             </div>
           </UCard>
