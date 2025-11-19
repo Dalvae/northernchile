@@ -105,13 +105,13 @@ function clearScheduleSelection() {
           <template #header>
             <div class="flex items-center justify-between">
               <div>
-                <NuxtLink to="/admin/media" class="text-sm text-neutral-600 dark:text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400">
+                <NuxtLink to="/admin/media" class="text-sm text-neutral-600 dark:text-neutral-300 hover:text-primary-600 dark:hover:text-primary-400">
                   ← Volver a Media
                 </NuxtLink>
                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mt-2">
                   {{ tour.nameTranslations?.es || 'Tour' }}
                 </h2>
-                <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                <p class="text-sm text-neutral-600 dark:text-neutral-300">
                   Galería principal y fechas
                 </p>
               </div>
@@ -167,7 +167,7 @@ function clearScheduleSelection() {
           <!-- No Schedules -->
           <div v-else class="text-center py-8">
             <UIcon name="i-lucide-calendar-x" class="w-12 h-12 mx-auto mb-2 text-neutral-200 dark:text-neutral-700" />
-            <p class="text-sm text-neutral-600 dark:text-neutral-400">
+            <p class="text-sm text-neutral-600 dark:text-neutral-300">
               No hay fechas realizadas
             </p>
           </div>
@@ -188,7 +188,7 @@ function clearScheduleSelection() {
                     Galería Principal
                   </template>
                 </h2>
-                <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                <p class="text-sm text-neutral-600 dark:text-neutral-300">
                   <template v-if="selectedScheduleId">
                     Fotos específicas de esta fecha
                   </template>

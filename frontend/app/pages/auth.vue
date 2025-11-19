@@ -17,7 +17,7 @@
           <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">
             {{ isLogin ? t("auth.login") : t("auth.register") }}
           </h2>
-          <p class="text-sm text-neutral-600 dark:text-neutral-400">
+          <p class="text-sm text-neutral-600 dark:text-neutral-300">
             {{
               isLogin
                 ? t("auth.login_description")
@@ -179,7 +179,7 @@
 
         <!-- Toggle Login/Register -->
         <div class="text-center text-sm">
-          <span class="text-neutral-600 dark:text-neutral-400">
+          <span class="text-neutral-600 dark:text-neutral-300">
             {{
               isLogin
                 ? t("auth.dont_have_account")
@@ -197,7 +197,7 @@
         </div>
 
         <!-- Terms -->
-        <p class="text-xs text-center text-neutral-500 dark:text-neutral-400">
+        <p class="text-xs text-center text-neutral-500 dark:text-neutral-300">
           {{ t("auth.terms_text") }}
           <NuxtLink
             to="/terms"

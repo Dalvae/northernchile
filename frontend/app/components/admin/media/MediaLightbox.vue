@@ -160,14 +160,14 @@ function getTypeBadgeColor(type?: string) {
                 </UBadge>
               </div>
 
-              <div class="flex gap-4 text-xs text-neutral-400">
+              <div class="flex gap-4 text-xs text-neutral-300">
                 <span>{{ currentMedia.originalFilename }}</span>
                 <span v-if="currentMedia.takenAt">{{ formatDate(currentMedia.takenAt) }}</span>
               </div>
             </div>
 
             <!-- Right side: Counter -->
-            <div class="text-sm text-neutral-400">
+            <div class="text-sm text-neutral-300">
               {{ currentIndex + 1 }} / {{ media.length }}
             </div>
           </div>

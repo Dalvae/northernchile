@@ -1,4 +1,9 @@
 <script setup lang="ts">
+// Accept critical prop from parent (nuxt-booster)
+defineProps<{
+  critical?: boolean
+}>()
+
 const items = [
   {
     title: 'Astronomía con Alma',
@@ -63,7 +68,7 @@ const items = [
               {{ item.title }}
             </h3>
 
-            <p class="text-lg text-neutral-400 leading-relaxed">
+            <p class="text-lg text-neutral-300 leading-relaxed">
               {{ item.description }}
             </p>
 

@@ -5,7 +5,7 @@
       <div
         class="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
         :class="[
-          completed ? 'bg-success text-white' : active ? 'bg-primary text-white' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400'
+          completed ? 'bg-success text-white' : active ? 'bg-primary text-white' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300'
         ]"
       >
         <UIcon
@@ -25,7 +25,7 @@
       <p
         class="text-sm font-medium transition-colors"
         :class="[
-          active || completed ? 'text-neutral-900 dark:text-white' : 'text-neutral-500 dark:text-neutral-400'
+          active || completed ? 'text-neutral-900 dark:text-white' : 'text-neutral-500 dark:text-neutral-300'
         ]"
       >
         {{ title }}

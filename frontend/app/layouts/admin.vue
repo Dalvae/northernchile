@@ -277,7 +277,7 @@ function formatSegment(segment: string) {
                 >
                   {{ authStore.user?.fullName }}
                 </p>
-                 <p class="text-xs text-neutral-600 dark:text-neutral-400 truncate">
+                 <p class="text-xs text-neutral-600 dark:text-neutral-300 truncate">
                   {{
                     authStore.user?.role?.includes("ROLE_SUPER_ADMIN")
                       ? "Super Admin"
@@ -289,7 +289,7 @@ function formatSegment(segment: string) {
               </div>
               <UIcon
                 name="i-lucide-chevron-up"
-                class="w-4 h-4 text-neutral-400"
+                class="w-4 h-4 text-neutral-300"
               />
             </div>
           </template>

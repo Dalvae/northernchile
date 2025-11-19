@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import TourCard from '~/components/tour/TourCard.vue'
 
+// Nuxt Booster: Lazy hydration for non-critical components
+const hydrate = useBoosterHydrate()
+
+// Lazy-load Experience section (not in initial viewport)
+const HomeExperience = hydrate(defineAsyncComponent(() => import('~/components/home/Experience.vue')))
+
 const { fetchAll } = useTours()
 const { data: toursData } = await fetchAll()
 
@@ -53,10 +59,10 @@ useSeoMeta({
 
 <template>
   <div>
-    <!-- Hero Section -->
-    <HomeHeroSection />
+    <!-- Hero Section - CRITICAL: In initial viewport -->
+    <HomeHeroSection critical />
 
-    <!-- Experience Section -->
+    <!-- Experience Section - Lazy hydrated (below fold) -->
     <HomeExperience />
 
     <!-- Tours Destacados -->
@@ -123,7 +129,7 @@ useSeoMeta({
             <h3 class="text-2xl font-display font-bold text-white mb-4">
               {{ feature.title }}
             </h3>
-            <p class="text-neutral-400 leading-relaxed">
+            <p class="text-neutral-300 leading-relaxed">
               {{ feature.description }}
             </p>
           </div>

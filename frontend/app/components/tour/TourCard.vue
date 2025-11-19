@@ -114,7 +114,7 @@
           <!-- Price and Action -->
           <div class="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
              <div v-if="showPrice">
-              <p class="text-xs text-neutral-400 uppercase tracking-wider">
+              <p class="text-xs text-neutral-300 uppercase tracking-wider">
                 {{ $t('tours.price_from') }}
               </p>
               <p class="text-xl font-bold text-white">

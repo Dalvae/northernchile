@@ -119,7 +119,7 @@ const values = [
                 <div class="text-center space-y-3">
                   <UIcon name="i-lucide-telescope" class="w-16 h-16 text-primary-400 mx-auto cobre-glow" />
                   <p class="text-neutral-200 font-medium text-lg">Equipamiento Profesional</p>
-                  <p class="text-neutral-400 text-sm px-4">4 telescopios de alta gama</p>
+                  <p class="text-neutral-300 text-sm px-4">4 telescopios de alta gama</p>
                 </div>
               </div>
             </div>
@@ -161,7 +161,7 @@ const values = [
             <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
               {{ t("about.values.experience_title") }}
             </h3>
-            <p class="text-neutral-400 dark:text-neutral-400 text-sm">
+            <p class="text-neutral-300 dark:text-neutral-300 text-sm">
               {{ t("about.values.experience_description") }}
             </p>
           </div>
@@ -173,7 +173,7 @@ const values = [
             <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
               {{ t("about.values.equipment_title") }}
             </h3>
-            <p class="text-neutral-400 dark:text-neutral-400 text-sm">
+            <p class="text-neutral-300 dark:text-neutral-300 text-sm">
               {{ t("about.values.equipment_description") }}
             </p>
           </div>
@@ -185,7 +185,7 @@ const values = [
             <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
               {{ t("about.values.quality_title") }}
             </h3>
-            <p class="text-neutral-400 dark:text-neutral-400 text-sm">
+            <p class="text-neutral-300 dark:text-neutral-300 text-sm">
               {{ t("about.values.quality_description") }}
             </p>
           </div>
@@ -197,7 +197,7 @@ const values = [
             <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
               {{ t("about.values.auditorium_title") }}
             </h3>
-            <p class="text-neutral-400 dark:text-neutral-400 text-sm">
+            <p class="text-neutral-300 dark:text-neutral-300 text-sm">
               {{ t("about.values.auditorium_description") }}
             </p>
           </div>
@@ -240,7 +240,7 @@ const values = [
                   <div
                     v-for="credential in member.credentials"
                     :key="credential.text"
-                    class="flex items-start gap-3 justify-center md:justify-start text-neutral-400 dark:text-neutral-400 hover:text-neutral-200 dark:hover:text-neutral-200 transition-colors"
+                    class="flex items-start gap-3 justify-center md:justify-start text-neutral-300 dark:text-neutral-300 hover:text-neutral-200 dark:hover:text-neutral-200 transition-colors"
                   >
                     <UIcon :name="credential.icon" class="w-5 h-5 text-primary-500 dark:text-primary-400 flex-shrink-0 mt-0.5" />
                     <span class="text-sm md:text-base">{{ credential.text }}</span>

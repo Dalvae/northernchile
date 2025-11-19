@@ -414,7 +414,7 @@ const total = computed(() => subtotal.value + tax.value)
         <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
           Finalizar Compra
         </h1>
-        <p class="text-neutral-600 dark:text-neutral-400">
+        <p class="text-neutral-600 dark:text-neutral-300">
           Completa tu reserva en {{ totalSteps }} simples pasos
         </p>
       </div>
@@ -436,7 +436,7 @@ const total = computed(() => subtotal.value + tax.value)
                   :class="[
                     currentStep >= step
                       ? 'bg-primary text-white'
-                      : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400'
+                      : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300'
                   ]"
                 >
                   {{ step }}
@@ -457,7 +457,7 @@ const total = computed(() => subtotal.value + tax.value)
                 :class="
                   currentStep >= 1
                     ? 'text-neutral-900 dark:text-white font-medium'
-                    : 'text-neutral-500 dark:text-neutral-400'
+                    : 'text-neutral-500 dark:text-neutral-300'
                 "
               >
                 Contacto
@@ -466,7 +466,7 @@ const total = computed(() => subtotal.value + tax.value)
                 :class="
                   currentStep >= 2
                     ? 'text-neutral-900 dark:text-white font-medium'
-                    : 'text-neutral-500 dark:text-neutral-400'
+                    : 'text-neutral-500 dark:text-neutral-300'
                 "
               >
                 Participantes
@@ -475,7 +475,7 @@ const total = computed(() => subtotal.value + tax.value)
                 :class="
                   currentStep >= 3
                     ? 'text-neutral-900 dark:text-white font-medium'
-                    : 'text-neutral-500 dark:text-neutral-400'
+                    : 'text-neutral-500 dark:text-neutral-300'
                 "
               >
                 Pago
@@ -491,7 +491,7 @@ const total = computed(() => subtotal.value + tax.value)
               >
                 Información de Contacto
               </h2>
-              <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+              <p class="text-sm text-neutral-500 dark:text-neutral-300 mt-1">
                 Usaremos esta información para enviarte la confirmación
               </p>
             </template>
@@ -565,7 +565,7 @@ const total = computed(() => subtotal.value + tax.value)
                 v-if="!authStore.isAuthenticated"
                 class="space-y-4 mt-4"
               >
-                <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                <p class="text-sm text-neutral-600 dark:text-neutral-300">
                   Crea una cuenta para gestionar tus reservas fácilmente. Si ya tienes una, <NuxtLink
                     to="/auth?redirect=/checkout"
                     class="text-primary font-medium hover:underline"
@@ -635,7 +635,7 @@ const total = computed(() => subtotal.value + tax.value)
               >
                 Datos de Participantes
               </h2>
-              <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+              <p class="text-sm text-neutral-500 dark:text-neutral-300 mt-1">
                 {{ totalParticipants }}
                 {{ totalParticipants === 1 ? "persona" : "personas" }} en total
               </p>
@@ -658,7 +658,7 @@ const total = computed(() => subtotal.value + tax.value)
                         Participante {{ index + 1 }}
                         <span
                           v-if="index === 0"
-                          class="text-sm text-neutral-500 dark:text-neutral-400 font-normal ml-2"
+                          class="text-sm text-neutral-500 dark:text-neutral-300 font-normal ml-2"
                         >
                           (Contacto principal)
                         </span>
@@ -700,7 +700,7 @@ const total = computed(() => subtotal.value + tax.value)
               >
                 {{ t('payment.select_method') }}
               </h2>
-              <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+              <p class="text-sm text-neutral-500 dark:text-neutral-300 mt-1">
                 {{ t('payment.select_method_description') }}
               </p>
             </template>
@@ -760,7 +760,7 @@ const total = computed(() => subtotal.value + tax.value)
                     {{ item.tourName }}
                   </p>
                   <p
-                    class="text-xs text-neutral-500 dark:text-neutral-400 mt-1"
+                    class="text-xs text-neutral-500 dark:text-neutral-300 mt-1"
                   >
                     {{ item.numParticipants }}
                     {{ item.numParticipants === 1 ? "persona" : "personas" }}
@@ -775,13 +775,13 @@ const total = computed(() => subtotal.value + tax.value)
                 <!-- Totals -->
                 <div class="space-y-2 pt-2">
                   <div
-                    class="flex justify-between text-sm text-neutral-600 dark:text-neutral-400"
+                    class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
                   >
                     <span>Subtotal</span>
                     <span>{{ formatCurrency(subtotal) }}</span>
                   </div>
                   <div
-                    class="flex justify-between text-sm text-neutral-600 dark:text-neutral-400"
+                    class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
                   >
                     <span>IVA (19%)</span>
                     <span>{{ formatCurrency(tax) }}</span>

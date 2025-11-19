@@ -6,12 +6,15 @@
       <div class="absolute inset-0 bg-gradient-to-b from-neutral-950/30 via-transparent to-neutral-950 z-20" />
       <!-- Placeholder for Hero Image -->
       <div class="w-full h-full bg-neutral-900" />
-      <UiBgStars />
+      <!-- Lazy load BgStars - decorative, not critical for LCP -->
+      <ClientOnly>
+        <LazyUiBgStars />
+      </ClientOnly>
     </div>
 
     <!-- Content -->
     <div class="relative z-30 text-center px-4 max-w-5xl mx-auto">
-      <div :class="{ 'animate-fade-in-up': animationsEnabled }">
+      <div>
         <UBadge
           variant="outline"
           color="primary"
@@ -20,25 +23,16 @@
           {{ t("home.hero.badge") }}
         </UBadge>
 
-        <h1
-          class="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-white mb-6 leading-tight text-glow"
-          :class="{ 'animate-fade-in-up': animationsEnabled }"
-        >
+        <h1 class="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-white mb-6 leading-tight text-glow">
           <span class="block">{{ t("home.hero.title_line1") }}</span>
           <span class="block texto-cobre">{{ t("home.hero.title_line2") }}</span>
         </h1>
 
-        <p
-          class="text-xl md:text-2xl text-neutral-200 mb-10 max-w-2xl mx-auto font-light"
-          :class="{ 'animate-fade-in-up delay-300': animationsEnabled }"
-        >
+        <p class="text-xl md:text-2xl text-neutral-200 mb-10 max-w-2xl mx-auto font-light">
           {{ t("home.hero.subtitle") }}
         </p>
 
-        <div
-          class="flex flex-col sm:flex-row gap-4 justify-center items-center"
-          :class="{ 'animate-fade-in-up delay-500': animationsEnabled }"
-        >
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <UButton
             to="/tours"
             size="xl"
@@ -61,10 +55,7 @@
       </div>
 
       <!-- Quick Features -->
-      <div
-        class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8"
-        :class="{ 'animate-fade-in-up delay-700': animationsEnabled }"
-      >
+      <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
         <div v-for="feature in quickFeatures" :key="feature.label" class="flex flex-col items-center">
           <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2 border border-primary/20">
             <UIcon :name="feature.icon" class="w-6 h-6 text-primary" />
@@ -89,6 +80,11 @@
 </template>
 
 <script setup lang="ts">
+// Accept critical prop from parent (nuxt-booster)
+defineProps<{
+  critical?: boolean
+}>()
+
 const { t } = useI18n()
 
 const quickFeatures = computed(() => [
@@ -98,43 +94,6 @@ const quickFeatures = computed(() => [
   { icon: 'i-lucide-shield-check', label: t('home.hero.features.freeCancellation') }
 ])
 
-// Defer animations until first user interaction for better LCP
-const animationsEnabled = ref(false)
-
-onMounted(() => {
-  // Enable animations on first user interaction
-  const enableAnimations = () => {
-    animationsEnabled.value = true
-    // Clean up listeners after first interaction
-    window.removeEventListener('scroll', enableAnimations, { passive: true } as any)
-    window.removeEventListener('mousemove', enableAnimations, { passive: true } as any)
-    window.removeEventListener('touchstart', enableAnimations, { passive: true } as any)
-    window.removeEventListener('click', enableAnimations, { passive: true } as any)
-  }
-
-  // Listen for ANY user interaction
-  window.addEventListener('scroll', enableAnimations, { passive: true })
-  window.addEventListener('mousemove', enableAnimations, { passive: true })
-  window.addEventListener('touchstart', enableAnimations, { passive: true })
-  window.addEventListener('click', enableAnimations, { passive: true })
-
-  // Fallback: Enable after 2s if no interaction (for users reading content)
-  const fallbackTimer = setTimeout(() => {
-    if (!animationsEnabled.value) {
-      animationsEnabled.value = true
-    }
-  }, 2000)
-
-  // Cleanup on unmount
-  onUnmounted(() => {
-    clearTimeout(fallbackTimer)
-    window.removeEventListener('scroll', enableAnimations)
-    window.removeEventListener('mousemove', enableAnimations)
-    window.removeEventListener('touchstart', enableAnimations)
-    window.removeEventListener('click', enableAnimations)
-  })
-})
-
 function scrollToContent() {
   window.scrollTo({
     top: window.innerHeight,
@@ -143,42 +102,3 @@ function scrollToContent() {
 }
 </script>
 
-<style scoped>
-/* Deferred animations for LCP optimization */
-/* Animations only trigger on first user interaction, not on load */
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.8s ease-out forwards;
-}
-
-.delay-300 {
-  animation-delay: 200ms;
-}
-
-.delay-500 {
-  animation-delay: 400ms;
-}
-
-.delay-700 {
-  animation-delay: 600ms;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-fade-in-up {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-}
-</style>

@@ -87,7 +87,7 @@ const columns = [
       const caption = media.captionTranslations?.es
       return h('div', [
         h('p', { class: 'font-medium text-neutral-900 dark:text-neutral-100 truncate max-w-xs' }, altText),
-        caption ? h('p', { class: 'text-sm text-neutral-600 dark:text-neutral-400 truncate max-w-xs' }, caption) : null
+        caption ? h('p', { class: 'text-sm text-neutral-600 dark:text-neutral-300 truncate max-w-xs' }, caption) : null
       ].filter(Boolean))
     }
   },
@@ -112,7 +112,7 @@ const columns = [
     cell: ({ row }: { row: { original: MediaRes } }) => {
       const media = row.original
       const date = media.takenAt || media.uploadedAt
-      return h('div', { class: 'text-sm text-neutral-600 dark:text-neutral-400' }, formatDate(date))
+      return h('div', { class: 'text-sm text-neutral-600 dark:text-neutral-300' }, formatDate(date))
     }
   },
   {
@@ -120,7 +120,7 @@ const columns = [
     accessorKey: 'sizeBytes' as const,
     header: 'Tamaño',
     cell: ({ row }: { row: { original: MediaRes } }) => {
-      return h('div', { class: 'text-sm text-neutral-600 dark:text-neutral-400' }, formatFileSize(row.original.sizeBytes))
+      return h('div', { class: 'text-sm text-neutral-600 dark:text-neutral-300' }, formatFileSize(row.original.sizeBytes))
     }
   },
   {
@@ -258,7 +258,7 @@ async function bulkDelete() {
         <h1 class="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
           Biblioteca de Medios
         </h1>
-        <p class="text-neutral-600 dark:text-neutral-400 mt-1">
+        <p class="text-neutral-600 dark:text-neutral-300 mt-1">
           Gestiona las fotos de tus tours y programas
         </p>
       </div>
@@ -385,7 +385,7 @@ async function bulkDelete() {
       <!-- Pagination -->
       <template #footer>
         <div class="flex items-center justify-between">
-          <div class="text-sm text-neutral-600 dark:text-neutral-400">
+          <div class="text-sm text-neutral-600 dark:text-neutral-300">
             Mostrando {{ (page - 1) * pageSize + 1 }} - {{ Math.min(page * pageSize, totalItems) }} de {{ totalItems }}
           </div>
 

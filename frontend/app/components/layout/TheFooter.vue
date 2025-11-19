@@ -6,7 +6,7 @@
       <div class="flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-2">
           <UIcon name="i-lucide-telescope" class="w-5 h-5 text-primary" />
-          <p class="text-sm text-neutral-400">
+          <p class="text-sm text-neutral-300">
             © {{ new Date().getFullYear() }} Northern Chile. <span class="hidden sm:inline">Bajo los cielos de Atacama.</span>
           </p>
         </div>

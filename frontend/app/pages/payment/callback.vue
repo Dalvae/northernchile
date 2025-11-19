@@ -148,7 +148,7 @@ function retryPayment() {
           <h1 class="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
             {{ t('payment.callback.processing') }}
           </h1>
-          <p class="text-neutral-600 dark:text-neutral-400">
+          <p class="text-neutral-600 dark:text-neutral-300">
             {{ t('payment.callback.verifying_payment') }}
           </p>
         </div>
@@ -168,7 +168,7 @@ function retryPayment() {
             <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
               {{ t('payment.success.title') }}
             </h1>
-            <p class="text-lg text-neutral-600 dark:text-neutral-400">
+            <p class="text-lg text-neutral-600 dark:text-neutral-300">
               {{ t('payment.success.subtitle') }}
             </p>
           </div>
@@ -179,7 +179,7 @@ function retryPayment() {
                 v-if="paymentId"
                 class="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg"
               >
-                <p class="text-sm text-neutral-500 dark:text-neutral-400 mb-1">
+                <p class="text-sm text-neutral-500 dark:text-neutral-300 mb-1">
                   {{ t('payment.callback.payment_id') }}
                 </p>
                 <p class="text-lg font-bold text-neutral-900 dark:text-white font-mono">
@@ -189,7 +189,7 @@ function retryPayment() {
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p class="text-neutral-500 dark:text-neutral-400 mb-1">
+                  <p class="text-neutral-500 dark:text-neutral-300 mb-1">
                     {{ t('common.status') }}
                   </p>
                   <UBadge
@@ -200,7 +200,7 @@ function retryPayment() {
                   </UBadge>
                 </div>
                 <div>
-                  <p class="text-neutral-500 dark:text-neutral-400 mb-1">
+                  <p class="text-neutral-500 dark:text-neutral-300 mb-1">
                     {{ t('payment.callback.payment_date') }}
                   </p>
                   <p class="font-medium text-neutral-900 dark:text-white">
@@ -221,7 +221,7 @@ function retryPayment() {
                     <p class="font-medium text-neutral-900 dark:text-white">
                       {{ t('payment.callback.confirmation_sent_title') }}
                     </p>
-                    <p class="text-neutral-600 dark:text-neutral-400">
+                    <p class="text-neutral-600 dark:text-neutral-300">
                       {{ t('payment.callback.confirmation_sent_description') }}
                     </p>
                   </div>
@@ -236,7 +236,7 @@ function retryPayment() {
                     <p class="font-medium text-neutral-900 dark:text-white">
                       {{ t('payment.callback.booking_confirmed_title') }}
                     </p>
-                    <p class="text-neutral-600 dark:text-neutral-400">
+                    <p class="text-neutral-600 dark:text-neutral-300">
                       {{ t('payment.callback.booking_confirmed_description') }}
                     </p>
                   </div>
@@ -251,7 +251,7 @@ function retryPayment() {
                     <p class="font-medium text-neutral-900 dark:text-white">
                       {{ t('payment.callback.cancellation_policy_title') }}
                     </p>
-                    <p class="text-neutral-600 dark:text-neutral-400">
+                    <p class="text-neutral-600 dark:text-neutral-300">
                       {{ t('payment.callback.cancellation_policy_description') }}
                     </p>
                   </div>
@@ -300,7 +300,7 @@ function retryPayment() {
             <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
               {{ t('payment.error.title') }}
             </h1>
-            <p class="text-lg text-neutral-600 dark:text-neutral-400">
+            <p class="text-lg text-neutral-600 dark:text-neutral-300">
               {{ paymentStatus === PaymentStatus.CANCELLED ? t('payment.error.cancelled') : t('payment.error.subtitle') }}
             </p>
           </div>
@@ -320,7 +320,7 @@ function retryPayment() {
                 <h3 class="font-medium text-neutral-900 dark:text-white mb-3">
                   {{ t('payment.callback.possible_reasons_title') }}
                 </h3>
-                <ul class="space-y-2 text-sm text-neutral-600 dark:text-neutral-400">
+                <ul class="space-y-2 text-sm text-neutral-600 dark:text-neutral-300">
                   <li class="flex items-center gap-2">
                     <UIcon
                       name="i-lucide-circle"

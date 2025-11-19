@@ -12,7 +12,7 @@ definePageMeta({
         <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
           Mis Reservas
         </h1>
-        <p class="text-neutral-600 dark:text-neutral-400">
+        <p class="text-neutral-600 dark:text-neutral-300">
           Revisa y administra tus reservas
         </p>
       </div>

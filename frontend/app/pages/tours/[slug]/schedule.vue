@@ -20,8 +20,8 @@ const selectedSchedule = ref<TourScheduleRes | null>(null)
 const participantCount = ref(1)
 const showParticipantModal = ref(false)
 
-// Reference to the calendar component
-const calendarRef = ref<InstanceType<typeof TourCalendar> | null>(null)
+// Reference to the calendar component (lazy-loaded)
+const calendarRef = ref<any>(null)
 
 const translatedName = computed(
   () =>
@@ -140,7 +140,7 @@ useSeoMeta({
         <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
           {{ error }}
         </h2>
-        <p class="text-neutral-600 dark:text-neutral-400 mb-6">
+        <p class="text-neutral-600 dark:text-neutral-300 mb-6">
           {{ t("schedule.error_description") }}
         </p>
         <UButton
@@ -169,7 +169,7 @@ useSeoMeta({
             {{ translatedName }}
           </h1>
 
-          <p class="text-lg text-neutral-600 dark:text-neutral-400 mb-6">
+          <p class="text-lg text-neutral-600 dark:text-neutral-300 mb-6">
             {{ translatedDescription }}
           </p>
 
@@ -186,7 +186,7 @@ useSeoMeta({
                   />
                 </div>
                 <div>
-                  <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                  <p class="text-sm text-neutral-600 dark:text-neutral-300">
                     {{ t("tours.duration") }}
                   </p>
                   <p class="font-semibold text-neutral-900 dark:text-white">
@@ -207,7 +207,7 @@ useSeoMeta({
                   />
                 </div>
                 <div>
-                  <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                  <p class="text-sm text-neutral-600 dark:text-neutral-300">
                     {{ t("tours.price_from") }}
                   </p>
                   <p class="font-semibold text-neutral-900 dark:text-white">
@@ -228,7 +228,7 @@ useSeoMeta({
                   />
                 </div>
                 <div>
-                  <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                  <p class="text-sm text-neutral-600 dark:text-neutral-300">
                     {{ t("tours.max_participants_label") }}
                   </p>
                   <p class="font-semibold text-neutral-900 dark:text-white">
@@ -249,7 +249,7 @@ useSeoMeta({
                   />
                 </div>
                 <div>
-                  <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                  <p class="text-sm text-neutral-600 dark:text-neutral-300">
                     {{ t("tours.category.label") }}
                   </p>
                   <p class="font-semibold text-neutral-900 dark:text-white">
@@ -267,7 +267,7 @@ useSeoMeta({
             {{ t("schedule.select_date") || "Selecciona una fecha" }}
           </h2>
 
-          <TourCalendar
+          <LazyTourCalendar
             ref="calendarRef"
             :tours="[tour]"
             @schedule-click="handleScheduleClick"
@@ -283,7 +283,7 @@ useSeoMeta({
                 </p>
               </div>
             </template>
-          </TourCalendar>
+          </LazyTourCalendar>
         </div>
 
         <!-- Participant Count Modal -->
@@ -309,7 +309,7 @@ useSeoMeta({
                 v-if="selectedSchedule"
                 class="mb-6 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg"
               >
-                <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
+                <p class="text-sm text-neutral-600 dark:text-neutral-300 mb-1">
                   {{ t("schedule.selected_date") }}
                 </p>
                 <p class="font-semibold text-neutral-900 dark:text-white">
@@ -320,7 +320,7 @@ useSeoMeta({
                     day: 'numeric'
                   }) }}
                 </p>
-                <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
+                <p class="text-sm text-neutral-600 dark:text-neutral-300 mt-2">
                   {{ t("schedule.start_time") }}: {{ new Date(selectedSchedule.startDatetime).toLocaleTimeString(locale, {
                     hour: '2-digit',
                     minute: '2-digit'
@@ -358,7 +358,7 @@ useSeoMeta({
                     @click="participantCount++"
                   />
                 </div>
-                <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
+                <p class="text-sm text-neutral-600 dark:text-neutral-300 mt-2">
                   {{ t("schedule.available_spots") }}: {{ selectedSchedule?.availableSpots || selectedSchedule?.maxParticipants || 0 }}
                 </p>
               </div>

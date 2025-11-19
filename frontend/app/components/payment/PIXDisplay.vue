@@ -149,7 +149,7 @@ watch(
       <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
         {{ t('payment.pix.scan_qr_code') }}
       </h2>
-      <p class="text-neutral-600 dark:text-neutral-400">
+      <p class="text-neutral-600 dark:text-neutral-300">
         {{ t('payment.pix.scan_description') }}
       </p>
     </div>
@@ -169,7 +169,7 @@ watch(
         >
           <UIcon
             name="i-lucide-loader-2"
-            class="w-12 h-12 text-neutral-400 animate-spin"
+            class="w-12 h-12 text-neutral-300 animate-spin"
           />
         </div>
       </div>
@@ -226,7 +226,7 @@ watch(
       <h3 class="font-semibold text-neutral-900 dark:text-white">
         {{ t('payment.pix.how_to_pay') }}
       </h3>
-      <ol class="space-y-2 text-sm text-neutral-600 dark:text-neutral-400">
+      <ol class="space-y-2 text-sm text-neutral-600 dark:text-neutral-300">
         <li class="flex items-start gap-2">
           <span class="flex-shrink-0 w-6 h-6 bg-primary/20 text-primary rounded-full flex items-center justify-center text-xs font-semibold">
             1
@@ -265,7 +265,7 @@ watch(
           <p class="font-medium text-neutral-900 dark:text-white">
             {{ t('payment.pix.waiting_payment') }}
           </p>
-          <p class="text-neutral-600 dark:text-neutral-400">
+          <p class="text-neutral-600 dark:text-neutral-300">
             {{ t('payment.pix.automatic_confirmation') }}
           </p>
         </div>
@@ -274,7 +274,7 @@ watch(
 
     <!-- Support Banks -->
     <div class="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
-      <p class="text-xs text-neutral-500 dark:text-neutral-400 text-center">
+      <p class="text-xs text-neutral-500 dark:text-neutral-300 text-center">
         <UIcon
           name="i-lucide-info"
           class="w-3 h-3 inline mr-1"

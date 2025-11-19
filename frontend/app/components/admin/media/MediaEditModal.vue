@@ -139,10 +139,10 @@ async function save() {
             <p class="font-medium text-neutral-900 dark:text-neutral-100">
               {{ media.altTranslations?.es || media.originalFilename }}
             </p>
-            <p class="text-sm text-neutral-600 dark:text-neutral-400">
+            <p class="text-sm text-neutral-600 dark:text-neutral-300">
               {{ media.originalFilename }}
             </p>
-            <div class="flex gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+            <div class="flex gap-2 text-sm text-neutral-600 dark:text-neutral-300">
               <span>{{ formatFileSize(media.sizeBytes) }}</span>
               <span>•</span>
               <span>{{ formatDateTime(media.uploadedAt) }}</span>
@@ -269,7 +269,7 @@ async function save() {
             @keydown="handleTagKeydown"
           />
 
-          <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+          <p class="text-xs text-neutral-600 dark:text-neutral-300 mt-1">
             Presiona Enter para agregar. Click en la etiqueta para eliminar.
           </p>
         </div>
@@ -287,7 +287,7 @@ async function save() {
             class="w-full"
           />
 
-          <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+          <p class="text-xs text-neutral-600 dark:text-neutral-300 mt-1">
             Fecha en que se tomó la fotografía
           </p>
         </div>
@@ -308,7 +308,7 @@ async function save() {
             class="w-full"
           />
 
-          <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+          <p class="text-xs text-neutral-600 dark:text-neutral-300 mt-1">
             Asocia esta imagen a un tour específico
           </p>
         </div>
@@ -329,7 +329,7 @@ async function save() {
             class="w-full"
           />
 
-          <p class="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+          <p class="text-xs text-neutral-600 dark:text-neutral-300 mt-1">
             Asocia esta imagen a una salida específica de un tour
           </p>
         </div>
@@ -342,7 +342,7 @@ async function save() {
 
           <div class="bg-neutral-50 dark:bg-neutral-900 rounded-lg p-4 text-sm space-y-1">
             <div v-for="(value, key) in media.exifData" :key="key" class="flex justify-between">
-              <span class="text-neutral-600 dark:text-neutral-400">{{ key }}:</span>
+              <span class="text-neutral-600 dark:text-neutral-300">{{ key }}:</span>
               <span class="text-neutral-900 dark:text-neutral-100 font-mono">{{ value }}</span>
             </div>
           </div>

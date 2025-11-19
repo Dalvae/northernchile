@@ -15,7 +15,7 @@
           {{ t("moon.calendar_title") }}
         </h1>
         <p
-          class="text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto"
+          class="text-lg text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto"
         >
           {{ t("moon.calendar_description") }}
         </p>
@@ -131,7 +131,7 @@
                   ? 'text-primary font-bold'
                   : day.isCurrentMonth
                     ? 'text-neutral-900 dark:text-white'
-                    : 'text-neutral-400 dark:text-neutral-600'
+                    : 'text-neutral-300 dark:text-neutral-600'
               ]"
             >
               {{ day.dayNumber }}
@@ -145,8 +145,8 @@
                 day.isFullMoon
                   ? 'text-tertiary'
                   : day.isCurrentMonth
-                    ? 'text-neutral-600 dark:text-neutral-400'
-                    : 'text-neutral-400 dark:text-neutral-600'
+                    ? 'text-neutral-600 dark:text-neutral-300'
+                    : 'text-neutral-300 dark:text-neutral-600'
               ]"
             >
               {{ day.illumination }}%
@@ -157,7 +157,7 @@
                 'text-xs mt-1 text-center leading-tight',
                 day.isCurrentMonth
                   ? 'text-neutral-500 dark:text-neutral-500'
-                  : 'text-neutral-400 dark:text-neutral-600'
+                  : 'text-neutral-300 dark:text-neutral-600'
               ]"
             >
               {{ translatePhaseName(day.phaseName) }}
@@ -174,25 +174,25 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div class="flex items-center gap-2">
             <span class="text-2xl">🌑</span>
-            <span class="text-sm text-neutral-600 dark:text-neutral-400">
+            <span class="text-sm text-neutral-600 dark:text-neutral-300">
               {{ t("moon.phases.new_moon") }}
             </span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-2xl">🌓</span>
-            <span class="text-sm text-neutral-600 dark:text-neutral-400">
+            <span class="text-sm text-neutral-600 dark:text-neutral-300">
               {{ t("moon.phases.first_quarter") }}
             </span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-2xl">🌕</span>
-            <span class="text-sm text-neutral-600 dark:text-neutral-400">
+            <span class="text-sm text-neutral-600 dark:text-neutral-300">
               {{ t("moon.phases.full_moon") }}
             </span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-2xl">🌗</span>
-            <span class="text-sm text-neutral-600 dark:text-neutral-400">
+            <span class="text-sm text-neutral-600 dark:text-neutral-300">
               {{ t("moon.phases.last_quarter") }}
             </span>
           </div>
@@ -214,7 +214,7 @@
             >
               {{ t("moon.why_matters_title") }}
             </h3>
-            <p class="text-neutral-600 dark:text-neutral-400">
+            <p class="text-neutral-600 dark:text-neutral-300">
               {{ t("moon.why_matters_description") }}
             </p>
           </div>

@@ -122,7 +122,7 @@ function getPlaceholder(type: string): string {
                 class="w-full"
                 @update:model-value="(value: string) => updateBlock(index, 'type', value)"
               />
-              <span class="text-xs text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
+              <span class="text-xs text-neutral-500 dark:text-neutral-300 whitespace-nowrap">
                 Bloque {{ index + 1 }}
               </span>
             </div>
@@ -156,7 +156,7 @@ function getPlaceholder(type: string): string {
       v-else
       class="text-center py-8 border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-lg"
     >
-      <p class="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
+      <p class="text-sm text-neutral-500 dark:text-neutral-300 mb-4">
         No hay bloques de contenido. Agrega tu primer bloque.
       </p>
     </div>

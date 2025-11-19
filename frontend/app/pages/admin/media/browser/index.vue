@@ -32,7 +32,7 @@ const publishedCount = computed(() => tours.value.filter(t => t.status === 'PUBL
         <h1 class="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
           Explorador de Medios
         </h1>
-        <p class="text-neutral-600 dark:text-neutral-400 mt-1">
+        <p class="text-neutral-600 dark:text-neutral-300 mt-1">
           Navega por tus tours para gestionar sus fotos
         </p>
       </div>
@@ -63,7 +63,7 @@ const publishedCount = computed(() => tours.value.filter(t => t.status === 'PUBL
             <p class="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
               {{ tours.length }}
             </p>
-            <p class="text-sm text-neutral-600 dark:text-neutral-400">
+            <p class="text-sm text-neutral-600 dark:text-neutral-300">
               Tours Totales
             </p>
           </div>
@@ -79,7 +79,7 @@ const publishedCount = computed(() => tours.value.filter(t => t.status === 'PUBL
             <p class="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
               {{ publishedCount }}
             </p>
-            <p class="text-sm text-neutral-600 dark:text-neutral-400">
+            <p class="text-sm text-neutral-600 dark:text-neutral-300">
               Tours Publicados
             </p>
           </div>
@@ -95,7 +95,7 @@ const publishedCount = computed(() => tours.value.filter(t => t.status === 'PUBL
             <p class="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
               {{ tours.reduce((sum, t) => sum + (t.images?.length || 0), 0) }}
             </p>
-            <p class="text-sm text-neutral-600 dark:text-neutral-400">
+            <p class="text-sm text-neutral-600 dark:text-neutral-300">
               Fotos Totales
             </p>
           </div>
@@ -149,7 +149,7 @@ const publishedCount = computed(() => tours.value.filter(t => t.status === 'PUBL
               <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                 {{ tour.nameTranslations?.es || 'Sin nombre' }}
               </h3>
-              <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+              <p class="text-sm text-neutral-600 dark:text-neutral-300 mt-1">
                 {{ tour.category }}
               </p>
             </div>
@@ -164,7 +164,7 @@ const publishedCount = computed(() => tours.value.filter(t => t.status === 'PUBL
                 {{ tour.status === 'PUBLISHED' ? 'Publicado' : tour.status === 'DRAFT' ? 'Borrador' : tour.status }}
               </UBadge>
 
-              <div class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+              <div class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
                 <UIcon name="i-lucide-arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
@@ -180,7 +180,7 @@ const publishedCount = computed(() => tours.value.filter(t => t.status === 'PUBL
         <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
           No hay tours aún
         </h3>
-        <p class="text-neutral-600 dark:text-neutral-400 mb-6">
+        <p class="text-neutral-600 dark:text-neutral-300 mb-6">
           Crea tu primer tour para comenzar a gestionar sus fotos
         </p>
         <NuxtLink to="/admin/tours">

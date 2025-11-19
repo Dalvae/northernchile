@@ -119,7 +119,7 @@ async function goToSchedule() {
   <div class="min-h-screen bg-neutral-950 relative">
     <div
       v-if="tourPending"
-      class="h-screen flex items-center justify-center text-neutral-400"
+      class="h-screen flex items-center justify-center text-neutral-300"
     >
       <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin" />
     </div>
@@ -247,23 +247,23 @@ async function goToSchedule() {
                 <div class="grid grid-cols-2 gap-4">
                   <div class="bg-white/5 p-3 rounded-lg text-center">
                     <UIcon name="i-lucide-moon" class="w-6 h-6 text-tertiary mb-1 mx-auto" />
-                    <span class="text-xs text-neutral-400 block">Fase Lunar</span>
+                    <span class="text-xs text-neutral-300 block">Fase Lunar</span>
                     <span class="text-sm font-medium text-white">Visible</span>
                   </div>
                   <div class="bg-white/5 p-3 rounded-lg text-center">
                     <UIcon name="i-lucide-thermometer" class="w-6 h-6 text-info mb-1 mx-auto" />
-                    <span class="text-xs text-neutral-400 block">Clima</span>
+                    <span class="text-xs text-neutral-300 block">Clima</span>
                     <span class="text-sm font-medium text-white">Despejado</span>
                   </div>
                 </div>
 
                 <div class="space-y-2">
                   <div class="flex justify-between text-sm">
-                    <span class="text-neutral-400">Precio por persona</span>
+                    <span class="text-neutral-300">Precio por persona</span>
                     <span class="text-white font-bold">${{ tour.price }}</span>
                   </div>
                   <div class="flex justify-between text-sm">
-                    <span class="text-neutral-400">Duración</span>
+                    <span class="text-neutral-300">Duración</span>
                     <span class="text-white">{{ tour.durationHours }}h</span>
                   </div>
                 </div>
@@ -296,7 +296,7 @@ async function goToSchedule() {
                     <span>Sujeto a condiciones de viento</span>
                   </li>
                   <li v-if="tour.isCloudSensitive" class="flex items-center gap-3 text-sm text-neutral-200">
-                    <UIcon name="i-lucide-cloud" class="w-5 h-5 text-neutral-400 shrink-0" />
+                    <UIcon name="i-lucide-cloud" class="w-5 h-5 text-neutral-300 shrink-0" />
                     <span>Requiere cielos despejados</span>
                   </li>
                 </ul>

@@ -130,7 +130,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
             <h2 class="text-3xl font-bold text-neutral-900 dark:text-white mb-6">
               {{ t("contact.section_title") }}
             </h2>
-            <p class="text-neutral-600 dark:text-neutral-400 text-lg leading-relaxed">
+            <p class="text-neutral-600 dark:text-neutral-300 text-lg leading-relaxed">
               {{ t("contact.section_description") }}
             </p>
           </div>
@@ -156,7 +156,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                   <p
                     v-for="detail in info.details"
                     :key="detail"
-                    class="text-neutral-600 dark:text-neutral-400"
+                    class="text-neutral-600 dark:text-neutral-300"
                   >
                     {{ detail }}
                   </p>

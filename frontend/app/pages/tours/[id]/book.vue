@@ -8,7 +8,7 @@
         </h1>
         <p
           v-if="tour"
-          class="text-neutral-600 dark:text-neutral-400"
+          class="text-neutral-600 dark:text-neutral-300"
         >
           {{ getTourName(tour) }}
         </p>
@@ -77,7 +77,7 @@
             </div>
             <div
               v-else
-              class="text-center py-8 text-neutral-600 dark:text-neutral-400"
+              class="text-center py-8 text-neutral-600 dark:text-neutral-300"
             >
               {{ t("common.loading") }}
             </div>
@@ -246,14 +246,14 @@
             <h2 class="text-2xl font-semibold text-neutral-900 dark:text-white">
               {{ t("booking.confirmation") }}
             </h2>
-            <p class="text-neutral-600 dark:text-neutral-400">
+            <p class="text-neutral-600 dark:text-neutral-300">
               {{ t("booking.confirmation_message") }}
             </p>
             <div
               v-if="confirmedBooking"
               class="mt-6 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg"
             >
-              <div class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">
+              <div class="text-sm text-neutral-600 dark:text-neutral-300 mb-2">
                 {{ t("booking.booking_reference") }}
               </div>
               <div

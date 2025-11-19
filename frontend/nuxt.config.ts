@@ -5,6 +5,7 @@ export default defineNuxtConfig({
   modules: [
     "@nuxt/eslint",
     "@nuxt/ui",
+    "nuxt-booster",
     "@nuxt/fonts",
     "@nuxtjs/i18n",
     "@pinia/nuxt",
@@ -13,6 +14,35 @@ export default defineNuxtConfig({
 
   devtools: {
     enabled: process.env.NODE_ENV === "development",
+  },
+
+  // Nuxt Booster - holistic performance optimization
+  booster: {
+    // Auto-optimize SSR: inline critical CSS, remove unnecessary preloads/prefetches
+    optimizeSSR: {
+      cleanPreloads: true,
+      cleanPrefetches: true,
+      inlineStyles: true,
+    },
+
+    // Performance detection (optional - can disable for simpler setup)
+    detection: {
+      performance: false, // Disable performance layer for now
+      browserSupport: false,
+      battery: false,
+    },
+
+    // Lazy hydration offset for components and assets (viewport based)
+    lazyOffset: {
+      component: "10%", // Load components 10% before viewport
+      asset: "20%", // Load images 20% before viewport
+    },
+
+    // Target formats for optimized images
+    targetFormats: ["webp", "avif", "jpg|jpeg|png|gif"],
+
+    // Disable auto-import to avoid conflicts with Nuxt UI
+    componentAutoImport: false,
   },
 
   // Font optimization with @nuxt/fonts
@@ -125,6 +155,37 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [viteTsconfigPaths()],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            // Vendor splitting for better caching
+            if (id.includes('node_modules')) {
+              // Vue core
+              if (id.includes('vue') || id.includes('@vue')) {
+                return 'vendor-vue'
+              }
+              // Nuxt UI and related
+              if (id.includes('@nuxt/ui') || id.includes('@headlessui')) {
+                return 'vendor-ui'
+              }
+              // i18n
+              if (id.includes('i18n') || id.includes('intl')) {
+                return 'vendor-i18n'
+              }
+              // Icons (can be large)
+              if (id.includes('@iconify')) {
+                return 'vendor-icons'
+              }
+              // Other vendor code
+              return 'vendor'
+            }
+          },
+        },
+      },
+      // Increase chunk size warning limit
+      chunkSizeWarningLimit: 1000,
+    },
   },
 
   eslint: {

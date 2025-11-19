@@ -265,7 +265,7 @@ const activeTab = ref('participants')
         >
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-neutral-600 dark:text-neutral-400">
+              <p class="text-sm text-neutral-600 dark:text-neutral-300">
                 Total Reservas
               </p>
               <p class="text-2xl font-bold text-neutral-900 dark:text-white">
@@ -284,7 +284,7 @@ const activeTab = ref('participants')
         >
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-neutral-600 dark:text-neutral-400">
+              <p class="text-sm text-neutral-600 dark:text-neutral-300">
                 Total Participantes
               </p>
               <p class="text-2xl font-bold text-neutral-900 dark:text-white">
@@ -303,7 +303,7 @@ const activeTab = ref('participants')
         >
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-neutral-600 dark:text-neutral-400">
+              <p class="text-sm text-neutral-600 dark:text-neutral-300">
                 Resultados Filtrados
               </p>
               <p class="text-2xl font-bold text-neutral-900 dark:text-white">
