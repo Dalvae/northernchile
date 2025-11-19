@@ -19,7 +19,7 @@
         >
           {{ t("home.hero.badge") }}
         </UBadge>
-        
+
         <h1 class="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-white mb-6 leading-tight text-glow">
           <span class="block">{{ t("home.hero.title_line1") }}</span>
           <span class="block texto-cobre">{{ t("home.hero.title_line2") }}</span>
@@ -53,12 +53,11 @@
 
       <!-- Quick Features -->
       <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 animate-fade-in-up delay-700">
-        <div v-for="stat in stats" :key="stat.label" class="flex flex-col items-center">
+        <div v-for="feature in quickFeatures" :key="feature.label" class="flex flex-col items-center">
           <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2 border border-primary/20">
-            <UIcon :name="stat.icon" class="w-6 h-6 text-primary" />
+            <UIcon :name="feature.icon" class="w-6 h-6 text-primary" />
           </div>
-          <span class="text-white font-bold text-lg">{{ stat.value }}</span>
-          <span class="text-sm text-neutral-400 uppercase tracking-wider">{{ stat.label }}</span>
+          <span class="text-sm text-neutral-200 uppercase tracking-wider">{{ feature.label }}</span>
         </div>
       </div>
     </div>

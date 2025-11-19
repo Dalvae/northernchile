@@ -125,7 +125,7 @@
             <!-- Tour Selection -->
             <div>
               <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
               >
                 Tour <span class="text-error">*</span>
               </label>
@@ -192,7 +192,7 @@
             <!-- Max Participants -->
             <div>
               <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
               >
                 Cupos Máximos <span class="text-error">*</span>
               </label>
@@ -216,7 +216,7 @@
             <!-- Status (only in edit mode) -->
             <div v-if="isEditMode">
               <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
               >
                 Estado
               </label>

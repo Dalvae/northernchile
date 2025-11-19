@@ -188,12 +188,12 @@ async function goToSchedule() {
                      :is="block.type === 'heading' ? 'h2' : 'p'"
                      v-for="(block, index) in descriptionBlocks"
                      :key="index"
-                     :class="block.type === 'heading' ? 'text-3xl font-display font-bold text-white mt-8 mb-4' : 'text-neutral-300 leading-relaxed'"
+                     :class="block.type === 'heading' ? 'text-3xl font-display font-bold text-white mt-8 mb-4' : 'text-neutral-200 leading-relaxed'"
                    >
                   {{ block.content }}
                 </component>
               </div>
-              <p v-else-if="translatedDescription" class="text-neutral-300 leading-relaxed">
+              <p v-else-if="translatedDescription" class="text-neutral-200 leading-relaxed">
                 {{ translatedDescription }}
               </p>
             </div>
@@ -209,7 +209,7 @@ async function goToSchedule() {
                 >
                   <div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-primary border-4 border-neutral-950 shadow-[0_0_10px_var(--ui-color-primary-500)]" />
                   <span class="text-primary font-bold text-lg block mb-1">{{ item.time }}</span>
-                  <p class="text-neutral-300">{{ item.description }}</p>
+                  <p class="text-neutral-200">{{ item.description }}</p>
                 </div>
               </div>
             </div>
@@ -287,15 +287,15 @@ async function goToSchedule() {
               <div v-if="tour.isWindSensitive || tour.isMoonSensitive || tour.isCloudSensitive" class="atacama-card p-6 rounded-xl space-y-4">
                 <h3 class="text-lg font-bold text-white">Condiciones</h3>
                 <ul class="space-y-3">
-                  <li v-if="tour.isMoonSensitive" class="flex items-center gap-3 text-sm text-neutral-300">
+                  <li v-if="tour.isMoonSensitive" class="flex items-center gap-3 text-sm text-neutral-200">
                     <UIcon name="i-lucide-moon" class="w-5 h-5 text-tertiary shrink-0" />
                     <span>Sensible a la fase lunar (mejor en Luna Nueva)</span>
                   </li>
-                  <li v-if="tour.isWindSensitive" class="flex items-center gap-3 text-sm text-neutral-300">
+                  <li v-if="tour.isWindSensitive" class="flex items-center gap-3 text-sm text-neutral-200">
                     <UIcon name="i-lucide-wind" class="w-5 h-5 text-info shrink-0" />
                     <span>Sujeto a condiciones de viento</span>
                   </li>
-                  <li v-if="tour.isCloudSensitive" class="flex items-center gap-3 text-sm text-neutral-300">
+                  <li v-if="tour.isCloudSensitive" class="flex items-center gap-3 text-sm text-neutral-200">
                     <UIcon name="i-lucide-cloud" class="w-5 h-5 text-neutral-400 shrink-0" />
                     <span>Requiere cielos despejados</span>
                   </li>

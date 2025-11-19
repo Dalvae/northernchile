@@ -92,7 +92,7 @@
           <!-- Meta Info -->
           <div
             v-if="showMeta"
-            class="flex items-center gap-4 text-sm text-neutral-300 mt-2"
+            class="flex items-center gap-4 text-sm text-neutral-200 mt-2"
           >
             <div
               v-if="tour.durationHours"

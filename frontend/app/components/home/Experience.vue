@@ -33,7 +33,7 @@ const items = [
         <h2 class="text-4xl md:text-5xl font-display font-bold text-white mb-6 text-glow">
           Más que un tour, una conexión
         </h2>
-        <p class="text-xl text-neutral-300 max-w-3xl mx-auto leading-relaxed">
+        <p class="text-xl text-neutral-200 max-w-3xl mx-auto leading-relaxed">
           En el corazón del desierto más árido del mundo, te invitamos a mirar el universo con ojos nuevos.
           Donde la ciencia, la historia y la naturaleza se funden bajo un mismo cielo.
         </p>

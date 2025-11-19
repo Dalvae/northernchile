@@ -330,7 +330,7 @@ useSeoMeta({
 
               <!-- Participant Count -->
               <div class="mb-6">
-                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
                   {{ t("schedule.number_of_participants") || "Número de participantes" }}
                 </label>
                 <div class="flex items-center gap-4">
@@ -366,7 +366,7 @@ useSeoMeta({
               <!-- Price Calculation -->
               <div class="mb-6 p-4 bg-primary/5 rounded-lg">
                 <div class="flex justify-between items-center">
-                  <span class="text-neutral-700 dark:text-neutral-300">
+                  <span class="text-neutral-700 dark:text-neutral-200">
                     {{ t("schedule.total_price") }}
                   </span>
                   <span class="text-2xl font-bold text-primary">

@@ -17,7 +17,7 @@
       <!-- Temperatura -->
       <div class="flex items-center gap-1 text-xs">
         <span>{{ getWeatherIcon(weather.weather[0]?.main || '') }}</span>
-        <span class="text-neutral-700 dark:text-neutral-300">
+        <span class="text-neutral-700 dark:text-neutral-200">
           {{ Math.round(weather.temp.max) }}° / {{ Math.round(weather.temp.min) }}°
         </span>
       </div>

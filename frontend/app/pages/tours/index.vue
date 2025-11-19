@@ -71,7 +71,7 @@ useSeoMeta({
         <h1 class="text-5xl md:text-7xl font-display font-bold text-white mb-6 text-glow">
           {{ t("tours.all") }}
         </h1>
-        <p class="text-xl text-neutral-300 max-w-3xl mx-auto font-light">
+        <p class="text-xl text-neutral-200 max-w-3xl mx-auto font-light">
           Descubre nuestras experiencias exclusivas bajo los cielos más limpios del mundo.
           Cada tour es una invitación a conectar con el cosmos.
         </p>
@@ -129,7 +129,7 @@ useSeoMeta({
               {{ getTourName(tour) }}
             </h2>
 
-            <p class="text-lg text-neutral-300 leading-relaxed line-clamp-4">
+            <p class="text-lg text-neutral-200 leading-relaxed line-clamp-4">
               {{ getTourDescription(tour) }}
             </p>
 

@@ -368,7 +368,7 @@ function retryPayment() {
                     name="i-lucide-info"
                     class="w-4 h-4 text-primary flex-shrink-0 mt-0.5"
                   />
-                  <p class="text-neutral-700 dark:text-neutral-300">
+                  <p class="text-neutral-700 dark:text-neutral-200">
                     {{ t('payment.callback.support_message') }}
                   </p>
                 </div>

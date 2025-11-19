@@ -135,7 +135,7 @@ async function submitRequest() {
           <h1 class="text-4xl md:text-5xl font-bold mb-6">
             {{ t("privateTours.title") }}
           </h1>
-          <p class="text-xl text-neutral-300">
+          <p class="text-xl text-neutral-200">
             {{ t("privateTours.subtitle") }}
           </p>
         </div>
@@ -205,7 +205,7 @@ async function submitRequest() {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label
-                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                   >
                     {{ t("privateTours.form.full_name_label") }} *
                   </label>
@@ -220,7 +220,7 @@ async function submitRequest() {
 
                 <div>
                   <label
-                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                   >
                     {{ t("privateTours.form.email_label") }} *
                   </label>
@@ -238,7 +238,7 @@ async function submitRequest() {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label
-                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                   >
                     {{ t("privateTours.form.phone_label") }} *
                   </label>
@@ -253,7 +253,7 @@ async function submitRequest() {
 
                 <div>
                   <label
-                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                   >
                     {{ t("privateTours.form.number_of_people_label") }} *
                   </label>
@@ -276,7 +276,7 @@ async function submitRequest() {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label
-                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                   >
                     {{ t("privateTours.form.preferred_date_label") }} *
                   </label>
@@ -291,7 +291,7 @@ async function submitRequest() {
 
                 <div>
                   <label
-                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                   >
                     {{ t("privateTours.form.preferred_time_label") }}
                   </label>
@@ -308,7 +308,7 @@ async function submitRequest() {
 
               <div>
                 <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                 >
                   {{ t("privateTours.form.tour_type_label") }} *
                 </label>
@@ -324,7 +324,7 @@ async function submitRequest() {
 
               <div>
                 <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                 >
                   {{ t("privateTours.form.special_requests_label") }}
                 </label>

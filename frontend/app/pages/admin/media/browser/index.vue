@@ -128,7 +128,7 @@ const publishedCount = computed(() => tours.value.filter(t => t.status === 'PUBL
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
             <div v-else class="flex items-center justify-center h-full">
-              <UIcon name="i-lucide-image" class="w-12 h-12 text-neutral-300 dark:text-neutral-700" />
+              <UIcon name="i-lucide-image" class="w-12 h-12 text-neutral-200 dark:text-neutral-700" />
             </div>
 
             <!-- Image Count Badge -->
@@ -176,7 +176,7 @@ const publishedCount = computed(() => tours.value.filter(t => t.status === 'PUBL
     <!-- Empty State -->
     <UCard v-else>
       <div class="text-center py-12">
-        <UIcon name="i-lucide-folder-x" class="w-16 h-16 mx-auto mb-4 text-neutral-300 dark:text-neutral-700" />
+        <UIcon name="i-lucide-folder-x" class="w-16 h-16 mx-auto mb-4 text-neutral-200 dark:text-neutral-700" />
         <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
           No hay tours aún
         </h3>

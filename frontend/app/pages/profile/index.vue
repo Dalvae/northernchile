@@ -85,7 +85,7 @@
             >
               <!-- Email -->
               <div>
-                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
                   Email
                 </label>
                 <div class="px-4 py-3 rounded-lg bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700">
@@ -98,7 +98,7 @@
 
               <!-- Full Name -->
               <div>
-                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
                   Nombre Completo *
                 </label>
                 <UInput
@@ -126,7 +126,7 @@
                 size="lg"
               />
               <div v-else>
-                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
                   Nacionalidad
                 </label>
                 <div class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
@@ -146,7 +146,7 @@
 
               <!-- Phone Number -->
               <div>
-                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
                   Teléfono
                 </label>
                 <UInput
@@ -167,7 +167,7 @@
 
               <!-- Date of Birth -->
               <div>
-                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
                   Fecha de Nacimiento
                 </label>
                 <UInput

@@ -499,7 +499,7 @@ const total = computed(() => subtotal.value + tax.value)
             <div class="space-y-4">
               <div>
                 <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
                 >
                   Nombre Completo *
                 </label>
@@ -514,7 +514,7 @@ const total = computed(() => subtotal.value + tax.value)
 
               <div>
                 <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
                 >
                   Email *
                 </label>
@@ -529,7 +529,7 @@ const total = computed(() => subtotal.value + tax.value)
 
               <div>
                 <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
                 >
                   Teléfono *
                 </label>
@@ -574,7 +574,7 @@ const total = computed(() => subtotal.value + tax.value)
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label
-                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
                     >
                       Contraseña *
                     </label>
@@ -588,7 +588,7 @@ const total = computed(() => subtotal.value + tax.value)
                   </div>
                   <div>
                     <label
-                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
                     >
                       Confirmar Contraseña *
                     </label>

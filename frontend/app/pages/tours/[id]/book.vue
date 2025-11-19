@@ -124,7 +124,7 @@
             <UCard v-if="tour">
               <div class="space-y-3">
                 <div
-                  class="flex justify-between text-neutral-700 dark:text-neutral-300"
+                  class="flex justify-between text-neutral-700 dark:text-neutral-200"
                 >
                   <span>{{ bookingState.totalParticipants }} x
                     {{ t("booking.participant") }}</span>
@@ -196,7 +196,7 @@
             <UCard v-if="tour">
               <div class="space-y-3">
                 <div
-                  class="flex justify-between text-neutral-700 dark:text-neutral-300"
+                  class="flex justify-between text-neutral-700 dark:text-neutral-200"
                 >
                   <span>{{ bookingState.totalParticipants }} x
                     {{ t("booking.participant") }}</span>

@@ -104,7 +104,7 @@
         <div
           v-for="day in dayHeaders"
           :key="day"
-          class="text-center font-semibold text-neutral-700 dark:text-neutral-300 py-2"
+          class="text-center font-semibold text-neutral-700 dark:text-neutral-200 py-2"
         >
           {{ day }}
         </div>

@@ -144,7 +144,7 @@ function getTypeBadgeColor(type?: string) {
                 </UBadge>
               </div>
 
-              <p v-if="currentMedia.captionTranslations?.es" class="text-sm text-neutral-300 mb-2">
+              <p v-if="currentMedia.captionTranslations?.es" class="text-sm text-neutral-200 mb-2">
                 {{ currentMedia.captionTranslations.es }}
               </p>
 
