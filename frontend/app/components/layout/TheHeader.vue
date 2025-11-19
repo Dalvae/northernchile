@@ -47,14 +47,11 @@
           </div>
 
           <!-- Theme Switcher - Desktop only -->
-          <div class="hidden md:block">
-            <ClientOnly>
+          <ClientOnly>
+            <div class="hidden md:block">
               <ThemeSwitcher />
-              <template #fallback>
-                <USkeleton class="h-10 w-10 rounded-md" />
-              </template>
-            </ClientOnly>
-          </div>
+            </div>
+          </ClientOnly>
 
           <!-- Cart Button - Desktop only -->
           <UButton
@@ -76,26 +73,26 @@
 
           <!-- Auth Actions -->
           <ClientOnly>
-            <template v-if="!authStore.isAuthenticated">
+            <div v-if="!authStore.isAuthenticated" class="hidden sm:block">
               <UButton
                 :to="localePath('/auth')"
                 variant="ghost"
                 color="white"
                 icon="i-lucide-log-in"
-                class="hidden sm:flex hover:bg-white/10"
+                class="hover:bg-white/10"
               >
                 {{ t("nav.login") }}
               </UButton>
-            </template>
+            </div>
 
-            <template v-else>
+            <div v-else class="hidden sm:block">
               <!-- User Menu -->
               <UDropdownMenu :items="userMenuItems">
                 <UButton
                   variant="ghost"
                   color="white"
                   square
-                  class="hidden sm:flex hover:bg-white/10"
+                  class="hover:bg-white/10"
                   aria-label="Menú de usuario"
                 >
                   <div class="flex items-center gap-2">
@@ -114,12 +111,7 @@
                   </div>
                 </UButton>
               </UDropdownMenu>
-            </template>
-
-            <template #fallback>
-              <!-- Skeleton: matches login button dimensions (hidden on mobile) -->
-              <USkeleton class="h-10 w-[90px] rounded-md hidden sm:block" />
-            </template>
+            </div>
           </ClientOnly>
 
           <!-- Mobile Menu Button -->
@@ -210,15 +202,12 @@
                 <p class="text-sm text-neutral-300 mb-2">{{ t('nav.language') || 'Idioma' }}</p>
                 <LanguageSwitcher />
               </div>
-              <div class="flex-1">
-                <p class="text-sm text-neutral-300 mb-2">{{ t('nav.theme') || 'Tema' }}</p>
-                <ClientOnly>
+              <ClientOnly>
+                <div class="flex-1">
+                  <p class="text-sm text-neutral-300 mb-2">{{ t('nav.theme') || 'Tema' }}</p>
                   <ThemeSwitcher />
-                  <template #fallback>
-                    <USkeleton class="h-10 w-full rounded-md" />
-                  </template>
-                </ClientOnly>
-              </div>
+                </div>
+              </ClientOnly>
             </div>
           </div>
 
@@ -227,7 +216,7 @@
              class="space-y-4 pt-4 border-t border-white/10"
           >
             <ClientOnly>
-              <template v-if="!authStore.isAuthenticated">
+              <div v-if="!authStore.isAuthenticated">
                 <UButton
                   :to="localePath('/auth')"
                   color="primary"
@@ -238,9 +227,9 @@
                 >
                   {{ t("nav.login") }}
                 </UButton>
-              </template>
+              </div>
 
-              <template v-else>
+              <div v-else>
                 <!-- User Info -->
                 <div
                   class="p-4 bg-white/5 rounded-xl mb-4 border border-white/10"
@@ -298,7 +287,7 @@
                 >
                   {{ t("nav.logout") }}
                 </UButton>
-              </template>
+              </div>
             </ClientOnly>
           </div>
         </div>

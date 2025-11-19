@@ -45,12 +45,6 @@ export default defineNuxtConfig({
 
     // Disable auto-import to avoid conflicts with Nuxt UI
     componentAutoImport: false,
-
-    // Font optimization
-    fonts: {
-      // Preload critical fonts
-      preload: true,
-    },
   },
 
   // Font optimization with @nuxt/fonts
