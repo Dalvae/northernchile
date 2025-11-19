@@ -47,6 +47,9 @@
           <!-- Theme Switcher -->
           <ClientOnly>
             <ThemeSwitcher />
+            <template #fallback>
+              <USkeleton class="h-10 w-10 rounded-md" />
+            </template>
           </ClientOnly>
 
           <!-- Cart Button -->
@@ -70,13 +73,13 @@
           <!-- Auth Actions -->
           <ClientOnly>
             <template v-if="!authStore.isAuthenticated">
-                    <UButton
-                      :to="localePath('/auth')"
-                      variant="ghost"
-                      color="white"
-                      icon="i-lucide-log-in"
-                      class="hidden sm:flex hover:bg-white/10"
-                    >
+              <UButton
+                :to="localePath('/auth')"
+                variant="ghost"
+                color="white"
+                icon="i-lucide-log-in"
+                class="hidden sm:flex hover:bg-white/10"
+              >
                 {{ t("nav.login") }}
               </UButton>
             </template>
@@ -93,11 +96,11 @@
                 >
                   <div class="flex items-center gap-2">
                     <div
-                       class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30"
+                      class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30"
                     >
                       <UIcon
                         name="i-lucide-user"
-                         class="w-4 h-4 text-primary"
+                        class="w-4 h-4 text-primary"
                       />
                     </div>
                     <UIcon
@@ -107,6 +110,11 @@
                   </div>
                 </UButton>
               </UDropdownMenu>
+            </template>
+
+            <template #fallback>
+              <!-- Skeleton: matches login button dimensions (hidden on mobile) -->
+              <USkeleton class="h-10 w-[90px] rounded-md hidden sm:block" />
             </template>
           </ClientOnly>
 
