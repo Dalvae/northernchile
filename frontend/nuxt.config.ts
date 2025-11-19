@@ -23,6 +23,8 @@ export default defineNuxtConfig({
       cleanPreloads: true,
       cleanPrefetches: true,
       inlineStyles: true,
+      // Limit inlined styles size to avoid bloating HTML
+      inlinedStylesSize: 10000,
     },
 
     // Performance detection (optional - can disable for simpler setup)
@@ -34,8 +36,8 @@ export default defineNuxtConfig({
 
     // Lazy hydration offset for components and assets (viewport based)
     lazyOffset: {
-      component: "10%", // Load components 10% before viewport
-      asset: "20%", // Load images 20% before viewport
+      component: "0%", // Load components at viewport edge (more aggressive)
+      asset: "10%", // Load images 10% before viewport (more aggressive)
     },
 
     // Target formats for optimized images
@@ -43,6 +45,12 @@ export default defineNuxtConfig({
 
     // Disable auto-import to avoid conflicts with Nuxt UI
     componentAutoImport: false,
+
+    // Font optimization
+    fonts: {
+      // Preload critical fonts
+      preload: true,
+    },
   },
 
   // Font optimization with @nuxt/fonts
@@ -219,15 +227,40 @@ export default defineNuxtConfig({
         },
       },
       // Increase chunk size warning limit
-      chunkSizeWarningLimit: 1000,
+      chunkSizeWarningLimit: 600,
       // More aggressive minification
       minify: 'terser',
       terserOptions: {
         compress: {
           drop_console: process.env.NODE_ENV === 'production',
           drop_debugger: true,
+          passes: 3, // Multiple passes for better compression
+          pure_funcs: process.env.NODE_ENV === 'production' ? ['console.log', 'console.info', 'console.debug'] : [],
+          dead_code: true,
+          unused: true,
+        },
+        mangle: {
+          safari10: true,
+        },
+        format: {
+          comments: false, // Remove comments in production
         },
       },
+      // Enable CSS code splitting
+      cssCodeSplit: true,
+      // Aggressive tree-shaking
+      modulePreload: {
+        polyfill: false, // Don't include polyfill if not needed
+      },
+    },
+    // Optimize dependencies
+    optimizeDeps: {
+      include: ['vue', '@vue/runtime-core', '@vue/runtime-dom'],
+      exclude: ['@fullcalendar/vue3'], // Lazy-loaded, don't pre-bundle
+    },
+    ssr: {
+      // Don't externalize these packages for better tree-shaking
+      noExternal: ['@nuxt/ui', '@headlessui/vue'],
     },
   },
 
