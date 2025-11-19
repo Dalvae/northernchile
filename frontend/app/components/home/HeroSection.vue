@@ -20,7 +20,10 @@
           {{ t("home.hero.badge") }}
         </UBadge>
 
-        <h1 class="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-white mb-6 leading-tight text-glow">
+        <h1
+          class="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-white mb-6 leading-tight text-glow"
+          :class="{ 'animate-fade-in-up': animationsEnabled }"
+        >
           <span class="block">{{ t("home.hero.title_line1") }}</span>
           <span class="block texto-cobre">{{ t("home.hero.title_line2") }}</span>
         </h1>
@@ -146,7 +149,6 @@ function scrollToContent() {
 
 .animate-fade-in-up {
   animation: fadeInUp 0.8s ease-out forwards;
-  will-change: transform, opacity;
 }
 
 .delay-300 {
@@ -161,11 +163,6 @@ function scrollToContent() {
   animation-delay: 600ms;
 }
 
-h1 {
-  animation: fadeInUp 0.8s ease-out;
-  will-change: transform, opacity;
-}
-
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -178,8 +175,7 @@ h1 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-fade-in-up,
-  h1 {
+  .animate-fade-in-up {
     animation: none;
     opacity: 1;
     transform: none;
