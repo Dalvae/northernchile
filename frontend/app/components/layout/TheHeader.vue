@@ -114,26 +114,23 @@
             </div>
           </ClientOnly>
 
-          <!-- Mobile Menu Button -->
-          <UButton
-            variant="ghost"
-            color="white"
-            icon="i-lucide-menu"
-            class="md:hidden hover:bg-white/10"
-            aria-label="Abrir menú de navegación"
-            @click="mobileMenuOpen = true"
-          />
-        </div>
-      </div>
-    </div>
+          <!-- Mobile Menu Button & Slideover -->
+          <USlideover
+            v-model:open="mobileMenuOpen"
+            side="right"
+            :ui="{ overlay: 'bg-black/50 backdrop-blur-sm', content: 'bg-[var(--color-paranal-950)]' }"
+          >
+            <!-- Trigger Button (default slot) -->
+            <UButton
+              variant="ghost"
+              color="white"
+              icon="i-lucide-menu"
+              class="md:hidden hover:bg-white/10"
+              aria-label="Abrir menú de navegación"
+            />
 
-    <!-- Mobile Menu Drawer -->
-    <USlideover
-      v-model="mobileMenuOpen"
-      side="right"
-      :ui="{ background: 'bg-[var(--color-paranal-950)]', overlay: { background: 'bg-black/50 backdrop-blur-sm' } }"
-    >
-      <template #content>
+            <!-- Slideover Content -->
+            <template #content>
         <div class="p-6 space-y-6 bg-[var(--color-paranal-950)] h-full border-l border-white/10">
           <!-- Close Button -->
           <div
@@ -293,6 +290,9 @@
         </div>
       </template>
     </USlideover>
+        </div>
+      </div>
+    </div>
   </header>
 </template>
 

@@ -1,10 +1,11 @@
 <template>
   <UDropdownMenu :items="items">
     <UButton
-      color="neutral"
+      color="white"
       variant="ghost"
       icon="i-heroicons-language"
       aria-label="Seleccionar idioma"
+      class="hover:bg-white/10"
     />
   </UDropdownMenu>
 </template>
