@@ -303,7 +303,17 @@
     "cta_title": "Ready to explore the universe?",
     "cta_subtitle": "Join us on an unforgettable astronomical adventure",
     "book_now": "Book Now",
-    "contact_us": "Contact Us"
+    "contact_us": "Contact Us",
+    "experience": {
+      "badge": "The Northern Chile Experience",
+      "title": "More than a tour, a connection",
+      "subtitle": "In the heart of the world's driest desert, we invite you to gaze at the universe with fresh eyes. Where science, history, and nature merge under the same sky.",
+      "astro_title": "Astronomy with Soul",
+      "astro_desc": "You won't just look at stars: you'll learn to read them. Our guides, experts in astronomy and Andean worldview, reveal the secrets of the cosmos and how ancient peoples interpreted it.",
+      "geo_title": "Living Landscapes",
+      "geo_desc": "Connect with living geology. From the salt mirrors of the Hidden Lagoons of Baltinache to the mineral palette of the Rainbow Valley. Walk upon golden dunes that narrate millions of years of history.",
+      "learn_more": "Learn more"
+    }
   },
   "about": {
     "seo": {

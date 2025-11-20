@@ -303,7 +303,17 @@
     "cta_title": "Pronto para explorar o universo?",
     "cta_subtitle": "Junte-se a nós em uma aventura astronômica inesquecível",
     "book_now": "Reservar Agora",
-    "contact_us": "Entre em Contato"
+    "contact_us": "Entre em Contato",
+    "experience": {
+      "badge": "A Experiência Northern Chile",
+      "title": "Mais que um passeio, uma conexão",
+      "subtitle": "No coração do deserto mais árido do mundo, convidamos você a olhar o universo com novos olhos. Onde ciência, história e natureza se fundem sob o mesmo céu.",
+      "astro_title": "Astronomia com Alma",
+      "astro_desc": "Você não apenas olhará as estrelas: aprenderá a lê-las. Nossos guias, especialistas em astronomia e cosmovisão andina, revelam os segredos do cosmos e a interpretação dos povos antigos.",
+      "geo_title": "Paisagens Vivas",
+      "geo_desc": "Conecte-se com a geologia viva. Desde os espelhos de sal das Lagoas Escondidas de Baltinache até a paleta mineral do Vale do Arco-íris. Caminhe sobre dunas douradas que narram milhões de anos de história.",
+      "learn_more": "Saiba mais"
+    }
   },
   "about": {
     "seo": {

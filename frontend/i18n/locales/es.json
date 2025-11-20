@@ -303,7 +303,17 @@
     "cta_title": "¿Listo para explorar el universo?",
     "cta_subtitle": "Únete a nosotros en una aventura astronómica inolvidable",
     "book_now": "Reservar Ahora",
-    "contact_us": "Contáctanos"
+    "contact_us": "Contáctanos",
+    "experience": {
+      "badge": "La Experiencia Northern Chile",
+      "title": "Más que un tour, una conexión",
+      "subtitle": "En el corazón del desierto más árido del mundo, te invitamos a mirar el universo con ojos nuevos. Donde la ciencia, la historia y la naturaleza se funden bajo un mismo cielo.",
+      "astro_title": "Astronomía con Alma",
+      "astro_desc": "No solo mirarás estrellas: aprenderás a leerlas. Nuestros guías, expertos en astronomía y cosmovisión andina, revelan los secretos del cosmos.",
+      "geo_title": "Paisajes Vivos",
+      "geo_desc": "Conecta con la geología viva. Desde los espejos de sal en las Lagunas Escondidas hasta la paleta mineral del Valle del Arcoíris.",
+      "learn_more": "Saber más"
+    }
   },
   "about": {
     "seo": {
