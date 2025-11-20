@@ -4,7 +4,7 @@
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-20">
-        <!-- Logo -->
+        <!-- Logo (Sin cambios) -->
         <div class="flex-shrink-0">
           <NuxtLink
             :to="localePath('/')"
@@ -15,13 +15,15 @@
               name="i-lucide-telescope"
               class="w-8 h-8 text-primary group-hover:rotate-12 transition-transform"
             />
-            <span class="font-display font-bold text-2xl text-white text-glow tracking-wide">
+            <span
+              class="font-display font-bold text-2xl text-white text-glow tracking-wide"
+            >
               Northern Chile
             </span>
           </NuxtLink>
         </div>
 
-        <!-- Desktop Navigation -->
+        <!-- Desktop Navigation (Sin cambios) -->
         <nav
           class="hidden md:flex items-center gap-2"
           role="navigation"
@@ -39,257 +41,120 @@
           </UButton>
         </nav>
 
-        <!-- Right Actions -->
+        <!-- Right Actions (Desktop) -->
         <div class="flex items-center gap-3">
-          <!-- Language Switcher - Desktop only -->
-          <div class="hidden md:block">
+          <!-- DESKTOP ONLY: Switchers, Cart & Auth -->
+          <div class="hidden md:flex items-center gap-3">
             <LanguageSwitcher />
-          </div>
 
-          <!-- Theme Switcher - Desktop only -->
-          <ClientOnly>
-            <div class="hidden md:block">
+            <ClientOnly>
               <ThemeSwitcher />
-            </div>
-          </ClientOnly>
-
-          <!-- Cart Button - Desktop only -->
-          <UButton
-            :to="localePath('/cart')"
-            variant="ghost"
-            color="white"
-            icon="i-lucide-shopping-cart"
-            :aria-label="t('nav.cart')"
-            class="relative hover:bg-white/10 hidden md:flex"
-          >
-            <UBadge
-              v-if="cartItemsCount > 0"
-              :label="cartItemsCount.toString()"
-              color="primary"
-              size="xs"
-              class="absolute -top-1 -right-1"
-            />
-          </UButton>
-
-          <!-- Auth Actions -->
-          <ClientOnly>
-            <div v-if="!authStore.isAuthenticated" class="hidden sm:block">
-              <UButton
-                :to="localePath('/auth')"
-                variant="ghost"
-                color="white"
-                icon="i-lucide-log-in"
-                class="hover:bg-white/10"
-              >
-                {{ t("nav.login") }}
-              </UButton>
-            </div>
-
-            <div v-else class="hidden sm:block">
-              <!-- User Menu -->
-              <UDropdownMenu :items="userMenuItems">
+              <template #fallback>
                 <UButton
-                  variant="ghost"
                   color="white"
-                  square
-                  class="hover:bg-white/10"
-                  aria-label="Menú de usuario"
-                >
-                  <div class="flex items-center gap-2">
-                    <div
-                      class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30"
-                    >
-                      <UIcon
-                        name="i-lucide-user"
-                        class="w-4 h-4 text-primary"
-                      />
-                    </div>
-                    <UIcon
-                      name="i-lucide-chevron-down"
-                      class="w-4 h-4 text-neutral-300"
-                    />
-                  </div>
-                </UButton>
-              </UDropdownMenu>
-            </div>
-          </ClientOnly>
+                  variant="ghost"
+                  icon="i-lucide-swatch-book"
+                  class="hover:bg-white/10 opacity-70"
+                  disabled
+                />
+              </template>
+            </ClientOnly>
 
-          <!-- Mobile Menu Button & Slideover -->
-          <USlideover
-            v-model:open="mobileMenuOpen"
-            side="right"
-            :ui="{ overlay: 'bg-black/50 backdrop-blur-sm', content: 'bg-[var(--color-paranal-950)]' }"
-          >
-            <!-- Trigger Button (default slot) -->
-            <UButton
-              variant="ghost"
-              color="white"
-              icon="i-lucide-menu"
-              class="md:hidden hover:bg-white/10"
-              aria-label="Abrir menú de navegación"
-            />
-
-            <!-- Slideover Content -->
-            <template #content>
-        <div class="p-6 space-y-6 bg-[var(--color-paranal-950)] h-full border-l border-white/10">
-          <!-- Close Button -->
-          <div
-             class="flex justify-between items-center pb-4 border-b border-white/10"
-          >
-            <h2
-              class="text-xl font-display font-bold text-white"
-            >
-              {{ t("common.menu") || "Menú" }}
-            </h2>
-            <UButton
-              icon="i-lucide-x"
-              color="white"
-              variant="ghost"
-              :aria-label="t('common.close') || 'Cerrar menú'"
-              @click="mobileMenuOpen = false"
-            />
-          </div>
-
-          <!-- Navigation Links -->
-          <nav
-            class="space-y-2"
-            role="navigation"
-            aria-label="Navegación móvil"
-          >
-            <UButton
-              v-for="link in links"
-              :key="link.label"
-              :to="link.to"
-              variant="ghost"
-              color="white"
-              block
-              class="justify-start text-lg"
-              @click="mobileMenuOpen = false"
-            >
-              {{ link.label }}
-            </UButton>
-          </nav>
-
-          <!-- Mobile Actions (Language, Theme, Cart) -->
-          <div class="space-y-3 pt-4 border-t border-white/10">
-            <!-- Cart Link -->
             <UButton
               :to="localePath('/cart')"
               variant="ghost"
               color="white"
-              block
               icon="i-lucide-shopping-cart"
-              class="justify-start text-lg"
-              @click="mobileMenuOpen = false"
+              :aria-label="t('nav.cart')"
+              class="relative hover:bg-white/10"
             >
-              <span class="flex items-center gap-2">
-                {{ t('nav.cart') }}
+              <ClientOnly>
                 <UBadge
                   v-if="cartItemsCount > 0"
                   :label="cartItemsCount.toString()"
                   color="primary"
                   size="xs"
+                  class="absolute -top-1 -right-1"
                 />
-              </span>
+              </ClientOnly>
             </UButton>
 
-            <!-- Language & Theme Switchers -->
-            <div class="flex items-center gap-3 px-4">
-              <div class="flex-1">
-                <p class="text-sm text-neutral-300 mb-2">{{ t('nav.language') || 'Idioma' }}</p>
-                <LanguageSwitcher />
-              </div>
-              <ClientOnly>
-                <div class="flex-1">
-                  <p class="text-sm text-neutral-300 mb-2">{{ t('nav.theme') || 'Tema' }}</p>
-                  <ThemeSwitcher />
-                </div>
-              </ClientOnly>
-            </div>
-          </div>
-
-          <!-- Auth Actions -->
-          <div
-             class="space-y-4 pt-4 border-t border-white/10"
-          >
             <ClientOnly>
               <div v-if="!authStore.isAuthenticated">
                 <UButton
                   :to="localePath('/auth')"
-                  color="primary"
-                  block
+                  variant="ghost"
+                  color="white"
                   icon="i-lucide-log-in"
-                  class="cobre-glow"
-                  @click="mobileMenuOpen = false"
+                  class="hover:bg-white/10"
                 >
                   {{ t("nav.login") }}
                 </UButton>
               </div>
-
               <div v-else>
-                <!-- User Info -->
-                <div
-                  class="p-4 bg-white/5 rounded-xl mb-4 border border-white/10"
-                >
-                  <p
-                     class="text-sm font-medium text-white"
+                <UDropdownMenu :items="userMenuItems">
+                  <UButton
+                    variant="ghost"
+                    color="white"
+                    square
+                    class="hover:bg-white/10"
+                    aria-label="Menú de usuario"
                   >
-                    {{ authStore.user?.fullName }}
-                  </p>
-                   <p class="text-xs text-neutral-300">
-                    {{ authStore.user?.email }}
-                  </p>
-                </div>
-
-                <UButton
-                  v-if="isAdmin"
-                  :to="localePath('/admin')"
-                  variant="outline"
-                  color="white"
-                  block
-                  icon="i-lucide-shield-check"
-                  @click="mobileMenuOpen = false"
-                >
-                  {{ t("nav.admin") }}
-                </UButton>
-
-                <UButton
-                  :to="localePath('/profile')"
-                  variant="outline"
-                  color="white"
-                  block
-                  icon="i-lucide-user"
-                  @click="mobileMenuOpen = false"
-                >
-                  {{ t("nav.my_account") }}
-                </UButton>
-
-                <UButton
-                  :to="localePath('/profile/bookings')"
-                  variant="outline"
-                  color="white"
-                  block
-                  icon="i-lucide-book-marked"
-                  @click="mobileMenuOpen = false"
-                >
-                  {{ t("nav.bookings") }}
-                </UButton>
-
-                <UButton
-                  variant="outline"
-                  color="red"
-                  block
-                  icon="i-lucide-log-out"
-                  @click="handleLogout"
-                >
-                  {{ t("nav.logout") }}
-                </UButton>
+                    <div class="flex items-center gap-2">
+                      <div
+                        class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30"
+                      >
+                        <UIcon
+                          name="i-lucide-user"
+                          class="w-4 h-4 text-primary"
+                        />
+                      </div>
+                    </div>
+                  </UButton>
+                </UDropdownMenu>
               </div>
+
+              <!-- Fallback Login Button -->
+              <template #fallback>
+                <UButton
+                  variant="ghost"
+                  color="white"
+                  icon="i-lucide-log-in"
+                  class="hover:bg-white/10 opacity-70"
+                  disabled
+                >
+                  {{ t("nav.login") }}
+                </UButton>
+              </template>
             </ClientOnly>
           </div>
-        </div>
-      </template>
-    </USlideover>
+
+          <!-- Mobile Menu Button & Slideover -->
+          <USlideover
+            v-model:open="mobileMenuOpen"
+            side="right"
+            :ui="{
+              overlay: 'bg-black/60 backdrop-blur-sm',
+              width: 'w-screen max-w-xs',
+              base: 'border-l border-white/10', // Elimina padding por defecto si es necesario
+            }"
+          >
+            <UButton
+              variant="ghost"
+              color="white"
+              icon="i-lucide-menu"
+              class="md:hidden hover:bg-white/10"
+              aria-label="Abrir menú"
+            />
+
+            <template #content>
+              <!-- Aquí usamos el nuevo componente -->
+              <LayoutMobileMenu
+                :links="links"
+                @close="mobileMenuOpen = false"
+              />
+            </template>
+          </USlideover>
         </div>
       </div>
     </div>
@@ -297,76 +162,53 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from '~/stores/auth'
+import { useAuthStore } from "~/stores/auth";
 
-const { t } = useI18n()
-const authStore = useAuthStore()
-const cartStore = useCartStore()
-const localePath = useLocalePath()
+const { t } = useI18n();
+const authStore = useAuthStore();
+const cartStore = useCartStore();
+const localePath = useLocalePath();
 
-const mobileMenuOpen = ref(false)
-const isAdmin = computed(() => authStore.isAdmin)
+const mobileMenuOpen = ref(false);
+const isAdmin = computed(() => authStore.isAdmin);
+const cartItemsCount = computed(() => cartStore.totalItems);
 
-// Cart items count
-const cartItemsCount = computed(() => cartStore.totalItems)
-
-// Navigation links
 const links = computed(() => [
-  {
-    label: t('nav.tours'),
-    to: localePath('/tours')
-  },
-  {
-    label: t('nav.private_tours'),
-    to: localePath('/private-tours')
-  },
-  {
-    label: t('nav.about_us'),
-    to: localePath('/about')
-  },
-  {
-    label: t('nav.contact'),
-    to: localePath('/contact')
-  }
-])
+  { label: t("nav.tours"), to: localePath("/tours") },
+  { label: t("nav.private_tours"), to: localePath("/private-tours") },
+  { label: t("nav.about_us"), to: localePath("/about") },
+  { label: t("nav.contact"), to: localePath("/contact") },
+]);
 
-// Handle logout
 async function handleLogout() {
-  mobileMenuOpen.value = false
-  await authStore.logout()
+  mobileMenuOpen.value = false;
+  await authStore.logout();
 }
 
-// User menu items
 const userMenuItems = computed(() => [
   [
     {
-      label: t('nav.my_account'),
-      icon: 'i-lucide-user',
-      to: localePath('/profile')
+      label: t("nav.my_account"),
+      icon: "i-lucide-user",
+      to: localePath("/profile"),
     },
     {
-      label: t('nav.bookings'),
-      icon: 'i-lucide-book-marked',
-      to: localePath('/profile/bookings')
-    }
+      label: t("nav.bookings"),
+      icon: "i-lucide-book-marked",
+      to: localePath("/profile/bookings"),
+    },
   ],
   ...(isAdmin.value
     ? [
         [
           {
-            label: t('nav.admin'),
-            icon: 'i-lucide-shield-check',
-            to: localePath('/admin')
-          }
-        ]
+            label: t("nav.admin"),
+            icon: "i-lucide-shield-check",
+            to: localePath("/admin"),
+          },
+        ],
       ]
     : []),
-  [
-    {
-      label: t('nav.logout'),
-      icon: 'i-lucide-log-out',
-      onClick: handleLogout
-    }
-  ]
-])
+  [{ label: t("nav.logout"), icon: "i-lucide-log-out", onClick: handleLogout }],
+]);
 </script>
