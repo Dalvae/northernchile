@@ -42,9 +42,8 @@ export default defineNuxtConfig({
     domains: [
       "northern-chile-assets.s3.sa-east-1.amazonaws.com",
       "northern-chile-assets.s3.amazonaws.com",
-      "localhost"
+      "localhost",
     ],
-    dir: "public",
     provider: "ipx",
     presets: {
       hero: {
@@ -53,8 +52,8 @@ export default defineNuxtConfig({
           quality: 90,
           width: 1920,
           height: 1080,
-          fit: "cover"
-        }
+          fit: "cover",
+        },
       },
       thumbnail: {
         modifiers: {
@@ -62,8 +61,8 @@ export default defineNuxtConfig({
           quality: 75,
           width: 400,
           height: 300,
-          fit: "cover"
-        }
+          fit: "cover",
+        },
       },
       card: {
         modifiers: {
@@ -71,10 +70,10 @@ export default defineNuxtConfig({
           quality: 80,
           width: 800,
           height: 600,
-          fit: "cover"
-        }
-      }
-    }
+          fit: "cover",
+        },
+      },
+    },
   },
 
   fonts: {
@@ -128,13 +127,13 @@ export default defineNuxtConfig({
   },
 
   gtag: {
-    id: process.env.NUXT_PUBLIC_GTAG_ID || '',
-    enabled: process.env.NODE_ENV === 'production',
+    id: process.env.NUXT_PUBLIC_GTAG_ID || "",
+    enabled: process.env.NODE_ENV === "production",
     config: {
       anonymize_ip: true,
       send_page_view: true,
-      cookie_flags: 'SameSite=None;Secure'
-    }
+      cookie_flags: "SameSite=None;Secure",
+    },
   },
 
   runtimeConfig: {
@@ -242,41 +241,43 @@ export default defineNuxtConfig({
   },
 
   sitemap: {
-    hostname: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.cl',
+    hostname:
+      process.env.NUXT_PUBLIC_BASE_URL || "https://www.northernchile.cl",
     gzip: true,
     routes: async () => {
       // Fetch dynamic tour routes from API
       try {
-        const tours = await $fetch<any[]>(`${apiBaseUrl}/api/tours/published`)
-        const locales = ['es', 'en', 'pt']
+        const tours = await $fetch<any[]>(`${apiBaseUrl}/api/tours/published`);
+        const locales = ["es", "en", "pt"];
 
-        return tours.flatMap(tour => {
+        return tours.flatMap((tour) => {
           // Generate routes for each locale
-          return locales.map(locale => {
-            const path = locale === 'es'
-              ? `/tours/${tour.slug}`
-              : `/${locale}/tours/${tour.slug}`
+          return locales.map((locale) => {
+            const path =
+              locale === "es"
+                ? `/tours/${tour.slug}`
+                : `/${locale}/tours/${tour.slug}`;
 
             return {
               url: path,
-              changefreq: 'weekly',
+              changefreq: "weekly",
               priority: 0.8,
-              lastmod: tour.updatedAt || new Date().toISOString()
-            }
-          })
-        })
+              lastmod: tour.updatedAt || new Date().toISOString(),
+            };
+          });
+        });
       } catch (error) {
-        console.error('Error fetching tours for sitemap:', error)
-        return []
+        console.error("Error fetching tours for sitemap:", error);
+        return [];
       }
     },
     exclude: [
-      '/admin/**',
-      '/profile/**',
-      '/auth',
-      '/cart',
-      '/checkout',
-      '/payment/**'
-    ]
+      "/admin/**",
+      "/profile/**",
+      "/auth",
+      "/cart",
+      "/checkout",
+      "/payment/**",
+    ],
   },
 });
