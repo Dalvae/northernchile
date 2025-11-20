@@ -113,7 +113,7 @@ export default defineNuxtConfig({
           "style-src 'self' 'unsafe-inline'",
           "font-src 'self' data:",
           "img-src 'self' data: https: blob:",
-          `connect-src 'self' ${apiBaseUrl} https://api.openweathermap.org`,
+          `connect-src 'self' ${apiBaseUrl} https://api.openweathermap.org https://api.iconify.design`,
           "frame-ancestors 'self'",
           "base-uri 'self'",
           "form-action 'self'",
@@ -142,8 +142,15 @@ export default defineNuxtConfig({
       cssCodeSplit: true,
     },
     optimizeDeps: {
-      include: ["vue", "@vue/runtime-core", "@vue/runtime-dom"],
-      exclude: ["@fullcalendar/vue3"],
+      include: [
+        "vue",
+        "@vue/runtime-core",
+        "@vue/runtime-dom",
+        "@fullcalendar/core",
+        "@fullcalendar/daygrid",
+        "@fullcalendar/interaction",
+        "@fullcalendar/vue3",
+      ],
     },
     ssr: {
       noExternal: ["@nuxt/ui"],
@@ -179,4 +186,3 @@ export default defineNuxtConfig({
     },
   },
 });
-

@@ -6,10 +6,7 @@
         <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
           {{ t("booking.title") }}
         </h1>
-        <p
-          v-if="tour"
-          class="text-neutral-600 dark:text-neutral-300"
-        >
+        <p v-if="tour" class="text-neutral-600 dark:text-neutral-300">
           {{ getTourName(tour) }}
         </p>
       </div>
@@ -33,18 +30,12 @@
       <UCard class="max-w-4xl mx-auto">
         <template #content>
           <!-- Step 1: Select Schedule -->
-          <div
-            v-if="currentStep === 0"
-            class="space-y-6"
-          >
+          <div v-if="currentStep === 0" class="space-y-6">
             <h2 class="text-xl font-semibold text-neutral-900 dark:text-white">
               {{ t("booking.select_date") }}
             </h2>
 
-            <div
-              v-if="schedules && schedules.length > 0"
-              class="grid gap-4"
-            >
+            <div v-if="schedules && schedules.length > 0" class="grid gap-4">
               <UButton
                 v-for="schedule in schedules"
                 :key="schedule.id"
@@ -62,10 +53,7 @@
                 @click="selectSchedule(schedule)"
               >
                 <div class="flex items-center gap-3">
-                  <UIcon
-                    name="i-lucide-calendar"
-                    class="w-5 h-5"
-                  />
+                  <UIcon name="i-lucide-calendar" class="w-5 h-5" />
                   <span>{{ formatScheduleDate(schedule.startDatetime) }}</span>
                 </div>
                 <UBadge
@@ -84,10 +72,7 @@
           </div>
 
           <!-- Step 2: Select Participants -->
-          <div
-            v-else-if="currentStep === 1"
-            class="space-y-6"
-          >
+          <div v-else-if="currentStep === 1" class="space-y-6">
             <h2 class="text-xl font-semibold text-neutral-900 dark:text-white">
               {{ t("booking.select_participants") }}
             </h2>
@@ -126,11 +111,17 @@
                 <div
                   class="flex justify-between text-neutral-700 dark:text-neutral-200"
                 >
-                  <span>{{ bookingState.totalParticipants }} x
-                    {{ t("booking.participant") }}</span>
-                   <span>${{
-                     formatCurrency((tour?.price || 0) * bookingState.totalParticipants)
-                   }}</span>
+                  <span
+                    >{{ bookingState.totalParticipants }} x
+                    {{ t("booking.participant") }}</span
+                  >
+                  <span
+                    >${{
+                      formatCurrency(
+                        (tour?.price || 0) * bookingState.totalParticipants,
+                      )
+                    }}</span
+                  >
                 </div>
                 <UDivider />
                 <div
@@ -144,10 +135,7 @@
           </div>
 
           <!-- Step 3: Participant Details -->
-          <div
-            v-else-if="currentStep === 2"
-            class="space-y-6"
-          >
+          <div v-else-if="currentStep === 2" class="space-y-6">
             <div class="flex justify-between items-center">
               <h2
                 class="text-xl font-semibold text-neutral-900 dark:text-white"
@@ -177,10 +165,7 @@
           </div>
 
           <!-- Step 4: Payment -->
-          <div
-            v-else-if="currentStep === 3"
-            class="space-y-6"
-          >
+          <div v-else-if="currentStep === 3" class="space-y-6">
             <h2 class="text-xl font-semibold text-neutral-900 dark:text-white">
               {{ t("booking.mock_payment_title") }}
             </h2>
@@ -198,11 +183,17 @@
                 <div
                   class="flex justify-between text-neutral-700 dark:text-neutral-200"
                 >
-                  <span>{{ bookingState.totalParticipants }} x
-                    {{ t("booking.participant") }}</span>
-                   <span>${{
-                     formatCurrency((tour?.price || 0) * bookingState.totalParticipants)
-                   }}</span>
+                  <span
+                    >{{ bookingState.totalParticipants }} x
+                    {{ t("booking.participant") }}</span
+                  >
+                  <span
+                    >${{
+                      formatCurrency(
+                        (tour?.price || 0) * bookingState.totalParticipants,
+                      )
+                    }}</span
+                  >
                 </div>
                 <UDivider />
                 <div
@@ -231,10 +222,7 @@
           </div>
 
           <!-- Step 5: Confirmation -->
-          <div
-            v-else-if="currentStep === 4"
-            class="space-y-6 text-center"
-          >
+          <div v-else-if="currentStep === 4" class="space-y-6 text-center">
             <div
               class="w-16 h-16 mx-auto bg-success/10 rounded-full flex items-center justify-center"
             >
@@ -267,7 +255,7 @@
                 color="primary"
                 size="lg"
                 icon="i-lucide-calendar-check"
-                to="/profile/bookings"
+                :to="localePath('/profile/bookings')"
               >
                 {{ t("booking.view_booking") }}
               </UButton>
@@ -276,7 +264,7 @@
                 color="neutral"
                 size="lg"
                 icon="i-lucide-arrow-left"
-                to="/tours"
+                :to="localePath('/tours')"
               >
                 {{ t("booking.book_another") }}
               </UButton>
@@ -307,10 +295,7 @@
           @click="nextStep"
         >
           {{ t("common.next") }}
-          <UIcon
-            name="i-lucide-arrow-right"
-            class="ml-2"
-          />
+          <UIcon name="i-lucide-arrow-right" class="ml-2" />
         </UButton>
       </div>
     </UContainer>
@@ -318,203 +303,211 @@
 </template>
 
 <script setup lang="ts">
-const route = useRoute()
-const { t, locale } = useI18n()
-const authStore = useAuthStore()
-const toast = useToast()
-const { formatPrice: formatCurrency } = useCurrency()
+const route = useRoute();
+const { t, locale } = useI18n();
+const localePath = useLocalePath();
+const authStore = useAuthStore();
+const toast = useToast();
+const { formatPrice: formatCurrency } = useCurrency();
 
 // Tour ID from route
-const tourId = computed(() => route.params.id as string)
+const tourId = computed(() => route.params.id as string);
 
 // Fetch tour data
-import type { TourRes, BookingCreateReq, BookingRes, TourScheduleRes } from 'api-client'
-const { data: tour } = await useFetch<TourRes>(`/api/tours/${tourId.value}`)
+import type {
+  TourRes,
+  BookingCreateReq,
+  BookingRes,
+  TourScheduleRes,
+} from "api-client";
+const { data: tour } = await useFetch<TourRes>(`/api/tours/${tourId.value}`);
 
 // Fetch available schedules
-const { data: schedules } = await useFetch<TourScheduleRes[]>(`/api/tours/${tourId.value}/schedules`)
+const { data: schedules } = await useFetch<TourScheduleRes[]>(
+  `/api/tours/${tourId.value}/schedules`,
+);
 
 // Steps configuration
 const steps = computed(() => [
-  { title: t('booking.select_date') },
-  { title: t('booking.select_participants') },
-  { title: t('booking.participant_details') },
-  { title: t('booking.payment') },
-  { title: t('booking.confirmation') }
-])
+  { title: t("booking.select_date") },
+  { title: t("booking.select_participants") },
+  { title: t("booking.participant_details") },
+  { title: t("booking.payment") },
+  { title: t("booking.confirmation") },
+]);
 
 // Current step
-const currentStep = ref(0)
+const currentStep = ref(0);
 
 // Payment processing state
-const isProcessingPayment = ref(false)
-const confirmedBooking = ref<any>(null)
+const isProcessingPayment = ref(false);
+const confirmedBooking = ref<any>(null);
 
 // Booking state
 const bookingState = reactive({
   scheduleId: null as string | null,
   totalParticipants: 1,
   participants: [] as Array<{
-    fullName: string
-    documentId: string
-    nationality: string
-    dateOfBirth: string | null
-    pickupAddress: string
-    specialRequirements: string
-    phoneNumber: string
-    email: string
-  }>
-})
+    fullName: string;
+    documentId: string;
+    nationality: string;
+    dateOfBirth: string | null;
+    pickupAddress: string;
+    specialRequirements: string;
+    phoneNumber: string;
+    email: string;
+  }>,
+});
 
 // Initialize participants when adults/children change
 watch(
   () => bookingState.totalParticipants,
   () => {
-    bookingState.participants = []
+    bookingState.participants = [];
 
     for (let i = 0; i < bookingState.totalParticipants; i++) {
-      bookingState.participants.push(createEmptyParticipant())
+      bookingState.participants.push(createEmptyParticipant());
     }
-  }
-)
+  },
+);
 
 function createEmptyParticipant() {
   return {
-    fullName: '',
-    documentId: '',
-    nationality: '',
+    fullName: "",
+    documentId: "",
+    nationality: "",
     dateOfBirth: null,
-    pickupAddress: '',
-    specialRequirements: '',
-    phoneNumber: '',
-    email: ''
-  }
+    pickupAddress: "",
+    specialRequirements: "",
+    phoneNumber: "",
+    email: "",
+  };
 }
 
 function selectSchedule(schedule: TourScheduleRes) {
-  if (!schedule.id) return
-  bookingState.scheduleId = schedule.id
+  if (!schedule.id) return;
+  bookingState.scheduleId = schedule.id;
 }
 
-type BookingParticipant = BookingCreateReq['participants'][number]
+type BookingParticipant = BookingCreateReq["participants"][number];
 
 function updateParticipant(index: number, data: Partial<BookingParticipant>) {
-  const current = bookingState.participants[index]
+  const current = bookingState.participants[index];
   if (current) {
     bookingState.participants[index] = {
-      fullName: current.fullName || '',
-      documentId: current.documentId || '',
-      nationality: current.nationality || '',
+      fullName: current.fullName || "",
+      documentId: current.documentId || "",
+      nationality: current.nationality || "",
       dateOfBirth: current.dateOfBirth || null,
-      pickupAddress: current.pickupAddress || '',
-      specialRequirements: current.specialRequirements || '',
-      phoneNumber: current.phoneNumber || '',
-      email: current.email || '',
-      ...data
-    }
+      pickupAddress: current.pickupAddress || "",
+      specialRequirements: current.specialRequirements || "",
+      phoneNumber: current.phoneNumber || "",
+      email: current.email || "",
+      ...data,
+    };
   }
 }
 
 function copyUserDataToFirstParticipant() {
-  if (!authStore.user || bookingState.participants.length === 0) return
+  if (!authStore.user || bookingState.participants.length === 0) return;
 
-  const user = authStore.user
+  const user = authStore.user;
   if (!bookingState.participants[0]) {
-    bookingState.participants.push(createEmptyParticipant())
+    bookingState.participants.push(createEmptyParticipant());
   }
-  const firstParticipant = bookingState.participants[0]
+  const firstParticipant = bookingState.participants[0];
   if (firstParticipant) {
     bookingState.participants[0] = {
       ...firstParticipant,
-      fullName: user.fullName || '',
-      nationality: user.nationality || '',
+      fullName: user.fullName || "",
+      nationality: user.nationality || "",
       dateOfBirth: user.dateOfBirth || null,
-      documentId: firstParticipant.documentId || '',
-      pickupAddress: firstParticipant.pickupAddress || '',
-      specialRequirements: firstParticipant.specialRequirements || '',
-      phoneNumber: firstParticipant.phoneNumber || '',
-      email: firstParticipant.email || ''
-    }
+      documentId: firstParticipant.documentId || "",
+      pickupAddress: firstParticipant.pickupAddress || "",
+      specialRequirements: firstParticipant.specialRequirements || "",
+      phoneNumber: firstParticipant.phoneNumber || "",
+      email: firstParticipant.email || "",
+    };
   }
 
   toast.add({
-    title: t('common.success'),
-    description: t('booking.copy_user_data_help'),
-    color: 'success'
-  })
+    title: t("common.success"),
+    description: t("booking.copy_user_data_help"),
+    color: "success",
+  });
 }
 
 function getTourName(tour: any): string {
-  const name
-    = tour.nameTranslations?.[locale.value] || tour.nameTranslations?.es || ''
-  return name
+  const name =
+    tour.nameTranslations?.[locale.value] || tour.nameTranslations?.es || "";
+  return name;
 }
 
 function formatScheduleDate(datetime: string | undefined): string {
-  if (!datetime) return ''
-  const date = new Date(datetime)
+  if (!datetime) return "";
+  const date = new Date(datetime);
   return date.toLocaleDateString(locale.value, {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 function calculateTotal(): string {
-  if (!tour.value) return formatCurrency(0)
-  const total = (tour.value.price || 0) * bookingState.totalParticipants
-  return formatCurrency(total)
+  if (!tour.value) return formatCurrency(0);
+  const total = (tour.value.price || 0) * bookingState.totalParticipants;
+  return formatCurrency(total);
 }
 
 // Validation
 const canProceed = computed(() => {
   if (currentStep.value === 0) {
-    return bookingState.scheduleId !== null
+    return bookingState.scheduleId !== null;
   }
   if (currentStep.value === 1) {
-    return bookingState.totalParticipants > 0
+    return bookingState.totalParticipants > 0;
   }
   if (currentStep.value === 2) {
     return bookingState.participants.every(
-      p =>
-        p.fullName.trim() !== ''
-        && p.documentId.trim() !== ''
-        && p.pickupAddress.trim() !== ''
-    )
+      (p) =>
+        p.fullName.trim() !== "" &&
+        p.documentId.trim() !== "" &&
+        p.pickupAddress.trim() !== "",
+    );
   }
-  return true
-})
+  return true;
+});
 
 function nextStep() {
   if (canProceed.value) {
-    currentStep.value++
+    currentStep.value++;
   }
 }
 
 function previousStep() {
   if (currentStep.value > 0) {
-    currentStep.value--
+    currentStep.value--;
   }
 }
 
 async function handleMockPayment() {
   if (!tour.value || !bookingState.scheduleId) {
     toast.add({
-      title: t('common.error'),
-      description: 'Missing tour or schedule information',
-      color: 'error'
-    })
-    return
+      title: t("common.error"),
+      description: "Missing tour or schedule information",
+      color: "error",
+    });
+    return;
   }
 
-  isProcessingPayment.value = true
+  isProcessingPayment.value = true;
 
   try {
     // Step 1: Create the booking with PENDING status
     const bookingPayload: BookingCreateReq = {
       scheduleId: bookingState.scheduleId!,
-      participants: bookingState.participants.map(p => ({
+      participants: bookingState.participants.map((p) => ({
         fullName: p.fullName,
         documentId: p.documentId,
         nationality: p.nationality,
@@ -522,69 +515,69 @@ async function handleMockPayment() {
         pickupAddress: p.pickupAddress,
         specialRequirements: p.specialRequirements || undefined,
         phoneNumber: p.phoneNumber || undefined,
-        email: p.email || undefined
+        email: p.email || undefined,
       })),
       languageCode: locale.value,
-      specialRequests: ''
-    }
+      specialRequests: "",
+    };
 
-    const createdBooking = await $fetch<BookingRes>(
-      '/api/bookings',
-      {
-        method: 'post',
-        body: bookingPayload
-      }
-    )
+    const createdBooking = await $fetch<BookingRes>("/api/bookings", {
+      method: "post",
+      body: bookingPayload,
+    });
 
     if (!createdBooking) {
-      throw new Error('Failed to create booking')
+      throw new Error("Failed to create booking");
     }
 
     toast.add({
-      title: t('common.success'),
-      description: t('booking.booking_created_success'),
-      color: 'success'
-    })
+      title: t("common.success"),
+      description: t("booking.booking_created_success"),
+      color: "success",
+    });
 
     // Step 2: Confirm the booking with mock payment
     const confirmed = await $fetch<BookingRes>(
       `/api/bookings/${createdBooking.id}/confirm-mock`,
       {
-        method: 'post'
-      }
-    )
+        method: "post",
+      },
+    );
 
     if (!confirmed) {
-      throw new Error('Failed to confirm booking')
+      throw new Error("Failed to confirm booking");
     }
 
-    confirmedBooking.value = confirmed as BookingRes
+    confirmedBooking.value = confirmed as BookingRes;
 
     toast.add({
-      title: t('booking.payment_success'),
-      description: t('booking.booking_confirmed_success'),
-      color: 'success'
-    })
+      title: t("booking.payment_success"),
+      description: t("booking.booking_confirmed_success"),
+      color: "success",
+    });
 
     // Step 3: Move to confirmation step
-    currentStep.value = 4
+    currentStep.value = 4;
   } catch (error) {
-    console.error('Payment error:', error)
+    console.error("Payment error:", error);
     const message =
-      typeof error === 'object' && error && 'message' in error && typeof error.message === 'string'
+      typeof error === "object" &&
+      error &&
+      "message" in error &&
+      typeof error.message === "string"
         ? error.message
-        : 'An unexpected error occurred'
+        : "An unexpected error occurred";
     toast.add({
-      title: t('booking.payment_error'),
+      title: t("booking.payment_error"),
       description: message,
-      color: 'error'
-    })
+      color: "error",
+    });
   } finally {
-    isProcessingPayment.value = false
+    isProcessingPayment.value = false;
   }
 }
 
 definePageMeta({
-  layout: 'default'
-})
+  layout: "default",
+});
 </script>

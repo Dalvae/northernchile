@@ -5,8 +5,8 @@ const { t } = useI18n()
 const localePath = useLocalePath() 
 const { fetchAll } = useTours()
 
-// 🛑 ERROR ANTERIOR: "await" aquí bloqueaba el contexto para lo que sigue abajo.
-// ✅ SOLUCIÓN: Quitamos el await. 'data' será una ref reactiva que se llenará sola.
+
+
 const { data: toursData } = fetchAll() 
 
 
@@ -32,15 +32,15 @@ useSeoMeta({
 
 <template>
   <div>
-    <!-- Hero Section - CRITICAL: In initial viewport -->
+    
     <HomeHeroSection />
 
-    <!-- Experience Section - Lazy loaded (below fold) -->
+    
     <LazyHomeExperience />
 
-    <!-- Tours Destacados -->
+    
     <section class="relative py-24 z-10 overflow-hidden">
-      <!-- Background Gradient -->
+      
       <div class="absolute inset-0 bg-gradient-to-b from-neutral-950 to-neutral-900 z-0" />
 
       <UContainer class="relative z-10">
@@ -64,7 +64,7 @@ useSeoMeta({
         </div>
 
         <div class="mt-16 text-center">
-          <!-- ✅ 2. Enlace corregido con localePath -->
+          
           <UButton
             :to="localePath('/tours')"
             size="xl"
@@ -79,10 +79,10 @@ useSeoMeta({
       </UContainer>
     </section>
 
-    <!-- Why Choose Us Section - Lazy loaded (below fold) -->
+    
     <LazyHomeWhyChooseUs />
 
-    <!-- Call to Action -->
+    
     <section class="relative py-32 z-10">
       <div class="absolute inset-0 atacama-gradient opacity-80 z-0" />
       <UContainer class="relative z-10 text-center">
@@ -93,7 +93,7 @@ useSeoMeta({
           {{ t("home.cta_subtitle") }}
         </p>
         <div class="flex flex-col sm:flex-row gap-6 justify-center">
-          <!-- ✅ 3. Enlaces corregidos con localePath -->
+
           <UButton
             :to="localePath('/tours')"
             size="xl"
