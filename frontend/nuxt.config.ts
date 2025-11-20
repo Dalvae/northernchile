@@ -60,7 +60,7 @@ export default defineNuxtConfig({
     },
   },
 
-  css: ["~/assets/css/main.css", "~/assets/css/theme.css"],
+  css: ["~/assets/css/main.css"],
 
   /* colorMode: {
     preference: "dark",
@@ -140,80 +140,14 @@ export default defineNuxtConfig({
   vite: {
     plugins: [viteTsconfigPaths()],
     build: {
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            // Aggressive vendor splitting for better caching and smaller bundles
-            if (id.includes('node_modules')) {
-              // Vue core - critical
-              if (id.includes('vue') || id.includes('@vue')) {
-                return 'vendor-vue'
-              }
-
-              // Nuxt UI and related - split into smaller chunks
-              if (id.includes('@nuxt/ui')) {
-                return 'vendor-ui'
-              }
-              if (id.includes('@headlessui') || id.includes('@floating-ui')) {
-                return 'vendor-ui-deps'
-              }
-
-              // i18n - can be large with all locales
-              if (id.includes('i18n') || id.includes('intl')) {
-                return 'vendor-i18n'
-              }
-
-              // Icons - separate iconify from lucide
-              if (id.includes('@iconify-json/lucide')) {
-                return 'vendor-icons-lucide'
-              }
-              if (id.includes('@iconify')) {
-                return 'vendor-icons'
-              }
-
-              // Date libraries
-              if (id.includes('date-fns')) {
-                return 'vendor-date'
-              }
-
-              // FullCalendar - large library
-              if (id.includes('fullcalendar')) {
-                return 'vendor-calendar'
-              }
-
-              // API client / Axios
-              if (id.includes('axios') || id.includes('api-client')) {
-                return 'vendor-api'
-              }
-
-              // Pinia store
-              if (id.includes('pinia')) {
-                return 'vendor-store'
-              }
-
-              // VueUse utilities
-              if (id.includes('@vueuse')) {
-                return 'vendor-vueuse'
-              }
-
-              // Other vendor code
-              return 'vendor'
-            }
-          },
-        },
-      },
-      // Increase chunk size warning limit
-      chunkSizeWarningLimit: 600,
+      // Use default Vite/Nuxt chunk splitting - aggressive splitting causes circular dependencies
+      chunkSizeWarningLimit: 1000,
       // Enable source maps for production debugging
       sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true,
-      // Use esbuild for faster, safer minification (avoids terser bugs)
+      // Use esbuild for faster, safer minification
       minify: 'esbuild',
       // Enable CSS code splitting
       cssCodeSplit: true,
-      // Aggressive tree-shaking
-      modulePreload: {
-        polyfill: false, // Don't include polyfill if not needed
-      },
     },
     // Optimize dependencies
     optimizeDeps: {
