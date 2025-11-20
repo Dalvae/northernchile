@@ -5,27 +5,30 @@ const apiBaseUrl =
   process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 
 export default defineNuxtConfig({
-  modules: [
-    "@nuxt/eslint",
-    "@nuxt/ui",
-    "nuxt-vitalizer",
-    "@nuxt/fonts",
-    "@nuxtjs/i18n",
-    "@pinia/nuxt",
-    "@vueuse/nuxt",
-    "@nuxt/image",
-    "nuxt-gtag",
-    "@nuxtjs/sitemap",
-  ],
+  modules: ["@nuxt/eslint", "@nuxt/ui", "@nuxt/fonts", "@nuxtjs/i18n", "@pinia/nuxt", "@vueuse/nuxt", "@nuxt/image", "nuxt-gtag", "@nuxtjs/sitemap", "nuxt-vitalizer"],
 
-  devtools: {
-    enabled: process.env.NODE_ENV === "development",
+  sourcemap: {
+    server: false,
+    client: false
+  },
+
+  features: {
+    inlineStyles: true
   },
 
   vitalizer: {
-    disablePrefetchLinks: "dynamicImports",
-    disablePreloadLinks: false,
-    disableStylesheets: false,
+    disablePrefetchLinks: true,
+    disablePreloadLinks: true,
+    disableStylesheets: 'entry',
+  },
+
+  experimental: {
+    renderJsonPayloads: true,
+    asyncContext: true
+  },
+
+  devtools: {
+    enabled: process.env.NODE_ENV === "development",
   },
   image: {
     format: ["webp", "avif"],
@@ -107,11 +110,9 @@ export default defineNuxtConfig({
     experimental: {
       processCSSVariables: true,
     },
-  },
+   },
 
-  css: ["~/assets/css/main.css"],
-
-  ui: {
+   ui: {
     theme: {
       colors: [
         "primary",
@@ -179,6 +180,8 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-01-15",
 
   nitro: {
+    compressPublicAssets: true,
+    minify: true,
     devProxy: {
       "/api": {
         target: "http://localhost:8080/api",
