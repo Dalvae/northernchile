@@ -12,21 +12,17 @@ interface Cart {
 }
 
 export const useCartStore = defineStore('cart', () => {
-  // 1. Definir el estado inicial por defecto SIEMPRE
   const defaultCart: Cart = {
     cartId: null,
     items: [],
     cartTotal: 0
   }
 
-  // 2. Inicializar de forma segura
-  // Usamos ref con el valor por defecto primero para evitar undefined
   const cart = ref<Cart>(defaultCart)
 
   const isLoading = ref(false)
   const toast = useToast()
 
-  // 3. Computed Properties BLINDADAS (Aquí es donde te da el error 500)
   const totalItems = computed(() => {
     // Si cart.value es null o undefined, o si no tiene items, devuelve 0
     if (!cart.value || !cart.value.items) return 0
@@ -146,8 +142,6 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
-  // 4. Persistencia manual segura (Reemplaza el uso de useLocalStorage directo si da problemas)
-  // Esto asegura que en el Servidor (SSR) no falle y en el Cliente lea localStorage al montar
   onMounted(() => {
     if (import.meta.client) {
       try {
@@ -161,7 +155,6 @@ export const useCartStore = defineStore('cart', () => {
     }
   })
 
-  // Guardar cambios automáticamente
   watch(cart, (newVal) => {
     if (import.meta.client) {
       localStorage.setItem('nc-cart', JSON.stringify(newVal))

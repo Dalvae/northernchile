@@ -13,17 +13,14 @@ const {
   error: tourError
 } = await useFetch<TourRes>(`/api/tours/slug/${tourSlug}`)
 
-// Ref para el contenido enriquecido
 const tourContent = ref<any>(null)
 
-// Función para cargar dinámicamente el contenido
 async function fetchContent(contentKey: string | undefined) {
   if (!contentKey) {
     tourContent.value = null
     return
   }
   try {
-    // Importación dinámica basada en la clave
     const contentModule = await import(`~/app/content/tours/${contentKey}.ts`)
     tourContent.value = contentModule.default
   } catch (e) {
@@ -35,7 +32,6 @@ async function fetchContent(contentKey: string | undefined) {
   }
 }
 
-// Carga el contenido cuando los datos del tour estén disponibles
 watch(
   tour,
   (newTour) => {
@@ -46,8 +42,6 @@ watch(
   { immediate: true }
 )
 
-// Propiedades computadas para usar en el template
-// Contenido enriquecido legacy (app/content/tours/*). Si existe, se usa.
 const translatedContent = computed(() => {
   if (!tourContent.value) return null
   return tourContent.value[locale.value] || tourContent.value.es
