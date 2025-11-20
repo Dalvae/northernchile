@@ -3,6 +3,7 @@ const cartStore = useCartStore()
 const authStore = useAuthStore()
 const router = useRouter()
 const { t, locale } = useI18n()
+const localePath = useLocalePath()
 const { formatPrice } = useCurrency()
 const { formatDateTime } = useDateTime()
 
@@ -26,7 +27,7 @@ async function removeItem(itemId: string) {
 
 function proceedToCheckout() {
   if (isEmpty.value) return
-  router.push('/checkout')
+  router.push(localePath('/checkout'))
 }
 </script>
 
@@ -64,7 +65,7 @@ function proceedToCheckout() {
           {{ t('cart.empty_description') }}
         </p>
         <UButton
-          to="/tours"
+          :to="localePath('/tours')"
           size="lg"
           color="primary"
           icon="i-lucide-telescope"
@@ -201,7 +202,7 @@ function proceedToCheckout() {
               color="neutral"
               class="mt-3"
               icon="i-lucide-arrow-left"
-              to="/tours"
+              :to="localePath('/tours')"
             >
               {{ t('cart.continue_shopping') }}
             </UButton>

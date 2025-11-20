@@ -4,6 +4,7 @@ import type { TourRes } from 'api-client'
 
 const route = useRoute()
 const { locale } = useI18n()
+const localePath = useLocalePath()
 const tourSlug = route.params.slug as string
 
 const {
@@ -110,7 +111,7 @@ useSeoMeta({
 })
 
 async function goToSchedule() {
-  const schedulePath = `/tours/${tourSlug}/schedule`
+  const schedulePath = localePath(`/tours/${tourSlug}/schedule`)
   await navigateTo(schedulePath)
 }
 </script>
@@ -138,11 +139,14 @@ async function goToSchedule() {
     <div v-else-if="tour">
       <!-- Full Screen Header -->
       <div class="relative h-screen min-h-[600px] w-full overflow-hidden">
-        <img
+        <NuxtImg
           :src="heroImage"
           :alt="translatedName"
           class="absolute inset-0 w-full h-full object-cover"
-        >
+          format="webp"
+          loading="eager"
+          fetchpriority="high"
+        />
         <div class="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/40 to-transparent" />
         
         <div class="absolute bottom-0 left-0 right-0 p-8 pb-24 sm:p-16 sm:pb-32 max-w-7xl mx-auto">
@@ -225,12 +229,14 @@ async function goToSchedule() {
                 arrows
               >
                 <div class="relative aspect-[4/3] rounded-xl overflow-hidden atacama-card group">
-                  <img 
-                    :src="item.imageUrl" 
-                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                    draggable="false"
-                  >
-                  <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                    <NuxtImg
+                                      :src="item.imageUrl"
+                                      class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                      draggable="false"
+                                      format="webp"
+                                      loading="lazy"
+                                      placeholder
+                                    />                  <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
               </UCarousel>
             </div>

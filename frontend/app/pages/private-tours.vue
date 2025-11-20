@@ -130,10 +130,13 @@ async function submitRequest() {
     <section class="relative h-[70vh] min-h-[600px] flex items-center justify-center overflow-hidden">
       <!-- Background Image -->
       <div class="absolute inset-0">
-        <img
+        <NuxtImg
           src="/images/private-tours-hero.png"
           alt="Private Tours"
           class="w-full h-full object-cover"
+          format="webp"
+          loading="eager"
+          fetchpriority="high"
         />
         <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-neutral-950" />
       </div>

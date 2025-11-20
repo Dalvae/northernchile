@@ -244,10 +244,13 @@ function openFileDialog() {
               class="flex items-center gap-3 p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg"
             >
               <!-- Preview -->
-              <img
+              <NuxtImg
                 v-if="item.status === 'success' && item.url"
                 :src="item.url"
                 class="w-12 h-12 object-cover rounded"
+                format="webp"
+                loading="lazy"
+                placeholder
               />
               <div
                 v-else

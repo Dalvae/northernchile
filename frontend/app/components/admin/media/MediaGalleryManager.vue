@@ -235,10 +235,13 @@ watch(() => [props.tourId, props.scheduleId], () => {
         class="relative group"
       >
         <!-- Image -->
-        <img
+        <NuxtImg
           :src="item.url"
           :alt="item.altTranslations?.es || item.originalFilename"
           class="w-full h-40 object-cover rounded-lg shadow-sm"
+          format="webp"
+          loading="lazy"
+          placeholder
         />
 
         <!-- Hero badge -->

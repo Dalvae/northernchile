@@ -1,6 +1,9 @@
 import { fileURLToPath } from "node:url";
 import viteTsconfigPaths from "vite-tsconfig-paths";
 
+const apiBaseUrl =
+  process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+
 export default defineNuxtConfig({
   modules: [
     "@nuxt/eslint",
@@ -10,65 +13,59 @@ export default defineNuxtConfig({
     "@nuxtjs/i18n",
     "@pinia/nuxt",
     "@vueuse/nuxt",
+    "@nuxt/image",
   ],
 
   devtools: {
     enabled: process.env.NODE_ENV === "development",
   },
 
-  // Nuxt Vitalizer - LCP optimization without breaking CSR pages
   vitalizer: {
-    // Disable prefetch for dynamic imports (improves LCP, enabled by default)
-    disablePrefetchLinks: 'dynamicImports',
-    // Keep preload links for now (can disable if needed)
+    disablePrefetchLinks: "dynamicImports",
     disablePreloadLinks: false,
-    // Keep stylesheets for now to ensure CSR pages work (can optimize later)
     disableStylesheets: false,
   },
+  image: {
+    format: ["webp"],
+    quality: 80,
+    domains: ["northern-chile-assets.s3.sa-east-1.amazonaws.com", "localhost"],
+    dir: "public",
+  },
 
-  // Font optimization with @nuxt/fonts
   fonts: {
     families: [
       {
         name: "Playfair Display",
         provider: "google",
         weights: [400, 700],
-        // Fallback to Georgia for serif display font (reduces CLS)
+        display: "optional",
         fallbacks: ["Georgia", "serif"],
       },
       {
         name: "Inter",
         provider: "google",
         weights: [400, 600],
-        // Fallback to system fonts (reduces CLS)
-        fallbacks: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "Arial", "sans-serif"],
+        display: "optional",
+        fallbacks: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Arial",
+          "sans-serif",
+        ],
       },
     ],
     defaults: {
       weights: [400],
       styles: ["normal"],
       subsets: ["latin"],
-      // Use 'optional' instead of 'swap' to prevent FOIT/FOUT
-      // Browser decides if font is ready or uses fallback immediately
-      display: "optional",
     },
-    // Local download for better performance (self-hosted WOFF2)
-    local: true,
-    // Automatic font metric optimization with fontaine
     experimental: {
       processCSSVariables: true,
     },
   },
 
   css: ["~/assets/css/main.css"],
-
-  /* colorMode: {
-    preference: "dark",
-    fallback: "dark",
-    storageKey: "nuxt-color-mode",
-    classSuffix: "",
-    storage: "localStorage",
-  }, */
 
   ui: {
     theme: {
@@ -87,21 +84,42 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase:
-        import.meta.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:8080",
+      apiBase: apiBaseUrl,
     },
   },
 
   routeRules: {
-    "/": { prerender: true },
-    "/tours": {
-      isr: 3600, // Regenerate every hour (ISR allows CSS inlining like prerender)
-    },
+    "/": { isr: 3600 },
+    "/tours": { isr: 3600 },
+    "/about": { prerender: true },
+    "/contact": { prerender: true },
+    "/private-tours": { prerender: true },
     "/auth": { ssr: false },
     "/cart": { ssr: false },
     "/admin/**": { ssr: false },
     "/profile/**": { ssr: false },
     "/bookings/**": { ssr: false },
+
+    "/**": {
+      headers: {
+        "X-Frame-Options": "SAMEORIGIN",
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "Content-Security-Policy": [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+          "style-src 'self' 'unsafe-inline'",
+          "font-src 'self' data:",
+          "img-src 'self' data: https: blob:",
+          `connect-src 'self' ${apiBaseUrl} https://api.openweathermap.org`,
+          "frame-ancestors 'self'",
+          "base-uri 'self'",
+          "form-action 'self'",
+        ].join("; "),
+      },
+    },
   },
 
   compatibilityDate: "2025-01-15",
@@ -113,50 +131,22 @@ export default defineNuxtConfig({
         changeOrigin: true,
       },
     },
-    headers: {
-      // Security headers for production
-      "X-Frame-Options": "SAMEORIGIN",
-      "X-Content-Type-Options": "nosniff",
-      "Referrer-Policy": "strict-origin-when-cross-origin",
-      "Cross-Origin-Opener-Policy": "same-origin",
-      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-      // HSTS: Force HTTPS (enable in production)
-      "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-      // CSP: Content Security Policy
-      "Content-Security-Policy": [
-        "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-        "style-src 'self' 'unsafe-inline'",
-        "font-src 'self' data:",
-        "img-src 'self' data: https: blob:",
-        "connect-src 'self' http://localhost:8080 https://api.openweathermap.org",
-        "frame-ancestors 'self'",
-        "base-uri 'self'",
-        "form-action 'self'",
-      ].join("; "),
-    },
   },
 
   vite: {
     plugins: [viteTsconfigPaths()],
     build: {
-      // Use default Vite/Nuxt chunk splitting - aggressive splitting causes circular dependencies
       chunkSizeWarningLimit: 1000,
-      // Enable source maps for production debugging
-      sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true,
-      // Use esbuild for faster, safer minification
-      minify: 'esbuild',
-      // Enable CSS code splitting
+      sourcemap: process.env.NODE_ENV === "production" ? "hidden" : true,
+      minify: "esbuild",
       cssCodeSplit: true,
     },
-    // Optimize dependencies
     optimizeDeps: {
-      include: ['vue', '@vue/runtime-core', '@vue/runtime-dom'],
-      exclude: ['@fullcalendar/vue3'], // Lazy-loaded, don't pre-bundle
+      include: ["vue", "@vue/runtime-core", "@vue/runtime-dom"],
+      exclude: ["@fullcalendar/vue3"],
     },
     ssr: {
-      // Don't externalize these packages for better tree-shaking
-      noExternal: ['@nuxt/ui', '@headlessui/vue'],
+      noExternal: ["@nuxt/ui"],
     },
   },
 
@@ -189,3 +179,4 @@ export default defineNuxtConfig({
     },
   },
 });
+

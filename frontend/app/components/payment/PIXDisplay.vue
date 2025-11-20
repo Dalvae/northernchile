@@ -5,6 +5,7 @@ import { PaymentStatus } from '~/types/payment'
 const { t } = useI18n()
 const toast = useToast()
 const router = useRouter()
+const localePath = useLocalePath()
 const paymentStore = usePaymentStore()
 
 const props = defineProps<{
@@ -110,7 +111,7 @@ watch(
       // Redirect to success page after short delay
       setTimeout(() => {
         router.push({
-          path: '/payment/callback',
+          path: localePath('/payment/callback'),
           query: {
             status: 'success',
             paymentId: props.payment.paymentId

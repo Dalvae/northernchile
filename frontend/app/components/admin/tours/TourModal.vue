@@ -553,11 +553,14 @@ const statusOptions = [
                           :key="index"
                           class="relative group"
                         >
-                          <img
+                          <NuxtImg
                             :src="url"
                             :alt="`Tour image ${index + 1}`"
                              class="w-full h-32 object-cover rounded-lg border border-default"
-                          >
+                            format="webp"
+                            loading="lazy"
+                            placeholder
+                          />
                           <UButton
                             icon="i-heroicons-x-mark"
                             color="error"

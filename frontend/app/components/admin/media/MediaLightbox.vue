@@ -119,11 +119,14 @@ function getTypeBadgeColor(type?: string) {
 
         <!-- Image -->
         <div class="flex items-center justify-center min-h-[60vh] max-h-[80vh] p-16">
-          <img
+          <NuxtImg
             v-if="currentMedia"
             :src="currentMedia.url"
             :alt="currentMedia.altTranslations?.es || currentMedia.originalFilename"
             class="max-w-full max-h-full object-contain"
+            format="webp"
+            loading="lazy"
+            placeholder
           />
         </div>
 

@@ -34,7 +34,7 @@
 
         <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <UButton
-            to="/tours"
+            :to="localePath('/tours')"
             size="xl"
             color="primary"
             variant="solid"
@@ -43,7 +43,7 @@
             {{ t("home.hero.cta_primary") }}
           </UButton>
           <UButton
-            to="/contact"
+            :to="localePath('/contact')"
             size="xl"
             variant="ghost"
             color="white"
@@ -81,6 +81,7 @@
 
 <script setup lang="ts">
 const { t } = useI18n()
+const localePath = useLocalePath()
 
 const quickFeatures = computed(() => [
   { icon: 'i-lucide-telescope', label: t('home.hero.features.proTelescopes') },

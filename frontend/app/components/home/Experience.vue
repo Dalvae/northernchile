@@ -1,4 +1,5 @@
-<script setup lang="ts">
+const { t } = useI18n()
+const localePath = useLocalePath()
 const items = [
   {
     title: 'Astronomía con Alma',
@@ -68,12 +69,11 @@ const items = [
             </p>
 
             <div class="pt-4">
-              <UButton
-                variant="link"
-                color="neutral"
-                class="p-0 text-lg text-white hover:text-primary transition-colors group"
-                to="/about"
-              >
+                              <UButton
+                                variant="link"
+                                color="neutral"
+                                class="p-0 text-lg text-white hover:text-primary transition-colors group"
+                                :to="localePath('/about')"              >
                 Saber más
                 <UIcon
                   name="i-lucide-arrow-right"

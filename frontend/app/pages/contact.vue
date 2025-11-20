@@ -296,11 +296,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
             </h2>
             <div class="bg-neutral-100 dark:bg-neutral-800 rounded-xl overflow-hidden h-[300px] relative group">
               <!-- Static Image for performance/design -->
-              <img
+              <NuxtImg
                 src="https://images.unsplash.com/photo-1518558997970-4ddc236affcd?q=80&w=1000&auto=format&fit=crop"
                 alt="San Pedro de Atacama"
                 class="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500"
-              >
+                format="webp"
+                loading="lazy"
+                placeholder
+              />
               <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors">
                 <UButton
                   to="https://maps.google.com/?q=San+Pedro+de+Atacama"

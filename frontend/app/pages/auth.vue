@@ -200,14 +200,14 @@
         <p class="text-xs text-center text-neutral-500 dark:text-neutral-300">
           {{ t("auth.terms_text") }}
           <NuxtLink
-            to="/terms"
+            :to="localePath('/terms')"
             class="text-primary font-medium hover:underline"
           >
             {{ t("auth.terms_of_service") }}
           </NuxtLink>
           {{ t("common.and") }}
           <NuxtLink
-            to="/privacy"
+            :to="localePath('/privacy')"
             class="text-primary font-medium hover:underline"
           >
             {{ t("auth.privacy_policy") }}
@@ -225,6 +225,7 @@ import { z } from 'zod'
 const { t } = useI18n()
 const authStore = useAuthStore()
 const router = useRouter()
+const localePath = useLocalePath()
 const toast = useToast()
 
 // Estado
@@ -293,7 +294,7 @@ async function handleSubmit(event: FormSubmitEvent<any>) {
         color: 'success'
       })
 
-      await router.push('/')
+      await router.push(localePath('/'))
     } else {
       await authStore.register({
         email: state.email,

@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import TourCard from '~/components/tour/TourCard.vue'
 
+const { t } = useI18n()
+const localePath = useLocalePath() 
 const { fetchAll } = useTours()
-const { data: toursData } = await fetchAll()
 
-// Obtener tours destacados (primeros 6 publicados)
+// 🛑 ERROR ANTERIOR: "await" aquí bloqueaba el contexto para lo que sigue abajo.
+// ✅ SOLUCIÓN: Quitamos el await. 'data' será una ref reactiva que se llenará sola.
+const { data: toursData } = fetchAll() 
+
+
 const featuredTours = computed(() => {
   const published = (toursData.value || []).filter(
     t => t.status === 'PUBLISHED'
@@ -13,7 +18,6 @@ const featuredTours = computed(() => {
 })
 
 // SEO
-const { t } = useI18n()
 useSeoMeta({
   title: 'Northern Chile - Tours Astronómicos en San Pedro de Atacama',
   description:
@@ -51,16 +55,18 @@ useSeoMeta({
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <TourCard
-            v-for="tour in featuredTours"
+            v-for="(tour, index) in featuredTours"
             :key="tour.id"
             :tour="tour"
+            :index="index"
             class="h-full"
           />
         </div>
 
         <div class="mt-16 text-center">
+          <!-- ✅ 2. Enlace corregido con localePath -->
           <UButton
-            to="/tours"
+            :to="localePath('/tours')"
             size="xl"
             variant="ghost"
             color="primary"
@@ -87,8 +93,9 @@ useSeoMeta({
           {{ t("home.cta_subtitle") }}
         </p>
         <div class="flex flex-col sm:flex-row gap-6 justify-center">
+          <!-- ✅ 3. Enlaces corregidos con localePath -->
           <UButton
-            to="/tours"
+            :to="localePath('/tours')"
             size="xl"
             color="primary"
             variant="solid"
@@ -97,7 +104,7 @@ useSeoMeta({
             {{ t("home.book_now") }}
           </UButton>
           <UButton
-            to="/contact"
+            :to="localePath('/contact')"
             size="xl"
             variant="outline"
             color="white"

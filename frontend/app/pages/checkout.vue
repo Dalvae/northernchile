@@ -7,6 +7,7 @@ const paymentStore = usePaymentStore()
 const router = useRouter()
 const toast = useToast()
 const { locale, t } = useI18n()
+const localePath = useLocalePath()
 const { countries } = useCountries()
 
 // SEO: Prevent indexing of checkout page
@@ -18,7 +19,7 @@ useHead({
 
 // Redirect if cart is empty
 if (cartStore.cart.items.length === 0) {
-  router.push('/cart')
+  router.push(localePath('/cart'))
 }
 
 // Wizard steps
@@ -208,7 +209,7 @@ async function submitBooking() {
             title: t('common.error'),
             description: 'Ya tienes una cuenta. Por favor inicia sesión.'
           })
-          router.push('/auth')
+          router.push(localePath('/auth'))
           return
         }
         throw error
@@ -567,7 +568,7 @@ const total = computed(() => subtotal.value + tax.value)
               >
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
                   Crea una cuenta para gestionar tus reservas fácilmente. Si ya tienes una, <NuxtLink
-                    to="/auth?redirect=/checkout"
+                    :to="{ path: localePath('/auth'), query: { redirect: localePath('/checkout') } }"
                     class="text-primary font-medium hover:underline"
                   >inicia sesión aquí</NuxtLink>.
                 </p>
@@ -607,7 +608,7 @@ const total = computed(() => subtotal.value + tax.value)
             <template #footer>
               <div class="flex justify-between">
                 <UButton
-                  to="/cart"
+                  :to="localePath('/cart')"
                   color="neutral"
                   variant="ghost"
                   icon="i-lucide-arrow-left"

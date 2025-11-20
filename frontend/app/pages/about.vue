@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { t } = useI18n()
+const localePath = useLocalePath()
 
 useSeoMeta({
   title: t('about.seo.title'),
@@ -221,11 +222,14 @@ const values = [
             class="atacama-card p-8 rounded-xl backdrop-blur-sm hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-all group"
           >
             <div class="flex flex-col md:flex-row items-center gap-8">
-              <img
+              <NuxtImg
                 :src="member.image"
                 :alt="member.name"
                 class="w-40 h-40 rounded-full flex-shrink-0 border-4 border-primary-500/30 dark:border-primary-400/30 group-hover:border-primary-500/50 dark:group-hover:border-primary-400/50 transition-colors"
-              >
+                format="webp"
+                loading="lazy"
+                placeholder
+              />
               <div class="flex-1 text-center md:text-left">
                 <h3 class="text-2xl md:text-3xl font-bold text-neutral-50 dark:text-neutral-50 mb-2">
                   {{ member.name }}
@@ -264,7 +268,7 @@ const values = [
           {{ t("about.cta.subtitle") }}
         </p>
         <UButton
-          to="/tours"
+          :to="localePath('/tours')"
           size="xl"
           color="primary"
           class="px-12 py-4 text-lg font-bold cobre-glow hover:scale-105 transition-transform"

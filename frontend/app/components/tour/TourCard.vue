@@ -9,11 +9,16 @@
     >
       <!-- Image Background (80% height initially, or full height with overlay) -->
       <div class="absolute inset-0 h-full w-full">
-        <img
+        <NuxtImg
           :src="imageSrc"
           :alt="title"
           class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-        >
+          :loading="isLCP ? 'eager' : 'lazy'" 
+          :fetchpriority="isLCP ? 'high' : 'auto'"
+          format="webp"
+          sizes="100vw sm:50vw md:400px"
+          placeholder
+        />
         <!-- Gradient Overlay -->
         <div class="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent opacity-90 group-hover:opacity-80 transition-opacity duration-500" />
       </div>
@@ -148,6 +153,7 @@ const props = withDefaults(defineProps<{
   showMeta?: boolean
   showRating?: boolean
   showPrice?: boolean
+  index?: number // <-- Agregamos index para saber si es la primera tarjeta
 }>(), {
   variant: 'home',
   showCategory: true,
@@ -204,4 +210,6 @@ const categoryColor = computed((): BadgeColor => {
 const categoryLabel = computed(() =>
   (useI18n().t(`tours.category.${props.tour.category}`, props.tour.category || 'REGULAR') as string)
 )
+
+const isLCP = computed(() => (props.index ?? 10) < 2)
 </script>

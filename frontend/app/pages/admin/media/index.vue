@@ -70,11 +70,14 @@ const columns = [
     header: '',
     cell: ({ row }: { row: { original: MediaRes } }) => {
       const media = row.original
-      return h('img', {
+      return h(resolveComponent('NuxtImg'), {
         src: media.variants?.thumbnail || media.url,
         alt: media.altTranslations?.es || media.originalFilename,
         class: 'w-16 h-16 object-cover rounded-lg shadow-sm cursor-pointer hover:opacity-80 transition-opacity',
-        onClick: () => openLightbox(media)
+        onClick: () => openLightbox(media),
+        format: 'webp',
+        loading: 'lazy',
+        placeholder: true
       })
     }
   },

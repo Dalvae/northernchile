@@ -121,11 +121,14 @@ const publishedCount = computed(() => tours.value.filter(t => t.status === 'PUBL
         >
           <!-- Tour Cover Image -->
           <div class="aspect-video bg-neutral-100 dark:bg-neutral-800 rounded-lg mb-4 overflow-hidden relative">
-            <img
+            <NuxtImg
               v-if="tour.images && tour.images.length > 0"
               :src="tour.images[0].variants?.medium || tour.images[0].url"
               :alt="tour.nameTranslations?.es || 'Tour'"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              format="webp"
+              loading="lazy"
+              placeholder
             />
             <div v-else class="flex items-center justify-center h-full">
               <UIcon name="i-lucide-image" class="w-12 h-12 text-neutral-200 dark:text-neutral-700" />

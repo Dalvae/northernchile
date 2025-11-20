@@ -129,10 +129,13 @@ async function save() {
         <div v-if="media" class="py-6 space-y-6 max-h-[70vh] overflow-y-auto">
         <!-- Preview -->
         <div class="flex gap-4">
-          <img
+          <NuxtImg
             :src="media.url"
             :alt="media.altTranslations?.es"
             class="w-32 h-32 object-cover rounded-lg shadow-sm"
+            format="webp"
+            loading="lazy"
+            placeholder
           />
 
           <div class="flex-1 space-y-2">

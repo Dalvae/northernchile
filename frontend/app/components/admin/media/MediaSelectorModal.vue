@@ -139,11 +139,14 @@ watch(isOpen, (open) => {
             @click="toggleSelect(item.id)"
           >
             <!-- Image -->
-            <img
+            <NuxtImg
               :src="item.url"
               :alt="item.altTranslations?.es || item.originalFilename"
               class="w-full h-32 object-cover rounded-lg shadow-sm transition-all"
               :class="selectedItems.includes(item.id) ? 'ring-4 ring-primary-500' : 'group-hover:opacity-80'"
+              format="webp"
+              loading="lazy"
+              placeholder
             />
 
             <!-- Selection indicator -->
