@@ -25,8 +25,9 @@ interface AddCartItemRequest {
 }
 
 export const useCartStore = defineStore('cart', () => {
-  // El backend es la ÚNICA fuente de verdad
-  const cart = ref<Cart>({
+  // El backend es la ÚNICA fuente de verdad, pero sincronizamos con localStorage
+  // para persistencia entre recargas de página
+  const cart = useLocalStorage<Cart>('northern-chile-cart', {
     cartId: null,
     items: [],
     cartTotal: 0
@@ -69,6 +70,23 @@ export const useCartStore = defineStore('cart', () => {
         body: itemData
       })
       cart.value = response
+
+      // Google Analytics: Track add_to_cart event
+      if (typeof window !== 'undefined' && window.gtag) {
+        const addedItem = response.items.find(item => item.scheduleId === itemData.scheduleId)
+        if (addedItem) {
+          window.gtag('event', 'add_to_cart', {
+            currency: 'CLP',
+            value: addedItem.itemTotal,
+            items: [{
+              item_id: addedItem.scheduleId,
+              item_name: addedItem.tourName,
+              price: addedItem.pricePerParticipant,
+              quantity: addedItem.numParticipants
+            }]
+          })
+        }
+      }
 
       toast.add({ title: 'Agregado al carrito', color: 'success' })
       return true

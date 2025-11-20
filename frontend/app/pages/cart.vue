@@ -27,6 +27,21 @@ async function removeItem(itemId: string) {
 
 function proceedToCheckout() {
   if (isEmpty.value) return
+
+  // Google Analytics: Track begin_checkout event
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'begin_checkout', {
+      currency: 'CLP',
+      value: total.value,
+      items: cartStore.cart.items.map(item => ({
+        item_id: item.scheduleId,
+        item_name: item.tourName,
+        price: item.pricePerParticipant,
+        quantity: item.numParticipants
+      }))
+    })
+  }
+
   router.push(localePath('/checkout'))
 }
 </script>
