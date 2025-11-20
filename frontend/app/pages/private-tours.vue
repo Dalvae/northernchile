@@ -125,174 +125,209 @@ async function submitRequest() {
 </script>
 
 <template>
-  <div>
+  <div class="bg-neutral-950 min-h-screen">
     <!-- Hero Section -->
-    <section
-      class="relative py-20 bg-gradient-to-b from-neutral-900 to-neutral-800 text-white"
-    >
-      <UContainer>
-        <div class="max-w-3xl mx-auto text-center">
-          <h1 class="text-4xl md:text-5xl font-bold mb-6">
+    <section class="relative h-[70vh] min-h-[600px] flex items-center justify-center overflow-hidden">
+      <!-- Background Image -->
+      <div class="absolute inset-0">
+        <img
+          src="/images/private-tours-hero.png"
+          alt="Private Tours"
+          class="w-full h-full object-cover"
+        />
+        <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-neutral-950" />
+      </div>
+
+      <UContainer class="relative z-10 text-center">
+        <div class="max-w-4xl mx-auto space-y-8 animate-fade-in-up">
+          <div class="inline-flex items-center justify-center p-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
+            <span class="px-4 py-1 text-sm font-medium text-white">
+              <UIcon name="i-lucide-sparkles" class="w-4 h-4 inline-block mr-2 text-primary-400" />
+              Experiencia Premium
+            </span>
+          </div>
+          
+          <h1 class="text-5xl md:text-7xl font-bold text-white tracking-tight drop-shadow-lg">
             {{ t("privateTours.title") }}
           </h1>
-          <p class="text-xl text-neutral-200">
+          
+          <p class="text-xl md:text-2xl text-neutral-200 max-w-2xl mx-auto leading-relaxed font-light">
             {{ t("privateTours.subtitle") }}
           </p>
+          
+          <div class="pt-8">
+            <UButton
+              size="xl"
+              color="primary"
+              variant="solid"
+              to="#request-form"
+              :ui="{ rounded: 'rounded-full', padding: { xl: 'px-8 py-4' } }"
+              class="font-semibold shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1"
+            >
+              {{ t("privateTours.form.send_request") }}
+              <UIcon name="i-lucide-arrow-right" class="ml-2 w-5 h-5" />
+            </UButton>
+          </div>
         </div>
       </UContainer>
     </section>
 
     <!-- Benefits -->
-    <section class="py-16 bg-white dark:bg-neutral-800">
+    <section class="py-24 bg-neutral-950 relative overflow-hidden">
+      <!-- Decorative gradient -->
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-primary-500/30 to-transparent" />
+      
       <UContainer>
-        <h2
-          class="text-3xl font-bold text-neutral-900 dark:text-white mb-12 text-center"
-        >
-          {{ t("privateTours.benefits.title") }}
-        </h2>
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+            {{ t("privateTours.benefits.title") }}
+          </h2>
+          <div class="w-24 h-1.5 bg-primary-500 mx-auto rounded-full" />
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div
+          <UCard
             v-for="benefit in benefits"
             :key="benefit.title"
-            class="flex gap-4"
+            class="group hover:ring-2 hover:ring-primary-500/50 transition-all duration-500 bg-neutral-900/50 border-neutral-800 backdrop-blur-sm"
+            :ui="{ 
+              body: { base: 'h-full flex flex-col items-center text-center p-8' },
+              ring: 'ring-1 ring-neutral-800',
+              shadow: 'shadow-none hover:shadow-2xl hover:shadow-primary-900/20'
+            }"
           >
-            <div class="flex-shrink-0">
-              <div
-                class="w-12 h-12 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center"
-              >
+            <div class="mb-6 relative">
+              <div class="absolute inset-0 bg-primary-500/20 blur-xl rounded-full group-hover:bg-primary-500/40 transition-colors duration-500" />
+              <div class="relative w-16 h-16 rounded-2xl bg-neutral-800 border border-neutral-700 flex items-center justify-center group-hover:border-primary-500/50 group-hover:scale-110 transition-all duration-500">
                 <UIcon
                   :name="benefit.icon"
-                  class="w-6 h-6 text-primary-600 dark:text-primary-400"
+                  class="w-8 h-8 text-primary-400 group-hover:text-primary-300"
                 />
               </div>
             </div>
-            <div>
-              <h3
-                class="text-lg font-semibold text-neutral-900 dark:text-white mb-2"
-              >
-                {{ benefit.title }}
-              </h3>
-              <p class="text-neutral-600 dark:text-neutral-300 text-sm">
-                {{ benefit.description }}
-              </p>
-            </div>
-          </div>
+            
+            <h3 class="text-xl font-semibold text-white mb-3 group-hover:text-primary-400 transition-colors">
+              {{ benefit.title }}
+            </h3>
+            
+            <p class="text-neutral-400 leading-relaxed">
+              {{ benefit.description }}
+            </p>
+          </UCard>
         </div>
       </UContainer>
     </section>
 
+
+
     <!-- Request Form -->
-    <section class="py-16 bg-neutral-50 dark:bg-neutral-800/50">
-      <UContainer>
-        <div class="max-w-3xl mx-auto">
+    <section id="request-form" class="py-24 bg-neutral-950 relative">
+      <div class="absolute inset-0 bg-[url('/images/grid-pattern.svg')] opacity-5" />
+      
+      <UContainer class="relative z-10">
+        <div class="max-w-4xl mx-auto">
           <div class="text-center mb-12">
-            <h2
-              class="text-3xl font-bold text-neutral-900 dark:text-white mb-4"
-            >
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
               {{ t("privateTours.form.title") }}
             </h2>
-            <p class="text-neutral-600 dark:text-neutral-300">
+            <p class="text-neutral-400 text-lg">
               {{ t("privateTours.form.subtitle") }}
             </p>
           </div>
 
-          <UCard>
-            <form
-              class="space-y-6"
-              @submit.prevent="submitRequest"
-            >
+          <UCard 
+            class="bg-neutral-900/80 backdrop-blur border-neutral-800 shadow-2xl"
+            :ui="{ body: { padding: 'p-8 sm:p-12' } }"
+          >
+            <form class="space-y-8" @submit.prevent="submitRequest">
               <!-- Personal Info -->
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label
-                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
-                  >
-                    {{ t("privateTours.form.full_name_label") }} *
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-2">
+                  <label class="block text-sm font-medium text-neutral-300">
+                    {{ t("privateTours.form.full_name_label") }} <span class="text-primary-500">*</span>
                   </label>
                   <UInput
                     v-model="state.fullName"
-                    size="lg"
+                    size="xl"
                     :placeholder="t('privateTours.form.full_name_placeholder')"
+                    icon="i-lucide-user"
                     class="w-full"
+                    :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
                     required
                   />
                 </div>
 
-                <div>
-                  <label
-                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
-                  >
-                    {{ t("privateTours.form.email_label") }} *
+                <div class="space-y-2">
+                  <label class="block text-sm font-medium text-neutral-300">
+                    {{ t("privateTours.form.email_label") }} <span class="text-primary-500">*</span>
                   </label>
                   <UInput
                     v-model="state.email"
                     type="email"
-                    size="lg"
+                    size="xl"
                     placeholder="juan@gmail.com"
+                    icon="i-lucide-mail"
                     class="w-full"
+                    :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
                     required
                   />
                 </div>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label
-                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
-                  >
-                    {{ t("privateTours.form.phone_label") }} *
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-2">
+                  <label class="block text-sm font-medium text-neutral-300">
+                    {{ t("privateTours.form.phone_label") }} <span class="text-primary-500">*</span>
                   </label>
                   <UInput
                     v-model="state.phone"
-                    size="lg"
+                    size="xl"
                     :placeholder="t('privateTours.form.phone_placeholder')"
+                    icon="i-lucide-phone"
                     class="w-full"
+                    :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
                     required
                   />
                 </div>
 
-                <div>
-                  <label
-                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
-                  >
-                    {{ t("privateTours.form.number_of_people_label") }} *
+                <div class="space-y-2">
+                  <label class="block text-sm font-medium text-neutral-300">
+                    {{ t("privateTours.form.number_of_people_label") }} <span class="text-primary-500">*</span>
                   </label>
                   <UInput
                     v-model.number="state.numberOfPeople"
                     type="number"
                     min="1"
                     max="20"
-                    size="lg"
-                    :placeholder="
-                      t('privateTours.form.number_of_people_placeholder')
-                    "
+                    size="xl"
+                    :placeholder="t('privateTours.form.number_of_people_placeholder')"
+                    icon="i-lucide-users"
                     class="w-full"
+                    :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
                     required
                   />
                 </div>
               </div>
 
               <!-- Tour Details -->
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label
-                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
-                  >
-                    {{ t("privateTours.form.preferred_date_label") }} *
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-2">
+                  <label class="block text-sm font-medium text-neutral-300">
+                    {{ t("privateTours.form.preferred_date_label") }} <span class="text-primary-500">*</span>
                   </label>
                   <UInput
                     v-model="state.preferredDate"
                     type="date"
-                    size="lg"
+                    size="xl"
+                    icon="i-lucide-calendar"
                     class="w-full"
+                    :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
                     required
                   />
                 </div>
 
-                <div>
-                  <label
-                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
-                  >
+                <div class="space-y-2">
+                  <label class="block text-sm font-medium text-neutral-300">
                     {{ t("privateTours.form.preferred_time_label") }}
                   </label>
                   <USelect
@@ -300,138 +335,71 @@ async function submitRequest() {
                     :items="timeOptions"
                     option-attribute="label"
                     value-attribute="value"
-                    size="lg"
+                    size="xl"
+                    icon="i-lucide-clock"
                     class="w-full"
+                    :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
                   />
                 </div>
               </div>
 
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
-                >
-                  {{ t("privateTours.form.tour_type_label") }} *
+              <div class="space-y-2">
+                <label class="block text-sm font-medium text-neutral-300">
+                  {{ t("privateTours.form.tour_type_label") }} <span class="text-primary-500">*</span>
                 </label>
                 <USelect
                   v-model="state.tourType"
                   :items="tourTypeOptions"
                   option-attribute="label"
                   value-attribute="value"
-                  size="lg"
+                  size="xl"
+                  icon="i-lucide-map"
                   class="w-full"
+                  :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
                 />
               </div>
 
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
-                >
+              <div class="space-y-2">
+                <label class="block text-sm font-medium text-neutral-300">
                   {{ t("privateTours.form.special_requests_label") }}
                 </label>
                 <UTextarea
                   v-model="state.specialRequests"
                   :rows="4"
-                  size="lg"
-                  :placeholder="
-                    t('privateTours.form.special_requests_placeholder')
-                  "
+                  size="xl"
+                  :placeholder="t('privateTours.form.special_requests_placeholder')"
                   class="w-full"
+                  :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
                 />
               </div>
 
-              <div class="pt-4">
+              <div class="pt-8">
                 <UButton
                   type="submit"
-                  size="lg"
+                  size="xl"
                   color="primary"
                   :loading="state.loading"
                   block
+                  :ui="{ rounded: 'rounded-xl', padding: { xl: 'py-4' } }"
+                  class="font-bold text-lg shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40 transition-all"
                 >
                   {{
                     state.loading
                       ? t("privateTours.form.sending_request")
                       : t("privateTours.form.send_request")
                   }}
+                  <UIcon v-if="!state.loading" name="i-lucide-send" class="ml-2 w-5 h-5" />
                 </UButton>
               </div>
             </form>
           </UCard>
 
           <!-- Contact Info -->
-          <div class="mt-12 text-center">
-            <p class="text-neutral-600 dark:text-neutral-300">
+          <div class="mt-16 text-center">
+            <p class="text-neutral-400">
               {{ t("privateTours.form.contact_info") }}
             </p>
           </div>
-        </div>
-      </UContainer>
-    </section>
-
-    <!-- Popular Private Tours -->
-    <section class="py-16 bg-white dark:bg-neutral-800">
-      <UContainer>
-        <h2
-          class="text-3xl font-bold text-neutral-900 dark:text-white mb-12 text-center"
-        >
-          {{ t("privateTours.popular_tours.title") }}
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          <UCard>
-            <div class="text-center p-4">
-              <UIcon
-                name="i-lucide-telescope"
-                class="w-12 h-12 text-primary-600 dark:text-primary-400 mx-auto mb-4"
-              />
-              <h3
-                class="text-xl font-semibold text-neutral-900 dark:text-white mb-2"
-              >
-                {{ t("privateTours.popular_tours.astrophotography.title") }}
-              </h3>
-              <p class="text-neutral-600 dark:text-neutral-300 text-sm">
-                {{
-                  t("privateTours.popular_tours.astrophotography.description")
-                }}
-              </p>
-            </div>
-          </UCard>
-
-          <UCard>
-            <div class="text-center p-4">
-              <UIcon
-                name="i-lucide-heart"
-                class="w-12 h-12 text-primary-600 dark:text-primary-400 mx-auto mb-4"
-              />
-              <h3
-                class="text-xl font-semibold text-neutral-900 dark:text-white mb-2"
-              >
-                {{ t("privateTours.popular_tours.romantic_experience.title") }}
-              </h3>
-              <p class="text-neutral-600 dark:text-neutral-300 text-sm">
-                {{
-                  t(
-                    "privateTours.popular_tours.romantic_experience.description"
-                  )
-                }}
-              </p>
-            </div>
-          </UCard>
-
-          <UCard>
-            <div class="text-center p-4">
-              <UIcon
-                name="i-lucide-users-round"
-                class="w-12 h-12 text-primary-600 dark:text-primary-400 mx-auto mb-4"
-              />
-              <h3
-                class="text-xl font-semibold text-neutral-900 dark:text-white mb-2"
-              >
-                {{ t("privateTours.popular_tours.family_tour.title") }}
-              </h3>
-              <p class="text-neutral-600 dark:text-neutral-300 text-sm">
-                {{ t("privateTours.popular_tours.family_tour.description") }}
-              </p>
-            </div>
-          </UCard>
         </div>
       </UContainer>
     </section>
