@@ -14,6 +14,8 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     "@vueuse/nuxt",
     "@nuxt/image",
+    "nuxt-gtag",
+    "@nuxtjs/sitemap",
   ],
 
   devtools: {
@@ -26,10 +28,53 @@ export default defineNuxtConfig({
     disableStylesheets: false,
   },
   image: {
-    format: ["webp"],
+    format: ["webp", "avif"],
     quality: 80,
-    domains: ["northern-chile-assets.s3.sa-east-1.amazonaws.com", "localhost"],
+    densities: [1, 2],
+    screens: {
+      xs: 320,
+      sm: 640,
+      md: 768,
+      lg: 1024,
+      xl: 1280,
+      xxl: 1536,
+    },
+    domains: [
+      "northern-chile-assets.s3.sa-east-1.amazonaws.com",
+      "northern-chile-assets.s3.amazonaws.com",
+      "localhost"
+    ],
     dir: "public",
+    provider: "ipx",
+    presets: {
+      hero: {
+        modifiers: {
+          format: "webp",
+          quality: 90,
+          width: 1920,
+          height: 1080,
+          fit: "cover"
+        }
+      },
+      thumbnail: {
+        modifiers: {
+          format: "webp",
+          quality: 75,
+          width: 400,
+          height: 300,
+          fit: "cover"
+        }
+      },
+      card: {
+        modifiers: {
+          format: "webp",
+          quality: 80,
+          width: 800,
+          height: 600,
+          fit: "cover"
+        }
+      }
+    }
   },
 
   fonts: {
@@ -82,6 +127,16 @@ export default defineNuxtConfig({
     },
   },
 
+  gtag: {
+    id: process.env.NUXT_PUBLIC_GTAG_ID || '',
+    enabled: process.env.NODE_ENV === 'production',
+    config: {
+      anonymize_ip: true,
+      send_page_view: true,
+      cookie_flags: 'SameSite=None;Secure'
+    }
+  },
+
   runtimeConfig: {
     public: {
       apiBase: apiBaseUrl,
@@ -109,11 +164,11 @@ export default defineNuxtConfig({
         "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
         "Content-Security-Policy": [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
           "style-src 'self' 'unsafe-inline'",
           "font-src 'self' data:",
-          "img-src 'self' data: https: blob:",
-          `connect-src 'self' ${apiBaseUrl} https://api.openweathermap.org https://api.iconify.design`,
+          "img-src 'self' data: https: blob: https://www.google-analytics.com",
+          `connect-src 'self' ${apiBaseUrl} https://api.openweathermap.org https://api.iconify.design https://www.google-analytics.com https://analytics.google.com`,
           "frame-ancestors 'self'",
           "base-uri 'self'",
           "form-action 'self'",
@@ -184,5 +239,44 @@ export default defineNuxtConfig({
       cookieKey: "i18n_redirected",
       redirectOn: "root",
     },
+  },
+
+  sitemap: {
+    hostname: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.cl',
+    gzip: true,
+    routes: async () => {
+      // Fetch dynamic tour routes from API
+      try {
+        const tours = await $fetch<any[]>(`${apiBaseUrl}/api/tours/published`)
+        const locales = ['es', 'en', 'pt']
+
+        return tours.flatMap(tour => {
+          // Generate routes for each locale
+          return locales.map(locale => {
+            const path = locale === 'es'
+              ? `/tours/${tour.slug}`
+              : `/${locale}/tours/${tour.slug}`
+
+            return {
+              url: path,
+              changefreq: 'weekly',
+              priority: 0.8,
+              lastmod: tour.updatedAt || new Date().toISOString()
+            }
+          })
+        })
+      } catch (error) {
+        console.error('Error fetching tours for sitemap:', error)
+        return []
+      }
+    },
+    exclude: [
+      '/admin/**',
+      '/profile/**',
+      '/auth',
+      '/cart',
+      '/checkout',
+      '/payment/**'
+    ]
   },
 });

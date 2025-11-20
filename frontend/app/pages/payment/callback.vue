@@ -66,6 +66,16 @@ async function handleTransbankCallback(token: string) {
     bookingId.value = route.query.bookingId as string || null
 
     if (result.status === PaymentStatus.COMPLETED) {
+      // Google Analytics: Track purchase event
+      if (typeof window !== 'undefined' && window.gtag && result.amount) {
+        window.gtag('event', 'purchase', {
+          transaction_id: result.paymentId,
+          value: result.amount,
+          currency: 'CLP',
+          items: result.items || []
+        })
+      }
+
       // Clear cart after successful payment
       cartStore.clearCart()
 
@@ -100,6 +110,17 @@ function handleDirectCallback() {
 
   if (queryStatus === 'success') {
     paymentStatus.value = PaymentStatus.COMPLETED
+
+    // Google Analytics: Track purchase event (direct callback)
+    if (typeof window !== 'undefined' && window.gtag) {
+      const amount = parseFloat(route.query.amount as string) || 0
+      window.gtag('event', 'purchase', {
+        transaction_id: paymentId.value || 'unknown',
+        value: amount,
+        currency: 'CLP'
+      })
+    }
+
     // Clear cart after successful payment
     cartStore.clearCart()
   } else if (queryStatus === 'error' || queryStatus === 'failed') {

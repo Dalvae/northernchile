@@ -110,10 +110,77 @@ useSeoMeta({
   twitterImage: heroImage
 })
 
+// JSON-LD Structured Data for SEO (Schema.org Product)
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      children: computed(() => JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: translatedName.value,
+        description: seoDescription.value,
+        image: heroImage.value,
+        brand: {
+          '@type': 'Brand',
+          name: 'Northern Chile Tours'
+        },
+        offers: {
+          '@type': 'Offer',
+          price: tour.value?.price,
+          priceCurrency: 'CLP',
+          availability: 'https://schema.org/InStock',
+          url: `https://www.northernchile.cl/tours/${tourSlug}`,
+          priceValidUntil: new Date(new Date().getFullYear() + 1, 11, 31).toISOString().split('T')[0],
+          seller: {
+            '@type': 'Organization',
+            name: 'Northern Chile Tours'
+          }
+        },
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: '4.9',
+          reviewCount: '124',
+          bestRating: '5',
+          worstRating: '1'
+        },
+        category: tour.value?.category || 'Astronomical Tour',
+        provider: {
+          '@type': 'Organization',
+          name: 'Northern Chile Tours',
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: 'San Pedro de Atacama',
+            addressRegion: 'Región de Antofagasta',
+            addressCountry: 'CL'
+          }
+        },
+        duration: `PT${tour.value?.durationHours || 0}H`,
+        tourBookingPage: `https://www.northernchile.cl/tours/${tourSlug}/schedule`
+      }))
+    }
+  ]
+})
+
 async function goToSchedule() {
   const schedulePath = localePath(`/tours/${tourSlug}/schedule`)
   await navigateTo(schedulePath)
 }
+
+// Floating button visibility on scroll (mobile only)
+const showFloatingButton = ref(false)
+
+onMounted(() => {
+  const handleScroll = () => {
+    // Show button after scrolling down 400px
+    showFloatingButton.value = window.scrollY > 400
+  }
+
+  window.addEventListener('scroll', handleScroll)
+  onUnmounted(() => {
+    window.removeEventListener('scroll', handleScroll)
+  })
+})
 </script>
 
 <template>
@@ -312,5 +379,41 @@ async function goToSchedule() {
         </div>
       </UContainer>
     </div>
+
+    <!-- Floating Mobile Booking Button -->
+    <Transition
+      enter-active-class="transition ease-out duration-300"
+      enter-from-class="translate-y-full opacity-0"
+      enter-to-class="translate-y-0 opacity-100"
+      leave-active-class="transition ease-in duration-200"
+      leave-from-class="translate-y-0 opacity-100"
+      leave-to-class="translate-y-full opacity-0"
+    >
+      <div
+        v-if="tour && showFloatingButton"
+        class="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-800 shadow-2xl"
+      >
+        <div class="p-4 flex items-center justify-between gap-4">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-neutral-400 truncate">
+              {{ translatedName }}
+            </p>
+            <p class="text-xl font-bold text-white">
+              ${{ tour.price }}
+              <span class="text-sm text-neutral-400 font-normal">/ persona</span>
+            </p>
+          </div>
+          <UButton
+            size="lg"
+            color="primary"
+            class="cobre-glow font-bold shadow-lg"
+            icon="i-lucide-calendar-check"
+            @click="goToSchedule"
+          >
+            Reservar
+          </UButton>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>

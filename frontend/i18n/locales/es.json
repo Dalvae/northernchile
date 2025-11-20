@@ -667,5 +667,25 @@
     "validation_failed": "Error de validación",
     "server_error": "Error interno del servidor",
     "service_unavailable": "Servicio no disponible"
+  },
+  "error": {
+    "code": "Código",
+    "goHome": "Volver al Inicio",
+    "goBack": "Regresar",
+    "needHelp": "¿Necesitas ayuda?",
+    "contactUs": "Contáctanos",
+    "debugInfo": "Información de depuración",
+    "404": {
+      "title": "¡Ups! Te perdiste en el desierto",
+      "message": "La página que buscas no existe. Quizás fue llevada por el viento del Atacama."
+    },
+    "403": {
+      "title": "Acceso Restringido",
+      "message": "No tienes permiso para acceder a esta área. Si crees que esto es un error, contáctanos."
+    },
+    "500": {
+      "title": "Algo salió mal",
+      "message": "Nuestro sistema está experimentando dificultades. Estamos trabajando para resolverlo. Intenta nuevamente en unos momentos."
+    }
   }
 }

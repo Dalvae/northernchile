@@ -221,8 +221,9 @@ async function submitBooking() {
     // Step 2: Create bookings for ALL cart items
     toast.add({
       color: 'info',
-      title: t('booking.booking_created_success'),
-      description: 'Creando tus reservas'
+      title: 'Procesando reserva...',
+      description: 'Estamos creando tu reserva. Este proceso puede tomar unos segundos.',
+      icon: 'i-lucide-loader-2'
     })
 
     const cartItems = cartStore.cart.items
@@ -276,9 +277,10 @@ async function submitBooking() {
 
     // Step 3: Initialize payment for all bookings (using first booking as reference)
     toast.add({
-      color: 'info',
-      title: t('payment.callback.processing'),
-      description: 'Iniciando proceso de pago'
+      color: 'success',
+      title: '✅ Reserva creada exitosamente',
+      description: 'Preparando pasarela de pago segura...',
+      icon: 'i-lucide-check-circle'
     })
 
     const primaryBooking = bookingResponses[0]
@@ -305,15 +307,16 @@ async function submitBooking() {
       // Transbank: Redirect to payment URL
       if (paymentResult.paymentUrl) {
         toast.add({
-          color: 'info',
-          title: 'Redirigiendo a Transbank...',
-          description: 'Serás redirigido a la pasarela de pago segura'
+          color: 'success',
+          title: '🔒 Redirigiendo a entorno seguro...',
+          description: 'Te estamos llevando a la pasarela de pago de Transbank. No cierres esta ventana.',
+          timeout: 0 // Keep toast until redirect
         })
 
-        // Redirect to Transbank
+        // Redirect to Transbank with a slight delay for better UX
         setTimeout(() => {
           window.location.href = paymentResult.paymentUrl!
-        }, 1000)
+        }, 1500)
       } else {
         throw new Error('No payment URL received from Transbank')
       }

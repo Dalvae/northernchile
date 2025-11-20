@@ -667,5 +667,25 @@
     "validation_failed": "Validation error",
     "server_error": "Internal server error",
     "service_unavailable": "Service unavailable"
+  },
+  "error": {
+    "code": "Code",
+    "goHome": "Go to Homepage",
+    "goBack": "Go Back",
+    "needHelp": "Need help?",
+    "contactUs": "Contact us",
+    "debugInfo": "Debug information",
+    "404": {
+      "title": "Oops! You got lost in the desert",
+      "message": "The page you're looking for doesn't exist. Perhaps it was carried away by the Atacama wind."
+    },
+    "403": {
+      "title": "Access Restricted",
+      "message": "You don't have permission to access this area. If you think this is an error, contact us."
+    },
+    "500": {
+      "title": "Something went wrong",
+      "message": "Our system is experiencing difficulties. We're working to resolve it. Please try again in a few moments."
+    }
   }
 }
