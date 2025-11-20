@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TourRes, TourScheduleRes } from 'api-client'
+import { useIntersectionObserver } from '@vueuse/core'
 
 const router = useRouter()
 const { t, locale } = useI18n()
@@ -32,6 +33,18 @@ const { data: allTours } = await useFetch<TourRes[]>('/api/tours', {
 
 
 const showCalendar = ref(false)
+const calendarTriggerRef = ref(null) // Referencia al elemento HTML
+
+// Lazy Load automático con Intersection Observer
+useIntersectionObserver(
+  calendarTriggerRef,
+  ([{ isIntersecting }]) => {
+    if (isIntersecting) {
+      showCalendar.value = true
+    }
+  },
+  { rootMargin: '300px' } // Empieza a cargar 300px antes de llegar
+)
 
 const sortedTours = computed(() => {
   return (allTours.value || [])
@@ -170,46 +183,44 @@ useSeoMeta({
         </div>
       </div>
 
-      <div class="mt-32">
-        <div class="text-center mb-12">
-          <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-4 text-glow">
-            {{ t("tours.calendar_title") || "Calendario de Disponibilidad" }}
-          </h2>
-          <p class="text-neutral-300 mb-8">
-            Planifica tu visita. Revisa las fechas disponibles para todas nuestras experiencias.
-          </p>
+  <!-- SECCIÓN DEL CALENDARIO OPTIMIZADA -->
+  <div class="mt-32" ref="calendarTriggerRef"> <!-- Referencia del Observador -->
+    <div class="text-center mb-12">
+      <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-4 text-glow">
+        {{ t("tours.calendar_title") || "Calendario de Disponibilidad" }}
+      </h2>
+      <p class="text-neutral-300 mb-8">
+        Planifica tu visita. Revisa las fechas disponibles para todas nuestras experiencias.
+      </p>
+    </div>
 
-          <div v-if="!showCalendar" class="flex justify-center">
-            <UButton
-              size="xl"
-              color="primary"
-              variant="solid"
-              icon="i-lucide-calendar"
-              class="px-8 py-3 text-lg font-bold cobre-glow hover:scale-105 transition-transform"
-              @click="showCalendar = true"
-            >
-              Ver Calendario de Disponibilidad
-            </UButton>
-          </div>
-        </div>
-
-        <!-- Lazy Loading del Calendario: Perfecto -->
-        <LazyTourCalendar
-          v-if="showCalendar"
-          :tours="sortedTours"
-          @schedule-click="handleScheduleClick"
-          class="atacama-card rounded-xl overflow-hidden shadow-2xl"
-        >
-          <template #info>
-            <div class="mt-4 p-4 bg-info/10 rounded-lg border border-info/20 flex items-start gap-3">
-              <UIcon name="i-lucide-info" class="w-5 h-5 text-info-400 mt-0.5" />
-              <p class="text-sm text-info-200">
-                {{ t("tours.calendar.info_text") }}
-              </p>
-            </div>
-          </template>
-        </LazyTourCalendar>
+    <!-- ESTADO DE CARGA (SKELETON) -->
+    <!-- Se muestra mientras el usuario baja y el JS del calendario se descarga -->
+    <div v-if="!showCalendar" class="atacama-card rounded-xl h-[600px] flex items-center justify-center animate-pulse">
+      <div class="text-center">
+        <UIcon name="i-lucide-calendar" class="w-16 h-16 text-neutral-700 mb-4 mx-auto" />
+        <p class="text-neutral-500">Cargando disponibilidad...</p>
       </div>
+    </div>
+
+    <!-- COMPONENTE PESADO CON LAZY -->
+    <!-- Nuxt separará este código en un archivo JS aparte -->
+    <LazyTourCalendar
+      v-else
+      :tours="sortedTours"
+      @schedule-click="handleScheduleClick"
+      class="atacama-card rounded-xl overflow-hidden shadow-2xl transition-opacity duration-500"
+    >
+      <template #info>
+        <div class="mt-4 p-4 bg-info/10 rounded-lg border border-info/20 flex items-start gap-3">
+          <UIcon name="i-lucide-info" class="w-5 h-5 text-info-400 mt-0.5" />
+          <p class="text-sm text-info-200">
+            {{ t("tours.calendar.info_text") }}
+          </p>
+        </div>
+      </template>
+    </LazyTourCalendar>
+  </div>
     </UContainer>
   </div>
 </template>

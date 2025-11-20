@@ -32,6 +32,6 @@ useHead(() => ({
     <UMain>
       <slot />
     </UMain>
-    <LayoutTheFooter />
+    <LazyLayoutTheFooter />
   </div>
 </template>

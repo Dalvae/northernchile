@@ -1,16 +1,8 @@
 import { defineStore } from 'pinia'
 
 interface CartItem {
-  itemId: string
   scheduleId: string
-  tourId: string
-  tourName: string
-  tourSlug?: string
-  startDatetime?: string
   numParticipants: number
-  pricePerParticipant: number
-  itemTotal: number
-  durationHours?: number
 }
 
 interface Cart {
@@ -19,28 +11,33 @@ interface Cart {
   cartTotal: number
 }
 
-interface AddCartItemRequest {
-  scheduleId: string
-  numParticipants: number
-}
-
 export const useCartStore = defineStore('cart', () => {
-  // El backend es la ÚNICA fuente de verdad, pero sincronizamos con localStorage
-  // para persistencia entre recargas de página
-  const cart = useLocalStorage<Cart>('northern-chile-cart', {
+  // 1. Definir el estado inicial por defecto SIEMPRE
+  const defaultCart: Cart = {
     cartId: null,
     items: [],
     cartTotal: 0
-  })
+  }
+
+  // 2. Inicializar de forma segura
+  // Usamos ref con el valor por defecto primero para evitar undefined
+  const cart = ref<Cart>(defaultCart)
 
   const isLoading = ref(false)
   const toast = useToast()
 
-  const totalItems = computed(() =>
-    cart.value.items.reduce((sum, item) => sum + item.numParticipants, 0)
-  )
+  // 3. Computed Properties BLINDADAS (Aquí es donde te da el error 500)
+  const totalItems = computed(() => {
+    // Si cart.value es null o undefined, o si no tiene items, devuelve 0
+    if (!cart.value || !cart.value.items) return 0
 
-  const totalPrice = computed(() => cart.value.cartTotal)
+    return cart.value.items.reduce((sum, item) => sum + item.numParticipants, 0)
+  })
+
+  const totalPrice = computed(() => {
+    if (!cart.value) return 0
+    return cart.value.cartTotal || 0
+  })
 
   /**
    * Fetch cart from backend
@@ -148,6 +145,28 @@ export const useCartStore = defineStore('cart', () => {
       cartTotal: 0
     }
   }
+
+  // 4. Persistencia manual segura (Reemplaza el uso de useLocalStorage directo si da problemas)
+  // Esto asegura que en el Servidor (SSR) no falle y en el Cliente lea localStorage al montar
+  onMounted(() => {
+    if (import.meta.client) {
+      try {
+        const stored = localStorage.getItem('nc-cart')
+        if (stored) {
+          cart.value = JSON.parse(stored)
+        }
+      } catch (e) {
+        console.error('Error leyendo carrito local', e)
+      }
+    }
+  })
+
+  // Guardar cambios automáticamente
+  watch(cart, (newVal) => {
+    if (import.meta.client) {
+      localStorage.setItem('nc-cart', JSON.stringify(newVal))
+    }
+  }, { deep: true })
 
   return {
     cart,

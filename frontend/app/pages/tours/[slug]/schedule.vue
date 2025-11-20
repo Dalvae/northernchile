@@ -23,6 +23,22 @@ const showParticipantModal = ref(false)
 // Reference to the calendar component (lazy-loaded)
 const calendarRef = ref<any>(null)
 
+// Lazy loading for calendar with intersection observer
+const showCalendar = ref(false)
+const calendarSectionRef = ref(null)
+
+import { useIntersectionObserver } from '@vueuse/core'
+
+useIntersectionObserver(
+  calendarSectionRef,
+  ([{ isIntersecting }]) => {
+    if (isIntersecting) {
+      showCalendar.value = true
+    }
+  },
+  { rootMargin: '200px' } // Load 200px before reaching
+)
+
 const translatedName = computed(
   () =>
     tour.value?.nameTranslations?.[locale.value]
@@ -262,12 +278,19 @@ useSeoMeta({
         </div>
 
         <!-- Calendar Section -->
-        <div>
+        <div ref="calendarSectionRef" class="min-h-[500px]">
           <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-6">
             {{ t("schedule.select_date") || "Selecciona una fecha" }}
           </h2>
 
+          <!-- Skeleton while loading -->
+          <div v-if="!showCalendar" class="animate-pulse bg-neutral-200 dark:bg-neutral-700 h-96 rounded-xl flex items-center justify-center">
+            <p class="text-neutral-600 dark:text-neutral-300">Cargando calendario...</p>
+          </div>
+
+          <!-- Lazy-loaded calendar -->
           <LazyTourCalendar
+            v-else
             ref="calendarRef"
             :tours="[tour]"
             @schedule-click="handleScheduleClick"
