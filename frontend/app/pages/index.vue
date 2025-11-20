@@ -1,33 +1,47 @@
 <script setup lang="ts">
-import TourCard from '~/components/tour/TourCard.vue'
+import TourCard from "~/components/tour/TourCard.vue";
+import type { TourRes } from "api-client";
 
-const { t } = useI18n()
-const localePath = useLocalePath() 
-const { fetchAll } = useTours()
-
-
-
-const { data: toursData } = fetchAll() 
+const { t } = useI18n();
+const localePath = useLocalePath();
 
 
-const featuredTours = computed(() => {
-  const published = (toursData.value || []).filter(
-    t => t.status === 'PUBLISHED'
-  )
-  return published.slice(0, 6)
-})
-
-// SEO
 useSeoMeta({
-  title: 'Northern Chile - Tours Astronómicos en San Pedro de Atacama',
+  title: "Northern Chile - Tours Astronómicos en San Pedro de Atacama",
   description:
-    'Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados. Experiencias únicas bajo el cielo más claro del mundo.',
-  ogTitle: 'Northern Chile - Tours Astronómicos en San Pedro de Atacama',
+    "Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados.",
+  ogTitle: "Northern Chile - Tours Astronómicos en San Pedro de Atacama",
   ogDescription:
-    'Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados',
-  ogImage: 'https://www.northernchile.cl/og-image-homepage.jpg',
-  twitterCard: 'summary_large_image'
-})
+    "Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados",
+  ogImage: "https://www.northernchile.cl/og-image-homepage.jpg",
+  twitterCard: "summary_large_image",
+});
+
+
+
+const { data: featuredTours } = useFetch<TourRes[]>("/api/tours", {
+  lazy: true,
+  transform: (tours) => {
+    
+    return (tours || [])
+      .filter((t) => t.status === "PUBLISHED")
+      .slice(0, 6)
+      .map((tour) => ({
+        id: tour.id,
+        slug: tour.slug,
+        nameTranslations: tour.nameTranslations,
+        
+        images: tour.images?.slice(0, 1),
+        category: tour.category,
+        price: tour.price,
+        durationHours: tour.durationHours,
+        defaultMaxParticipants: (tour as any).defaultMaxParticipants,
+        moonSensitive: tour.moonSensitive,
+        windSensitive: tour.windSensitive,
+        descriptionTranslations: tour.descriptionTranslations,
+      }));
+  },
+});
 </script>
 
 <template>
@@ -40,20 +54,42 @@ useSeoMeta({
 
     
     <section class="relative py-24 z-10 overflow-hidden">
-      
-      <div class="absolute inset-0 bg-gradient-to-b from-neutral-950 to-neutral-900 z-0" />
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-neutral-950 to-neutral-900 z-0"
+      />
 
       <UContainer class="relative z-10">
         <div class="text-center mb-16">
-          <h2 class="text-4xl md:text-5xl font-display font-bold text-white mb-4 text-glow">
+          <h2
+            class="text-4xl md:text-5xl font-display font-bold text-white mb-4 text-glow"
+          >
             {{ t("home.featured_tours_title") || "Experiencias Destacadas" }}
           </h2>
           <p class="text-xl text-neutral-200 max-w-2xl mx-auto">
-            {{ t("home.featured_tours_subtitle") || "Descubre lo mejor del desierto de Atacama" }}
+            {{
+              t("home.featured_tours_subtitle") ||
+              "Descubre lo mejor del desierto de Atacama"
+            }}
           </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Grid con Skeleton de carga -->
+        <div
+          v-if="!featuredTours"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        >
+          
+          <div
+            v-for="i in 3"
+            :key="i"
+            class="h-[500px] bg-neutral-900/50 rounded-xl animate-pulse"
+          ></div>
+        </div>
+
+        <div
+          v-else
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        >
           <TourCard
             v-for="(tour, index) in featuredTours"
             :key="tour.id"
@@ -64,7 +100,6 @@ useSeoMeta({
         </div>
 
         <div class="mt-16 text-center">
-          
           <UButton
             :to="localePath('/tours')"
             size="xl"
@@ -86,14 +121,15 @@ useSeoMeta({
     <section class="relative py-32 z-10">
       <div class="absolute inset-0 atacama-gradient opacity-80 z-0" />
       <UContainer class="relative z-10 text-center">
-        <h2 class="text-4xl md:text-6xl font-display font-bold text-white mb-8 text-glow">
+        <h2
+          class="text-4xl md:text-6xl font-display font-bold text-white mb-8 text-glow"
+        >
           {{ t("home.cta_title") }}
         </h2>
         <p class="text-xl md:text-2xl text-neutral-200 mb-12 max-w-3xl mx-auto">
           {{ t("home.cta_subtitle") }}
         </p>
         <div class="flex flex-col sm:flex-row gap-6 justify-center">
-
           <UButton
             :to="localePath('/tours')"
             size="xl"
@@ -117,3 +153,4 @@ useSeoMeta({
     </section>
   </div>
 </template>
+
