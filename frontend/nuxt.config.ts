@@ -5,52 +5,25 @@ export default defineNuxtConfig({
   modules: [
     "@nuxt/eslint",
     "@nuxt/ui",
-    "nuxt-booster",
+    "nuxt-vitalizer",
     "@nuxt/fonts",
     "@nuxtjs/i18n",
     "@pinia/nuxt",
     "@vueuse/nuxt",
   ],
 
-  // Experimental features for better performance
-  experimental: {
-    // REMOVED: inlineSSRStyles breaks CSR pages (/cart, /auth, /admin)
-    // inlineSSRStyles: true,
-  },
-
   devtools: {
     enabled: process.env.NODE_ENV === "development",
   },
 
-  //  Booster - holistic performance optimization
-  booster: {
-    // Auto-optimize SSR: inline critical CSS, remove unnecessary preloads/prefetches
-    optimizeSSR: {
-      cleanPreloads: true,
-      cleanPrefetches: true,
-      inlineStyles: true,
-      // MAX size for inlined critical CSS (conservative to avoid breaking CSR pages)
-      inlinedStylesSize: 30000, // 30KB - inline only critical CSS
-    },
-
-    // Performance detection (optional - can disable for simpler setup)
-    detection: {
-      performance: false, // Disable performance layer for now
-      browserSupport: false,
-      battery: false,
-    },
-
-    // Lazy hydration offset for components and assets (viewport based)
-    lazyOffset: {
-      component: "0%", // Load components at viewport edge (more aggressive)
-      asset: "10%", // Load images 10% before viewport (more aggressive)
-    },
-
-    // Target formats for optimized images
-    targetFormats: ["webp", "avif", "jpg|jpeg|png|gif"],
-
-    // Disable auto-import to avoid conflicts with Nuxt UI
-    componentAutoImport: false,
+  // Nuxt Vitalizer - LCP optimization without breaking CSR pages
+  vitalizer: {
+    // Disable prefetch for dynamic imports (improves LCP, enabled by default)
+    disablePrefetchLinks: 'dynamicImports',
+    // Keep preload links for now (can disable if needed)
+    disablePreloadLinks: false,
+    // Keep stylesheets for now to ensure CSR pages work (can optimize later)
+    disableStylesheets: false,
   },
 
   // Font optimization with @nuxt/fonts
