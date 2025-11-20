@@ -14,7 +14,8 @@ export default defineNuxtConfig({
 
   // Experimental features for better performance
   experimental: {
-    inlineSSRStyles: true, // Force inline ALL SSR styles (eliminates render-blocking CSS)
+    // REMOVED: inlineSSRStyles breaks CSR pages (/cart, /auth, /admin)
+    // inlineSSRStyles: true,
   },
 
   devtools: {
@@ -28,8 +29,8 @@ export default defineNuxtConfig({
       cleanPreloads: true,
       cleanPrefetches: true,
       inlineStyles: true,
-      // MAX size for inlined critical CSS - inline EVERYTHING
-      inlinedStylesSize: 100000, // 100KB - inline ALL CSS to eliminate render-blocking
+      // MAX size for inlined critical CSS (conservative to avoid breaking CSR pages)
+      inlinedStylesSize: 30000, // 30KB - inline only critical CSS
     },
 
     // Performance detection (optional - can disable for simpler setup)
