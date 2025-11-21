@@ -370,7 +370,7 @@ useSeoMeta({
                     type="number"
                     min="1"
                     :max="selectedSchedule?.maxParticipants || 20"
-                    class="w-20 text-center text-2xl font-bold bg-transparent text-neutral-900 dark:text-white"
+                    class="w-20 text-center text-2xl font-bold bg-transparent text-neutral-900 dark:text-white no-spinner"
                   >
                   <UButton
                     color="neutral"
@@ -423,3 +423,21 @@ useSeoMeta({
     </UContainer>
   </div>
 </template>
+
+<style scoped>
+/* Remove default number input spinners */
+.no-spinner::-webkit-inner-spin-button,
+.no-spinner::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.no-spinner {
+  -moz-appearance: textfield;
+}
+
+/* Remove outline on focus for cleaner look */
+.no-spinner:focus {
+  outline: none;
+}
+</style>
