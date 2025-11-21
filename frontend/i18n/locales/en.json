@@ -294,6 +294,12 @@
         "expertGuides": "Expert Guides",
         "clearSkies": "Clear Skies",
         "freeCancellation": "Free Cancellation"
+      },
+      "tooltips": {
+        "proTelescopes": "Professional Telescopes",
+        "expertGuides": "Expert Guides",
+        "clearSkies": "Clear Skies",
+        "freeCancellation": "Free Cancellation"
       }
     },
     "featured_tours_title": "Featured Experiences",

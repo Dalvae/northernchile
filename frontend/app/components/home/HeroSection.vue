@@ -26,7 +26,7 @@
     >
       <!-- Hero Text Group -->
       <div class="text-center space-y-6 animate-fade-in-up w-full">
-        <!-- Badge (Rounded-lg en vez de full) -->
+        <!-- Badge -->
         <div class="flex justify-center mb-4">
           <div
             class="inline-flex items-center gap-2 px-3 py-1 rounded-lg border border-primary/30 bg-primary/5 backdrop-blur-sm"
@@ -60,7 +60,7 @@
           {{ t("home.hero.subtitle") }}
         </p>
 
-        <!-- Botones (Rounded-xl) -->
+        <!-- Botones -->
         <div
           class="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8 pb-12"
         >
@@ -86,34 +86,55 @@
           </UButton>
         </div>
 
-        <!-- 3. FEATURES (Brillantes y definidos) -->
+        <!-- 3. FEATURE DOCK (Magnético) -->
         <div
-          class="w-full max-w-4xl mx-auto pt-8 border-t border-white/10 animate-fade-in-delayed"
+          class="w-full flex justify-center mt-12 animate-fade-in-delayed relative z-40"
         >
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4">
-            <div
-              v-for="(feature, index) in quickFeatures"
-              :key="feature.label"
-              class="flex flex-col items-center justify-center gap-3 group cursor-default"
-            >
-              <!-- Ícono: Contenedor rounded-xl + Color Primario Brillante -->
-              <div
-                class="p-3 rounded-xl bg-white/5 border border-white/10 group-hover:border-primary/50 group-hover:bg-primary/10 transition-all duration-300"
-              >
+          <UiDock :magnification="30" :distance="120">
+            <!-- Telescopios -->
+            <UiDockIcon :tooltip="t('home.hero.tooltips.proTelescopes')">
+              <template #default="{ size }">
                 <UIcon
-                  :name="feature.icon"
-                  class="w-6 h-6 text-primary group-hover:scale-110 transition-transform duration-300"
+                  name="i-heroicons-sparkles"
+                  class="text-primary"
+                  :style="{ width: size * 0.55 + 'px', height: size * 0.55 + 'px' }"
                 />
-              </div>
+              </template>
+            </UiDockIcon>
 
-              <!-- Texto más claro (neutral-300 -> 200) -->
-              <span
-                class="text-xs font-medium text-neutral-300 uppercase tracking-wider group-hover:text-white transition-colors"
-              >
-                {{ feature.label }}
-              </span>
-            </div>
-          </div>
+            <!-- Guías -->
+            <UiDockIcon :tooltip="t('home.hero.tooltips.expertGuides')">
+              <template #default="{ size }">
+                <UIcon
+                  name="i-heroicons-user-group"
+                  class="text-primary"
+                  :style="{ width: size * 0.55 + 'px', height: size * 0.55 + 'px' }"
+                />
+              </template>
+            </UiDockIcon>
+
+            <!-- Cielos -->
+            <UiDockIcon :tooltip="t('home.hero.tooltips.clearSkies')">
+              <template #default="{ size }">
+                <UIcon
+                  name="i-heroicons-moon"
+                  class="text-primary"
+                  :style="{ width: size * 0.55 + 'px', height: size * 0.55 + 'px' }"
+                />
+              </template>
+            </UiDockIcon>
+
+            <!-- Cancelación -->
+            <UiDockIcon :tooltip="t('home.hero.tooltips.freeCancellation')">
+              <template #default="{ size }">
+                <UIcon
+                  name="i-heroicons-shield-check"
+                  class="text-primary"
+                  :style="{ width: size * 0.55 + 'px', height: size * 0.55 + 'px' }"
+                />
+              </template>
+            </UiDockIcon>
+          </UiDock>
         </div>
       </div>
     </div>
@@ -172,5 +193,19 @@ const quickFeatures = computed(() => [
 .animate-fade-in-delayed {
   opacity: 0;
   animation: fade-in-up 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.4s forwards;
+}
+
+@keyframes ping-slow {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+.animate-ping-slow {
+  animation: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 </style>
