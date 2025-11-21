@@ -1,10 +1,10 @@
 <template>
   <header
-    class="sticky top-0 z-50 bg-[var(--color-paranal-950)]/80 backdrop-blur-md border-b border-white/10"
+    class="sticky top-0 z-50 bg-neutral-950/80 backdrop-blur-md border-b border-white/10"
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-20">
-        <!-- Logo (Sin cambios) -->
+        <!-- Logo -->
         <div class="flex-shrink-0">
           <NuxtLink
             :to="localePath('/')"
@@ -23,7 +23,7 @@
           </NuxtLink>
         </div>
 
-        <!-- Desktop Navigation (Sin cambios) -->
+        <!-- Desktop Navigation -->
         <nav
           class="hidden md:flex items-center gap-2"
           role="navigation"
@@ -34,16 +34,16 @@
             :key="link.label"
             :to="link.to"
             variant="ghost"
-            color="white"
+            color="neutral-200"
             class="font-medium text-neutral-200 hover:text-white hover:bg-white/10 transition-colors"
           >
             {{ link.label }}
           </UButton>
         </nav>
 
-        <!-- Right Actions (Desktop) -->
+        <!-- Right Actions -->
         <div class="flex items-center gap-3">
-          <!-- DESKTOP ONLY: Switchers, Cart & Auth -->
+          <!-- DESKTOP ONLY -->
           <div class="hidden md:flex items-center gap-3">
             <LanguageSwitcher />
 
@@ -51,7 +51,7 @@
               <ThemeSwitcher />
               <template #fallback>
                 <UButton
-                  color="white"
+                  color="neutral"
                   variant="ghost"
                   icon="i-lucide-swatch-book"
                   class="hover:bg-white/10 opacity-70"
@@ -63,7 +63,7 @@
             <UButton
               :to="localePath('/cart')"
               variant="ghost"
-              color="white"
+              color="neutral"
               icon="i-lucide-shopping-cart"
               :aria-label="t('nav.cart')"
               class="relative hover:bg-white/10"
@@ -84,7 +84,7 @@
                 <UButton
                   :to="localePath('/auth')"
                   variant="ghost"
-                  color="white"
+                  color="neutral"
                   icon="i-lucide-log-in"
                   class="hover:bg-white/10"
                 >
@@ -95,7 +95,7 @@
                 <UDropdownMenu :items="userMenuItems">
                   <UButton
                     variant="ghost"
-                    color="white"
+                    color="neutral"
                     square
                     class="hover:bg-white/10"
                     aria-label="Menú de usuario"
@@ -114,7 +114,6 @@
                 </UDropdownMenu>
               </div>
 
-              <!-- Fallback Login Button -->
               <template #fallback>
                 <UButton
                   variant="ghost"
@@ -129,26 +128,25 @@
             </ClientOnly>
           </div>
 
-          <!-- Mobile Menu Button & Slideover -->
+          <!-- Mobile Menu -->
           <USlideover
             v-model:open="mobileMenuOpen"
             side="right"
             :ui="{
               overlay: 'bg-black/60 backdrop-blur-sm',
               width: 'w-screen max-w-xs',
-              base: 'border-l border-white/10', // Elimina padding por defecto si es necesario
+              base: 'border-l border-white/10',
             }"
           >
             <UButton
               variant="ghost"
-              color="white"
+              color="neutral"
               icon="i-lucide-menu"
               class="md:hidden hover:bg-white/10"
               aria-label="Abrir menú"
             />
 
             <template #content>
-              <!-- Aquí usamos el nuevo componente -->
               <LayoutMobileMenu
                 :links="links"
                 @close="mobileMenuOpen = false"

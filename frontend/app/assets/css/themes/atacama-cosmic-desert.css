@@ -1,33 +1,64 @@
-/* ===================================
-   Tema Atacama Cosmic Desert - Northern Chile
-   Nocturno serio, astronómico + desierto de San Pedro
-   Diseñado para tours astronómicos como producto estrella
-   =================================== */
+/* ==============================================
+   Tema Atacama Cosmic Desert V4
+   Ajuste: Fondo Petróleo + Acento "Arena Dorada" (#fbaa62)
+   ============================================== */
 
-/*
- * Este archivo ya no define @theme.
- * Usa la clase aplicada en <html> por useTheme()
- * para ajustar solo aliases de layout (fondos, textos) en runtime.
- */
+@theme {
+  /*
+     1. COBRE LUNAR (Ajustado a #fbaa62)
+     Hue 55 (Naranja amarillento/Dorado).
+     Chroma 0.16 (Suave pero vibrante).
+  */
+  --color-cobre-lunar-50: oklch(98% 0.03 55);
+  --color-cobre-lunar-100: oklch(96% 0.05 55);
+  --color-cobre-lunar-200: oklch(92% 0.08 55);
+  --color-cobre-lunar-300: oklch(86% 0.12 55);
+  --color-cobre-lunar-400: oklch(78% 0.16 55); /* <-- Tu color base #fbaa62 */
+  --color-cobre-lunar-500: oklch(
+    70% 0.18 55
+  ); /* Botón principal (un poco más sólido) */
+  --color-cobre-lunar-600: oklch(60% 0.16 55);
+  --color-cobre-lunar-700: oklch(50% 0.14 55);
+  --color-cobre-lunar-800: oklch(40% 0.11 55);
+  --color-cobre-lunar-900: oklch(30% 0.08 55);
+  --color-cobre-lunar-950: oklch(20% 0.05 55);
+
+  /*
+     2. AZUL PETRÓLEO PROFUNDO (Mantenido)
+     El fondo oscuro que te gustó.
+  */
+  --color-cielo-profundo-50: oklch(100% 0 0);
+
+  --color-cielo-profundo-100: oklch(98% 0.01 235);
+
+  --color-cielo-profundo-200: oklch(94% 0.02 235);
+  --color-cielo-profundo-300: oklch(70% 0.04 235);
+  --color-cielo-profundo-400: oklch(55% 0.05 235);
+  --color-cielo-profundo-500: oklch(40% 0.06 235);
+  --color-cielo-profundo-600: oklch(30% 0.06 235);
+  --color-cielo-profundo-700: oklch(24% 0.05 235);
+  --color-cielo-profundo-800: oklch(18% 0.05 235);
+  --color-cielo-profundo-900: oklch(14% 0.05 235); /* Fondo principal */
+  --color-cielo-profundo-950: oklch(10% 0.05 235);
+
+  /*
+     3. PLATA ESTELAR (Mantenido)
+  */
+  --color-estelar-50: oklch(99% 0.005 240);
+  --color-estelar-100: oklch(96% 0.01 240);
+  --color-estelar-200: oklch(92% 0.02 240);
+  --color-estelar-300: oklch(85% 0.03 240);
+  --color-estelar-400: oklch(75% 0.04 240);
+  --color-estelar-500: oklch(65% 0.05 240);
+  --color-estelar-600: oklch(55% 0.05 240);
+  --color-estelar-700: oklch(45% 0.05 240);
+  --color-estelar-800: oklch(35% 0.05 240);
+  --color-estelar-900: oklch(25% 0.04 240);
+  --color-estelar-950: oklch(15% 0.04 240);
+}
 
 .atacama-cosmic-desert {
-  /* Fondo principal más profundo */
-  --ui-bg: oklch(10% 0.02 260);
-  /* Superficies elevadas (cards/modals/admin) */
-  --ui-bg-elevated: oklch(16% 0.02 260);
-  --ui-bg-soft: oklch(18% 0.015 260);
-  --ui-bg-muted: oklch(22% 0.02 260);
-
-  /* Bordes ligeramente visibles */
-  --ui-border: oklch(28% 0.02 260);
-  --ui-border-muted: oklch(22% 0.02 260);
-
-  /* Texto alto contraste frío */
-  --ui-text: oklch(96% 0.02 260);
-  --ui-text-muted: oklch(78% 0.015 260);
-
-  /* Variables semánticas de Nuxt UI - mismo mapeo que atacama-cobre-lunar */
-  /* Primary = cobre-lunar */
+  /* PRIMARY: Arena Dorada */
   --ui-color-primary-50: var(--color-cobre-lunar-50);
   --ui-color-primary-100: var(--color-cobre-lunar-100);
   --ui-color-primary-200: var(--color-cobre-lunar-200);
@@ -40,95 +71,34 @@
   --ui-color-primary-900: var(--color-cobre-lunar-900);
   --ui-color-primary-950: var(--color-cobre-lunar-950);
 
-  /* Secondary = cielo-estrellado */
-  --ui-color-secondary-50: var(--color-cielo-estrellado-50);
-  --ui-color-secondary-100: var(--color-cielo-estrellado-100);
-  --ui-color-secondary-200: var(--color-cielo-estrellado-200);
-  --ui-color-secondary-300: var(--color-cielo-estrellado-300);
-  --ui-color-secondary-400: var(--color-cielo-estrellado-400);
-  --ui-color-secondary-500: var(--color-cielo-estrellado-500);
-  --ui-color-secondary-600: var(--color-cielo-estrellado-600);
-  --ui-color-secondary-700: var(--color-cielo-estrellado-700);
-  --ui-color-secondary-800: var(--color-cielo-estrellado-800);
-  --ui-color-secondary-900: var(--color-cielo-estrellado-900);
-  --ui-color-secondary-950: var(--color-cielo-estrellado-950);
+  /* NEUTRAL: Azul Petróleo */
+  --ui-color-neutral-50: var(--color-cielo-profundo-50);
+  --ui-color-neutral-100: var(--color-cielo-profundo-100);
+  --ui-color-neutral-200: var(--color-cielo-profundo-200);
+  --ui-color-neutral-300: var(--color-cielo-profundo-300);
+  --ui-color-neutral-400: var(--color-cielo-profundo-400);
+  --ui-color-neutral-500: var(--color-cielo-profundo-500);
+  --ui-color-neutral-600: var(--color-cielo-profundo-600);
+  --ui-color-neutral-700: var(--color-cielo-profundo-700);
+  --ui-color-neutral-800: var(--color-cielo-profundo-800);
+  --ui-color-neutral-900: var(--color-cielo-profundo-900);
+  --ui-color-neutral-950: var(--color-cielo-profundo-950);
 
-  /* Tertiary = arena-iluminada */
-  --ui-color-tertiary-50: var(--color-arena-iluminada-50);
-  --ui-color-tertiary-100: var(--color-arena-iluminada-100);
-  --ui-color-tertiary-200: var(--color-arena-iluminada-200);
-  --ui-color-tertiary-300: var(--color-arena-iluminada-300);
-  --ui-color-tertiary-400: var(--color-arena-iluminada-400);
-  --ui-color-tertiary-500: var(--color-arena-iluminada-500);
-  --ui-color-tertiary-600: var(--color-arena-iluminada-600);
-  --ui-color-tertiary-700: var(--color-arena-iluminada-700);
-  --ui-color-tertiary-800: var(--color-arena-iluminada-800);
-  --ui-color-tertiary-900: var(--color-arena-iluminada-900);
-  --ui-color-tertiary-950: var(--color-arena-iluminada-950);
+  /* SECONDARY: Plata Estelar */
+  --ui-color-secondary-50: var(--color-estelar-50);
+  --ui-color-secondary-100: var(--color-estelar-100);
+  --ui-color-secondary-200: var(--color-estelar-200);
+  --ui-color-secondary-300: var(--color-estelar-300);
+  --ui-color-secondary-400: var(--color-estelar-400);
+  --ui-color-secondary-500: var(--color-estelar-500);
+  --ui-color-secondary-600: var(--color-estelar-600);
+  --ui-color-secondary-700: var(--color-estelar-700);
+  --ui-color-secondary-800: var(--color-estelar-800);
+  --ui-color-secondary-900: var(--color-estelar-900);
+  --ui-color-secondary-950: var(--color-estelar-950);
 
-  /* Neutral = tierra-mineral */
-  --ui-color-neutral-50: var(--color-tierra-mineral-50);
-  --ui-color-neutral-100: var(--color-tierra-mineral-100);
-  --ui-color-neutral-200: var(--color-tierra-mineral-200);
-  --ui-color-neutral-300: var(--color-tierra-mineral-300);
-  --ui-color-neutral-400: var(--color-tierra-mineral-400);
-  --ui-color-neutral-500: var(--color-tierra-mineral-500);
-  --ui-color-neutral-600: var(--color-tierra-mineral-600);
-  --ui-color-neutral-700: var(--color-tierra-mineral-700);
-  --ui-color-neutral-800: var(--color-tierra-mineral-800);
-  --ui-color-neutral-900: var(--color-tierra-mineral-900);
-  --ui-color-neutral-950: var(--color-tierra-mineral-950);
-
-  /* Success = bronce-lunar */
-  --ui-color-success-50: var(--color-bronce-lunar-50);
-  --ui-color-success-100: var(--color-bronce-lunar-100);
-  --ui-color-success-200: var(--color-bronce-lunar-200);
-  --ui-color-success-300: var(--color-bronce-lunar-300);
-  --ui-color-success-400: var(--color-bronce-lunar-400);
-  --ui-color-success-500: var(--color-bronce-lunar-500);
-  --ui-color-success-600: var(--color-bronce-lunar-600);
-  --ui-color-success-700: var(--color-bronce-lunar-700);
-  --ui-color-success-800: var(--color-bronce-lunar-800);
-  --ui-color-success-900: var(--color-bronce-lunar-900);
-  --ui-color-success-950: var(--color-bronce-lunar-950);
-
-  /* Info = cielo-estrellado */
-  --ui-color-info-50: var(--color-cielo-estrellado-50);
-  --ui-color-info-100: var(--color-cielo-estrellado-100);
-  --ui-color-info-200: var(--color-cielo-estrellado-200);
-  --ui-color-info-300: var(--color-cielo-estrellado-300);
-  --ui-color-info-400: var(--color-cielo-estrellado-400);
-  --ui-color-info-500: var(--color-cielo-estrellado-500);
-  --ui-color-info-600: var(--color-cielo-estrellado-600);
-  --ui-color-info-700: var(--color-cielo-estrellado-700);
-  --ui-color-info-800: var(--color-cielo-estrellado-800);
-  --ui-color-info-900: var(--color-cielo-estrellado-900);
-  --ui-color-info-950: var(--color-cielo-estrellado-950);
-
-  /* Warning = bronce-lunar */
-  --ui-color-warning-50: var(--color-bronce-lunar-50);
-  --ui-color-warning-100: var(--color-bronce-lunar-100);
-  --ui-color-warning-200: var(--color-bronce-lunar-200);
-  --ui-color-warning-300: var(--color-bronce-lunar-300);
-  --ui-color-warning-400: var(--color-bronce-lunar-400);
-  --ui-color-warning-500: var(--color-bronce-lunar-500);
-  --ui-color-warning-600: var(--color-bronce-lunar-600);
-  --ui-color-warning-700: var(--color-bronce-lunar-700);
-  --ui-color-warning-800: var(--color-bronce-lunar-800);
-  --ui-color-warning-900: var(--color-bronce-lunar-900);
-  --ui-color-warning-950: var(--color-bronce-lunar-950);
-
-  /* Error = tierra-mineral */
-  --ui-color-error-50: var(--color-tierra-mineral-50);
-  --ui-color-error-100: var(--color-tierra-mineral-100);
-  --ui-color-error-200: var(--color-tierra-mineral-200);
-  --ui-color-error-300: var(--color-tierra-mineral-300);
-  --ui-color-error-400: var(--color-tierra-mineral-400);
-  --ui-color-error-500: var(--color-tierra-mineral-500);
-  --ui-color-error-600: var(--color-tierra-mineral-600);
-  --ui-color-error-700: var(--color-tierra-mineral-700);
-  --ui-color-error-800: var(--color-tierra-mineral-800);
-  --ui-color-error-900: var(--color-tierra-mineral-900);
-  --ui-color-error-950: var(--color-tierra-mineral-950);
+  /* EXTRAS */
+  --ui-color-tertiary-500: var(--color-estelar-500);
+  --ui-color-success-500: var(--color-cobre-lunar-500);
+  --ui-color-info-500: var(--color-estelar-500);
 }
-

@@ -32,9 +32,11 @@ h6 {
 /* 4. Efectos Atacama Nocturna OKLCH */
 @layer utilities {
   .atacama-gradient {
-    background: linear-gradient(180deg,
-        var(--ui-color-neutral-900) 0%,
-        var(--ui-color-neutral-950) 100%);
+    background: linear-gradient(
+      180deg,
+      var(--ui-color-neutral-900) 0%,
+      var(--ui-color-neutral-950) 100%
+    );
   }
 
   .atacama-card {
@@ -42,7 +44,7 @@ h6 {
   }
 
   .cobre-glow {
-    box-shadow: 0 0 20px var(--ui-color-primary-500);
+    box-shadow: 0 0 10px var(--ui-color-primary-500);
     opacity: 0.8;
   }
 
@@ -51,9 +53,11 @@ h6 {
   }
 
   .cielo-hover:hover {
-    background: linear-gradient(135deg,
-        var(--ui-color-primary-800),
-        var(--ui-color-primary-600));
+    background: linear-gradient(
+      135deg,
+      var(--ui-color-primary-800),
+      var(--ui-color-primary-600)
+    );
     transition: all 0.3s ease;
   }
 
@@ -73,9 +77,11 @@ h6 {
   }
 
   .texto-cobre {
-    background: linear-gradient(45deg,
-        var(--ui-color-primary-500),
-        var(--ui-color-primary-300));
+    background: linear-gradient(
+      45deg,
+      var(--ui-color-primary-500),
+      var(--ui-color-primary-300)
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -89,3 +95,4 @@ h6 {
     color: var(--ui-color-info-500);
   }
 }
+
