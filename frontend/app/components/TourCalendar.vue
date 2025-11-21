@@ -2,6 +2,7 @@
 import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import listPlugin from "@fullcalendar/list";
 import type { CalendarOptions, EventClickArg } from "@fullcalendar/core";
 import esLocale from "@fullcalendar/core/locales/es";
 import ptLocale from "@fullcalendar/core/locales/pt";
@@ -59,6 +60,15 @@ const loading = ref(false);
 
 const weatherMap = ref(new Map<string, any>());
 const lunarMap = ref(new Map<string, LunarPhase>());
+
+// Detect mobile
+const isMobile = ref(false);
+onMounted(() => {
+  isMobile.value = window.innerWidth < 768;
+  window.addEventListener('resize', () => {
+    isMobile.value = window.innerWidth < 768;
+  });
+});
 
 async function fetchSchedules() {
   try {
@@ -320,23 +330,29 @@ const calendarEvents = computed(() => {
 });
 
 const calendarOptions = computed<CalendarOptions>(() => ({
-  plugins: [dayGridPlugin, interactionPlugin],
-  initialView: props.initialView,
+  plugins: [dayGridPlugin, interactionPlugin, listPlugin],
+  initialView: isMobile.value ? "listMonth" : props.initialView,
   locale:
     locale.value === "es"
       ? esLocale
       : locale.value === "pt"
         ? ptLocale
         : enLocale,
-  headerToolbar: {
-    left: "prev,next today",
-    center: "title",
-    right: "",
-  },
+  headerToolbar: isMobile.value
+    ? {
+        left: "prev,next",
+        center: "title",
+        right: "",
+      }
+    : {
+        left: "prev,next today",
+        center: "title",
+        right: "dayGridMonth,listMonth",
+      },
   events: calendarEvents.value,
   eventClick: handleEventClick,
   eventContent: renderEventContent,
-  height: props.height,
+  height: isMobile.value ? "auto" : props.height,
   eventDisplay: "block",
   displayEventTime: true,
   eventTimeFormat: {
@@ -347,11 +363,13 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   buttonText: {
     today: t("common.today"),
   },
+  listDayFormat: { weekday: 'long', day: 'numeric', month: 'long' },
+  listDaySideFormat: false,
 
   dayCellContent: (arg) => {
     const date = arg.date.toISOString().split("T")[0];
     const moon = lunarMap.value.get(date);
-    const weather = weatherMap.value.get(date); // any para acceder a temp y weather
+    const weather = weatherMap.value.get(date);
 
     const container = document.createElement("div");
     container.className = "flex flex-col justify-between h-full p-1";
@@ -361,6 +379,11 @@ const calendarOptions = computed<CalendarOptions>(() => ({
       "text-right font-semibold text-neutral-700 dark:text-neutral-300 text-sm";
     dayNumber.innerText = arg.dayNumberText;
     container.appendChild(dayNumber);
+
+    // Simplify for mobile - only show day number
+    if (isMobile.value) {
+      return { domNodes: [container] };
+    }
 
     const infoBox = document.createElement("div");
     infoBox.className = "flex justify-between items-end mt-auto";
@@ -398,17 +421,62 @@ interface EventContentArg {
   event: {
     title: string;
     extendedProps: Record<string, unknown>;
+    backgroundColor?: string;
   };
   timeText: string;
+  view: {
+    type: string;
+  };
 }
 
 function renderEventContent(arg: EventContentArg) {
   const eventType = arg.event.extendedProps.type;
 
+  // VISTA DE LISTA (MÓVIL)
+  if (arg.view.type.includes('list')) {
+    if (eventType === 'schedule') {
+      const available = arg.event.extendedProps.availableSpots;
+      const max = arg.event.extendedProps.maxParticipants;
+      const color = arg.event.backgroundColor;
+      const titleParts = arg.event.title.split(" - ");
+      const tourName = titleParts[0];
+
+      return {
+        html: `
+          <div class="flex items-center justify-between w-full py-1 pr-2">
+            <div class="flex items-center gap-3">
+              <div class="w-1 h-8 rounded-full" style="background-color: ${color}"></div>
+              <div class="flex flex-col">
+                <span class="font-bold text-sm text-neutral-800 dark:text-white line-clamp-1">
+                  ${tourName}
+                </span>
+                <span class="text-xs text-neutral-500 flex items-center gap-1">
+                  🕒 ${arg.timeText}
+                </span>
+              </div>
+            </div>
+
+            <div class="flex flex-col items-end">
+               <span class="text-xs font-medium px-2 py-0.5 rounded-full ${
+                 available > 0
+                   ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
+                   : 'bg-error-100 text-error-700 dark:bg-error-900/30 dark:text-error-400'
+               }">
+                 ${available}/${max} cupos
+               </span>
+            </div>
+          </div>
+        `
+      };
+    }
+    // Ocultar eventos de clima/luna en la lista
+    return { domNodes: [] };
+  }
+
+  // VISTA DE GRILLA (DESKTOP)
   if (eventType === "schedule") {
     const availableSpots = arg.event.extendedProps.availableSpots;
     const maxParticipants = arg.event.extendedProps.maxParticipants;
-
     const titleParts = arg.event.title.split(" - ");
     const tourName = titleParts[0];
 
@@ -473,9 +541,9 @@ defineExpose({
     </div>
 
     <div v-else>
-      <!-- Legend -->
+      <!-- Legend (Hidden on mobile) -->
       <div
-        v-if="showLegend"
+        v-if="showLegend && !isMobile"
         class="mb-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg"
       >
         <h3 class="text-sm font-semibold text-neutral-900 dark:text-white mb-3">
@@ -547,7 +615,7 @@ defineExpose({
 
       <!-- Calendar -->
       <div
-        class="bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-4 tour-calendar-container"
+        class="bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-2 sm:p-4 tour-calendar-container"
       >
         <FullCalendar v-if="calendarOptions" :options="calendarOptions" />
       </div>
@@ -667,5 +735,66 @@ defineExpose({
 /* Background events (lunar, weather) */
 .tour-calendar-container .fc .fc-bg-event {
   opacity: 0.7;
+}
+
+/* ESTILOS ESPECÍFICOS PARA LA VISTA DE LISTA (MÓVIL) */
+.fc-list {
+  border: none !important;
+}
+
+.fc-list-day-cushion {
+  background-color: var(--ui-bg-muted) !important;
+  padding: 12px 16px !important;
+}
+
+.fc-list-day-text,
+.fc-list-day-side-text {
+  font-weight: 700;
+  color: var(--ui-primary);
+  text-transform: capitalize;
+  font-size: 1rem;
+}
+
+.fc-list-event:hover td {
+  background-color: transparent !important;
+}
+
+.fc-list-event-time {
+  display: none; /* Lo manejamos en el HTML custom */
+}
+
+.fc-list-event-graphic {
+  display: none; /* Ocultamos el puntito por defecto */
+}
+
+.fc-list-event-title {
+  padding: 8px 0 !important;
+  border-bottom: 1px solid var(--ui-border-muted);
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .tour-calendar-container {
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .tour-calendar-container .fc .fc-toolbar {
+    background-color: var(--ui-primary);
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+  }
+
+  .tour-calendar-container .fc .fc-toolbar-title {
+    font-size: 1.2rem !important;
+    color: white !important;
+  }
+
+  .tour-calendar-container .fc .fc-button {
+    color: white !important;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
 }
 </style>
