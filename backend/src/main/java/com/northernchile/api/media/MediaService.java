@@ -129,8 +129,11 @@ public class MediaService {
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
 
-            // Verify ownership
-            if (!tour.getOwner().getId().equals(ownerId)) {
+            // Verify ownership: SUPER_ADMIN can add to any tour, PARTNER_ADMIN only to their own
+            boolean isSuperAdmin = owner.getRole().equals("ROLE_SUPER_ADMIN");
+            boolean isOwner = tour.getOwner().getId().equals(ownerId);
+
+            if (!isSuperAdmin && !isOwner) {
                 throw new AccessDeniedException("You don't have permission to add media to this tour");
             }
 
@@ -141,8 +144,11 @@ public class MediaService {
             TourSchedule schedule = scheduleRepository.findById(scheduleId)
                     .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
 
-            // Verify ownership through tour
-            if (!schedule.getTour().getOwner().getId().equals(ownerId)) {
+            // Verify ownership through tour: SUPER_ADMIN can add to any schedule, PARTNER_ADMIN only to their own
+            boolean isSuperAdmin = owner.getRole().equals("ROLE_SUPER_ADMIN");
+            boolean isOwner = schedule.getTour().getOwner().getId().equals(ownerId);
+
+            if (!isSuperAdmin && !isOwner) {
                 throw new AccessDeniedException("You don't have permission to add media to this schedule");
             }
 
