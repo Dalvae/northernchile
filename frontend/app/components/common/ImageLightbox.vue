@@ -71,13 +71,13 @@ onUnmounted(() => {
     <template #content>
       <div class="relative bg-neutral-950">
         <!-- Close button -->
-        <div class="absolute top-4 right-4 z-10">
+        <div class="absolute top-4 right-4 z-50">
           <UButton
             icon="i-heroicons-x-mark"
             color="neutral"
             variant="soft"
             size="lg"
-            @click="isOpen = false"
+            @click.stop="isOpen = false"
           />
         </div>
 
@@ -88,7 +88,7 @@ onUnmounted(() => {
             color="neutral"
             variant="soft"
             size="xl"
-            @click="goToPrevious"
+            @click.stop="goToPrevious"
           />
         </div>
 
@@ -98,7 +98,7 @@ onUnmounted(() => {
             color="neutral"
             variant="soft"
             size="xl"
-            @click="goToNext"
+            @click.stop="goToNext"
           />
         </div>
 
@@ -125,7 +125,7 @@ onUnmounted(() => {
                 variant="ghost"
                 size="sm"
                 :disabled="false"
-                @click="goToPrevious"
+                @click.stop="goToPrevious"
               >
                 Anterior
               </UButton>
@@ -136,7 +136,7 @@ onUnmounted(() => {
                 size="sm"
                 trailing
                 :disabled="false"
-                @click="goToNext"
+                @click.stop="goToNext"
               >
                 Siguiente
               </UButton>
