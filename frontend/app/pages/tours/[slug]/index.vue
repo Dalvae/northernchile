@@ -189,6 +189,15 @@ onMounted(() => {
     window.removeEventListener('scroll', handleScroll)
   })
 })
+
+// Lightbox state for gallery images
+const lightboxOpen = ref(false)
+const lightboxInitialIndex = ref(0)
+
+function openLightbox(index: number) {
+  lightboxInitialIndex.value = index
+  lightboxOpen.value = true
+}
 </script>
 
 <template>
@@ -319,13 +328,16 @@ onMounted(() => {
             <div v-if="galleryImages.length > 0" class="space-y-6">
               <h2 class="text-3xl font-display font-bold text-white">Galería</h2>
               <UCarousel
-                v-slot="{ item }"
+                v-slot="{ item, index }"
                 :items="galleryImages"
                 :ui="{ item: 'basis-full md:basis-1/2 lg:basis-1/3 px-2' }"
                 class="rounded-xl overflow-hidden"
                 arrows
               >
-                <div class="relative aspect-[4/3] rounded-xl overflow-hidden atacama-card group">
+                <div
+                  class="relative aspect-[4/3] rounded-xl overflow-hidden atacama-card group cursor-pointer"
+                  @click="openLightbox(index)"
+                >
                   <NuxtImg
                     :src="item.imageUrl"
                     class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -334,7 +346,9 @@ onMounted(() => {
                     loading="lazy"
                     placeholder
                   />
-                  <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <UIcon name="i-heroicons-magnifying-glass-plus" class="w-12 h-12 text-white" />
+                  </div>
                 </div>
               </UCarousel>
             </div>
@@ -409,6 +423,14 @@ onMounted(() => {
           </div>
         </div>
       </UContainer>
+
+      <!-- Image Lightbox -->
+      <CommonImageLightbox
+        v-if="galleryImages.length > 0"
+        v-model="lightboxOpen"
+        :images="galleryImages"
+        :initial-index="lightboxInitialIndex"
+      />
     </div>
 
     <!-- Floating Mobile Booking Button -->
