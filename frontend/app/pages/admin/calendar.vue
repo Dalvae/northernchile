@@ -8,6 +8,9 @@
          <p class="mt-1 text-sm text-muted">
           Gestiona schedules con información climática y lunar
         </p>
+         <p class="mt-1 text-sm text-info-600 dark:text-info-400">
+          💡 Haz clic en cualquier fecha del calendario para crear un schedule manualmente
+        </p>
       </div>
 
       <div class="flex gap-2">
@@ -336,6 +339,28 @@ const statusOptions = [
 
 const isEditMode = computed(() => !!selectedSchedule.value)
 
+// Map de tours por ID para acceso rápido
+const toursMap = computed(() => {
+  const list = Array.isArray(toursData.value) ? toursData.value : (toursData.value as any)?.data || []
+  const map = new Map()
+  list.forEach((tour: any) => {
+    map.set(tour.id, tour)
+  })
+  return map
+})
+
+// Watch para pre-llenar la hora cuando se selecciona un tour
+watch(() => scheduleForm.value.tourId, (newTourId) => {
+  if (!newTourId || isEditMode.value) return // No modificar en modo edición
+
+  const selectedTour = toursMap.value.get(newTourId)
+  if (selectedTour?.defaultStartTime) {
+    // defaultStartTime viene como "HH:mm:ss", tomamos solo HH:mm
+    const timeParts = selectedTour.defaultStartTime.split(':')
+    scheduleForm.value.time = `${timeParts[0]}:${timeParts[1]}`
+  }
+})
+
 // Rango de fechas del calendario
 const startDate = ref('')
 const endDate = ref('')
@@ -435,7 +460,7 @@ const handleDateClick = (info: any) => {
   scheduleForm.value = {
     tourId: '',
     date: clickedDate,
-    time: '20:00', // Default time for astronomical tours
+    time: '', // Se llenará automáticamente cuando se seleccione un tour
     maxParticipants: 10,
     status: 'OPEN'
   }
