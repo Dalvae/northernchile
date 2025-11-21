@@ -77,35 +77,42 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: any) =>
   // Estado reactivo
   const state = reactive<TourSchema>({ ...initialState })
 
-  // Watch para rellenar datos al editar
+  // Watch para rellenar datos al editar o resetear cuando se crea uno nuevo
   watch(
     () => props.tour,
     (tour) => {
-      if (tour) {
-        Object.assign(state, {
-          nameTranslations:
-            tour.nameTranslations || initialState.nameTranslations,
-          imageUrls: tour.images?.map((img) => img.imageUrl || '').filter(Boolean) || [],
-          moonSensitive: tour.moonSensitive || false,
-          windSensitive: tour.windSensitive || false,
-          cloudSensitive: tour.cloudSensitive || false,
-          recurring: tour.recurring ?? false,
-          category: tour.category,
-          price: tour.price,
-          defaultMaxParticipants: tour.defaultMaxParticipants,
-          durationHours: tour.durationHours,
-          defaultStartTime: (tour as any).defaultStartTime || undefined,
-          status: tour.status,
-          contentKey: tour.contentKey || '',
-          guideName: (tour as any).guideName || undefined,
-          itineraryTranslations: (tour as any).itineraryTranslations || undefined,
-          equipmentTranslations: (tour as any).equipmentTranslations || undefined,
-          additionalInfoTranslations: (tour as any).additionalInfoTranslations || undefined,
-          descriptionBlocksTranslations: (tour as any).descriptionBlocksTranslations || undefined
-        })
-      } else {
-        Object.assign(state, { ...initialState })
-      }
+      // Usar nextTick para asegurar que el DOM está listo
+      nextTick(() => {
+        if (tour) {
+          Object.assign(state, {
+            nameTranslations:
+              tour.nameTranslations || initialState.nameTranslations,
+            imageUrls: tour.images?.map((img) => img.imageUrl || '').filter(Boolean) || [],
+            moonSensitive: tour.moonSensitive || false,
+            windSensitive: tour.windSensitive || false,
+            cloudSensitive: tour.cloudSensitive || false,
+            recurring: tour.recurring ?? false,
+            category: tour.category,
+            price: tour.price,
+            defaultMaxParticipants: tour.defaultMaxParticipants,
+            durationHours: tour.durationHours,
+            defaultStartTime: (tour as any).defaultStartTime || undefined,
+            status: tour.status,
+            contentKey: tour.contentKey || '',
+            guideName: (tour as any).guideName || undefined,
+            itineraryTranslations: (tour as any).itineraryTranslations || undefined,
+            equipmentTranslations: (tour as any).equipmentTranslations || undefined,
+            additionalInfoTranslations: (tour as any).additionalInfoTranslations || undefined,
+            descriptionBlocksTranslations: (tour as any).descriptionBlocksTranslations || undefined
+          })
+        } else {
+          // Resetear completamente el estado
+          Object.keys(state).forEach(key => {
+            delete (state as any)[key]
+          })
+          Object.assign(state, { ...initialState })
+        }
+      })
     },
     { immediate: true, deep: true }
   )

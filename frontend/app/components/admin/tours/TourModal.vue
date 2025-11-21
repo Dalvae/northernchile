@@ -33,14 +33,12 @@ const items = computed(() => [
     key: "general",
     label: "Información General",
     icon: "i-heroicons-information-circle",
-    slot: "general",
   },
   {
     key: "gallery",
     label: "Galería",
     icon: "i-heroicons-photo",
     disabled: !isEditing.value,
-    slot: "gallery",
   },
 ]);
 
@@ -63,35 +61,30 @@ const handleSubmit = () => {
         v-model="mainTab"
         :items="items"
         class="w-full"
-      >
-        <!-- Slot: GENERAL -->
-        <template #general>
-          <div class="py-4">
-            <UForm
-              ref="form"
-              :schema="schema"
-              :state="state"
-              @submit="onSubmit"
-              @error="onError"
-              class="space-y-8"
-            >
-              <TourFormGeneral :state="state" :errors="formErrors" />
-              <UDivider />
-              <TourFormContent :state="state" />
-            </UForm>
-          </div>
-        </template>
+      />
 
-        <!-- Slot: GALLERY -->
-        <template #gallery>
-          <div class="py-4">
-            <AdminMediaGalleryManager
-              v-if="tour?.id"
-              :tour-id="tour.id"
-            />
-          </div>
-        </template>
-      </UTabs>
+      <!-- Tab Content: Show based on mainTab value -->
+      <div v-show="mainTab === 0" class="py-4">
+        <UForm
+          ref="form"
+          :schema="schema"
+          :state="state"
+          @submit="onSubmit"
+          @error="onError"
+          class="space-y-8"
+        >
+          <TourFormGeneral :state="state" :errors="formErrors" />
+          <UDivider />
+          <TourFormContent :state="state" />
+        </UForm>
+      </div>
+
+      <div v-show="mainTab === 1" class="py-4">
+        <AdminMediaGalleryManager
+          v-if="tour?.id"
+          :tour-id="tour.id"
+        />
+      </div>
     </template>
 
     <template #footer>
