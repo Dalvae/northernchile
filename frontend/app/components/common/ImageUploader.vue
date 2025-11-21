@@ -37,7 +37,7 @@
       >
 
       <div
-        v-if="!isUploading"
+        v-if="!isOptimizing && !isUploading"
         class="space-y-2"
       >
         <div class="flex justify-center">
@@ -50,7 +50,22 @@
           {{ isDragging ? 'Suelta la imagen aquí' : 'Arrastra una imagen o haz clic para seleccionar' }}
         </p>
         <p class="text-sm text-neutral-500">
-          PNG, JPG, GIF hasta 5MB
+          PNG, JPG, GIF hasta 10MB (se convertirá a WebP automáticamente)
+        </p>
+      </div>
+
+      <div
+        v-else-if="isOptimizing"
+        class="space-y-2"
+      >
+        <div class="flex justify-center">
+          <UIcon
+            name="i-heroicons-sparkles"
+            class="w-12 h-12 text-primary-500 animate-pulse"
+          />
+        </div>
+        <p class="text-sm text-neutral-300">
+          Optimizando imagen...
         </p>
       </div>
 
@@ -67,6 +82,14 @@
         </p>
       </div>
     </div>
+
+    <!-- Mensaje de optimización -->
+    <p
+      v-if="optimizationInfo"
+      class="text-sm text-success-600 dark:text-success-400"
+    >
+      {{ optimizationInfo }}
+    </p>
 
     <!-- Mensaje de error -->
     <p
@@ -90,11 +113,15 @@ const emit = defineEmits<{
 }>()
 
 const { uploadFile, isUploading, uploadProgress } = useS3Upload()
+const { optimizeImage, formatFileSize } = useImageOptimizer()
+const toast = useToast()
 
 const fileInput = ref<HTMLInputElement>()
 const previewUrl = ref<string>('')
 const isDragging = ref(false)
+const isOptimizing = ref(false)
 const error = ref<string>('')
+const optimizationInfo = ref<string>('')
 
 const triggerFileInput = () => {
   fileInput.value?.click()
@@ -117,28 +144,67 @@ const handleDrop = async (event: DragEvent) => {
 
 const processFile = async (file: File) => {
   error.value = ''
+  optimizationInfo.value = ''
 
-  // Crear preview local
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    previewUrl.value = e.target?.result as string
-  }
-  reader.readAsDataURL(file)
-
-  // Subir a S3
-  const result = await uploadFile(file, props.folder || 'general')
-
-  if (result) {
-    emit('update:modelValue', result.url)
-    emit('uploaded', { key: result.key, url: result.url })
-    // Limpiar preview después de subir exitosamente
-    previewUrl.value = ''
-    if (fileInput.value) {
-      fileInput.value.value = ''
+  try {
+    // Validar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      error.value = 'Por favor selecciona una imagen válida'
+      return
     }
-  } else {
-    error.value = 'Error al subir la imagen'
-    previewUrl.value = ''
+
+    // Validar tamaño máximo (10MB)
+    const maxSize = 10 * 1024 * 1024
+    if (file.size > maxSize) {
+      error.value = 'La imagen es muy grande. El tamaño máximo es 10MB'
+      return
+    }
+
+    // Optimizar imagen
+    isOptimizing.value = true
+    const { file: optimizedFile, originalSize, newSize, savings } = await optimizeImage(file)
+    isOptimizing.value = false
+
+    // Mostrar información de optimización si hubo ahorro significativo
+    if (savings > 5) {
+      optimizationInfo.value = `✨ Imagen optimizada: ${formatFileSize(originalSize)} → ${formatFileSize(newSize)} (${savings.toFixed(0)}% más ligera)`
+
+      toast.add({
+        title: 'Imagen optimizada',
+        description: `Reducida en ${savings.toFixed(0)}%: ${formatFileSize(originalSize)} → ${formatFileSize(newSize)}`,
+        color: 'success',
+        timeout: 4000
+      })
+    }
+
+    // Crear preview local con el archivo optimizado
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      previewUrl.value = e.target?.result as string
+    }
+    reader.readAsDataURL(optimizedFile)
+
+    // Subir archivo optimizado a S3
+    const result = await uploadFile(optimizedFile, props.folder || 'general')
+
+    if (result) {
+      emit('update:modelValue', result.url)
+      emit('uploaded', { key: result.key, url: result.url })
+      // Limpiar preview después de subir exitosamente
+      previewUrl.value = ''
+      if (fileInput.value) {
+        fileInput.value.value = ''
+      }
+    } else {
+      error.value = 'Error al subir la imagen'
+      previewUrl.value = ''
+      optimizationInfo.value = ''
+    }
+  } catch (err) {
+    console.error('Error processing file:', err)
+    error.value = 'Error al procesar la imagen'
+    isOptimizing.value = false
+    optimizationInfo.value = ''
   }
 }
 
