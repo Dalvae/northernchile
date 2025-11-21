@@ -67,6 +67,52 @@ public class MediaService {
     }
 
     /**
+     * Verify if the requester has access to a tour.
+     * SUPER_ADMIN can access any tour, PARTNER_ADMIN only their own tours.
+     */
+    private void verifyTourAccess(User requester, Tour tour) {
+        boolean isSuperAdmin = requester.getRole().equals("ROLE_SUPER_ADMIN");
+        boolean isOwner = tour.getOwner().getId().equals(requester.getId());
+
+        if (!isSuperAdmin && !isOwner) {
+            throw new AccessDeniedException("You don't have permission to access this tour");
+        }
+    }
+
+    /**
+     * Verify if the requester has access to a schedule (through its parent tour).
+     * SUPER_ADMIN can access any schedule, PARTNER_ADMIN only their own schedules.
+     */
+    private void verifyScheduleAccess(User requester, TourSchedule schedule) {
+        boolean isSuperAdmin = requester.getRole().equals("ROLE_SUPER_ADMIN");
+        boolean isOwner = schedule.getTour().getOwner().getId().equals(requester.getId());
+
+        if (!isSuperAdmin && !isOwner) {
+            throw new AccessDeniedException("You don't have permission to access this schedule");
+        }
+    }
+
+    /**
+     * Verify if the requester has access to media.
+     * SUPER_ADMIN can access any media, PARTNER_ADMIN only their own media.
+     */
+    private void verifyMediaAccess(User requester, Media media) {
+        boolean isSuperAdmin = requester.getRole().equals("ROLE_SUPER_ADMIN");
+        boolean isOwner = media.getOwner().getId().equals(requester.getId());
+
+        if (!isSuperAdmin && !isOwner) {
+            throw new AccessDeniedException("You don't have permission to access this media");
+        }
+    }
+
+    /**
+     * Check if the requester is a SUPER_ADMIN.
+     */
+    private boolean isSuperAdmin(User user) {
+        return user.getRole().equals("ROLE_SUPER_ADMIN");
+    }
+
+    /**
      * Upload file to S3 and create media record in one step.
      */
     @Transactional
@@ -129,14 +175,7 @@ public class MediaService {
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
 
-            // Verify ownership: SUPER_ADMIN can add to any tour, PARTNER_ADMIN only to their own
-            boolean isSuperAdmin = owner.getRole().equals("ROLE_SUPER_ADMIN");
-            boolean isOwner = tour.getOwner().getId().equals(ownerId);
-
-            if (!isSuperAdmin && !isOwner) {
-                throw new AccessDeniedException("You don't have permission to add media to this tour");
-            }
-
+            verifyTourAccess(owner, tour);
             media.setTour(tour);
         }
 
@@ -144,14 +183,7 @@ public class MediaService {
             TourSchedule schedule = scheduleRepository.findById(scheduleId)
                     .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
 
-            // Verify ownership through tour: SUPER_ADMIN can add to any schedule, PARTNER_ADMIN only to their own
-            boolean isSuperAdmin = owner.getRole().equals("ROLE_SUPER_ADMIN");
-            boolean isOwner = schedule.getTour().getOwner().getId().equals(ownerId);
-
-            if (!isSuperAdmin && !isOwner) {
-                throw new AccessDeniedException("You don't have permission to add media to this schedule");
-            }
-
+            verifyScheduleAccess(owner, schedule);
             media.setSchedule(schedule);
         }
 
@@ -179,11 +211,7 @@ public class MediaService {
             Tour tour = tourRepository.findById(req.getTourId())
                     .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + req.getTourId()));
 
-            // Verify ownership
-            if (!tour.getOwner().getId().equals(ownerId)) {
-                throw new AccessDeniedException("You don't have permission to add media to this tour");
-            }
-
+            verifyTourAccess(owner, tour);
             media.setTour(tour);
         }
 
@@ -191,11 +219,7 @@ public class MediaService {
             TourSchedule schedule = scheduleRepository.findById(req.getScheduleId())
                     .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + req.getScheduleId()));
 
-            // Verify ownership through tour
-            if (!schedule.getTour().getOwner().getId().equals(ownerId)) {
-                throw new AccessDeniedException("You don't have permission to add media to this schedule");
-            }
-
+            verifyScheduleAccess(owner, schedule);
             media.setSchedule(schedule);
         }
 
@@ -212,10 +236,10 @@ public class MediaService {
         Media media = mediaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Media not found: " + id));
 
-        // Verify ownership
-        if (!media.getOwner().getId().equals(requesterId)) {
-            throw new AccessDeniedException("You don't have permission to view this media");
-        }
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+
+        verifyMediaAccess(requester, media);
 
         return mediaMapper.toMediaRes(media);
     }
@@ -223,29 +247,48 @@ public class MediaService {
     /**
      * List all media with pagination and filtering.
      */
-    public Page<MediaRes> listMedia(UUID ownerId, UUID tourId, UUID scheduleId, String search, Pageable pageable) {
-        log.info("Listing media for owner: {}, tour: {}, schedule: {}, search: {}", ownerId, tourId, scheduleId, search);
+    public Page<MediaRes> listMedia(UUID requesterId, UUID tourId, UUID scheduleId, String search, Pageable pageable) {
+        log.info("Listing media for requester: {}, tour: {}, schedule: {}, search: {}", requesterId, tourId, scheduleId, search);
+
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+
+        boolean isSuperAdmin = isSuperAdmin(requester);
 
         Page<Media> mediaPage;
 
         if (tourId != null) {
+            // For tour filtering: SUPER_ADMIN sees all, PARTNER_ADMIN sees only their own
             mediaPage = mediaRepository.findByTourId(tourId).stream()
-                    .filter(m -> m.getOwner().getId().equals(ownerId))
+                    .filter(m -> isSuperAdmin || m.getOwner().getId().equals(requesterId))
                     .collect(java.util.stream.Collectors.collectingAndThen(
                             java.util.stream.Collectors.toList(),
                             list -> new org.springframework.data.domain.PageImpl<>(list, pageable, list.size())
                     ));
         } else if (scheduleId != null) {
+            // For schedule filtering: SUPER_ADMIN sees all, PARTNER_ADMIN sees only their own
             mediaPage = mediaRepository.findByScheduleId(scheduleId).stream()
-                    .filter(m -> m.getOwner().getId().equals(ownerId))
+                    .filter(m -> isSuperAdmin || m.getOwner().getId().equals(requesterId))
                     .collect(java.util.stream.Collectors.collectingAndThen(
                             java.util.stream.Collectors.toList(),
                             list -> new org.springframework.data.domain.PageImpl<>(list, pageable, list.size())
                     ));
         } else if (search != null && !search.isBlank()) {
-            mediaPage = mediaRepository.searchByFilename(ownerId, search, pageable);
+            // For search: SUPER_ADMIN can search all media, PARTNER_ADMIN only their own
+            if (isSuperAdmin) {
+                // TODO: Need a repository method for global search - for now, search by owner
+                mediaPage = mediaRepository.searchByFilename(requesterId, search, pageable);
+            } else {
+                mediaPage = mediaRepository.searchByFilename(requesterId, search, pageable);
+            }
         } else {
-            mediaPage = mediaRepository.findByOwnerId(ownerId, pageable);
+            // For general listing: SUPER_ADMIN sees all, PARTNER_ADMIN sees only their own
+            if (isSuperAdmin) {
+                // TODO: Need a repository method to find all media - for now, filter by owner
+                mediaPage = mediaRepository.findByOwnerId(requesterId, pageable);
+            } else {
+                mediaPage = mediaRepository.findByOwnerId(requesterId, pageable);
+            }
         }
 
         return mediaPage.map(mediaMapper::toMediaRes);
@@ -261,10 +304,10 @@ public class MediaService {
         Media media = mediaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Media not found: " + id));
 
-        // Verify ownership
-        if (!media.getOwner().getId().equals(requesterId)) {
-            throw new AccessDeniedException("You don't have permission to update this media");
-        }
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+
+        verifyMediaAccess(requester, media);
 
         mediaMapper.updateMediaFromReq(req, media);
 
@@ -300,10 +343,10 @@ public class MediaService {
         Media media = mediaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Media not found: " + id));
 
-        // Verify ownership
-        if (!media.getOwner().getId().equals(requesterId)) {
-            throw new AccessDeniedException("You don't have permission to delete this media");
-        }
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+
+        verifyMediaAccess(requester, media);
 
         try {
             s3StorageService.deleteFile(media.getS3Key());
@@ -327,10 +370,10 @@ public class MediaService {
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
 
-        // Verify ownership
-        if (!tour.getOwner().getId().equals(requesterId)) {
-            throw new AccessDeniedException("You don't have permission to modify this tour");
-        }
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+
+        verifyTourAccess(requester, tour);
 
         Integer maxOrder = tourMediaRepository.getMaxDisplayOrder(tourId);
         int currentOrder = maxOrder != null ? maxOrder : -1;
@@ -339,10 +382,7 @@ public class MediaService {
             Media media = mediaRepository.findById(mediaId)
                     .orElseThrow(() -> new EntityNotFoundException("Media not found: " + mediaId));
 
-            // Verify ownership of media
-            if (!media.getOwner().getId().equals(requesterId)) {
-                throw new AccessDeniedException("You don't have permission to use this media");
-            }
+            verifyMediaAccess(requester, media);
 
             TourMedia.TourMediaId id = new TourMedia.TourMediaId(tourId, mediaId);
             if (tourMediaRepository.existsById(id)) {
@@ -368,10 +408,10 @@ public class MediaService {
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
 
-        // Verify ownership
-        if (!tour.getOwner().getId().equals(requesterId)) {
-            throw new AccessDeniedException("You don't have permission to modify this tour");
-        }
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+
+        verifyTourAccess(requester, tour);
 
         for (MediaOrderReq order : orders) {
             TourMedia.TourMediaId id = new TourMedia.TourMediaId(tourId, order.getMediaId());
@@ -395,10 +435,10 @@ public class MediaService {
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
 
-        // Verify ownership
-        if (!tour.getOwner().getId().equals(requesterId)) {
-            throw new AccessDeniedException("You don't have permission to modify this tour");
-        }
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+
+        verifyTourAccess(requester, tour);
 
         TourMedia.TourMediaId id = new TourMedia.TourMediaId(tourId, mediaId);
         TourMedia tourMedia = tourMediaRepository.findById(id)
@@ -421,10 +461,10 @@ public class MediaService {
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
 
-        // Verify ownership
-        if (!tour.getOwner().getId().equals(requesterId)) {
-            throw new AccessDeniedException("You don't have permission to view this tour");
-        }
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+
+        verifyTourAccess(requester, tour);
 
         List<TourMedia> tourMediaList = tourMediaRepository.findByTourIdOrderByDisplayOrderAsc(tourId);
 
@@ -448,10 +488,10 @@ public class MediaService {
         TourSchedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
 
-        // Verify ownership
-        if (!schedule.getTour().getOwner().getId().equals(requesterId)) {
-            throw new AccessDeniedException("You don't have permission to modify this schedule");
-        }
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+
+        verifyScheduleAccess(requester, schedule);
 
         Integer maxOrder = scheduleMediaRepository.getMaxDisplayOrder(scheduleId);
         int currentOrder = maxOrder != null ? maxOrder : -1;
@@ -460,10 +500,7 @@ public class MediaService {
             Media media = mediaRepository.findById(mediaId)
                     .orElseThrow(() -> new EntityNotFoundException("Media not found: " + mediaId));
 
-            // Verify ownership
-            if (!media.getOwner().getId().equals(requesterId)) {
-                throw new AccessDeniedException("You don't have permission to use this media");
-            }
+            verifyMediaAccess(requester, media);
 
             ScheduleMedia.ScheduleMediaId id = new ScheduleMedia.ScheduleMediaId(scheduleId, mediaId);
             if (scheduleMediaRepository.existsById(id)) {
@@ -489,10 +526,10 @@ public class MediaService {
         TourSchedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
 
-        // Verify ownership
-        if (!schedule.getTour().getOwner().getId().equals(requesterId)) {
-            throw new AccessDeniedException("You don't have permission to modify this schedule");
-        }
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+
+        verifyScheduleAccess(requester, schedule);
 
         for (MediaOrderReq order : orders) {
             ScheduleMedia.ScheduleMediaId id = new ScheduleMedia.ScheduleMediaId(scheduleId, order.getMediaId());
@@ -516,10 +553,10 @@ public class MediaService {
         TourSchedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
 
-        // Verify ownership
-        if (!schedule.getTour().getOwner().getId().equals(requesterId)) {
-            throw new AccessDeniedException("You don't have permission to view this schedule");
-        }
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+
+        verifyScheduleAccess(requester, schedule);
 
         List<MediaRes> result = new java.util.ArrayList<>();
 
