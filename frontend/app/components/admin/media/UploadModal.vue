@@ -11,6 +11,7 @@ const emit = defineEmits(['update:modelValue', 'success'])
 
 const toast = useToast()
 const { uploadAdminMedia } = useAdminData()
+const { optimizeImages } = useImageOptimizer()
 const fileInput = ref<HTMLInputElement | null>(null)
 
 const isOpen = computed({
@@ -19,8 +20,11 @@ const isOpen = computed({
 })
 
 // State
+const isOptimizing = ref(false)
 const uploadingFiles = ref<Array<{
   file: File
+  originalSize?: number
+  savings?: number
   progress: number
   status: 'pending' | 'uploading' | 'success' | 'error'
   url?: string
@@ -56,32 +60,86 @@ function handleTagKeydown(event: KeyboardEvent) {
 }
 
 // File handling
-function onFilesSelected(event: Event) {
+async function onFilesSelected(event: Event) {
   const target = event.target as HTMLInputElement
   if (target.files) {
-    processFiles(Array.from(target.files))
+    await processFiles(Array.from(target.files))
   }
 }
 
-function processFiles(files: File[]) {
-  files.forEach(file => {
-    // Validate
+async function processFiles(files: File[]) {
+  // Validate files first
+  const validFiles = files.filter(file => {
+    // Validate type
     if (!file.type.startsWith('image/')) {
       toast.add({ color: 'error', title: `Archivo inválido: ${file.name}. Solo se permiten imágenes.` })
-      return
+      return false
     }
 
+    // Validate size
     if (file.size > 10 * 1024 * 1024) {  // 10MB
       toast.add({ color: 'error', title: `Archivo muy grande: ${file.name}. Máximo 10MB.` })
-      return
+      return false
     }
 
-    uploadingFiles.value.push({
-      file,
-      progress: 0,
-      status: 'pending'
-    })
+    return true
   })
+
+  if (validFiles.length === 0) return
+
+  // Optimize images in batch
+  isOptimizing.value = true
+
+  try {
+    const optimizedResults = await optimizeImages(validFiles, {
+      maxDimension: 4000,
+      onProgress: (current, total) => {
+        // Could show progress here if desired
+      }
+    })
+
+    // Add optimized files to upload queue
+    optimizedResults.forEach(result => {
+      uploadingFiles.value.push({
+        file: result.file,
+        originalSize: result.originalSize,
+        savings: result.savings,
+        progress: 0,
+        status: 'pending'
+      })
+    })
+
+    // Show optimization summary
+    const totalSavings = optimizedResults.reduce((sum, r) => sum + r.savings, 0)
+    const avgSavings = totalSavings / optimizedResults.length
+
+    if (avgSavings > 5) {
+      toast.add({
+        title: `${validFiles.length} imágenes optimizadas`,
+        description: `Reducción promedio: ${avgSavings.toFixed(0)}%`,
+        color: 'success',
+        timeout: 4000
+      })
+    }
+  } catch (error) {
+    console.error('Error optimizing images:', error)
+    toast.add({
+      title: 'Error al optimizar imágenes',
+      description: 'Las imágenes se subirán sin optimizar',
+      color: 'error'
+    })
+
+    // Add original files if optimization fails
+    validFiles.forEach(file => {
+      uploadingFiles.value.push({
+        file,
+        progress: 0,
+        status: 'pending'
+      })
+    })
+  } finally {
+    isOptimizing.value = false
+  }
 }
 
 async function startUpload() {
@@ -161,12 +219,12 @@ function removeFile(index: number) {
 // Drag & drop
 const isDragging = ref(false)
 
-function onDrop(event: DragEvent) {
+async function onDrop(event: DragEvent) {
   event.preventDefault()
   isDragging.value = false
 
   if (event.dataTransfer?.files) {
-    processFiles(Array.from(event.dataTransfer.files))
+    await processFiles(Array.from(event.dataTransfer.files))
   }
 }
 
@@ -210,15 +268,21 @@ function openFileDialog() {
           />
 
           <p class="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
-            Arrastra fotos aquí o haz clic para seleccionar
+            {{ isOptimizing ? 'Optimizando imágenes...' : 'Arrastra fotos aquí o haz clic para seleccionar' }}
           </p>
 
           <p class="text-sm text-neutral-600 dark:text-neutral-300 mb-4">
-            Máximo 10MB por archivo. Formatos: JPG, PNG, WEBP
+            {{ isOptimizing ? 'Convirtiendo a WebP y comprimiendo' : 'Máximo 10MB por archivo. Se convertirán a WebP automáticamente' }}
           </p>
 
-          <UButton color="primary" variant="soft" @click="openFileDialog">
-            Seleccionar Archivos
+          <UButton
+            color="primary"
+            variant="soft"
+            :loading="isOptimizing"
+            :disabled="isOptimizing"
+            @click="openFileDialog"
+          >
+            {{ isOptimizing ? 'Procesando...' : 'Seleccionar Archivos' }}
           </UButton>
 
           <input
@@ -264,9 +328,17 @@ function openFileDialog() {
                 <p class="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
                   {{ item.file.name }}
                 </p>
-                <p class="text-xs text-neutral-600 dark:text-neutral-300">
-                  {{ formatFileSize(item.file.size) }}
-                </p>
+                <div class="flex items-center gap-2">
+                  <p class="text-xs text-neutral-600 dark:text-neutral-300">
+                    {{ formatFileSize(item.file.size) }}
+                  </p>
+                  <p
+                    v-if="item.savings && item.savings > 5"
+                    class="text-xs text-success-600 dark:text-success-400"
+                  >
+                    ✨ -{{ item.savings.toFixed(0) }}%
+                  </p>
+                </div>
 
                 <!-- Progress -->
                 <UProgress
