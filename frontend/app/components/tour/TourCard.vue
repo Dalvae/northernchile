@@ -189,10 +189,12 @@ const description = computed(() => {
 })
 
 const imageSrc = computed(() => {
+  // Priority: 1. Hero -> 2. First Featured -> 3. First image -> 4. Placeholder
   const hero = props.tour.images?.find(img => (img as any).isHeroImage)?.imageUrl
+  const featured = props.tour.images?.find(img => (img as any).isFeatured)?.imageUrl
   const first = props.tour.images?.[0]?.imageUrl || (props.tour as any).images?.[0]
 
-  return hero || first || '/images/tour-placeholder.svg'
+  return hero || featured || first || '/images/tour-placeholder.svg'
 })
 
 type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'

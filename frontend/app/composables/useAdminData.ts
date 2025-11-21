@@ -170,6 +170,11 @@ export const useAdminData = () => {
         method: 'PUT',
         headers: headers.value
       }),
+    toggleTourFeaturedImage: (tourId: string, mediaId: string) =>
+      $fetch<void>(`${apiBase}/api/admin/media/tour/${tourId}/featured/${mediaId}`, {
+        method: 'PUT',
+        headers: headers.value
+      }),
     assignMediaToTour: (tourId: string, mediaIds: string[]) =>
       $fetch<void>(`${apiBase}/api/admin/media/tour/${tourId}/assign`, {
         method: 'POST',

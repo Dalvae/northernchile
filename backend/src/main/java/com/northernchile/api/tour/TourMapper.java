@@ -1,7 +1,7 @@
 package com.northernchile.api.tour;
 
 import com.northernchile.api.model.Tour;
-import com.northernchile.api.model.TourImage;
+import com.northernchile.api.media.model.TourMedia;
 import com.northernchile.api.tour.dto.TourImageRes;
 import com.northernchile.api.tour.dto.TourRes;
 import com.northernchile.api.tour.dto.ItineraryItem;
@@ -30,7 +30,7 @@ public interface TourMapper {
             @Mapping(target = "durationHours", source = "tour.durationHours"),
             @Mapping(target = "defaultStartTime", source = "tour.defaultStartTime"),
             @Mapping(target = "status", source = "tour.status"),
-            @Mapping(target = "images", source = "tour.images"),
+            @Mapping(target = "images", ignore = true), // Images loaded separately via /gallery endpoint
             @Mapping(target = "moonSensitive", source = "tour.moonSensitive"),
             @Mapping(target = "windSensitive", source = "tour.windSensitive"),
             @Mapping(target = "cloudSensitive", source = "tour.cloudSensitive"),
@@ -86,7 +86,15 @@ public interface TourMapper {
     }
 
     List<TourRes> toTourResList(List<Tour> tours);
- 
-    TourImageRes toTourImageRes(TourImage tourImage);
+
+    // Map TourMedia (join table) to TourImageRes
+    @Mappings({
+            @Mapping(source = "media.id", target = "id"),
+            @Mapping(source = "media.url", target = "imageUrl"),
+            @Mapping(source = "isHero", target = "isHeroImage"),
+            @Mapping(source = "isFeatured", target = "isFeatured"),
+            @Mapping(source = "displayOrder", target = "displayOrder")
+    })
+    TourImageRes toTourImageRes(TourMedia tourMedia);
 
 }

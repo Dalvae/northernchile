@@ -21,6 +21,12 @@ public interface ScheduleMediaRepository extends JpaRepository<ScheduleMedia, Sc
     List<ScheduleMedia> findByScheduleIdOrderByDisplayOrderAsc(UUID scheduleId);
 
     /**
+     * Find all media for a schedule with eager fetch, ordered by display_order
+     */
+    @Query("SELECT sm FROM ScheduleMedia sm JOIN FETCH sm.media m JOIN FETCH m.owner WHERE sm.schedule.id = :scheduleId ORDER BY sm.displayOrder ASC")
+    List<ScheduleMedia> findByScheduleIdWithMediaOrderByDisplayOrderAsc(@Param("scheduleId") UUID scheduleId);
+
+    /**
      * Delete all media assignments for a schedule
      */
     void deleteByScheduleId(UUID scheduleId);

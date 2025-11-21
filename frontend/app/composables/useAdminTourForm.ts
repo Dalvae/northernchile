@@ -19,7 +19,6 @@ const schema = z.object({
     en: z.string().min(3, 'El nombre (EN) debe tener al menos 3 caracteres'),
     pt: z.string().min(3, 'El nombre (PT) debe tener al menos 3 caracteres')
   }),
-  imageUrls: z.array(z.string().url('Debe ser una URL válida')).optional(),
   moonSensitive: z.boolean(),
   windSensitive: z.boolean(),
   cloudSensitive: z.boolean(),
@@ -49,7 +48,6 @@ export type TourSchema = z.output<typeof fullSchema> & StructuredContent
 
 const initialState: TourSchema = {
   nameTranslations: { es: '', en: '', pt: '' },
-  imageUrls: [],
   moonSensitive: false,
   windSensitive: false,
   cloudSensitive: false,
@@ -87,7 +85,6 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: any) =>
           Object.assign(state, {
             nameTranslations:
               tour.nameTranslations || initialState.nameTranslations,
-            imageUrls: tour.images?.map((img) => img.imageUrl || '').filter(Boolean) || [],
             moonSensitive: tour.moonSensitive || false,
             windSensitive: tour.windSensitive || false,
             cloudSensitive: tour.cloudSensitive || false,
@@ -172,10 +169,6 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: any) =>
 
       const basePayload: TourCreateReq = {
         ...event.data,
-        imageUrls:
-          event.data.imageUrls && event.data.imageUrls.length > 0
-            ? event.data.imageUrls
-            : undefined,
         guideName: event.data.guideName?.trim() || undefined,
         itineraryTranslations: Object.keys(cleanItinerary || {}).length > 0 ? cleanItinerary : undefined,
         equipmentTranslations: Object.keys(cleanEquipment || {}).length > 0 ? cleanEquipment : undefined,

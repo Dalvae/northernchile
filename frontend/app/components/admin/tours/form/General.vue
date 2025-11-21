@@ -23,20 +23,6 @@ const statusOptions = [
   { label: 'Publicado', value: 'PUBLISHED' },
   { label: 'Archivado', value: 'ARCHIVED' }
 ]
-
-// Lógica de imágenes (simple)
-const handleImageUploaded = (data: { key: string, url: string }) => {
-  if (!props.state.imageUrls) {
-    props.state.imageUrls = []
-  }
-  props.state.imageUrls.push(data.url)
-}
-
-const removeImage = (index: number) => {
-  if (props.state.imageUrls) {
-    props.state.imageUrls.splice(index, 1)
-  }
-}
 </script>
 
 <template>
@@ -107,54 +93,6 @@ const removeImage = (index: number) => {
         </template>
       </UTabs>
     </div>
-
-    <!-- Imágenes del Tour -->
-    <UFormField
-      label="Imágenes del Tour"
-      name="imageUrls"
-      :error="findError('imageUrls')"
-    >
-      <div class="space-y-4">
-        <!-- Mostrar imágenes actuales -->
-        <div
-          v-if="state.imageUrls && state.imageUrls.length > 0"
-          class="grid grid-cols-2 gap-4"
-        >
-          <div
-            v-for="(url, index) in state.imageUrls"
-            :key="index"
-            class="relative group"
-          >
-            <NuxtImg
-              :src="url"
-              :alt="`Tour image ${index + 1}`"
-              class="w-full h-32 object-cover rounded-lg border border-default"
-              format="webp"
-              loading="lazy"
-              placeholder
-            />
-            <UButton
-              icon="i-heroicons-x-mark"
-              color="error"
-              size="xs"
-              class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-              @click="removeImage(index)"
-            />
-          </div>
-        </div>
-
-        <!-- Uploader de nueva imagen -->
-        <CommonImageUploader
-          folder="tours"
-          @uploaded="handleImageUploaded"
-        />
-      </div>
-      <template #help>
-        <p class="text-xs text-muted mt-1">
-          Sube imágenes del tour. Máximo 5MB por imagen.
-        </p>
-      </template>
-    </UFormField>
 
     <!-- Condiciones Meteorológicas -->
     <div class="space-y-4">

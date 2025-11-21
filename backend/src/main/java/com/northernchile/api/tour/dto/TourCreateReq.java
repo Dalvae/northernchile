@@ -19,7 +19,6 @@ public class TourCreateReq {
    @NotEmpty
    private Map<String, java.util.List<ContentBlock>> descriptionBlocksTranslations;
 
-  private List<String> imageUrls; // NUEVO CAMPO
   @JsonProperty("isWindSensitive")
   private Boolean isWindSensitive;
   @JsonProperty("isMoonSensitive")
@@ -61,13 +60,12 @@ public class TourCreateReq {
   public TourCreateReq() {
   }
 
-   public TourCreateReq(Map<String, String> nameTranslations, Map<String, java.util.List<ContentBlock>> descriptionBlocksTranslations, List<String> imageUrls, Boolean isWindSensitive, Boolean isMoonSensitive, Boolean isCloudSensitive, String category, BigDecimal price,
+   public TourCreateReq(Map<String, String> nameTranslations, Map<String, java.util.List<ContentBlock>> descriptionBlocksTranslations, Boolean isWindSensitive, Boolean isMoonSensitive, Boolean isCloudSensitive, String category, BigDecimal price,
        Integer defaultMaxParticipants, Integer durationHours, LocalTime defaultStartTime, String status, String contentKey, String guideName, Map<String, List<ItineraryItem>> itineraryTranslations, Map<String, List<String>> equipmentTranslations, Map<String, List<String>> additionalInfoTranslations) {
 
     this.nameTranslations = nameTranslations;
      this.descriptionBlocksTranslations = descriptionBlocksTranslations;
 
-    this.imageUrls = imageUrls;
     this.isWindSensitive = isWindSensitive;
     this.isMoonSensitive = isMoonSensitive;
     this.isCloudSensitive = isCloudSensitive;
@@ -99,15 +97,6 @@ public class TourCreateReq {
    public void setDescriptionBlocksTranslations(Map<String, java.util.List<ContentBlock>> descriptionBlocksTranslations) {
      this.descriptionBlocksTranslations = descriptionBlocksTranslations;
    }
-
-
-  public List<String> getImageUrls() {
-    return imageUrls;
-  }
-
-  public void setImageUrls(List<String> imageUrls) {
-    this.imageUrls = imageUrls;
-  }
 
   public Boolean isWindSensitive() {
     return isWindSensitive;
@@ -227,13 +216,13 @@ public class TourCreateReq {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     TourCreateReq that = (TourCreateReq) o;
-     return Objects.equals(nameTranslations, that.nameTranslations) && Objects.equals(descriptionBlocksTranslations, that.descriptionBlocksTranslations) && Objects.equals(imageUrls, that.imageUrls) && Objects.equals(isWindSensitive, that.isWindSensitive) && Objects.equals(isMoonSensitive, that.isMoonSensitive) && Objects.equals(isCloudSensitive, that.isCloudSensitive) && Objects.equals(category, that.category) && Objects.equals(price, that.price) && Objects.equals(defaultMaxParticipants, that.defaultMaxParticipants) && Objects.equals(durationHours, that.durationHours) && Objects.equals(status, that.status) && Objects.equals(contentKey, that.contentKey);
+     return Objects.equals(nameTranslations, that.nameTranslations) && Objects.equals(descriptionBlocksTranslations, that.descriptionBlocksTranslations) && Objects.equals(isWindSensitive, that.isWindSensitive) && Objects.equals(isMoonSensitive, that.isMoonSensitive) && Objects.equals(isCloudSensitive, that.isCloudSensitive) && Objects.equals(category, that.category) && Objects.equals(price, that.price) && Objects.equals(defaultMaxParticipants, that.defaultMaxParticipants) && Objects.equals(durationHours, that.durationHours) && Objects.equals(status, that.status) && Objects.equals(contentKey, that.contentKey);
 
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(nameTranslations, descriptionBlocksTranslations, imageUrls, isWindSensitive, isMoonSensitive, isCloudSensitive, category, price, defaultMaxParticipants, durationHours, status, contentKey);
+    return Objects.hash(nameTranslations, descriptionBlocksTranslations, isWindSensitive, isMoonSensitive, isCloudSensitive, category, price, defaultMaxParticipants, durationHours, status, contentKey);
   }
 
   @Override
@@ -241,7 +230,6 @@ public class TourCreateReq {
     return "TourCreateReq{" +
             "nameTranslations=" + nameTranslations +
                 ", descriptionBlocksTranslations=" + descriptionBlocksTranslations +
-            ", imageUrls=" + imageUrls +
             ", isWindSensitive=" + isWindSensitive +
             ", isMoonSensitive=" + isMoonSensitive +
             ", isCloudSensitive=" + isCloudSensitive +

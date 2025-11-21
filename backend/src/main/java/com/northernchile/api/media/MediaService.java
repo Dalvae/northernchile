@@ -171,24 +171,56 @@ public class MediaService {
             media.setCaptionTranslations(captionTranslations);
         }
 
+        Tour tour = null;
+        TourSchedule schedule = null;
+
+        // Verify access if uploading for a specific tour/schedule
+        // But DON'T set tour_id/schedule_id on Media - use join tables only
         if (tourId != null) {
-            Tour tour = tourRepository.findById(tourId)
+            tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
 
             verifyTourAccess(owner, tour);
-            media.setTour(tour);
+            // DO NOT: media.setTour(tour) - relationship goes in tour_media table only
         }
 
         if (scheduleId != null) {
-            TourSchedule schedule = scheduleRepository.findById(scheduleId)
+            schedule = scheduleRepository.findById(scheduleId)
                     .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
 
             verifyScheduleAccess(owner, schedule);
-            media.setSchedule(schedule);
+            // DO NOT: media.setSchedule(schedule) - relationship goes in schedule_media table only
         }
 
         Media saved = mediaRepository.save(media);
         log.info("Media created with ID: {}", saved.getId());
+
+        // Create join table entries for tour/schedule galleries
+        if (tour != null) {
+            // Get next display order
+            Integer maxOrder = tourMediaRepository.getMaxDisplayOrder(tourId);
+
+            // Use constructor that properly initializes the composite ID
+            TourMedia tourMedia = new TourMedia(tour, saved);
+            tourMedia.setDisplayOrder(maxOrder + 1);
+            tourMedia.setIsHero(false);
+            tourMedia.setIsFeatured(false);
+            tourMediaRepository.save(tourMedia);
+
+            log.info("Created TourMedia entry for tour: {}, media: {}", tourId, saved.getId());
+        }
+
+        if (schedule != null) {
+            // Get next display order
+            Integer maxOrder = scheduleMediaRepository.getMaxDisplayOrder(scheduleId);
+
+            // Use constructor that properly initializes the composite ID
+            ScheduleMedia scheduleMedia = new ScheduleMedia(schedule, saved);
+            scheduleMedia.setDisplayOrder(maxOrder + 1);
+            scheduleMediaRepository.save(scheduleMedia);
+
+            log.info("Created ScheduleMedia entry for schedule: {}, media: {}", scheduleId, saved.getId());
+        }
 
         return mediaMapper.toMediaRes(saved);
     }
@@ -413,6 +445,22 @@ public class MediaService {
 
         verifyTourAccess(requester, tour);
 
+        // Step 1: Set all to temporary high values to avoid unique constraint conflicts
+        int tempOffset = 10000;
+        for (int i = 0; i < orders.size(); i++) {
+            MediaOrderReq order = orders.get(i);
+            TourMedia.TourMediaId id = new TourMedia.TourMediaId(tourId, order.getMediaId());
+            TourMedia tourMedia = tourMediaRepository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("TourMedia not found"));
+
+            tourMedia.setDisplayOrder(tempOffset + i);
+            tourMediaRepository.save(tourMedia);
+        }
+
+        // Step 2: Flush changes to database
+        tourMediaRepository.flush();
+
+        // Step 3: Set final display orders
         for (MediaOrderReq order : orders) {
             TourMedia.TourMediaId id = new TourMedia.TourMediaId(tourId, order.getMediaId());
             TourMedia tourMedia = tourMediaRepository.findById(id)
@@ -453,6 +501,33 @@ public class MediaService {
     }
 
     /**
+     * Toggle featured status for a tour image.
+     * Unlike hero image, multiple images can be featured.
+     */
+    @Transactional
+    public void toggleFeatured(UUID tourId, UUID mediaId, UUID requesterId) {
+        log.info("Toggling featured status for tour: {}, media: {}", tourId, mediaId);
+
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
+
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+
+        verifyTourAccess(requester, tour);
+
+        TourMedia.TourMediaId id = new TourMedia.TourMediaId(tourId, mediaId);
+        TourMedia tourMedia = tourMediaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Media not assigned to this tour"));
+
+        // Toggle the featured status
+        tourMedia.setIsFeatured(!tourMedia.getIsFeatured());
+        tourMediaRepository.save(tourMedia);
+
+        log.info("Successfully toggled featured status for tour: {}", tourId);
+    }
+
+    /**
      * Get all media for a tour gallery (with display order and hero flag).
      */
     public List<MediaRes> getTourGallery(UUID tourId, UUID requesterId) {
@@ -466,13 +541,15 @@ public class MediaService {
 
         verifyTourAccess(requester, tour);
 
-        List<TourMedia> tourMediaList = tourMediaRepository.findByTourIdOrderByDisplayOrderAsc(tourId);
+        // Use fetch join to avoid LazyInitializationException
+        List<TourMedia> tourMediaList = tourMediaRepository.findByTourIdWithMediaOrderByDisplayOrderAsc(tourId);
 
         return tourMediaList.stream()
                 .map(tm -> {
                     MediaRes res = mediaMapper.toMediaRes(tm.getMedia());
                     res.setDisplayOrder(tm.getDisplayOrder());
                     res.setIsHero(tm.getIsHero());
+                    res.setIsFeatured(tm.getIsFeatured());
                     return res;
                 })
                 .toList();
@@ -561,7 +638,8 @@ public class MediaService {
         List<MediaRes> result = new java.util.ArrayList<>();
 
         UUID tourId = schedule.getTour().getId();
-        List<TourMedia> tourMediaList = tourMediaRepository.findByTourIdOrderByDisplayOrderAsc(tourId);
+        // Use fetch join to avoid LazyInitializationException
+        List<TourMedia> tourMediaList = tourMediaRepository.findByTourIdWithMediaOrderByDisplayOrderAsc(tourId);
 
         for (TourMedia tm : tourMediaList) {
             MediaRes res = mediaMapper.toMediaRes(tm.getMedia());
@@ -571,7 +649,8 @@ public class MediaService {
             result.add(res);
         }
 
-        List<ScheduleMedia> scheduleMediaList = scheduleMediaRepository.findByScheduleIdOrderByDisplayOrderAsc(scheduleId);
+        // Use fetch join to avoid LazyInitializationException
+        List<ScheduleMedia> scheduleMediaList = scheduleMediaRepository.findByScheduleIdWithMediaOrderByDisplayOrderAsc(scheduleId);
 
         for (ScheduleMedia sm : scheduleMediaList) {
             MediaRes res = mediaMapper.toMediaRes(sm.getMedia());

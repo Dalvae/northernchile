@@ -1,24 +1,25 @@
 package com.northernchile.api.tour.dto;
 
-import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * DTO for tour images - mapped from Media + TourMedia relationship
+ */
 public class TourImageRes {
-    private UUID id;
+    private UUID id; // Media ID
     private String imageUrl;
-    private Map<String, String> altTextTranslations;
-    private boolean isHeroImage;
-    private int displayOrder;
+    private Boolean isHeroImage;
+    private Boolean isFeatured;
+    private Integer displayOrder;
 
     public TourImageRes() {
     }
 
-    public TourImageRes(UUID id, String imageUrl, Map<String, String> altTextTranslations, boolean isHeroImage, int displayOrder) {
+    public TourImageRes(UUID id, String imageUrl, Boolean isHeroImage, Boolean isFeatured, Integer displayOrder) {
         this.id = id;
         this.imageUrl = imageUrl;
-        this.altTextTranslations = altTextTranslations;
         this.isHeroImage = isHeroImage;
+        this.isFeatured = isFeatured;
         this.displayOrder = displayOrder;
     }
 
@@ -38,51 +39,27 @@ public class TourImageRes {
         this.imageUrl = imageUrl;
     }
 
-    public Map<String, String> getAltTextTranslations() {
-        return altTextTranslations;
-    }
-
-    public void setAltTextTranslations(Map<String, String> altTextTranslations) {
-        this.altTextTranslations = altTextTranslations;
-    }
-
-    public boolean isHeroImage() {
+    public Boolean getIsHeroImage() {
         return isHeroImage;
     }
 
-    public void setHeroImage(boolean heroImage) {
-        isHeroImage = heroImage;
+    public void setIsHeroImage(Boolean isHeroImage) {
+        this.isHeroImage = isHeroImage;
     }
 
-    public int getDisplayOrder() {
+    public Boolean getIsFeatured() {
+        return isFeatured;
+    }
+
+    public void setIsFeatured(Boolean isFeatured) {
+        this.isFeatured = isFeatured;
+    }
+
+    public Integer getDisplayOrder() {
         return displayOrder;
     }
 
-    public void setDisplayOrder(int displayOrder) {
+    public void setDisplayOrder(Integer displayOrder) {
         this.displayOrder = displayOrder;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TourImageRes that = (TourImageRes) o;
-        return isHeroImage == that.isHeroImage && displayOrder == that.displayOrder && Objects.equals(id, that.id) && Objects.equals(imageUrl, that.imageUrl) && Objects.equals(altTextTranslations, that.altTextTranslations);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, imageUrl, altTextTranslations, isHeroImage, displayOrder);
-    }
-
-    @Override
-    public String toString() {
-        return "TourImageRes{"
-                + "id=" + id + 
-                ", imageUrl='" + imageUrl + "'"
-                + ", altTextTranslations=" + altTextTranslations + 
-                ", isHeroImage=" + isHeroImage + 
-                ", displayOrder=" + displayOrder + 
-                '}';
     }
 }

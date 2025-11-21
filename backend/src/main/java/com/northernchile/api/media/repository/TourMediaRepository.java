@@ -23,6 +23,12 @@ public interface TourMediaRepository extends JpaRepository<TourMedia, TourMedia.
     List<TourMedia> findByTourIdOrderByDisplayOrderAsc(UUID tourId);
 
     /**
+     * Find all media for a tour with eager fetch, ordered by display_order
+     */
+    @Query("SELECT tm FROM TourMedia tm JOIN FETCH tm.media m JOIN FETCH m.owner WHERE tm.tour.id = :tourId ORDER BY tm.displayOrder ASC")
+    List<TourMedia> findByTourIdWithMediaOrderByDisplayOrderAsc(@Param("tourId") UUID tourId);
+
+    /**
      * Find hero image for a tour
      */
     Optional<TourMedia> findByTourIdAndIsHeroTrue(UUID tourId);

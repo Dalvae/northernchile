@@ -37,9 +37,6 @@ public class Tour {
     @Column(name = "description_blocks_translations", columnDefinition = "jsonb")
     private Map<String, java.util.List<ContentBlock>> descriptionBlocksTranslations;
 
-    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TourImage> images = new ArrayList<>();
-
     private boolean windSensitive;
     private boolean moonSensitive;
     private boolean cloudSensitive;
@@ -101,11 +98,10 @@ public class Tour {
     public Tour() {
     }
 
-    public Tour(UUID id, User owner, Map<String, String> nameTranslations, List<TourImage> images, boolean windSensitive, boolean moonSensitive, boolean cloudSensitive, String contentKey, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, LocalTime defaultStartTime, Boolean recurring, String recurrenceRule, String status, Instant createdAt, Instant updatedAt) {
+    public Tour(UUID id, User owner, Map<String, String> nameTranslations, boolean windSensitive, boolean moonSensitive, boolean cloudSensitive, String contentKey, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, LocalTime defaultStartTime, Boolean recurring, String recurrenceRule, String status, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.owner = owner;
         this.nameTranslations = nameTranslations;
-        this.images = images;
         this.windSensitive = windSensitive;
         this.moonSensitive = moonSensitive;
         this.cloudSensitive = cloudSensitive;
@@ -154,15 +150,6 @@ public class Tour {
      */
     public String getDisplayName() {
         return nameTranslations != null ? nameTranslations.getOrDefault("es", "Tour sin nombre") : "Tour sin nombre";
-    }
-
-
-    public List<TourImage> getImages() {
-        return images;
-    }
-
-    public void setImages(List<TourImage> images) {
-        this.images = images;
     }
 
     public boolean isWindSensitive() {
@@ -343,12 +330,12 @@ public class Tour {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Tour tour = (Tour) o;
-        return windSensitive == tour.windSensitive && moonSensitive == tour.moonSensitive && cloudSensitive == tour.cloudSensitive && Objects.equals(id, tour.id) && Objects.equals(owner, tour.owner) && Objects.equals(nameTranslations, tour.nameTranslations) && Objects.equals(images, tour.images) && Objects.equals(contentKey, tour.contentKey) && Objects.equals(category, tour.category) && Objects.equals(price, tour.price) && Objects.equals(defaultMaxParticipants, tour.defaultMaxParticipants) && Objects.equals(durationHours, tour.durationHours) && Objects.equals(defaultStartTime, tour.defaultStartTime) && Objects.equals(recurring, tour.recurring) && Objects.equals(recurrenceRule, tour.recurrenceRule) && Objects.equals(status, tour.status) && Objects.equals(createdAt, tour.createdAt) && Objects.equals(updatedAt, tour.updatedAt);
+        return windSensitive == tour.windSensitive && moonSensitive == tour.moonSensitive && cloudSensitive == tour.cloudSensitive && Objects.equals(id, tour.id) && Objects.equals(owner, tour.owner) && Objects.equals(nameTranslations, tour.nameTranslations) && Objects.equals(contentKey, tour.contentKey) && Objects.equals(category, tour.category) && Objects.equals(price, tour.price) && Objects.equals(defaultMaxParticipants, tour.defaultMaxParticipants) && Objects.equals(durationHours, tour.durationHours) && Objects.equals(defaultStartTime, tour.defaultStartTime) && Objects.equals(recurring, tour.recurring) && Objects.equals(recurrenceRule, tour.recurrenceRule) && Objects.equals(status, tour.status) && Objects.equals(createdAt, tour.createdAt) && Objects.equals(updatedAt, tour.updatedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, owner, nameTranslations, images, windSensitive, moonSensitive, cloudSensitive, contentKey, category, price, defaultMaxParticipants, durationHours, defaultStartTime, recurring, recurrenceRule, status, createdAt, updatedAt);
+        return Objects.hash(id, owner, nameTranslations, windSensitive, moonSensitive, cloudSensitive, contentKey, category, price, defaultMaxParticipants, durationHours, defaultStartTime, recurring, recurrenceRule, status, createdAt, updatedAt);
     }
 
     @Override
@@ -357,8 +344,6 @@ public class Tour {
                 "id=" + id +
                 ", owner=" + owner +
                 ", nameTranslations=" + nameTranslations +
-                 ", images=" + images +
-
                 ", windSensitive=" + windSensitive +
                 ", moonSensitive=" + moonSensitive +
                 ", cloudSensitive=" + cloudSensitive +

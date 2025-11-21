@@ -3,6 +3,7 @@ import { formatFileSize } from '~/utils/media'
 
 const props = defineProps<{
   modelValue: boolean
+  excludeMediaIds?: string[]
 }>()
 
 const emit = defineEmits(['update:modelValue', 'selected'])
@@ -23,6 +24,14 @@ const search = ref('')
 const page = ref(1)
 const pageSize = ref(12)
 const totalItems = ref(0)
+
+// Computed: Available media (filtered)
+const availableMedia = computed(() => {
+  if (!props.excludeMediaIds || props.excludeMediaIds.length === 0) {
+    return media.value
+  }
+  return media.value.filter(m => !props.excludeMediaIds!.includes(m.id))
+})
 
 // Fetch media
 async function fetchMedia() {
@@ -121,19 +130,19 @@ watch(isOpen, (open) => {
 
         <!-- Empty -->
         <div
-          v-else-if="media.length === 0"
+          v-else-if="availableMedia.length === 0"
           class="text-center py-12"
         >
           <UIcon name="i-heroicons-photo" class="w-12 h-12 mx-auto mb-4 text-neutral-300" />
           <p class="text-neutral-600 dark:text-neutral-300">
-            No hay fotos en la biblioteca
+            No hay fotos disponibles en la biblioteca
           </p>
         </div>
 
         <!-- Grid -->
         <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-96 overflow-y-auto">
           <div
-            v-for="item in media"
+            v-for="item in availableMedia"
             :key="item.id"
             class="relative cursor-pointer group"
             @click="toggleSelect(item.id)"

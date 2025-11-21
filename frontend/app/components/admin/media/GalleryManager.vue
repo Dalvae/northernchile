@@ -11,6 +11,7 @@ const {
   fetchTourGallery,
   fetchScheduleGallery,
   setTourHeroImage,
+  toggleTourFeaturedImage,
   assignMediaToTour,
   assignMediaToSchedule,
   reorderTourGallery,
@@ -74,6 +75,27 @@ async function setHero(mediaId: string) {
   } catch (error) {
     console.error('Error setting hero:', error)
     toast.add({ color: 'error', title: 'Error al establecer imagen destacada' })
+  }
+}
+
+// Toggle featured status
+async function toggleFeatured(mediaId: string) {
+  if (!props.tourId) return
+
+  try {
+    await toggleTourFeaturedImage(props.tourId, mediaId)
+
+    // Update local state (toggle)
+    gallery.value = gallery.value.map(m => ({
+      ...m,
+      isFeatured: m.id === mediaId ? !m.isFeatured : m.isFeatured
+    }))
+
+    toast.add({ color: 'success', title: 'Estado de imagen destacada actualizado' })
+    emit('update')
+  } catch (error) {
+    console.error('Error toggling featured:', error)
+    toast.add({ color: 'error', title: 'Error al actualizar estado' })
   }
 }
 
@@ -152,6 +174,11 @@ async function handleMediaSelected(selectedMediaIds: string[]) {
     toast.add({ color: 'error', title: 'Error al asignar fotos' })
   }
 }
+
+// Get IDs of photos already in gallery (to exclude from selector)
+const excludedMediaIds = computed(() => {
+  return gallery.value.map(item => item.id)
+})
 
 // Watch for prop changes
 watch(() => [props.tourId, props.scheduleId], () => {
@@ -252,6 +279,17 @@ watch(() => [props.tourId, props.scheduleId], () => {
           class="absolute top-2 left-2"
         >
           <UIcon name="i-heroicons-star-solid" class="w-3 h-3" />
+          Portada
+        </UBadge>
+
+        <!-- Featured badge -->
+        <UBadge
+          v-if="item.isFeatured && !item.isHero"
+          color="error"
+          variant="solid"
+          class="absolute top-2 left-2"
+        >
+          <UIcon name="i-heroicons-heart-solid" class="w-3 h-3" />
           Destacada
         </UBadge>
 
@@ -297,6 +335,15 @@ watch(() => [props.tourId, props.scheduleId], () => {
               @click="setHero(item.id)"
             />
 
+            <!-- Toggle featured (only for tours) -->
+            <UButton
+              v-if="tourId"
+              :icon="item.isFeatured ? 'i-heroicons-heart-solid' : 'i-heroicons-heart'"
+              size="sm"
+              :color="item.isFeatured ? 'error' : 'neutral'"
+              @click="toggleFeatured(item.id)"
+            />
+
             <!-- Remove -->
             <UButton
               icon="i-heroicons-trash"
@@ -324,6 +371,7 @@ watch(() => [props.tourId, props.scheduleId], () => {
     <!-- Media selector modal -->
     <AdminMediaSelectorModal
       v-model="selectorModalOpen"
+      :exclude-media-ids="excludedMediaIds"
       @selected="handleMediaSelected"
     />
 

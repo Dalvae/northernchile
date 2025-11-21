@@ -70,9 +70,23 @@ const translatedName = computed(
     || tour.value?.nameTranslations?.es
     || ''
 )
-const heroImage = computed(
-  () => tour.value?.images?.[0]?.imageUrl || 'default-image.jpg'
-)
+
+// Hero image (portada principal)
+const heroImage = computed(() => {
+  const hero = tour.value?.images?.find((img: any) => img.isHeroImage)?.imageUrl
+  const first = tour.value?.images?.[0]?.imageUrl
+  return hero || first || 'default-image.jpg'
+})
+
+// Featured images (destacadas para mostrar en highlights)
+const featuredImages = computed(() => {
+  return tour.value?.images?.filter((img: any) => img.isFeatured && !img.isHeroImage).slice(0, 3) || []
+})
+
+// Gallery images (todas excepto la hero para no repetirla)
+const galleryImages = computed(() => {
+  return tour.value?.images?.filter((img: any) => !img.isHeroImage) || []
+})
 
 // SEO Description: Extract first paragraph or first 200 chars from description
 const seoDescription = computed(() => {
@@ -279,25 +293,48 @@ onMounted(() => {
               </div>
             </div>
 
+            <!-- Featured Images (Highlights) -->
+            <div v-if="featuredImages.length > 0" class="space-y-6">
+              <h2 class="text-3xl font-display font-bold text-white">Lo Mejor del Tour</h2>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div
+                  v-for="(img, index) in featuredImages"
+                  :key="index"
+                  class="relative aspect-[4/3] rounded-xl overflow-hidden atacama-card group"
+                >
+                  <NuxtImg
+                    :src="img.imageUrl"
+                    :alt="`Featured image ${index + 1}`"
+                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    format="webp"
+                    loading="lazy"
+                    placeholder
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </div>
+              </div>
+            </div>
+
             <!-- Gallery Carousel -->
-            <div v-if="tour.images && tour.images.length > 1" class="space-y-6">
+            <div v-if="galleryImages.length > 0" class="space-y-6">
               <h2 class="text-3xl font-display font-bold text-white">Galería</h2>
               <UCarousel
                 v-slot="{ item }"
-                :items="tour.images.slice(1)"
+                :items="galleryImages"
                 :ui="{ item: 'basis-full md:basis-1/2 lg:basis-1/3 px-2' }"
                 class="rounded-xl overflow-hidden"
                 arrows
               >
                 <div class="relative aspect-[4/3] rounded-xl overflow-hidden atacama-card group">
-                                    <NuxtImg
-                                      :src="item.imageUrl"
-                                      class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                      draggable="false"
-                                      format="webp"
-                                      loading="lazy"
-                                      placeholder
-                                    />                  <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <NuxtImg
+                    :src="item.imageUrl"
+                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    draggable="false"
+                    format="webp"
+                    loading="lazy"
+                    placeholder
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-neutral-950/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
               </UCarousel>
             </div>

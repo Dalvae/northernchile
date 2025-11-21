@@ -150,6 +150,18 @@ public class MediaController {
     }
 
     /**
+     * Toggle featured status for a tour image.
+     * PUT /api/admin/media/tour/{tourId}/featured/{mediaId}
+     */
+    @PutMapping("/tour/{tourId}/featured/{mediaId}")
+    public ResponseEntity<Void> toggleFeatured(@PathVariable UUID tourId,
+                                               @PathVariable UUID mediaId,
+                                               @CurrentUser User currentUser) {
+        mediaService.toggleFeatured(tourId, mediaId, currentUser.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * Get tour gallery (all media assigned to a tour).
      * GET /api/admin/media/tour/{tourId}/gallery
      */

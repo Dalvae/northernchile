@@ -38,6 +38,9 @@ public class TourMedia implements Serializable {
     @Column(name = "is_hero", nullable = false)
     private Boolean isHero = false;
 
+    @Column(name = "is_featured", nullable = false)
+    private Boolean isFeatured = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -91,6 +94,14 @@ public class TourMedia implements Serializable {
 
     public void setIsHero(Boolean isHero) {
         this.isHero = isHero;
+    }
+
+    public Boolean getIsFeatured() {
+        return isFeatured;
+    }
+
+    public void setIsFeatured(Boolean isFeatured) {
+        this.isFeatured = isFeatured;
     }
 
     public Instant getCreatedAt() {

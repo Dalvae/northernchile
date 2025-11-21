@@ -2,12 +2,11 @@
 package com.northernchile.api.tour.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.northernchile.api.model.TourImage; // Nueva importación
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalTime;
-import java.util.List; // Asegurarse de que esté importado
-import java.util.Map; // Asegurarse de que esté importado
+import java.util.List;
+import java.util.Map;
 
 import java.util.Objects;
 import java.util.UUID;

@@ -1,13 +1,13 @@
 package com.northernchile.api.tour;
 
 import com.northernchile.api.audit.AuditLogService;
+import com.northernchile.api.media.repository.TourMediaRepository;
 import com.northernchile.api.model.Tour;
-import com.northernchile.api.model.TourImage;
 import com.northernchile.api.model.User;
 import com.northernchile.api.tour.dto.TourCreateReq;
+import com.northernchile.api.tour.dto.TourImageRes;
 import com.northernchile.api.tour.dto.TourRes;
 import com.northernchile.api.tour.dto.TourUpdateReq;
-import com.northernchile.api.tour.dto.TourImageRes;
 import com.northernchile.api.util.SlugGenerator;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.cache.annotation.CacheEvict;
@@ -26,22 +26,22 @@ import java.util.stream.Collectors;
 public class TourService {
 
     private final TourRepository tourRepository;
-    private final TourImageRepository tourImageRepository;
     private final AuditLogService auditLogService;
     private final SlugGenerator slugGenerator;
     private final TourMapper tourMapper;
+    private final TourMediaRepository tourMediaRepository;
 
     public TourService(
             TourRepository tourRepository,
-            TourImageRepository tourImageRepository,
             AuditLogService auditLogService,
             SlugGenerator slugGenerator,
-            TourMapper tourMapper) {
+            TourMapper tourMapper,
+            TourMediaRepository tourMediaRepository) {
         this.tourRepository = tourRepository;
-        this.tourImageRepository = tourImageRepository;
         this.auditLogService = auditLogService;
         this.slugGenerator = slugGenerator;
         this.tourMapper = tourMapper;
+        this.tourMediaRepository = tourMediaRepository;
     }
 
     public TourRes createTour(TourCreateReq tourCreateReq, User currentUser) {
@@ -76,21 +76,6 @@ public class TourService {
 
         Tour savedTour = tourRepository.save(tour);
 
-        if (tourCreateReq.getImageUrls() != null && !tourCreateReq.getImageUrls().isEmpty()) {
-            List<TourImage> tourImages = new ArrayList<>();
-            for (int i = 0; i < tourCreateReq.getImageUrls().size(); i++) {
-                String imageUrl = tourCreateReq.getImageUrls().get(i);
-                TourImage tourImage = new TourImage();
-                tourImage.setTour(savedTour);
-                tourImage.setImageUrl(imageUrl);
-                tourImage.setDisplayOrder(i);
-                tourImage.setHeroImage(i == 0);
-                tourImages.add(tourImage);
-            }
-            tourImageRepository.saveAll(tourImages);
-            savedTour.setImages(tourImages);
-        }
-
         String tourName = savedTour.getDisplayName();
         Map<String, Object> newValues = Map.of(
             "id", savedTour.getId().toString(),
@@ -105,23 +90,38 @@ public class TourService {
 
     @Transactional(readOnly = true)
     public List<TourRes> getPublishedTours() {
-        return tourRepository.findByStatusNotDeleted("PUBLISHED").stream()
+        List<TourRes> tours = tourRepository.findByStatusNotDeleted("PUBLISHED").stream()
                 .map(tourMapper::toTourRes)
                 .collect(Collectors.toList());
+
+        // Populate images for each tour
+        tours.forEach(this::populateImages);
+
+        return tours;
     }
 
     @Transactional(readOnly = true)
     public List<TourRes> getAllToursForAdmin() {
-        return tourRepository.findAllNotDeleted().stream()
+        List<TourRes> tours = tourRepository.findAllNotDeleted().stream()
                 .map(tourMapper::toTourRes)
                 .collect(Collectors.toList());
+
+        // Populate images for each tour
+        tours.forEach(this::populateImages);
+
+        return tours;
     }
 
     @Transactional(readOnly = true)
     public List<TourRes> getToursByOwner(User owner) {
-        return tourRepository.findByOwnerIdNotDeleted(owner.getId()).stream()
+        List<TourRes> tours = tourRepository.findByOwnerIdNotDeleted(owner.getId()).stream()
                 .map(tourMapper::toTourRes)
                 .collect(Collectors.toList());
+
+        // Populate images for each tour
+        tours.forEach(this::populateImages);
+
+        return tours;
     }
 
     @Transactional(readOnly = true)
@@ -130,7 +130,10 @@ public class TourService {
         Tour tour = tourRepository.findByIdNotDeleted(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + id));
 
-        return tourMapper.toTourRes(tour);
+        TourRes tourRes = tourMapper.toTourRes(tour);
+        populateImages(tourRes);
+
+        return tourRes;
     }
 
     @Transactional
@@ -179,24 +182,6 @@ public class TourService {
             tour.setSlug(generateUniqueSlug(newBaseName, tour.getId()));
         }
 
-        tourImageRepository.deleteByTourId(tour.getId());
-        if (tourUpdateReq.getImageUrls() != null && !tourUpdateReq.getImageUrls().isEmpty()) {
-            List<TourImage> tourImages = new ArrayList<>();
-            for (int i = 0; i < tourUpdateReq.getImageUrls().size(); i++) {
-                String imageUrl = tourUpdateReq.getImageUrls().get(i);
-                TourImage tourImage = new TourImage();
-                tourImage.setTour(tour);
-                tourImage.setImageUrl(imageUrl);
-                tourImage.setDisplayOrder(i);
-                tourImage.setHeroImage(i == 0);
-                tourImages.add(tourImage);
-            }
-            tourImageRepository.saveAll(tourImages);
-            tour.setImages(tourImages);
-        } else {
-            tour.setImages(Collections.emptyList());
-        }
-
         Tour updatedTour = tourRepository.save(tour);
 
         String newTourName = updatedTour.getDisplayName();
@@ -236,7 +221,10 @@ public class TourService {
         Tour tour = tourRepository.findBySlugPublished(slug)
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found with slug: " + slug));
 
-        return tourMapper.toTourRes(tour);
+        TourRes tourRes = tourMapper.toTourRes(tour);
+        populateImages(tourRes);
+
+        return tourRes;
     }
 
     private String generateUniqueSlug(String baseName) {
@@ -261,5 +249,22 @@ public class TourService {
             slug = baseSlug + "-" + counter;
             counter++;
         }
+    }
+
+    /**
+     * Populate images from tour_media join table into TourRes
+     */
+    private void populateImages(TourRes tourRes) {
+        if (tourRes == null || tourRes.getId() == null) {
+            return;
+        }
+
+        List<TourImageRes> images = tourMediaRepository
+                .findByTourIdWithMediaOrderByDisplayOrderAsc(tourRes.getId())
+                .stream()
+                .map(tourMapper::toTourImageRes)
+                .collect(Collectors.toList());
+
+        tourRes.setImages(images);
     }
 }
