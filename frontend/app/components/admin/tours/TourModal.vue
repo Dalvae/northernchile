@@ -25,22 +25,7 @@ const isOpen = computed({
   set: (value) => emit("update:open", value),
 });
 
-const mainTab = ref(0);
 const form = ref();
-
-const items = computed(() => [
-  {
-    key: "general",
-    label: "Información General",
-    icon: "i-heroicons-information-circle",
-  },
-  {
-    key: "gallery",
-    label: "Galería",
-    icon: "i-heroicons-photo",
-    disabled: !isEditing.value,
-  },
-]);
 
 const handleSubmit = () => {
   form.value?.submit();
@@ -57,14 +42,7 @@ const handleSubmit = () => {
     }"
   >
     <template #body>
-      <UTabs
-        v-model="mainTab"
-        :items="items"
-        class="w-full"
-      />
-
-      <!-- Tab Content: Show based on mainTab value -->
-      <div v-show="mainTab === 0" class="py-4">
+      <div class="py-4">
         <UForm
           ref="form"
           :schema="schema"
@@ -78,24 +56,16 @@ const handleSubmit = () => {
           <TourFormContent :state="state" />
         </UForm>
       </div>
-
-      <div v-show="mainTab === 1" class="py-4">
-        <AdminMediaGalleryManager
-          v-if="tour?.id"
-          :tour-id="tour.id"
-        />
-      </div>
     </template>
 
     <template #footer>
       <div class="flex justify-between items-center w-full">
         <span class="text-sm text-muted">
-          {{ mainTab === 0 ? 'Revisa los campos antes de guardar' : 'Gestión de imágenes' }}
+          Revisa los campos antes de guardar
         </span>
         <div class="flex gap-3">
           <UButton label="Cancelar" color="neutral" variant="ghost" @click="emit('close')" />
           <UButton
-            v-if="mainTab === 0"
             :label="isEditing ? 'Guardar Cambios' : 'Crear Tour'"
             :loading="loading"
             color="primary"

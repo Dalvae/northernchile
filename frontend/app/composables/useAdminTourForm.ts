@@ -23,6 +23,7 @@ const schema = z.object({
   windSensitive: z.boolean(),
   cloudSensitive: z.boolean(),
   recurring: z.boolean(),
+  recurrenceRule: z.string().optional(),
   category: z.string().min(1, 'La categoría es requerida'),
   price: z.number().min(1, 'El precio debe ser mayor a 0'),
   defaultMaxParticipants: z
@@ -52,6 +53,7 @@ const initialState: TourSchema = {
   windSensitive: false,
   cloudSensitive: false,
   recurring: false,
+  recurrenceRule: undefined,
   category: 'ASTRONOMICAL',
   price: 1,
   defaultMaxParticipants: 10,
@@ -89,6 +91,7 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: any) =>
             windSensitive: tour.windSensitive || false,
             cloudSensitive: tour.cloudSensitive || false,
             recurring: tour.recurring ?? false,
+            recurrenceRule: (tour as any).recurrenceRule || undefined,
             category: tour.category,
             price: tour.price,
             defaultMaxParticipants: tour.defaultMaxParticipants,
