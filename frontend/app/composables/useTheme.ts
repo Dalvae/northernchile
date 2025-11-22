@@ -1,10 +1,10 @@
-const STORAGE_KEY = 'nc-theme'
-const COOKIE_KEY = 'nc-theme'
+const STORAGE_KEY = 'nc-theme-v2'
+const COOKIE_KEY = 'nc-theme-v2'
 
 const themes = [
+  'atacama-cosmic-desert',
   'atacama-nocturna',
   'atacama-cobre-lunar',
-  'atacama-cosmic-desert',
   'aurora',
   'atacama-classic',
   'cosmic'
@@ -19,7 +19,7 @@ export function useTheme() {
     sameSite: 'lax'
   })
 
-  const current = useState<Theme>('nc-theme', () => themeCookie.value || 'atacama-cosmic-desert')
+  const current = useState<Theme>('nc-theme-v2', () => themeCookie.value || 'atacama-cosmic-desert')
 
   // Apply theme class to HTML element using useHead
   useHead({
@@ -48,6 +48,12 @@ export function useTheme() {
 
   // Initialize theme on client
   onMounted(() => {
+    // LIMPIEZA (Opcional): Borrar la basura vieja del usuario
+    if (localStorage.getItem('nc-theme')) {
+        localStorage.removeItem('nc-theme')
+    }
+
+    // Lógica normal
     const saved = localStorage.getItem(STORAGE_KEY) as Theme | null
     if (saved && themes.includes(saved) && saved !== current.value) {
       apply(saved)
