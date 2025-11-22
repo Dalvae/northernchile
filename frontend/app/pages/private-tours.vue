@@ -1,89 +1,89 @@
 <script setup lang="ts">
-const { t } = useI18n()
-const toast = useToast()
-const config = useRuntimeConfig()
+const { t } = useI18n();
+const toast = useToast();
+const config = useRuntimeConfig();
 
 useSeoMeta({
-  title: t('privateTours.seo.title'),
-  description: t('privateTours.seo.description'),
-  ogTitle: t('privateTours.seo.og_title'),
-  ogDescription: t('privateTours.seo.og_description'),
-  twitterCard: 'summary_large_image'
-})
+  title: t("privateTours.seo.title"),
+  description: t("privateTours.seo.description"),
+  ogTitle: t("privateTours.seo.og_title"),
+  ogDescription: t("privateTours.seo.og_description"),
+  twitterCard: "summary_large_image",
+});
 
 const state = reactive({
-  fullName: '',
-  email: '',
-  phone: '',
+  fullName: "",
+  email: "",
+  phone: "",
   numberOfPeople: 2,
-  preferredDate: '',
-  preferredTime: 'evening',
-  tourType: 'ASTRONOMICAL',
-  specialRequests: '',
-  loading: false
-})
+  preferredDate: "",
+  preferredTime: "evening",
+  tourType: "ASTRONOMICAL",
+  specialRequests: "",
+  loading: false,
+});
 
 const tourTypeOptions = [
   {
-    label: t('privateTours.form.tour_type.astronomical'),
-    value: 'ASTRONOMICAL'
+    label: t("privateTours.form.tour_type.astronomical"),
+    value: "ASTRONOMICAL",
   },
-  { label: t('privateTours.form.tour_type.cultural'), value: 'CULTURAL' },
-  { label: t('privateTours.form.tour_type.adventure'), value: 'ADVENTURE' },
-  { label: t('privateTours.form.tour_type.photography'), value: 'PHOTOGRAPHY' },
-  { label: t('privateTours.form.tour_type.combined'), value: 'COMBINED' }
-]
+  { label: t("privateTours.form.tour_type.cultural"), value: "CULTURAL" },
+  { label: t("privateTours.form.tour_type.adventure"), value: "ADVENTURE" },
+  { label: t("privateTours.form.tour_type.photography"), value: "PHOTOGRAPHY" },
+  { label: t("privateTours.form.tour_type.combined"), value: "COMBINED" },
+];
 
 const timeOptions = [
-  { label: t('privateTours.form.time_options.morning'), value: 'morning' },
-  { label: t('privateTours.form.time_options.afternoon'), value: 'afternoon' },
-  { label: t('privateTours.form.time_options.evening'), value: 'evening' },
-  { label: t('privateTours.form.time_options.flexible'), value: 'flexible' }
-]
+  { label: t("privateTours.form.time_options.morning"), value: "morning" },
+  { label: t("privateTours.form.time_options.afternoon"), value: "afternoon" },
+  { label: t("privateTours.form.time_options.evening"), value: "evening" },
+  { label: t("privateTours.form.time_options.flexible"), value: "flexible" },
+];
 
 const benefits = [
   {
-    icon: 'i-lucide-users',
-    title: t('privateTours.benefits.exclusive_experience_title'),
-    description: t('privateTours.benefits.exclusive_experience_description')
+    icon: "i-lucide-users",
+    title: t("privateTours.benefits.exclusive_experience_title"),
+    description: t("privateTours.benefits.exclusive_experience_description"),
   },
   {
-    icon: 'i-lucide-clock',
-    title: t('privateTours.benefits.flexible_hours_title'),
-    description: t('privateTours.benefits.flexible_hours_description')
+    icon: "i-lucide-clock",
+    title: t("privateTours.benefits.flexible_hours_title"),
+    description: t("privateTours.benefits.flexible_hours_description"),
   },
   {
-    icon: 'i-lucide-map',
-    title: t('privateTours.benefits.custom_itinerary_title'),
-    description: t('privateTours.benefits.custom_itinerary_description')
+    icon: "i-lucide-map",
+    title: t("privateTours.benefits.custom_itinerary_title"),
+    description: t("privateTours.benefits.custom_itinerary_description"),
   },
   {
-    icon: 'i-lucide-graduation-cap',
-    title: t('privateTours.benefits.exclusive_guide_title'),
-    description: t('privateTours.benefits.exclusive_guide_description')
+    icon: "i-lucide-graduation-cap",
+    title: t("privateTours.benefits.exclusive_guide_title"),
+    description: t("privateTours.benefits.exclusive_guide_description"),
   },
   {
-    icon: 'i-lucide-camera',
-    title: t('privateTours.benefits.professional_photography_title'),
+    icon: "i-lucide-camera",
+    title: t("privateTours.benefits.professional_photography_title"),
     description: t(
-      'privateTours.benefits.professional_photography_description'
-    )
+      "privateTours.benefits.professional_photography_description",
+    ),
   },
   {
-    icon: 'i-lucide-sparkles',
-    title: t('privateTours.benefits.unique_experiences_title'),
-    description: t('privateTours.benefits.unique_experiences_description')
-  }
-]
+    icon: "i-lucide-sparkles",
+    title: t("privateTours.benefits.unique_experiences_title"),
+    description: t("privateTours.benefits.unique_experiences_description"),
+  },
+];
 
 async function submitRequest() {
-  state.loading = true
+  state.loading = true;
   try {
     const response = await $fetch(
       `${config.public.apiBase}/private-tour-requests`,
       {
-        method: 'POST',
-        credentials: 'include',
+        method: "POST",
+        credentials: "include",
         body: {
           fullName: state.fullName,
           email: state.email,
@@ -92,34 +92,34 @@ async function submitRequest() {
           preferredDate: state.preferredDate,
           tourType: state.tourType,
           specialRequests: state.specialRequests,
-          status: 'PENDING'
-        }
-      }
-    )
+          status: "PENDING",
+        },
+      },
+    );
 
     toast.add({
-      title: t('privateTours.form.toast.success_title'),
-      description: t('privateTours.form.toast.success_description'),
-      color: 'success'
-    })
+      title: t("privateTours.form.toast.success_title"),
+      description: t("privateTours.form.toast.success_description"),
+      color: "success",
+    });
 
     // Reset form
-    state.fullName = ''
-    state.email = ''
-    state.phone = ''
-    state.numberOfPeople = 2
-    state.preferredDate = ''
-    state.preferredTime = 'evening'
-    state.tourType = 'ASTRONOMICAL'
-    state.specialRequests = ''
+    state.fullName = "";
+    state.email = "";
+    state.phone = "";
+    state.numberOfPeople = 2;
+    state.preferredDate = "";
+    state.preferredTime = "evening";
+    state.tourType = "ASTRONOMICAL";
+    state.specialRequests = "";
   } catch (error) {
     toast.add({
-      title: t('privateTours.form.toast.error_title'),
-      description: t('privateTours.form.toast.error_description'),
-      color: 'error'
-    })
+      title: t("privateTours.form.toast.error_title"),
+      description: t("privateTours.form.toast.error_description"),
+      color: "error",
+    });
   } finally {
-    state.loading = false
+    state.loading = false;
   }
 }
 </script>
@@ -127,7 +127,9 @@ async function submitRequest() {
 <template>
   <div class="bg-neutral-950 min-h-screen">
     <!-- Hero Section -->
-    <section class="relative h-[70vh] min-h-[600px] flex items-center justify-center overflow-hidden">
+    <section
+      class="relative h-[70vh] min-h-[600px] flex items-center justify-center overflow-hidden"
+    >
       <!-- Background Image -->
       <div class="absolute inset-0">
         <NuxtImg
@@ -138,26 +140,37 @@ async function submitRequest() {
           loading="eager"
           fetchpriority="high"
         />
-        <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-neutral-950" />
+        <div
+          class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-neutral-950"
+        />
       </div>
 
       <UContainer class="relative z-10 text-center">
         <div class="max-w-4xl mx-auto space-y-8 animate-fade-in-up">
-          <div class="inline-flex items-center justify-center p-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
+          <div
+            class="inline-flex items-center justify-center p-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6"
+          >
             <span class="px-4 py-1 text-sm font-medium text-white">
-              <UIcon name="i-lucide-sparkles" class="w-4 h-4 inline-block mr-2 text-primary-400" />
+              <UIcon
+                name="i-lucide-sparkles"
+                class="w-4 h-4 inline-block mr-2 text-primary-400"
+              />
               Experiencia Premium
             </span>
           </div>
-          
-          <h1 class="text-5xl md:text-7xl font-bold text-white tracking-tight drop-shadow-lg">
+
+          <h1
+            class="text-5xl md:text-7xl font-bold text-white tracking-tight drop-shadow-lg"
+          >
             {{ t("privateTours.title") }}
           </h1>
-          
-          <p class="text-xl md:text-2xl text-neutral-200 max-w-2xl mx-auto leading-relaxed font-light">
+
+          <p
+            class="text-xl md:text-2xl text-neutral-200 max-w-2xl mx-auto leading-relaxed font-light"
+          >
             {{ t("privateTours.subtitle") }}
           </p>
-          
+
           <div class="pt-8">
             <UButton
               size="xl"
@@ -178,8 +191,10 @@ async function submitRequest() {
     <!-- Benefits -->
     <section class="py-24 bg-neutral-950 relative overflow-hidden">
       <!-- Decorative gradient -->
-      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-primary-500/30 to-transparent" />
-      
+      <div
+        class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-primary-500/30 to-transparent"
+      />
+
       <UContainer>
         <div class="text-center mb-16">
           <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
@@ -193,26 +208,35 @@ async function submitRequest() {
             v-for="benefit in benefits"
             :key="benefit.title"
             class="group hover:ring-2 hover:ring-primary-500/50 transition-all duration-500 bg-neutral-900/50 border-neutral-800 backdrop-blur-sm"
-            :ui="{ 
-              body: { base: 'h-full flex flex-col items-center text-center p-8' },
+            :ui="{
+              body: {
+                base: 'h-full flex flex-col items-center text-center p-8',
+              },
               ring: 'ring-1 ring-neutral-800',
-              shadow: 'shadow-none hover:shadow-2xl hover:shadow-primary-900/20'
+              shadow:
+                'shadow-none hover:shadow-2xl hover:shadow-primary-900/20',
             }"
           >
             <div class="mb-6 relative">
-              <div class="absolute inset-0 bg-primary-500/20 blur-xl rounded-full group-hover:bg-primary-500/40 transition-colors duration-500" />
-              <div class="relative w-16 h-16 rounded-2xl bg-neutral-800 border border-neutral-700 flex items-center justify-center group-hover:border-primary-500/50 group-hover:scale-110 transition-all duration-500">
+              <div
+                class="absolute inset-0 bg-primary-300/20 blur-xl rounded-full group-hover:bg-primary-500/40 transition-colors duration-500"
+              />
+              <div
+                class="relative w-16 h-16 rounded-2xl bg-neutral-800 border border-neutral-700 flex items-center justify-center group-hover:border-primary-500/50 group-hover:scale-110 transition-all duration-500"
+              >
                 <UIcon
                   :name="benefit.icon"
                   class="w-8 h-8 text-primary-400 group-hover:text-primary-300"
                 />
               </div>
             </div>
-            
-            <h3 class="text-xl font-semibold text-white mb-3 group-hover:text-primary-400 transition-colors">
+
+            <h3
+              class="text-xl font-semibold text-white mb-3 group-hover:text-primary-400 transition-colors"
+            >
               {{ benefit.title }}
             </h3>
-            
+
             <p class="text-neutral-400 leading-relaxed">
               {{ benefit.description }}
             </p>
@@ -221,12 +245,12 @@ async function submitRequest() {
       </UContainer>
     </section>
 
-
-
     <!-- Request Form -->
     <section id="request-form" class="py-24 bg-neutral-950 relative">
-      <div class="absolute inset-0 bg-[url('/images/grid-pattern.svg')] opacity-5" />
-      
+      <div
+        class="absolute inset-0 bg-[url('/images/grid-pattern.svg')] opacity-5"
+      />
+
       <UContainer class="relative z-10">
         <div class="max-w-4xl mx-auto">
           <div class="text-center mb-12">
@@ -238,7 +262,7 @@ async function submitRequest() {
             </p>
           </div>
 
-          <UCard 
+          <UCard
             class="bg-neutral-900/80 backdrop-blur border-neutral-800 shadow-2xl"
             :ui="{ body: { padding: 'p-8 sm:p-12' } }"
           >
@@ -247,7 +271,8 @@ async function submitRequest() {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-2">
                   <label class="block text-sm font-medium text-neutral-300">
-                    {{ t("privateTours.form.full_name_label") }} <span class="text-primary-500">*</span>
+                    {{ t("privateTours.form.full_name_label") }}
+                    <span class="text-primary-500">*</span>
                   </label>
                   <UInput
                     v-model="state.fullName"
@@ -255,14 +280,22 @@ async function submitRequest() {
                     :placeholder="t('privateTours.form.full_name_placeholder')"
                     icon="i-lucide-user"
                     class="w-full"
-                    :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
+                    :ui="{
+                      color: {
+                        white: {
+                          outline:
+                            'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
+                        },
+                      },
+                    }"
                     required
                   />
                 </div>
 
                 <div class="space-y-2">
                   <label class="block text-sm font-medium text-neutral-300">
-                    {{ t("privateTours.form.email_label") }} <span class="text-primary-500">*</span>
+                    {{ t("privateTours.form.email_label") }}
+                    <span class="text-primary-500">*</span>
                   </label>
                   <UInput
                     v-model="state.email"
@@ -271,7 +304,14 @@ async function submitRequest() {
                     placeholder="juan@gmail.com"
                     icon="i-lucide-mail"
                     class="w-full"
-                    :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
+                    :ui="{
+                      color: {
+                        white: {
+                          outline:
+                            'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
+                        },
+                      },
+                    }"
                     required
                   />
                 </div>
@@ -280,7 +320,8 @@ async function submitRequest() {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-2">
                   <label class="block text-sm font-medium text-neutral-300">
-                    {{ t("privateTours.form.phone_label") }} <span class="text-primary-500">*</span>
+                    {{ t("privateTours.form.phone_label") }}
+                    <span class="text-primary-500">*</span>
                   </label>
                   <UInput
                     v-model="state.phone"
@@ -288,14 +329,22 @@ async function submitRequest() {
                     :placeholder="t('privateTours.form.phone_placeholder')"
                     icon="i-lucide-phone"
                     class="w-full"
-                    :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
+                    :ui="{
+                      color: {
+                        white: {
+                          outline:
+                            'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
+                        },
+                      },
+                    }"
                     required
                   />
                 </div>
 
                 <div class="space-y-2">
                   <label class="block text-sm font-medium text-neutral-300">
-                    {{ t("privateTours.form.number_of_people_label") }} <span class="text-primary-500">*</span>
+                    {{ t("privateTours.form.number_of_people_label") }}
+                    <span class="text-primary-500">*</span>
                   </label>
                   <UInput
                     v-model.number="state.numberOfPeople"
@@ -303,10 +352,19 @@ async function submitRequest() {
                     min="1"
                     max="20"
                     size="xl"
-                    :placeholder="t('privateTours.form.number_of_people_placeholder')"
+                    :placeholder="
+                      t('privateTours.form.number_of_people_placeholder')
+                    "
                     icon="i-lucide-users"
                     class="w-full"
-                    :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
+                    :ui="{
+                      color: {
+                        white: {
+                          outline:
+                            'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
+                        },
+                      },
+                    }"
                     required
                   />
                 </div>
@@ -316,7 +374,8 @@ async function submitRequest() {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-2">
                   <label class="block text-sm font-medium text-neutral-300">
-                    {{ t("privateTours.form.preferred_date_label") }} <span class="text-primary-500">*</span>
+                    {{ t("privateTours.form.preferred_date_label") }}
+                    <span class="text-primary-500">*</span>
                   </label>
                   <UInput
                     v-model="state.preferredDate"
@@ -324,7 +383,14 @@ async function submitRequest() {
                     size="xl"
                     icon="i-lucide-calendar"
                     class="w-full"
-                    :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
+                    :ui="{
+                      color: {
+                        white: {
+                          outline:
+                            'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
+                        },
+                      },
+                    }"
                     required
                   />
                 </div>
@@ -341,14 +407,22 @@ async function submitRequest() {
                     size="xl"
                     icon="i-lucide-clock"
                     class="w-full"
-                    :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
+                    :ui="{
+                      color: {
+                        white: {
+                          outline:
+                            'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
+                        },
+                      },
+                    }"
                   />
                 </div>
               </div>
 
               <div class="space-y-2">
                 <label class="block text-sm font-medium text-neutral-300">
-                  {{ t("privateTours.form.tour_type_label") }} <span class="text-primary-500">*</span>
+                  {{ t("privateTours.form.tour_type_label") }}
+                  <span class="text-primary-500">*</span>
                 </label>
                 <USelect
                   v-model="state.tourType"
@@ -358,7 +432,14 @@ async function submitRequest() {
                   size="xl"
                   icon="i-lucide-map"
                   class="w-full"
-                  :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
+                  :ui="{
+                    color: {
+                      white: {
+                        outline:
+                          'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
+                      },
+                    },
+                  }"
                 />
               </div>
 
@@ -370,9 +451,18 @@ async function submitRequest() {
                   v-model="state.specialRequests"
                   :rows="4"
                   size="xl"
-                  :placeholder="t('privateTours.form.special_requests_placeholder')"
+                  :placeholder="
+                    t('privateTours.form.special_requests_placeholder')
+                  "
                   class="w-full"
-                  :ui="{ color: { white: { outline: 'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500' } } }"
+                  :ui="{
+                    color: {
+                      white: {
+                        outline:
+                          'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
+                      },
+                    },
+                  }"
                 />
               </div>
 
@@ -391,7 +481,11 @@ async function submitRequest() {
                       ? t("privateTours.form.sending_request")
                       : t("privateTours.form.send_request")
                   }}
-                  <UIcon v-if="!state.loading" name="i-lucide-send" class="ml-2 w-5 h-5" />
+                  <UIcon
+                    v-if="!state.loading"
+                    name="i-lucide-send"
+                    class="ml-2 w-5 h-5"
+                  />
                 </UButton>
               </div>
             </form>

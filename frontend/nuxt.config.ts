@@ -5,26 +5,41 @@ const apiBaseUrl =
   process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
 
 export default defineNuxtConfig({
-  modules: ["@nuxt/eslint", "@nuxt/ui", "@nuxt/fonts", "@nuxtjs/i18n", "@pinia/nuxt", "@vueuse/nuxt", "@nuxt/image", "nuxt-gtag", "@nuxtjs/sitemap", "nuxt-vitalizer"],
-
+  modules: [
+    "@nuxt/eslint",
+    "@nuxt/ui",
+    "@nuxt/fonts",
+    "@nuxtjs/i18n",
+    "@pinia/nuxt",
+    "@vueuse/nuxt",
+    "@nuxt/image",
+    "nuxt-gtag",
+    "@nuxtjs/sitemap",
+    "nuxt-vitalizer",
+  ],
+  app: {
+    head: {
+      link: [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
+    },
+  },
   sourcemap: {
     server: false,
-    client: false
+    client: false,
   },
 
   features: {
-    inlineStyles: true
+    inlineStyles: true,
   },
 
   vitalizer: {
     disablePrefetchLinks: true,
     disablePreloadLinks: true,
-    disableStylesheets: 'entry',
+    disableStylesheets: "entry",
   },
 
   experimental: {
     renderJsonPayloads: true,
-    asyncContext: true
+    asyncContext: true,
   },
 
   devtools: {
@@ -110,9 +125,9 @@ export default defineNuxtConfig({
     experimental: {
       processCSSVariables: true,
     },
-   },
+  },
 
-   ui: {
+  ui: {
     theme: {
       colors: [
         "primary",
@@ -284,3 +299,4 @@ export default defineNuxtConfig({
     ],
   },
 });
+
