@@ -14,12 +14,12 @@ export type Theme = (typeof themes)[number]
 
 export function useTheme() {
   const themeCookie = useCookie<Theme>(COOKIE_KEY, {
-    default: () => 'atacama-nocturna',
+    default: () => 'atacama-cosmic-desert',
     maxAge: 60 * 60 * 24 * 365, // 1 year
     sameSite: 'lax'
   })
 
-  const current = useState<Theme>('nc-theme', () => themeCookie.value || 'atacama-nocturna')
+  const current = useState<Theme>('nc-theme', () => themeCookie.value || 'atacama-cosmic-desert')
 
   // Apply theme class to HTML element using useHead
   useHead({
