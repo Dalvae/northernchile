@@ -135,7 +135,7 @@
             :ui="{
               overlay: 'bg-black/60 backdrop-blur-sm',
               width: 'w-screen max-w-xs',
-              base: 'border-l border-white/10',
+              base: 'border-l border-white/10'
             }"
           >
             <UButton
@@ -160,53 +160,53 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from "~/stores/auth";
+import { useAuthStore } from '~/stores/auth'
 
-const { t } = useI18n();
-const authStore = useAuthStore();
-const cartStore = useCartStore();
-const localePath = useLocalePath();
+const { t } = useI18n()
+const authStore = useAuthStore()
+const cartStore = useCartStore()
+const localePath = useLocalePath()
 
-const mobileMenuOpen = ref(false);
-const isAdmin = computed(() => authStore.isAdmin);
-const cartItemsCount = computed(() => cartStore.totalItems);
+const mobileMenuOpen = ref(false)
+const isAdmin = computed(() => authStore.isAdmin)
+const cartItemsCount = computed(() => cartStore.totalItems)
 
 const links = computed(() => [
-  { label: t("nav.tours"), to: localePath("/tours") },
-  { label: t("nav.private_tours"), to: localePath("/private-tours") },
-  { label: t("nav.about_us"), to: localePath("/about") },
-  { label: t("nav.contact"), to: localePath("/contact") },
-]);
+  { label: t('nav.tours'), to: localePath('/tours') },
+  { label: t('nav.private_tours'), to: localePath('/private-tours') },
+  { label: t('nav.about_us'), to: localePath('/about') },
+  { label: t('nav.contact'), to: localePath('/contact') }
+])
 
 async function handleLogout() {
-  mobileMenuOpen.value = false;
-  await authStore.logout();
+  mobileMenuOpen.value = false
+  await authStore.logout()
 }
 
 const userMenuItems = computed(() => [
   [
     {
-      label: t("nav.my_account"),
-      icon: "i-lucide-user",
-      to: localePath("/profile"),
+      label: t('nav.my_account'),
+      icon: 'i-lucide-user',
+      to: localePath('/profile')
     },
     {
-      label: t("nav.bookings"),
-      icon: "i-lucide-book-marked",
-      to: localePath("/profile/bookings"),
-    },
+      label: t('nav.bookings'),
+      icon: 'i-lucide-book-marked',
+      to: localePath('/profile/bookings')
+    }
   ],
   ...(isAdmin.value
     ? [
         [
           {
-            label: t("nav.admin"),
-            icon: "i-lucide-shield-check",
-            to: localePath("/admin"),
-          },
-        ],
+            label: t('nav.admin'),
+            icon: 'i-lucide-shield-check',
+            to: localePath('/admin')
+          }
+        ]
       ]
     : []),
-  [{ label: t("nav.logout"), icon: "i-lucide-log-out", onClick: handleLogout }],
-]);
+  [{ label: t('nav.logout'), icon: 'i-lucide-log-out', onClick: handleLogout }]
+])
 </script>

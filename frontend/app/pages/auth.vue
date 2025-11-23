@@ -301,7 +301,7 @@ async function handleSubmit(event: FormSubmitEvent<any>) {
         password: state.password,
         fullName: state.fullName,
         nationality: state.nationality || undefined,
-        phoneNumber: state.phoneNumber || undefined,
+        phoneNumber: state.phoneNumber || undefined
         // dateOfBirth currently not in RegisterReq schema, omit for now
       })
 

@@ -85,27 +85,45 @@ function clearScheduleSelection() {
       <div class="text-xs font-mono space-y-1">
         <p><strong>Slug from URL:</strong> {{ slug }}</p>
         <p><strong>Tour found:</strong> {{ tour ? 'YES' : 'NO' }}</p>
-        <p v-if="tour"><strong>Tour name:</strong> {{ tour.nameTranslations?.es }}</p>
-        <p v-if="tour"><strong>Tour ID:</strong> {{ tour.id }}</p>
-        <p v-if="tour"><strong>Images count:</strong> {{ tour.images?.length || 0 }}</p>
+        <p v-if="tour">
+          <strong>Tour name:</strong> {{ tour.nameTranslations?.es }}
+        </p>
+        <p v-if="tour">
+          <strong>Tour ID:</strong> {{ tour.id }}
+        </p>
+        <p v-if="tour">
+          <strong>Images count:</strong> {{ tour.images?.length || 0 }}
+        </p>
         <p><strong>Schedules loaded:</strong> {{ schedules.length }}</p>
       </div>
     </UCard>
 
     <!-- Loading State -->
-    <div v-if="loading" class="flex items-center justify-center py-12">
-      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary-500" />
+    <div
+      v-if="loading"
+      class="flex items-center justify-center py-12"
+    >
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-8 h-8 animate-spin text-primary-500"
+      />
     </div>
 
     <!-- Tour Media View -->
-    <div v-else-if="tour" class="flex gap-6">
+    <div
+      v-else-if="tour"
+      class="flex gap-6"
+    >
       <!-- Left Sidebar - Schedules Tree -->
       <div class="w-80 shrink-0">
         <UCard class="sticky top-4">
           <template #header>
             <div class="flex items-center justify-between">
               <div>
-                <NuxtLink to="/admin/media" class="text-sm text-neutral-600 dark:text-neutral-300 hover:text-primary-600 dark:hover:text-primary-400">
+                <NuxtLink
+                  to="/admin/media"
+                  class="text-sm text-neutral-600 dark:text-neutral-300 hover:text-primary-600 dark:hover:text-primary-400"
+                >
                   ← Volver a Media
                 </NuxtLink>
                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mt-2">
@@ -121,11 +139,14 @@ function clearScheduleSelection() {
           <!-- Tour Gallery (Always visible) -->
           <div class="mb-6">
             <button
-              @click="clearScheduleSelection"
               class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               :class="!selectedScheduleId ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400' : 'text-neutral-700 dark:text-neutral-200'"
+              @click="clearScheduleSelection"
             >
-              <UIcon name="i-lucide-image" class="w-4 h-4" />
+              <UIcon
+                name="i-lucide-image"
+                class="w-4 h-4"
+              />
               <span class="font-medium">Galería Principal</span>
               <UBadge
                 v-if="tour.images?.length"
@@ -145,7 +166,11 @@ function clearScheduleSelection() {
               <h3 class="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                 Fechas Realizadas
               </h3>
-              <UBadge size="xs" color="neutral" variant="soft">
+              <UBadge
+                size="xs"
+                color="neutral"
+                variant="soft"
+              >
                 {{ schedules.length }}
               </UBadge>
             </div>
@@ -154,19 +179,28 @@ function clearScheduleSelection() {
               <button
                 v-for="schedule in schedules"
                 :key="schedule.id"
-                @click="onScheduleSelect(schedule)"
                 class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-left"
                 :class="selectedScheduleId === schedule.scheduleId ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400' : 'text-neutral-700 dark:text-neutral-200'"
+                @click="onScheduleSelect(schedule)"
               >
-                <UIcon name="i-lucide-calendar" class="w-4 h-4 shrink-0" />
+                <UIcon
+                  name="i-lucide-calendar"
+                  class="w-4 h-4 shrink-0"
+                />
                 <span class="text-sm truncate">{{ schedule.label }}</span>
               </button>
             </div>
           </div>
 
           <!-- No Schedules -->
-          <div v-else class="text-center py-8">
-            <UIcon name="i-lucide-calendar-x" class="w-12 h-12 mx-auto mb-2 text-neutral-200 dark:text-neutral-700" />
+          <div
+            v-else
+            class="text-center py-8"
+          >
+            <UIcon
+              name="i-lucide-calendar-x"
+              class="w-12 h-12 mx-auto mb-2 text-neutral-200 dark:text-neutral-700"
+            />
             <p class="text-sm text-neutral-600 dark:text-neutral-300">
               No hay fechas realizadas
             </p>
@@ -206,15 +240,15 @@ function clearScheduleSelection() {
               <!-- Tour Gallery -->
               <AdminMediaGalleryManager
                 v-if="!selectedScheduleId && tour.id"
-                :tour-id="tour.id"
                 :key="`tour-${tour.id}`"
+                :tour-id="tour.id"
               />
 
               <!-- Schedule Gallery -->
               <AdminMediaGalleryManager
                 v-else-if="selectedScheduleId"
-                :schedule-id="selectedScheduleId"
                 :key="`schedule-${selectedScheduleId}`"
+                :schedule-id="selectedScheduleId"
               />
             </ClientOnly>
           </div>

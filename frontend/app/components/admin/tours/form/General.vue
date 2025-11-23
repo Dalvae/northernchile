@@ -1,28 +1,28 @@
 <script setup lang="ts">
-import type { FormError } from "@nuxt/ui";
-import type { TourSchema } from "~/composables/useAdminTourForm";
-import CronEditor from "./CronEditor.vue";
+import type { FormError } from '@nuxt/ui'
+import type { TourSchema } from '~/composables/useAdminTourForm'
+import CronEditor from './CronEditor.vue'
 
 const props = defineProps<{
-  state: TourSchema;
-  errors: FormError[];
-}>();
+  state: TourSchema
+  errors: FormError[]
+}>()
 
 const findError = (path: string) =>
-  props.errors.find((e) => (e as any).path === path)?.message;
+  props.errors.find(e => (e as any).path === path)?.message
 
 const categoryOptions = [
-  { label: "Astronómico", value: "ASTRONOMICAL" },
-  { label: "Regular", value: "REGULAR" },
-  { label: "Especial", value: "SPECIAL" },
-  { label: "Privado", value: "PRIVATE" },
-];
+  { label: 'Astronómico', value: 'ASTRONOMICAL' },
+  { label: 'Regular', value: 'REGULAR' },
+  { label: 'Especial', value: 'SPECIAL' },
+  { label: 'Privado', value: 'PRIVATE' }
+]
 
 const statusOptions = [
-  { label: "Borrador", value: "DRAFT" },
-  { label: "Publicado", value: "PUBLISHED" },
-  { label: "Archivado", value: "ARCHIVED" },
-];
+  { label: 'Borrador', value: 'DRAFT' },
+  { label: 'Publicado', value: 'PUBLISHED' },
+  { label: 'Archivado', value: 'ARCHIVED' }
+]
 </script>
 
 <template>
@@ -38,7 +38,7 @@ const statusOptions = [
         :items="[
           { label: 'Español', slot: 'es' },
           { label: 'Inglés', slot: 'en' },
-          { label: 'Portugués', slot: 'pt' },
+          { label: 'Portugués', slot: 'pt' }
         ]"
         class="w-full"
       >
@@ -248,13 +248,18 @@ const statusOptions = [
           class="flex items-center justify-between p-4 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900"
         >
           <div>
-            <p class="text-sm font-medium text-default">Activar Recurrencia</p>
+            <p class="text-sm font-medium text-default">
+              Activar Recurrencia
+            </p>
             <p class="text-xs text-muted">
               Generar horarios automáticamente (ej. todos los días a las 20:00)
             </p>
           </div>
           <UFormField name="recurring">
-            <USwitch v-model="state.recurring" size="lg" />
+            <USwitch
+              v-model="state.recurring"
+              size="lg"
+            />
           </UFormField>
         </div>
 
@@ -274,4 +279,3 @@ const statusOptions = [
     </div>
   </div>
 </template>
-

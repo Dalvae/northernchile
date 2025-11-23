@@ -25,9 +25,9 @@ export const usePaymentStore = defineStore('payment', {
   }),
 
   getters: {
-    hasActivePayment: (state) => state.currentPayment !== null,
-    isPIX: (state) => state.currentPayment?.qrCode !== undefined,
-    isTransbank: (state) => state.currentPayment?.paymentUrl !== undefined && !state.currentPayment?.qrCode,
+    hasActivePayment: state => state.currentPayment !== null,
+    isPIX: state => state.currentPayment?.qrCode !== undefined,
+    isTransbank: state => state.currentPayment?.paymentUrl !== undefined && !state.currentPayment?.qrCode,
     paymentExpired: (state) => {
       if (!state.currentPayment?.expiresAt) return false
       return new Date(state.currentPayment.expiresAt) < new Date()
@@ -82,7 +82,7 @@ export const usePaymentStore = defineStore('payment', {
           {
             method: 'GET',
             headers: {
-              'Authorization': `Bearer ${authStore.token}`
+              Authorization: `Bearer ${authStore.token}`
             }
           }
         )

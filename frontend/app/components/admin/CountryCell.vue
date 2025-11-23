@@ -1,5 +1,8 @@
 <template>
-  <div v-if="code" class="flex items-center gap-1.5">
+  <div
+    v-if="code"
+    class="flex items-center gap-1.5"
+  >
     <span class="text-lg">{{ flag }}</span>
     <span class="text-sm">{{ label }}</span>
   </div>

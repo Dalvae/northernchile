@@ -30,7 +30,7 @@ const {
 const q = ref('')
 const roleFilter = ref<string>('ALL')
 
-const columns: Array<{ id: string; accessorKey?: keyof UserRes; header: string; cell?: (ctx: { row: { original: UserRes; getValue: (key: keyof UserRes | string) => unknown } }) => ReturnType<typeof h> }> = [
+const columns: Array<{ id: string, accessorKey?: keyof UserRes, header: string, cell?: (ctx: { row: { original: UserRes, getValue: (key: keyof UserRes | string) => unknown } }) => ReturnType<typeof h> }> = [
   {
     id: 'email',
     accessorKey: 'email',
@@ -226,7 +226,7 @@ function getRoleBadgeColor(role: string): string {
           </template>
 
           <template #createdAt-data="{ row }">
-             <span class="text-sm text-default">
+            <span class="text-sm text-default">
               {{ formatDate(row.getValue("createdAt")) }}
             </span>
           </template>

@@ -3,10 +3,10 @@
     <UContainer>
       <!-- Header -->
       <div class="mb-6">
-         <h1 class="text-3xl font-bold text-default">
+        <h1 class="text-3xl font-bold text-default">
           Registro de Auditoría
         </h1>
-         <p class="mt-1 text-sm text-muted">
+        <p class="mt-1 text-sm text-muted">
           Historial completo de acciones administrativas
         </p>
       </div>
@@ -91,10 +91,10 @@
       </div>
 
       <!-- Filters -->
-       <div class="bg-elevated rounded-lg shadow-sm p-4 mb-6 border border-default">
+      <div class="bg-elevated rounded-lg shadow-sm p-4 mb-6 border border-default">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-             <label
+            <label
               class="block mb-2 text-sm font-medium text-default"
             >
               Acción
@@ -111,7 +111,7 @@
           </div>
 
           <div>
-             <label
+            <label
               class="block mb-2 text-sm font-medium text-default"
             >
               Tipo de Entidad
@@ -128,7 +128,7 @@
           </div>
 
           <div>
-             <label
+            <label
               class="block mb-2 text-sm font-medium text-default"
             >
               Email Usuario
@@ -156,18 +156,18 @@
         />
       </div>
 
-       <div
+      <div
         v-else-if="!auditLogs || auditLogs.length === 0"
         class="text-center py-12 bg-elevated rounded-lg border border-default"
       >
-         <UIcon
+        <UIcon
           name="i-lucide-file-search"
           class="w-16 h-16 mx-auto mb-4 text-muted"
         />
-         <h3 class="mb-2 text-xl font-semibold text-default">
+        <h3 class="mb-2 text-xl font-semibold text-default">
           No hay registros
         </h3>
-         <p class="text-muted">
+        <p class="text-muted">
           No se encontraron registros de auditoría con los filtros seleccionados
         </p>
       </div>
@@ -561,7 +561,6 @@ function getActionIcon(action: string): string {
   }
   return icons[action] || 'i-lucide-file'
 }
-
 
 // Initialize
 onMounted(() => {

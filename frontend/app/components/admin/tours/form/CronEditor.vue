@@ -73,12 +73,16 @@ function toggleDay(day: number) {
 
 <template>
   <div class="p-4 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-800 space-y-4">
-
     <!-- 1. Selección de Hora -->
     <div class="flex items-center gap-4">
       <div class="flex-1">
         <label class="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 block">Hora de Inicio</label>
-        <UInput type="time" v-model="time" size="lg" @change="updateCron" />
+        <UInput
+          v-model="time"
+          type="time"
+          size="lg"
+          @change="updateCron"
+        />
       </div>
 
       <!-- 2. Tipo de Frecuencia -->
@@ -108,7 +112,10 @@ function toggleDay(day: number) {
     </div>
 
     <!-- 3. Selector de Días (Solo si es custom) -->
-    <div v-if="mode === 'custom'" class="space-y-2">
+    <div
+      v-if="mode === 'custom'"
+      class="space-y-2"
+    >
       <label class="text-sm font-medium text-neutral-700 dark:text-neutral-300">Selecciona los días:</label>
       <div class="flex justify-between gap-2">
         <button
@@ -119,13 +126,16 @@ function toggleDay(day: number) {
           :class="selectedDays.includes(day.value)
             ? 'bg-primary text-white shadow-lg scale-105'
             : 'bg-white dark:bg-neutral-800 text-neutral-500 border border-neutral-200 dark:border-neutral-700 hover:border-primary'"
-          @click="toggleDay(day.value)"
           :title="day.name"
+          @click="toggleDay(day.value)"
         >
           {{ day.label }}
         </button>
       </div>
-      <p v-if="selectedDays.length === 0" class="text-xs text-error">
+      <p
+        v-if="selectedDays.length === 0"
+        class="text-xs text-error"
+      >
         Selecciona al menos un día
       </p>
     </div>
@@ -133,7 +143,10 @@ function toggleDay(day: number) {
     <!-- Resumen Visual -->
     <div class="pt-2 border-t border-neutral-200 dark:border-neutral-700">
       <p class="text-xs text-neutral-500 font-mono flex items-center gap-2">
-        <UIcon name="i-heroicons-code-bracket" class="w-3 h-3" />
+        <UIcon
+          name="i-heroicons-code-bracket"
+          class="w-3 h-3"
+        />
         Regla generada: {{ modelValue }}
       </p>
     </div>

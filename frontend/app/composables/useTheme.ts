@@ -50,7 +50,7 @@ export function useTheme() {
   onMounted(() => {
     // LIMPIEZA (Opcional): Borrar la basura vieja del usuario
     if (localStorage.getItem('nc-theme')) {
-        localStorage.removeItem('nc-theme')
+      localStorage.removeItem('nc-theme')
     }
 
     // Lógica normal
@@ -69,6 +69,3 @@ export function useTheme() {
     setTheme: apply
   }
 }
-
-
-    

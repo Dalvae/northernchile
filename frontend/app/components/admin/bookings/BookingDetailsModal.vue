@@ -96,18 +96,18 @@ function getStatusLabel(status: string): string {
           <!-- Tour Info -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-             <label class="text-sm font-medium text-default">
+              <label class="text-sm font-medium text-default">
                 Tour
               </label>
-               <p class="mt-1 text-default">
+              <p class="mt-1 text-default">
                 {{ booking.tourName || "Sin nombre" }}
               </p>
             </div>
             <div>
-             <label class="text-sm font-medium text-default">
+              <label class="text-sm font-medium text-default">
                 Fecha del Tour
               </label>
-               <p class="mt-1 text-default">
+              <p class="mt-1 text-default">
                 {{ formatDate(booking.tourDate || '') }}
               </p>
             </div>
@@ -142,8 +142,8 @@ function getStatusLabel(status: string): string {
 
                 <div class="grid grid-cols-2 gap-3 text-sm">
                   <div v-if="participant.documentId">
-                     <span class="text-muted">Documento:</span>
-                     <span class="ml-2 text-default">
+                    <span class="text-muted">Documento:</span>
+                    <span class="ml-2 text-default">
                       {{ participant.documentId }}
                     </span>
                   </div>
@@ -156,13 +156,13 @@ function getStatusLabel(status: string): string {
                   </div>
                   <div v-if="participant.age">
                     <span class="text-neutral-600 dark:text-neutral-300">Edad:</span>
-                     <span class="ml-2 text-default">
+                    <span class="ml-2 text-default">
                       {{ participant.age }} años
                     </span>
                   </div>
                   <div v-if="participant.pickupAddress">
                     <span class="text-neutral-600 dark:text-neutral-300">Dirección:</span>
-                     <span class="ml-2 text-default">
+                    <span class="ml-2 text-default">
                       {{ participant.pickupAddress }}
                     </span>
                   </div>
@@ -195,19 +195,19 @@ function getStatusLabel(status: string): string {
           <div class="pt-4 border-t border-default">
             <div class="space-y-2">
               <div class="flex justify-between text-sm">
-                 <span class="text-muted">Subtotal:</span>
+                <span class="text-muted">Subtotal:</span>
                 <span class="text-neutral-900 dark:text-white font-medium">
                   {{ formatCurrency(booking.subtotal) }}
                 </span>
               </div>
               <div class="flex justify-between text-sm">
-                 <span class="text-muted">IVA (19%):</span>
+                <span class="text-muted">IVA (19%):</span>
                 <span class="text-neutral-900 dark:text-white font-medium">
                   {{ formatCurrency(booking.taxAmount) }}
                 </span>
               </div>
               <div class="flex justify-between text-lg font-semibold pt-2 border-t border-neutral-200 dark:border-neutral-700">
-                 <span class="text-default">Total:</span>
+                <span class="text-default">Total:</span>
                 <span class="text-primary">
                   {{ formatCurrency(booking.totalAmount) }}
                 </span>

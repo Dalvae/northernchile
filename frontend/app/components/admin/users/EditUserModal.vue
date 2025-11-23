@@ -75,11 +75,11 @@ async function handlePasswordReset() {
     if (typeof error === 'string') {
       description = error
     } else if (error && typeof error === 'object') {
-      const anyError = error as { data?: any; message?: string }
+      const anyError = error as { data?: any, message?: string }
       description
         = anyError.data?.message
-        || anyError.message
-        || description
+          || anyError.message
+          || description
     }
 
     toast.add({
@@ -116,11 +116,11 @@ async function handleSubmit() {
     if (typeof error === 'string') {
       description = error
     } else if (error && typeof error === 'object') {
-      const anyError = error as { data?: any; message?: string }
+      const anyError = error as { data?: any, message?: string }
       description
         = anyError.data?.message
-        || anyError.message
-        || description
+          || anyError.message
+          || description
     }
 
     toast.add({
@@ -302,7 +302,7 @@ async function handleSubmit() {
         </UForm>
 
         <!-- Footer -->
-          <div class="flex justify-end gap-3 pt-4 border-t border-default">
+        <div class="flex justify-end gap-3 pt-4 border-t border-default">
           <UButton
             label="Cancelar"
             color="neutral"

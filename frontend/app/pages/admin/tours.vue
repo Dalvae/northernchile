@@ -161,7 +161,7 @@ async function handleDelete(tour: TourRes) {
       <div
         class="bg-elevated rounded-lg shadow-sm border border-default overflow-hidden"
       >
-         <UTable
+        <UTable
           :ui="{
             td: 'p-4 text-sm text-default whitespace-nowrap [&:has([role=checkbox])]:pe-0'
           }"
@@ -181,7 +181,7 @@ async function handleDelete(tour: TourRes) {
 
           <template #description-data="{ row }">
             <span
-               class="text-sm text-default line-clamp-2"
+              class="text-sm text-default line-clamp-2"
             >
               {{ row.getValue("description") || "Sin descripción" }}
             </span>
@@ -192,7 +192,6 @@ async function handleDelete(tour: TourRes) {
               {{ formatPrice(row.getValue("price") || 0) }}
             </span>
           </template>
-
 
           <!-- ✅ Acciones con dos botones separados -->
           <template #actions-cell="{ row }">

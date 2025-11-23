@@ -180,14 +180,20 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
               :key="index"
               class="flex gap-3 items-start"
             >
-              <UFormField label="Hora" class="w-32">
+              <UFormField
+                label="Hora"
+                class="w-32"
+              >
                 <UInput
                   v-model="item.time"
                   placeholder="19:30"
                   size="md"
                 />
               </UFormField>
-              <UFormField label="Descripción" class="flex-1">
+              <UFormField
+                label="Descripción"
+                class="flex-1"
+              >
                 <UInput
                   v-model="item.description"
                   placeholder="Recepción con infusiones..."
@@ -219,14 +225,20 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
               :key="index"
               class="flex gap-3 items-start"
             >
-              <UFormField label="Time" class="w-32">
+              <UFormField
+                label="Time"
+                class="w-32"
+              >
                 <UInput
                   v-model="item.time"
                   placeholder="7:30 PM"
                   size="md"
                 />
               </UFormField>
-              <UFormField label="Description" class="flex-1">
+              <UFormField
+                label="Description"
+                class="flex-1"
+              >
                 <UInput
                   v-model="item.description"
                   placeholder="Reception with infusions..."
@@ -258,14 +270,20 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
               :key="index"
               class="flex gap-3 items-start"
             >
-              <UFormField label="Hora" class="w-32">
+              <UFormField
+                label="Hora"
+                class="w-32"
+              >
                 <UInput
                   v-model="item.time"
                   placeholder="19:30"
                   size="md"
                 />
               </UFormField>
-              <UFormField label="Descrição" class="flex-1">
+              <UFormField
+                label="Descrição"
+                class="flex-1"
+              >
                 <UInput
                   v-model="item.description"
                   placeholder="Recepção com infusões..."

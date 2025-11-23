@@ -16,7 +16,7 @@ const fileInput = ref<HTMLInputElement | null>(null)
 
 const isOpen = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  set: value => emit('update:modelValue', value)
 })
 
 // State
@@ -69,7 +69,7 @@ async function onFilesSelected(event: Event) {
 
 async function processFiles(files: File[]) {
   // Validate files first
-  const validFiles = files.filter(file => {
+  const validFiles = files.filter((file) => {
     // Validate type
     if (!file.type.startsWith('image/')) {
       toast.add({ color: 'error', title: `Archivo inválido: ${file.name}. Solo se permiten imágenes.` })
@@ -77,7 +77,7 @@ async function processFiles(files: File[]) {
     }
 
     // Validate size
-    if (file.size > 10 * 1024 * 1024) {  // 10MB
+    if (file.size > 10 * 1024 * 1024) { // 10MB
       toast.add({ color: 'error', title: `Archivo muy grande: ${file.name}. Máximo 10MB.` })
       return false
     }
@@ -99,7 +99,7 @@ async function processFiles(files: File[]) {
     })
 
     // Add optimized files to upload queue
-    optimizedResults.forEach(result => {
+    optimizedResults.forEach((result) => {
       uploadingFiles.value.push({
         file: result.file,
         originalSize: result.originalSize,
@@ -130,7 +130,7 @@ async function processFiles(files: File[]) {
     })
 
     // Add original files if optimization fails
-    validFiles.forEach(file => {
+    validFiles.forEach((file) => {
       uploadingFiles.value.push({
         file,
         progress: 0,
@@ -234,7 +234,10 @@ function openFileDialog() {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen" :ui="{ width: 'sm:max-w-3xl' }">
+  <UModal
+    v-model:open="isOpen"
+    :ui="{ width: 'sm:max-w-3xl' }"
+  >
     <template #content>
       <div class="p-6">
         <!-- Header -->
@@ -252,224 +255,239 @@ function openFileDialog() {
 
         <!-- Content -->
         <div class="py-6 space-y-6 max-h-[70vh] overflow-y-auto">
-        <!-- Drop zone -->
-        <div
-          class="border-2 border-dashed rounded-lg p-8 text-center transition-colors"
-          :class="isDragging
-            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-            : 'border-neutral-300 dark:border-neutral-700'"
-          @dragover.prevent="isDragging = true"
-          @dragleave.prevent="isDragging = false"
-          @drop="onDrop"
-        >
-          <UIcon
-            name="i-heroicons-cloud-arrow-up"
-            class="w-12 h-12 mx-auto mb-4 text-neutral-300"
-          />
-
-          <p class="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
-            {{ isOptimizing ? 'Optimizando imágenes...' : 'Arrastra fotos aquí o haz clic para seleccionar' }}
-          </p>
-
-          <p class="text-sm text-neutral-600 dark:text-neutral-300 mb-4">
-            {{ isOptimizing ? 'Convirtiendo a WebP y comprimiendo' : 'Máximo 10MB por archivo. Se convertirán a WebP automáticamente' }}
-          </p>
-
-          <UButton
-            color="primary"
-            variant="soft"
-            :loading="isOptimizing"
-            :disabled="isOptimizing"
-            @click="openFileDialog"
+          <!-- Drop zone -->
+          <div
+            class="border-2 border-dashed rounded-lg p-8 text-center transition-colors"
+            :class="isDragging
+              ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+              : 'border-neutral-300 dark:border-neutral-700'"
+            @dragover.prevent="isDragging = true"
+            @dragleave.prevent="isDragging = false"
+            @drop="onDrop"
           >
-            {{ isOptimizing ? 'Procesando...' : 'Seleccionar Archivos' }}
-          </UButton>
+            <UIcon
+              name="i-heroicons-cloud-arrow-up"
+              class="w-12 h-12 mx-auto mb-4 text-neutral-300"
+            />
 
-          <input
-            ref="fileInput"
-            type="file"
-            multiple
-            accept="image/*"
-            class="hidden"
-            @change="onFilesSelected"
-          />
-        </div>
+            <p class="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+              {{ isOptimizing ? 'Optimizando imágenes...' : 'Arrastra fotos aquí o haz clic para seleccionar' }}
+            </p>
 
-        <!-- File list -->
-        <div v-if="uploadingFiles.length > 0" class="space-y-3">
-          <h4 class="font-medium text-neutral-900 dark:text-neutral-100">
-            Archivos ({{ uploadingFiles.length }})
-          </h4>
+            <p class="text-sm text-neutral-600 dark:text-neutral-300 mb-4">
+              {{ isOptimizing ? 'Convirtiendo a WebP y comprimiendo' : 'Máximo 10MB por archivo. Se convertirán a WebP automáticamente' }}
+            </p>
 
-          <div class="space-y-2 max-h-64 overflow-y-auto">
-            <div
-              v-for="(item, index) in uploadingFiles"
-              :key="index"
-              class="flex items-center gap-3 p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg"
+            <UButton
+              color="primary"
+              variant="soft"
+              :loading="isOptimizing"
+              :disabled="isOptimizing"
+              @click="openFileDialog"
             >
-              <!-- Preview -->
-              <NuxtImg
-                v-if="item.status === 'success' && item.url"
-                :src="item.url"
-                class="w-12 h-12 object-cover rounded"
-                format="webp"
-                loading="lazy"
-                placeholder
-              />
-              <div
-                v-else
-                class="w-12 h-12 bg-neutral-200 dark:bg-neutral-800 rounded flex items-center justify-center"
-              >
-                <UIcon name="i-heroicons-photo" class="w-6 h-6 text-neutral-300" />
-              </div>
+              {{ isOptimizing ? 'Procesando...' : 'Seleccionar Archivos' }}
+            </UButton>
 
-              <!-- Info -->
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
-                  {{ item.file.name }}
-                </p>
-                <div class="flex items-center gap-2">
-                  <p class="text-xs text-neutral-600 dark:text-neutral-300">
-                    {{ formatFileSize(item.file.size) }}
+            <input
+              ref="fileInput"
+              type="file"
+              multiple
+              accept="image/*"
+              class="hidden"
+              @change="onFilesSelected"
+            >
+          </div>
+
+          <!-- File list -->
+          <div
+            v-if="uploadingFiles.length > 0"
+            class="space-y-3"
+          >
+            <h4 class="font-medium text-neutral-900 dark:text-neutral-100">
+              Archivos ({{ uploadingFiles.length }})
+            </h4>
+
+            <div class="space-y-2 max-h-64 overflow-y-auto">
+              <div
+                v-for="(item, index) in uploadingFiles"
+                :key="index"
+                class="flex items-center gap-3 p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg"
+              >
+                <!-- Preview -->
+                <NuxtImg
+                  v-if="item.status === 'success' && item.url"
+                  :src="item.url"
+                  class="w-12 h-12 object-cover rounded"
+                  format="webp"
+                  loading="lazy"
+                  placeholder
+                />
+                <div
+                  v-else
+                  class="w-12 h-12 bg-neutral-200 dark:bg-neutral-800 rounded flex items-center justify-center"
+                >
+                  <UIcon
+                    name="i-heroicons-photo"
+                    class="w-6 h-6 text-neutral-300"
+                  />
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
+                    {{ item.file.name }}
                   </p>
+                  <div class="flex items-center gap-2">
+                    <p class="text-xs text-neutral-600 dark:text-neutral-300">
+                      {{ formatFileSize(item.file.size) }}
+                    </p>
+                    <p
+                      v-if="item.savings && item.savings > 5"
+                      class="text-xs text-success-600 dark:text-success-400"
+                    >
+                      ✨ -{{ item.savings.toFixed(0) }}%
+                    </p>
+                  </div>
+
+                  <!-- Progress -->
+                  <UProgress
+                    v-if="item.status === 'uploading'"
+                    :value="item.progress"
+                    size="xs"
+                    class="mt-1"
+                  />
+
+                  <!-- Error -->
                   <p
-                    v-if="item.savings && item.savings > 5"
-                    class="text-xs text-success-600 dark:text-success-400"
+                    v-if="item.status === 'error'"
+                    class="text-xs text-error-600 dark:text-error-400 mt-1"
                   >
-                    ✨ -{{ item.savings.toFixed(0) }}%
+                    {{ item.error }}
                   </p>
                 </div>
 
-                <!-- Progress -->
-                <UProgress
-                  v-if="item.status === 'uploading'"
-                  :value="item.progress"
-                  size="xs"
-                  class="mt-1"
-                />
+                <!-- Status -->
+                <UBadge
+                  :color="item.status === 'success' ? 'success' : item.status === 'error' ? 'error' : 'neutral'"
+                  variant="soft"
+                >
+                  {{ item.status === 'pending' ? 'Listo' : item.status === 'uploading' ? 'Subiendo' : item.status === 'success' ? 'Completado' : 'Error' }}
+                </UBadge>
 
-                <!-- Error -->
-                <p v-if="item.status === 'error'" class="text-xs text-error-600 dark:text-error-400 mt-1">
-                  {{ item.error }}
-                </p>
+                <!-- Remove -->
+                <UButton
+                  v-if="item.status !== 'uploading'"
+                  icon="i-heroicons-x-mark"
+                  variant="ghost"
+                  color="neutral"
+                  size="sm"
+                  @click="removeFile(index)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Metadata (common for all files) -->
+          <div class="space-y-4 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+            <h4 class="font-medium text-neutral-900 dark:text-neutral-100">
+              Metadatos (aplicado a todas las fotos)
+            </h4>
+
+            <!-- Alt text (multilingual tabs) -->
+            <div>
+              <label class="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+                Texto Alternativo (SEO)
+              </label>
+              <UTabs
+                :items="[
+                  { label: 'ES', slot: 'es' },
+                  { label: 'EN', slot: 'en' },
+                  { label: 'PT', slot: 'pt' }
+                ]"
+              >
+                <template #es>
+                  <UInput
+                    v-model="metadata.altTranslations.es"
+                    placeholder="Descripción de la imagen en español"
+                    size="lg"
+                    class="w-full"
+                  />
+                </template>
+                <template #en>
+                  <UInput
+                    v-model="metadata.altTranslations.en"
+                    placeholder="Image description in English"
+                    size="lg"
+                    class="w-full"
+                  />
+                </template>
+                <template #pt>
+                  <UInput
+                    v-model="metadata.altTranslations.pt"
+                    placeholder="Descrição da imagem em português"
+                    size="lg"
+                    class="w-full"
+                  />
+                </template>
+              </UTabs>
+            </div>
+
+            <!-- Tags -->
+            <div>
+              <label class="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+                Etiquetas
+              </label>
+
+              <!-- Tags display -->
+              <div
+                v-if="metadata.tags.length > 0"
+                class="flex flex-wrap gap-2 mb-2"
+              >
+                <UBadge
+                  v-for="(tag, index) in metadata.tags"
+                  :key="index"
+                  color="primary"
+                  variant="soft"
+                  class="cursor-pointer"
+                  @click="removeTag(index)"
+                >
+                  {{ tag }}
+                  <UIcon
+                    name="i-heroicons-x-mark"
+                    class="w-3 h-3 ml-1"
+                  />
+                </UBadge>
               </div>
 
-              <!-- Status -->
-              <UBadge
-                :color="item.status === 'success' ? 'success' : item.status === 'error' ? 'error' : 'neutral'"
-                variant="soft"
-              >
-                {{ item.status === 'pending' ? 'Listo' : item.status === 'uploading' ? 'Subiendo' : item.status === 'success' ? 'Completado' : 'Error' }}
-              </UBadge>
-
-              <!-- Remove -->
-              <UButton
-                v-if="item.status !== 'uploading'"
-                icon="i-heroicons-x-mark"
-                variant="ghost"
-                color="neutral"
-                size="sm"
-                @click="removeFile(index)"
+              <!-- Tag input -->
+              <UInput
+                v-model="tagInput"
+                placeholder="Añade etiquetas (ej: noche, estrellas, grupo)"
+                size="lg"
+                class="w-full"
+                @keydown="handleTagKeydown"
               />
-            </div>
-          </div>
-        </div>
-
-        <!-- Metadata (common for all files) -->
-        <div class="space-y-4 pt-4 border-t border-neutral-200 dark:border-neutral-800">
-          <h4 class="font-medium text-neutral-900 dark:text-neutral-100">
-            Metadatos (aplicado a todas las fotos)
-          </h4>
-
-          <!-- Alt text (multilingual tabs) -->
-          <div>
-            <label class="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
-              Texto Alternativo (SEO)
-            </label>
-            <UTabs
-              :items="[
-                { label: 'ES', slot: 'es' },
-                { label: 'EN', slot: 'en' },
-                { label: 'PT', slot: 'pt' }
-              ]"
-            >
-              <template #es>
-                <UInput
-                  v-model="metadata.altTranslations.es"
-                  placeholder="Descripción de la imagen en español"
-                  size="lg"
-                  class="w-full"
-                />
-              </template>
-              <template #en>
-                <UInput
-                  v-model="metadata.altTranslations.en"
-                  placeholder="Image description in English"
-                  size="lg"
-                  class="w-full"
-                />
-              </template>
-              <template #pt>
-                <UInput
-                  v-model="metadata.altTranslations.pt"
-                  placeholder="Descrição da imagem em português"
-                  size="lg"
-                  class="w-full"
-                />
-              </template>
-            </UTabs>
-          </div>
-
-          <!-- Tags -->
-          <div>
-            <label class="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
-              Etiquetas
-            </label>
-
-            <!-- Tags display -->
-            <div v-if="metadata.tags.length > 0" class="flex flex-wrap gap-2 mb-2">
-              <UBadge
-                v-for="(tag, index) in metadata.tags"
-                :key="index"
-                color="primary"
-                variant="soft"
-                class="cursor-pointer"
-                @click="removeTag(index)"
-              >
-                {{ tag }}
-                <UIcon name="i-heroicons-x-mark" class="w-3 h-3 ml-1" />
-              </UBadge>
+              <p class="text-xs text-neutral-600 dark:text-neutral-300 mt-1">
+                Presiona Enter para agregar. Click en la etiqueta para eliminar.
+              </p>
             </div>
 
-            <!-- Tag input -->
-            <UInput
-              v-model="tagInput"
-              placeholder="Añade etiquetas (ej: noche, estrellas, grupo)"
-              size="lg"
-              class="w-full"
-              @keydown="handleTagKeydown"
-            />
-            <p class="text-xs text-neutral-600 dark:text-neutral-300 mt-1">
-              Presiona Enter para agregar. Click en la etiqueta para eliminar.
-            </p>
+            <!-- Photo date -->
+            <div>
+              <label class="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+                Fecha de la Foto (opcional)
+              </label>
+              <UInput
+                v-model="metadata.takenAt"
+                type="datetime-local"
+                size="lg"
+                class="w-full"
+              />
+              <p class="text-xs text-neutral-600 dark:text-neutral-300 mt-1">
+                Si no se proporciona, se usará la fecha de subida
+              </p>
+            </div>
           </div>
-
-          <!-- Photo date -->
-          <div>
-            <label class="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
-              Fecha de la Foto (opcional)
-            </label>
-            <UInput
-              v-model="metadata.takenAt"
-              type="datetime-local"
-              size="lg"
-              class="w-full"
-            />
-            <p class="text-xs text-neutral-600 dark:text-neutral-300 mt-1">
-              Si no se proporciona, se usará la fecha de subida
-            </p>
-          </div>
-        </div>
         </div>
 
         <!-- Footer -->

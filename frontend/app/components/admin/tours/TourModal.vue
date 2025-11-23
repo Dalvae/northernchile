@@ -1,35 +1,35 @@
 <script setup lang="ts">
-import type { TourRes } from "api-client";
-import { useAdminTourForm } from "~/composables/useAdminTourForm";
-import TourFormGeneral from "./form/General.vue";
+import type { TourRes } from 'api-client'
+import { useAdminTourForm } from '~/composables/useAdminTourForm'
+import TourFormGeneral from './form/General.vue'
 import TourFormContent from './form/Content.vue'
 
 const props = defineProps<{
-  tour?: TourRes | null;
-  open?: boolean;
-}>();
+  tour?: TourRes | null
+  open?: boolean
+}>()
 
 const emit = defineEmits<{
-  success: [];
-  close: [];
-  "update:open": [value: boolean];
-}>();
+  'success': []
+  'close': []
+  'update:open': [value: boolean]
+}>()
 
-const isEditing = computed(() => !!props.tour);
+const isEditing = computed(() => !!props.tour)
 
-const { state, schema, loading, formErrors, onSubmit, onError } =
-  useAdminTourForm(props, emit);
+const { state, schema, loading, formErrors, onSubmit, onError }
+  = useAdminTourForm(props, emit)
 
 const isOpen = computed({
   get: () => props.open ?? false,
-  set: (value) => emit("update:open", value),
-});
+  set: value => emit('update:open', value)
+})
 
-const form = ref();
+const form = ref()
 
 const handleSubmit = () => {
-  form.value?.submit();
-};
+  form.value?.submit()
+}
 </script>
 
 <template>
@@ -47,11 +47,14 @@ const handleSubmit = () => {
           ref="form"
           :schema="schema"
           :state="state"
+          class="space-y-8"
           @submit="onSubmit"
           @error="onError"
-          class="space-y-8"
         >
-          <TourFormGeneral :state="state" :errors="formErrors" />
+          <TourFormGeneral
+            :state="state"
+            :errors="formErrors"
+          />
           <UDivider />
           <TourFormContent :state="state" />
         </UForm>
@@ -64,7 +67,12 @@ const handleSubmit = () => {
           Revisa los campos antes de guardar
         </span>
         <div class="flex gap-3">
-          <UButton label="Cancelar" color="neutral" variant="ghost" @click="emit('close')" />
+          <UButton
+            label="Cancelar"
+            color="neutral"
+            variant="ghost"
+            @click="emit('close')"
+          />
           <UButton
             :label="isEditing ? 'Guardar Cambios' : 'Crear Tour'"
             :loading="loading"

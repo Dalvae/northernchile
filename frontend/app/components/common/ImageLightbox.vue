@@ -14,7 +14,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const isOpen = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  set: value => emit('update:modelValue', value)
 })
 
 const currentIndex = ref(props.initialIndex)
@@ -67,7 +67,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen" :ui="{ width: 'sm:max-w-7xl' }">
+  <UModal
+    v-model:open="isOpen"
+    :ui="{ width: 'sm:max-w-7xl' }"
+  >
     <template #content>
       <div class="relative bg-neutral-950">
         <!-- Close button -->

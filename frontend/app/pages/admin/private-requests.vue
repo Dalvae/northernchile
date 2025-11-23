@@ -367,16 +367,16 @@ const formatCurrency = (value: number | null | undefined) => value != null ? for
               <tr
                 v-for="request in filteredRequests"
                 :key="request.id"
-                 class="transition-colors hover:bg-muted"
+                class="transition-colors hover:bg-muted"
               >
                 <td class="px-4 py-3 whitespace-nowrap">
                   <div>
-                     <div
-                       class="text-sm font-medium text-default"
+                    <div
+                      class="text-sm font-medium text-default"
                     >
                       {{ request.customerName }}
                     </div>
-                     <div class="text-sm text-muted">
+                    <div class="text-sm text-muted">
                       {{ request.customerEmail }}
                     </div>
                   </div>
@@ -392,9 +392,9 @@ const formatCurrency = (value: number | null | undefined) => value != null ? for
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
-                   <div class="text-sm text-default">
-                     {{ request.numAdults }} adultos,
-                     {{ request.numChildren }} niños
+                  <div class="text-sm text-default">
+                    {{ request.numAdults }} adultos,
+                    {{ request.numChildren }} niños
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
@@ -407,12 +407,12 @@ const formatCurrency = (value: number | null | undefined) => value != null ? for
                   </UBadge>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
-                   <div class="text-sm text-default">
-                     {{
-                       request.quotedPrice
-                          ? formatCurrency(request.quotedPrice || 0)
-                         : "-"
-                     }}
+                  <div class="text-sm text-default">
+                    {{
+                      request.quotedPrice
+                        ? formatCurrency(request.quotedPrice || 0)
+                        : "-"
+                    }}
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
@@ -460,7 +460,7 @@ const formatCurrency = (value: number | null | undefined) => value != null ? for
           <div
             class="flex justify-between items-center pb-4 border-b border-default"
           >
-             <h3 class="text-xl font-semibold text-default">
+            <h3 class="text-xl font-semibold text-default">
               Detalles de Solicitud
             </h3>
             <UButton

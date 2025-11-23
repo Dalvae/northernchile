@@ -68,7 +68,7 @@ export const useImageOptimizer = () => {
     originalWidth: number,
     originalHeight: number,
     maxDimension: number = 4000
-  ): { width: number; height: number } => {
+  ): { width: number, height: number } => {
     // Si la imagen es pequeña, mantener dimensiones originales
     if (originalWidth <= maxDimension && originalHeight <= maxDimension) {
       return { width: originalWidth, height: originalHeight }
@@ -95,7 +95,7 @@ export const useImageOptimizer = () => {
       maxDimension?: number
       forceOptimize?: boolean
     }
-  ): Promise<{ file: File; originalSize: number; newSize: number; savings: number }> => {
+  ): Promise<{ file: File, originalSize: number, newSize: number, savings: number }> => {
     const maxDimension = options?.maxDimension || 4000
     const forceOptimize = options?.forceOptimize || false
 
@@ -191,7 +191,7 @@ export const useImageOptimizer = () => {
       forceOptimize?: boolean
       onProgress?: (current: number, total: number) => void
     }
-  ): Promise<Array<{ file: File; originalSize: number; newSize: number; savings: number }>> => {
+  ): Promise<Array<{ file: File, originalSize: number, newSize: number, savings: number }>> => {
     const results = []
     const total = files.length
 

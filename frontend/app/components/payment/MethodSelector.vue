@@ -88,7 +88,7 @@ function isSelected(option: PaymentOption) {
 }
 
 function formatAmount(amount: number, currency: string) {
-  const currencyMap: Record<string, { locale: string; code: string }> = {
+  const currencyMap: Record<string, { locale: string, code: string }> = {
     CLP: { locale: 'es-CL', code: 'CLP' },
     BRL: { locale: 'pt-BR', code: 'BRL' },
     USD: { locale: 'en-US', code: 'USD' }

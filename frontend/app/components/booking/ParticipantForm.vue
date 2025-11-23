@@ -160,12 +160,12 @@
 const { t } = useI18n()
 
 defineProps<{
-   participant: {
-     fullName: string
-     documentId: string
-     nationality: string
-     dateOfBirth?: string | null
-     pickupAddress: string
+  participant: {
+    fullName: string
+    documentId: string
+    nationality: string
+    dateOfBirth?: string | null
+    pickupAddress: string
     specialRequirements: string
     phoneNumber: string
     email: string
@@ -178,9 +178,9 @@ const emit = defineEmits<{
   update: [data: Partial<{
     fullName: string
     documentId: string
-     nationality: string
-     dateOfBirth?: string | null
-     pickupAddress: string
+    nationality: string
+    dateOfBirth?: string | null
+    pickupAddress: string
     specialRequirements: string
     phoneNumber: string
     email: string

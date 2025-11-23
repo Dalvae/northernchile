@@ -1,25 +1,25 @@
 <script setup lang="ts">
 interface Props {
-  count?: number;
+  count?: number
 }
 
 withDefaults(defineProps<Props>(), {
-  count: 20,
-});
+  count: 20
+})
 
 const getMeteorStyle = () => {
   // Generamos una posición horizontal aleatoria
-  const left = Math.floor(Math.random() * 100) + "%";
+  const left = Math.floor(Math.random() * 100) + '%'
   // Retraso y duración aleatorios
-  const delay = Math.random() * 2 + "s";
-  const duration = Math.floor(Math.random() * 3 + 2) + "s";
+  const delay = Math.random() * 2 + 's'
+  const duration = Math.floor(Math.random() * 3 + 2) + 's'
 
   return {
     left: left,
     animationDelay: delay,
-    animationDuration: duration,
-  };
-};
+    animationDuration: duration
+  }
+}
 </script>
 
 <template>

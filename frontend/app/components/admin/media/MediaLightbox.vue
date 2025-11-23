@@ -11,7 +11,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const isOpen = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  set: value => emit('update:modelValue', value)
 })
 
 const currentIndex = ref(props.initialIndex)
@@ -81,7 +81,10 @@ function getTypeBadgeColor(type?: string) {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen" :ui="{ width: 'sm:max-w-6xl' }">
+  <UModal
+    v-model:open="isOpen"
+    :ui="{ width: 'sm:max-w-6xl' }"
+  >
     <template #content>
       <div class="relative bg-neutral-900 dark:bg-neutral-950">
         <!-- Close button -->
@@ -131,7 +134,10 @@ function getTypeBadgeColor(type?: string) {
         </div>
 
         <!-- Info bar -->
-        <div v-if="currentMedia" class="bg-neutral-800 dark:bg-neutral-900 p-6 border-t border-neutral-700 dark:border-neutral-800">
+        <div
+          v-if="currentMedia"
+          class="bg-neutral-800 dark:bg-neutral-900 p-6 border-t border-neutral-700 dark:border-neutral-800"
+        >
           <div class="flex items-start justify-between gap-4">
             <!-- Left side: Title and metadata -->
             <div class="flex-1 min-w-0">
@@ -147,7 +153,10 @@ function getTypeBadgeColor(type?: string) {
                 </UBadge>
               </div>
 
-              <p v-if="currentMedia.captionTranslations?.es" class="text-sm text-neutral-200 mb-2">
+              <p
+                v-if="currentMedia.captionTranslations?.es"
+                class="text-sm text-neutral-200 mb-2"
+              >
                 {{ currentMedia.captionTranslations.es }}
               </p>
 

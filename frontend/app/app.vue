@@ -1,5 +1,20 @@
 <script setup lang="ts">
 import '~/assets/css/main.css'
+
+const { getSocialImage } = useSocialMeta()
+
+useSeoMeta({
+  titleTemplate: (titleChunk) => {
+    return titleChunk
+      ? `${titleChunk} | Northern Chile`
+      : 'Northern Chile - Tours Astronómicos'
+  },
+  ogSiteName: 'Northern Chile Tours',
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+  ogImage: getSocialImage(),
+  twitterImage: getSocialImage()
+})
 </script>
 
 <template>

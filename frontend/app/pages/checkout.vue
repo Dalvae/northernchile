@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { PaymentProvider, PaymentMethod } from '~/types/payment'
+import type { PaymentProvider } from '~/types/payment'
+import { PaymentMethod } from '~/types/payment'
 
 const cartStore = useCartStore()
 const authStore = useAuthStore()
@@ -39,15 +40,15 @@ const contactForm = ref({
 // Step 2: Participants
 const participants = ref<
   Array<{
-     fullName: string
-     documentId: string
-     nationality: string
-     dateOfBirth: string | null
-     pickupAddress: string
-     specialRequirements: string
-     phoneNumber: string
-     email: string
-   }>
+    fullName: string
+    documentId: string
+    nationality: string
+    dateOfBirth: string | null
+    pickupAddress: string
+    specialRequirements: string
+    phoneNumber: string
+    email: string
+  }>
 >([])
 
 // Initialize participants based on total count
@@ -59,9 +60,9 @@ function initializeParticipants() {
     (_, i) => ({
       fullName: i === 0 ? contactForm.value.fullName : '',
       documentId: '',
-       nationality: 'CL',
-       dateOfBirth: null,
-       pickupAddress: '',
+      nationality: 'CL',
+      dateOfBirth: null,
+      pickupAddress: '',
       specialRequirements: '',
       phoneNumber: i === 0 ? contactForm.value.phone : '',
       email: i === 0 ? contactForm.value.email : ''
@@ -70,7 +71,7 @@ function initializeParticipants() {
 }
 
 // Step 3: Payment
-const selectedPaymentMethod = ref<{ provider: PaymentProvider; method: PaymentMethod } | null>(null)
+const selectedPaymentMethod = ref<{ provider: PaymentProvider, method: PaymentMethod } | null>(null)
 const showPIXModal = ref(false)
 
 // Validation

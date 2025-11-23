@@ -13,7 +13,7 @@ const emit = defineEmits<{
 
 const { countries, getCountryLabel, getCountryFlag } = useCountries()
 
-const selected = computed<{ value: string; label: string } | undefined>({
+const selected = computed<{ value: string, label: string } | undefined>({
   get: () => {
     if (!props.modelValue) return undefined
     const country = countries.find(c => c.value === props.modelValue)

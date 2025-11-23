@@ -1,25 +1,25 @@
 <script setup lang="ts">
-const { t } = useI18n();
-const localePath = useLocalePath();
+const { t } = useI18n()
+const localePath = useLocalePath()
 
 const items = computed(() => [
   {
-    title: t("home.experience.astro_title"),
-    description: t("home.experience.astro_desc"),
-    icon: "i-lucide-stars",
-    image: "/images/astro-experience.jpg",
-    color: "text-primary-400",
-    bg: "bg-primary-500/10",
+    title: t('home.experience.astro_title'),
+    description: t('home.experience.astro_desc'),
+    icon: 'i-lucide-stars',
+    image: '/images/astro-experience.jpg',
+    color: 'text-primary-400',
+    bg: 'bg-primary-500/10'
   },
   {
-    title: t("home.experience.geo_title"),
-    description: t("home.experience.geo_desc"),
-    icon: "i-lucide-mountain",
-    image: "/images/geo-experience.jpg",
-    color: "text-tertiary-400",
-    bg: "bg-tertiary-500/10",
-  },
-]);
+    title: t('home.experience.geo_title'),
+    description: t('home.experience.geo_desc'),
+    icon: 'i-lucide-mountain',
+    image: '/images/geo-experience.jpg',
+    color: 'text-tertiary-400',
+    bg: 'bg-tertiary-500/10'
+  }
+])
 </script>
 
 <template>
@@ -68,7 +68,11 @@ const items = computed(() => [
               class="inline-flex p-4 rounded-2xl mb-2 transition-transform hover:scale-110 duration-300 shadow-lg shadow-white/5"
               :class="item.bg"
             >
-              <UIcon :name="item.icon" class="w-10 h-10" :class="item.color" />
+              <UIcon
+                :name="item.icon"
+                class="w-10 h-10"
+                :class="item.color"
+              />
             </div>
 
             <h3
@@ -133,4 +137,3 @@ const items = computed(() => [
     </UContainer>
   </section>
 </template>
-

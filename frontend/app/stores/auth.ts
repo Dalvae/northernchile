@@ -129,11 +129,11 @@ export const useAuthStore = defineStore('auth', {
             }
           }
 
-           toast.add({
-             title: '¡Bienvenido!',
-             description: 'Has iniciado sesión correctamente.',
-             color: 'success'
-           })
+          toast.add({
+            title: '¡Bienvenido!',
+            description: 'Has iniciado sesión correctamente.',
+            color: 'success'
+          })
         }
       } catch (error: any) {
         let errorMessage = error.data?.message || 'Error en el login'
@@ -181,11 +181,11 @@ export const useAuthStore = defineStore('auth', {
         if (error.statusCode === 409) {
           errorMessage = 'El correo electrónico ya está en uso.'
         }
-         toast.add({
-           title: 'Error de Registro',
-           description: errorMessage,
-           color: 'error'
-         })
+        toast.add({
+          title: 'Error de Registro',
+          description: errorMessage,
+          color: 'error'
+        })
         throw error
       } finally {
         this.loading = false
@@ -213,8 +213,8 @@ export const useAuthStore = defineStore('auth', {
 
     // Cargar datos completos del usuario desde el backend
     async fetchUser() {
-         if (!this.token) {
-         return
+      if (!this.token) {
+        return
       }
 
       try {
@@ -239,8 +239,8 @@ export const useAuthStore = defineStore('auth', {
             dateOfBirth: response.dateOfBirth,
             authProvider: response.authProvider
           }
-           setToStorage('user', this.user)
-         }
+          setToStorage('user', this.user)
+        }
       } catch (error) {
         console.error('[Auth] Error fetching user profile:', error)
       }
@@ -250,17 +250,17 @@ export const useAuthStore = defineStore('auth', {
     initializeAuth() {
       this.loading = true
       try {
-         // Cargar desde localStorage si está disponible
-         // Read token as plain string (not JSON parsed)
-         const savedToken = import.meta.client ? localStorage.getItem('auth_token') : null
-         const savedUser = getFromStorage('user')
+        // Cargar desde localStorage si está disponible
+        // Read token as plain string (not JSON parsed)
+        const savedToken = import.meta.client ? localStorage.getItem('auth_token') : null
+        const savedUser = getFromStorage('user')
 
         if (savedToken) {
           const payload = decodeJwtPayload(savedToken)
           if (payload && payload.exp) {
             const currentTime = Math.floor(Date.now() / 1000)
-               if (payload.exp < currentTime) {
-                 // Token expirado
+            if (payload.exp < currentTime) {
+              // Token expirado
               this.token = null
               this.user = null
               if (import.meta.client) {
@@ -286,11 +286,9 @@ export const useAuthStore = defineStore('auth', {
                 }
                 setToStorage('user', this.user)
               }
-
-
             }
-           } else {
-             // Token inválido
+          } else {
+            // Token inválido
             this.token = null
             this.user = null
             if (import.meta.client) {

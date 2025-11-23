@@ -12,7 +12,7 @@ const emit = defineEmits<{
 
 const blocks = computed({
   get: () => props.modelValue || [],
-  set: (value) => emit('update:modelValue', value)
+  set: value => emit('update:modelValue', value)
 })
 
 const blockTypeOptions = [

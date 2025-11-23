@@ -1,31 +1,31 @@
 <script setup lang="ts">
-import TourCard from "~/components/tour/TourCard.vue";
-import type { TourRes } from "api-client";
+import TourCard from '~/components/tour/TourCard.vue'
+import type { TourRes } from 'api-client'
 
-const { t } = useI18n();
-const localePath = useLocalePath();
+const { t } = useI18n()
+const localePath = useLocalePath()
 
 // 1. SEO Primero
 useSeoMeta({
-  title: "Northern Chile - Tours Astronómicos en San Pedro de Atacama",
+  title: 'Northern Chile - Tours Astronómicos en San Pedro de Atacama',
   description:
-    "Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados. Experiencias únicas bajo el cielo más claro del mundo.",
-  ogTitle: "Northern Chile - Tours Astronómicos en San Pedro de Atacama",
+    'Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados. Experiencias únicas bajo el cielo más claro del mundo.',
+  ogTitle: 'Northern Chile - Tours Astronómicos en San Pedro de Atacama',
   ogDescription:
-    "Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados",
-  ogImage: "https://www.northernchile.cl/og-image-homepage.jpg",
-  twitterCard: "summary_large_image",
-});
+    'Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados',
+  ogImage: 'https://www.northernchile.cl/og-image-homepage.jpg',
+  twitterCard: 'summary_large_image'
+})
 
 // 2. Fetch de datos (ÚNICA LLAMADA)
 // Usamos useFetch directo con transform para eficiencia y lazy: true
-const { data: featuredTours } = useFetch<TourRes[]>("/api/tours", {
+const { data: featuredTours } = useFetch<TourRes[]>('/api/tours', {
   lazy: true,
   transform: (tours) => {
     return (tours || [])
-      .filter((t) => t.status === "PUBLISHED")
+      .filter(t => t.status === 'PUBLISHED')
       .slice(0, 6)
-      .map((tour) => ({
+      .map(tour => ({
         id: tour.id,
         slug: tour.slug,
         nameTranslations: tour.nameTranslations,
@@ -36,10 +36,10 @@ const { data: featuredTours } = useFetch<TourRes[]>("/api/tours", {
         defaultMaxParticipants: (tour as any).defaultMaxParticipants,
         moonSensitive: tour.moonSensitive,
         windSensitive: tour.windSensitive,
-        descriptionTranslations: tour.descriptionTranslations,
-      }));
-  },
-});
+        descriptionTranslations: tour.descriptionTranslations
+      }))
+  }
+})
 </script>
 
 <template>
@@ -62,8 +62,8 @@ const { data: featuredTours } = useFetch<TourRes[]>("/api/tours", {
           </h2>
           <p class="text-xl text-neutral-200 max-w-2xl mx-auto">
             {{
-              t("home.featured_tours_subtitle") ||
-              "Descubre lo mejor del desierto de Atacama"
+              t("home.featured_tours_subtitle")
+                || "Descubre lo mejor del desierto de Atacama"
             }}
           </p>
         </div>
@@ -77,7 +77,7 @@ const { data: featuredTours } = useFetch<TourRes[]>("/api/tours", {
             v-for="i in 3"
             :key="i"
             class="h-[500px] bg-neutral-900/50 rounded-xl animate-pulse border border-white/5"
-          ></div>
+          />
         </div>
 
         <!-- GRID REAL -->
@@ -128,8 +128,8 @@ const { data: featuredTours } = useFetch<TourRes[]>("/api/tours", {
           class="text-base md:text-2xl text-neutral-300 mb-8 sm:mb-12 max-w-2xl mx-auto font-light"
         >
           {{
-            t("home.cta_subtitle") ||
-            "Join us on an unforgettable astronomical adventure"
+            t("home.cta_subtitle")
+              || "Join us on an unforgettable astronomical adventure"
           }}
         </p>
         <div
@@ -159,4 +159,3 @@ const { data: featuredTours } = useFetch<TourRes[]>("/api/tours", {
     </section>
   </div>
 </template>
-

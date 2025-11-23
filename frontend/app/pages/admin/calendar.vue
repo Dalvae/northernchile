@@ -2,13 +2,13 @@
   <div class="p-6">
     <div class="flex justify-between items-center mb-6">
       <div>
-         <h1 class="text-2xl font-bold text-default">
+        <h1 class="text-2xl font-bold text-default">
           Calendario de Tours
         </h1>
-         <p class="mt-1 text-sm text-muted">
+        <p class="mt-1 text-sm text-muted">
           Gestiona schedules con información climática y lunar
         </p>
-         <p class="mt-1 text-sm text-info-600 dark:text-info-400">
+        <p class="mt-1 text-sm text-info-600 dark:text-info-400">
           💡 Haz clic en cualquier fecha del calendario para crear un schedule manualmente
         </p>
       </div>
@@ -38,11 +38,11 @@
     </div>
 
     <!-- Leyenda -->
-     <div class="p-4 mb-4 rounded-lg bg-elevated border border-default">
+    <div class="p-4 mb-4 rounded-lg bg-elevated border border-default">
       <div class="flex flex-wrap gap-4 text-sm">
         <div class="flex items-center gap-2">
           <span class="text-lg">🌑🌒🌓🌔🌕🌖🌗🌘</span>
-           <span class="text-default">Fases lunares</span>
+          <span class="text-default">Fases lunares</span>
         </div>
         <div class="flex items-center gap-2">
           <UBadge
@@ -62,7 +62,7 @@
           >
             ☁️ Nublado
           </UBadge>
-           <span class="text-muted">&gt;80%</span>
+          <span class="text-muted">&gt;80%</span>
         </div>
         <div class="flex items-center gap-2">
           <UBadge
@@ -72,13 +72,13 @@
           >
             🌧️ Lluvia
           </UBadge>
-           <span class="text-muted">Probabilidad &gt;50%</span>
+          <span class="text-muted">Probabilidad &gt;50%</span>
         </div>
       </div>
     </div>
 
     <!-- Calendario -->
-      <div class="p-4 rounded-lg bg-elevated border border-default">
+    <div class="p-4 rounded-lg bg-elevated border border-default">
       <FullCalendar
         v-if="calendarOptions"
         :options="calendarOptions"
@@ -88,7 +88,7 @@
     <!-- Modal de schedule (crear/editar) -->
     <UModal v-model:open="showScheduleModal">
       <template #content>
-  <div class="p-6 bg-default min-h-screen">
+        <div class="p-6 bg-default min-h-screen">
           <!-- Header -->
           <div
             class="flex items-center justify-between pb-4 border-b border-default"
@@ -532,7 +532,7 @@ const saveSchedule = async () => {
       payload.status = scheduleForm.value.status
 
       // Update existing schedule
-       await $fetch(
+      await $fetch(
         `${config.public.apiBase}/api/admin/schedules/${selectedSchedule.value.id}`,
         {
           method: 'PATCH',
@@ -746,7 +746,6 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
   --fc-today-bg-color: var(--ui-bg-muted);
 }
 
-
 /* Header background (toolbar with prev/next/today buttons) */
 .fc .fc-toolbar {
   background-color: var(--ui-primary);
@@ -754,7 +753,6 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
   border-radius: 0.5rem 0.5rem 0 0;
   margin-bottom: 0;
 }
-
 
 /* Header text color (title and buttons) */
 .fc .fc-toolbar-title,
@@ -781,7 +779,6 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
   padding: 0.75rem 0.5rem !important;
   font-weight: 600 !important;
 }
-
 
 .fc-col-header-cell-cushion {
   color: white !important;

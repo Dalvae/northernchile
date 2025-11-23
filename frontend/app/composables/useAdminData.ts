@@ -74,8 +74,8 @@ export const useAdminData = () => {
         method: 'DELETE',
         headers: headers.value
       }),
-     fetchAdminBookings: (params?: Record<string, string>) =>
-       $fetch<BookingRes[]>(`${apiBase}/api/admin/bookings`, { params, headers: headers.value }),
+    fetchAdminBookings: (params?: Record<string, string>) =>
+      $fetch<BookingRes[]>(`${apiBase}/api/admin/bookings`, { params, headers: headers.value }),
     fetchAdminBookingById: (id: string) =>
       $fetch<BookingRes>(`${apiBase}/api/admin/bookings/${id}`, { headers: headers.value }),
     updateAdminBooking: (id: string, bookingData: BookingUpdateReq) =>
@@ -116,18 +116,18 @@ export const useAdminData = () => {
         body: { newPassword },
         headers: headers.value
       }),
-     fetchAdminAlertsCount: () =>
-       $fetch<{ pending: number }>(`${apiBase}/api/admin/alerts/count`, {
-         headers: headers.value
-       }),
-     fetchAdminSettings: () =>
-       $fetch<Record<string, unknown>>(`${apiBase}/api/admin/settings`, { headers: headers.value }),
-     updateAdminSettings: (settings: Record<string, unknown>) =>
-       $fetch<Record<string, unknown>>(`${apiBase}/api/admin/settings`, {
-         method: 'PATCH',
-         body: settings,
-         headers: headers.value
-       }),
+    fetchAdminAlertsCount: () =>
+      $fetch<{ pending: number }>(`${apiBase}/api/admin/alerts/count`, {
+        headers: headers.value
+      }),
+    fetchAdminSettings: () =>
+      $fetch<Record<string, unknown>>(`${apiBase}/api/admin/settings`, { headers: headers.value }),
+    updateAdminSettings: (settings: Record<string, unknown>) =>
+      $fetch<Record<string, unknown>>(`${apiBase}/api/admin/settings`, {
+        method: 'PATCH',
+        body: settings,
+        headers: headers.value
+      }),
     // Media management
     fetchAdminMedia: (params?: Record<string, any>) =>
       $fetch<PageMediaRes>(`${apiBase}/api/admin/media`, { params, headers: headers.value }),
@@ -187,13 +187,13 @@ export const useAdminData = () => {
         body: { targetId: scheduleId, mediaIds },
         headers: headers.value
       }),
-    reorderTourGallery: (tourId: string, orders: Array<{ mediaId: string; displayOrder: number }>) =>
+    reorderTourGallery: (tourId: string, orders: Array<{ mediaId: string, displayOrder: number }>) =>
       $fetch<void>(`${apiBase}/api/admin/media/tour/${tourId}/reorder`, {
         method: 'PUT',
         body: orders,
         headers: headers.value
       }),
-    reorderScheduleGallery: (scheduleId: string, orders: Array<{ mediaId: string; displayOrder: number }>) =>
+    reorderScheduleGallery: (scheduleId: string, orders: Array<{ mediaId: string, displayOrder: number }>) =>
       $fetch<void>(`${apiBase}/api/admin/media/schedule/${scheduleId}/reorder`, {
         method: 'PUT',
         body: orders,

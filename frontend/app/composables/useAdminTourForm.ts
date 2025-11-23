@@ -6,7 +6,7 @@ import type { TourRes, TourCreateReq, TourUpdateReq, ContentBlock } from 'api-cl
 // Definimos interfaces locales si es necesario
 export interface StructuredContent {
   guideName?: string
-  itineraryTranslations?: Record<string, { time: string; description: string }[]>
+  itineraryTranslations?: Record<string, { time: string, description: string }[]>
   equipmentTranslations?: Record<string, string[]>
   additionalInfoTranslations?: Record<string, string[]>
   descriptionBlocksTranslations?: Record<string, ContentBlock[]>
@@ -107,7 +107,7 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: any) =>
           })
         } else {
           // Resetear completamente el estado
-          Object.keys(state).forEach(key => {
+          Object.keys(state).forEach((key) => {
             delete (state as any)[key]
           })
           Object.assign(state, { ...initialState })
@@ -202,11 +202,11 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: any) =>
       if (typeof error === 'string') {
         description = error
       } else if (error && typeof error === 'object') {
-        const anyError = error as { data?: any; message?: string }
+        const anyError = error as { data?: any, message?: string }
         description
           = anyError.data?.message
-          || anyError.message
-          || description
+            || anyError.message
+            || description
       }
 
       toast.add({

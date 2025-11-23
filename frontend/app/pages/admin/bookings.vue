@@ -4,6 +4,9 @@ import type { BookingRes } from 'api-client'
 import { getGroupedRowModel } from '@tanstack/vue-table'
 import type { GroupingOptions } from '@tanstack/vue-table'
 
+import AdminStatusBadge from '~/components/admin/StatusBadge.vue'
+import AdminCountryCell from '~/components/admin/CountryCell.vue'
+
 definePageMeta({
   layout: 'admin'
 })
@@ -11,9 +14,6 @@ definePageMeta({
 useHead({
   title: 'Reservas - Admin - Northern Chile'
 })
-
-import AdminStatusBadge from '~/components/admin/StatusBadge.vue'
-import AdminCountryCell from '~/components/admin/CountryCell.vue'
 
 const UBadge = resolveComponent('UBadge')
 
@@ -107,7 +107,7 @@ const participantRows = computed<ParticipantRow[]>(() => {
         participantEmail: participant.email,
         bookingUserName: booking.userFullName,
         bookingUserPhone: booking.userPhoneNumber,
-         bookingId: booking.id
+        bookingId: booking.id
       })
     }
   }
@@ -131,17 +131,17 @@ const columns = [
       row.getIsGrouped()
         ? `${row.getValue('participantName')} participantes`
         : row.getValue('participantName'),
-     aggregationFn: 'count' as const
+    aggregationFn: 'count' as const
   },
   {
     accessorKey: 'documentId',
     header: 'Documento'
   },
-{
-      accessorKey: 'nationality',
-      header: 'Nacionalidad',
-      cell: ({ row }: import('@tanstack/vue-table').CellContext<ParticipantRow, unknown>) => h(AdminCountryCell, { code: row.getValue('nationality') as string })
-    },
+  {
+    accessorKey: 'nationality',
+    header: 'Nacionalidad',
+    cell: ({ row }: import('@tanstack/vue-table').CellContext<ParticipantRow, unknown>) => h(AdminCountryCell, { code: row.getValue('nationality') as string })
+  },
   {
     accessorKey: 'age',
     header: 'Edad'
@@ -155,10 +155,10 @@ const columns = [
       }
     }
   },
-   {
+  {
     accessorKey: 'participantPhone',
     header: 'Contacto'
-   }
+  }
 ]
 
 const groupingOptions = ref<GroupingOptions>({
@@ -253,7 +253,7 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
                 <strong class="text-default">
                   {{ row.original.tourName }}
                 </strong>
-                 <span class="text-sm text-default">
+                <span class="text-sm text-default">
                   {{
                     formatTourDateTime(
                       row.original.tourDate || '',
@@ -266,18 +266,18 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
           </template>
 
           <template #participantName-data="{ row }">
-             <span class="font-medium text-default">
+            <span class="font-medium text-default">
               {{ row.getValue("participantName") }}
             </span>
           </template>
 
-           <template #documentId-data="{ row }">
+          <template #documentId-data="{ row }">
             <span class="text-sm text-default">
               {{ row.getValue("documentId") || "-" }}
             </span>
           </template>
 
-           <template #age-data="{ row }">
+          <template #age-data="{ row }">
             <span class="text-sm text-default">
               {{ row.getValue("age") || "-" }}
             </span>
@@ -288,9 +288,9 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
               <UIcon
                 v-if="row.getValue('pickupAddress')"
                 name="i-lucide-map-pin"
-                 class="w-4 h-4 text-muted mt-0.5"
+                class="w-4 h-4 text-muted mt-0.5"
               />
-               <span class="text-sm text-default">
+              <span class="text-sm text-default">
                 {{ row.getValue("pickupAddress") || "-" }}
               </span>
             </div>
@@ -304,7 +304,7 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
               >
                 <UIcon
                   name="i-lucide-phone"
-                   class="w-3.5 h-3.5 text-muted"
+                  class="w-3.5 h-3.5 text-muted"
                 />
                 <span class="text-sm text-neutral-900 dark:text-white">
                   {{ row.original.participantPhone || row.original.bookingUserPhone }}
@@ -323,7 +323,7 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
               >
                 <UIcon
                   name="i-lucide-mail"
-                   class="w-3.5 h-3.5 text-muted"
+                  class="w-3.5 h-3.5 text-muted"
                 />
                 <span class="text-xs text-neutral-600 dark:text-neutral-300">
                   {{ row.original.participantEmail }}
@@ -332,7 +332,7 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
 
               <span
                 v-if="!row.original.participantPhone && !row.original.bookingUserPhone && !row.original.participantEmail"
-                 class="text-sm text-default"
+                class="text-sm text-default"
               >
                 Sin información de contacto
               </span>

@@ -130,16 +130,16 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
   <div class="min-h-screen p-6 bg-default">
     <!-- Header -->
     <div class="mb-6">
-       <h1 class="text-2xl font-bold text-default">
+      <h1 class="text-2xl font-bold text-default">
         Reportes y Análisis
       </h1>
-       <p class="mt-1 text-sm text-muted">
+      <p class="mt-1 text-sm text-muted">
         Visualiza el rendimiento del negocio y métricas clave
       </p>
     </div>
 
     <!-- Date Range Filter -->
-     <div class="bg-elevated rounded-lg p-4 mb-6 border border-default">
+    <div class="bg-elevated rounded-lg p-4 mb-6 border border-default">
       <div class="flex items-end gap-4">
         <div class="flex-1">
           <label class="block text-sm font-medium text-default mb-2">
@@ -184,7 +184,7 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
     <!-- Overview Stats -->
     <div v-else-if="overview">
       <!-- Main KPIs -->
-       <div class="grid grid-cols-1 gap-4 mb-6 md:grid-cols-4">
+      <div class="grid grid-cols-1 gap-4 mb-6 md:grid-cols-4">
         <AdminDashboardStat
           label="Total Reservas"
           :value="overview.totalBookings"
@@ -216,7 +216,7 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
       </div>
 
       <!-- Secondary Metrics -->
-       <div class="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3">
+      <div class="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3">
         <AdminDashboardStat
           label="Valor Promedio Reserva"
           :value="formatPrice(overview.averageBookingValue)"
@@ -242,7 +242,7 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
 
       <!-- System Overview -->
       <div class="bg-elevated rounded-lg p-6 mb-6 border border-default">
-         <h3 class="mb-4 text-lg font-semibold text-default">
+        <h3 class="mb-4 text-lg font-semibold text-default">
           Resumen del Sistema
         </h3>
         <div class="grid grid-cols-3 gap-4">
@@ -250,7 +250,7 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
             <div class="mb-1 text-3xl font-bold text-primary">
               {{ overview.totalUsers }}
             </div>
-             <div class="text-sm text-muted">
+            <div class="text-sm text-muted">
               Usuarios Registrados
             </div>
           </div>
@@ -258,7 +258,7 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
             <div class="text-3xl font-bold text-success mb-1">
               {{ overview.totalTours }}
             </div>
-             <div class="text-sm text-muted">
+            <div class="text-sm text-muted">
               Tours Activos
             </div>
           </div>
@@ -266,7 +266,7 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
             <div class="text-3xl font-bold text-info mb-1">
               {{ overview.totalSchedules }}
             </div>
-             <div class="text-sm text-muted">
+            <div class="text-sm text-muted">
               Schedules Programados
             </div>
           </div>
@@ -275,7 +275,7 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
 
       <!-- Bookings by Day -->
       <div class="bg-elevated rounded-lg p-6 mb-6 border border-default">
-         <h3 class="mb-4 text-lg font-semibold text-default">
+        <h3 class="mb-4 text-lg font-semibold text-default">
           Reservas por Día
         </h3>
         <div
@@ -305,7 +305,7 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
                 </th>
               </tr>
             </thead>
-             <tbody class="divide-y divide-default">
+            <tbody class="divide-y divide-default">
               <tr
                 v-for="day in bookingsByDay"
                 :key="day.date"
@@ -335,7 +335,7 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
 
       <!-- Top Tours -->
       <div class="bg-elevated rounded-lg p-6 border border-default">
-         <h3 class="mb-4 text-lg font-semibold text-default">
+        <h3 class="mb-4 text-lg font-semibold text-default">
           Tours Más Populares
         </h3>
         <div
@@ -368,7 +368,7 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
                 </th>
               </tr>
             </thead>
-             <tbody class="divide-y divide-default">
+            <tbody class="divide-y divide-default">
               <tr
                 v-for="(tour, index) in topTours"
                 :key="index"

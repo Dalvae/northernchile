@@ -269,7 +269,10 @@ async function handleBookingSaved() {
                     </p>
                     <p class="text-neutral-600 dark:text-neutral-300 text-xs mt-0.5 flex items-center gap-1">
                       <span>{{ participant.documentId }}</span>
-                      <span v-if="participant.nationality" class="flex items-center gap-1">
+                      <span
+                        v-if="participant.nationality"
+                        class="flex items-center gap-1"
+                      >
                         <span>•</span>
                         <span class="text-base">{{ getCountryFlag(participant.nationality) }}</span>
                         <span>{{ getCountryLabel(participant.nationality) }}</span>

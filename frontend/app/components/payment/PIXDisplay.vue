@@ -13,9 +13,9 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'success': []
-  'failed': [error: string]
-  'expired': []
+  success: []
+  failed: [error: string]
+  expired: []
 }>()
 
 // Time remaining

@@ -2,7 +2,7 @@
 import { z } from 'zod'
 import type { UserCreateReq } from 'api-client'
 
-const emit = defineEmits<{ success: []; close: [] }>()
+const emit = defineEmits<{ success: [], close: [] }>()
 const { t } = useI18n()
 const { createAdminUser } = useAdminData()
 const toast = useToast()
@@ -70,11 +70,11 @@ async function handleSubmit() {
     if (typeof error === 'string') {
       description = error
     } else if (error && typeof error === 'object') {
-      const anyError = error as { data?: any; message?: string }
+      const anyError = error as { data?: any, message?: string }
       description
         = anyError.data?.message
-        || anyError.message
-        || description
+          || anyError.message
+          || description
     }
 
     toast.add({

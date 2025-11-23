@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { TourRes, TourScheduleRes } from 'api-client'
 
+import { useIntersectionObserver } from '@vueuse/core'
+
 const route = useRoute()
 const router = useRouter()
 const { locale, t } = useI18n()
@@ -26,8 +28,6 @@ const calendarRef = ref<any>(null)
 // Lazy loading for calendar with intersection observer
 const showCalendar = ref(false)
 const calendarSectionRef = ref(null)
-
-import { useIntersectionObserver } from '@vueuse/core'
 
 useIntersectionObserver(
   calendarSectionRef,
@@ -97,8 +97,8 @@ async function addToCart() {
     // Go to cart
     router.push('/cart')
   } catch (e: unknown) {
-    const errorMessage = (e && typeof e === 'object' && 'data' in e &&
-                          e.data && typeof e.data === 'object' && 'message' in e.data)
+    const errorMessage = (e && typeof e === 'object' && 'data' in e
+      && e.data && typeof e.data === 'object' && 'message' in e.data)
       ? (e.data as { message?: string }).message
       : undefined
 
@@ -278,14 +278,22 @@ useSeoMeta({
         </div>
 
         <!-- Calendar Section -->
-        <div ref="calendarSectionRef" class="min-h-[500px]">
+        <div
+          ref="calendarSectionRef"
+          class="min-h-[500px]"
+        >
           <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-6">
             {{ t("schedule.select_date") || "Selecciona una fecha" }}
           </h2>
 
           <!-- Skeleton while loading -->
-          <div v-if="!showCalendar" class="animate-pulse bg-neutral-200 dark:bg-neutral-700 h-96 rounded-xl flex items-center justify-center">
-            <p class="text-neutral-600 dark:text-neutral-300">Cargando calendario...</p>
+          <div
+            v-if="!showCalendar"
+            class="animate-pulse bg-neutral-200 dark:bg-neutral-700 h-96 rounded-xl flex items-center justify-center"
+          >
+            <p class="text-neutral-600 dark:text-neutral-300">
+              Cargando calendario...
+            </p>
           </div>
 
           <!-- Lazy-loaded calendar -->

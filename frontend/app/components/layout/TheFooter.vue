@@ -1,12 +1,12 @@
 <script setup lang="ts">
-const { t } = useI18n();
-const localePath = useLocalePath();
+const { t } = useI18n()
+const localePath = useLocalePath()
 
 const legalLinks = computed(() => [
-  { label: "Términos y Condiciones", to: "/terms" },
-  { label: "Política de Privacidad", to: "/privacy" },
-  { label: "Políticas de Cancelación", to: "/cancellation-policy" },
-]);
+  { label: 'Términos y Condiciones', to: '/terms' },
+  { label: 'Política de Privacidad', to: '/privacy' },
+  { label: 'Políticas de Cancelación', to: '/cancellation-policy' }
+])
 </script>
 
 <template>
@@ -24,10 +24,11 @@ const legalLinks = computed(() => [
         <!-- 1. Marca y Copyright -->
         <div class="space-y-4">
           <div class="flex items-center gap-2">
-            <UIcon name="i-lucide-telescope" class="w-6 h-6 text-primary" />
-            <span class="font-display font-bold text-xl text-white"
-              >Northern Chile</span
-            >
+            <UIcon
+              name="i-lucide-telescope"
+              class="w-6 h-6 text-primary"
+            />
+            <span class="font-display font-bold text-xl text-white">Northern Chile</span>
           </div>
           <p class="text-sm text-neutral-400 max-w-xs">
             Experiencias astronómicas premium bajo los cielos más claros del
@@ -37,7 +38,9 @@ const legalLinks = computed(() => [
 
         <!-- 2. Enlaces Legales (Los avisos que mencionaste) -->
         <div class="flex flex-col gap-2">
-          <h4 class="font-semibold text-white mb-2">Legal</h4>
+          <h4 class="font-semibold text-white mb-2">
+            Legal
+          </h4>
           <NuxtLink
             v-for="link in legalLinks"
             :key="link.to"
@@ -50,7 +53,9 @@ const legalLinks = computed(() => [
 
         <!-- 3. Redes Sociales -->
         <div class="flex flex-col md:items-end gap-4">
-          <h4 class="font-semibold text-white md:text-right">Síguenos</h4>
+          <h4 class="font-semibold text-white md:text-right">
+            Síguenos
+          </h4>
           <div class="flex gap-2">
             <UButton
               variant="ghost"
@@ -101,7 +106,10 @@ const legalLinks = computed(() => [
             class="font-medium text-neutral-300 hover:text-primary transition-colors flex items-center gap-1"
           >
             dalvae
-            <UIcon name="i-lucide-sparkles" class="w-3 h-3" />
+            <UIcon
+              name="i-lucide-sparkles"
+              class="w-3 h-3"
+            />
           </a>
         </div>
       </div>

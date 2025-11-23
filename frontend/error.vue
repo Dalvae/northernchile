@@ -117,7 +117,10 @@ const handleGoBack = () => {
       </div>
 
       <!-- Debug info (only in development) -->
-      <div v-if="$config.public.dev" class="mt-8 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-left text-xs">
+      <div
+        v-if="$config.public.dev"
+        class="mt-8 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-left text-xs"
+      >
         <p class="font-mono text-neutral-600 dark:text-neutral-400 mb-2">
           <strong>{{ t('error.debugInfo') }}:</strong>
         </p>

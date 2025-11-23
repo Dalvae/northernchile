@@ -118,9 +118,16 @@ const values = [
             <div class="col-span-2 atacama-card rounded-xl overflow-hidden h-64 relative group">
               <div class="absolute inset-0 bg-gradient-to-br from-primary-900/30 via-neutral-900/50 to-tertiary-900/30 flex items-center justify-center">
                 <div class="text-center space-y-3">
-                  <UIcon name="i-lucide-telescope" class="w-16 h-16 text-primary-400 mx-auto cobre-glow" />
-                  <p class="text-neutral-200 font-medium text-lg">Equipamiento Profesional</p>
-                  <p class="text-neutral-300 text-sm px-4">4 telescopios de alta gama</p>
+                  <UIcon
+                    name="i-lucide-telescope"
+                    class="w-16 h-16 text-primary-400 mx-auto cobre-glow"
+                  />
+                  <p class="text-neutral-200 font-medium text-lg">
+                    Equipamiento Profesional
+                  </p>
+                  <p class="text-neutral-300 text-sm px-4">
+                    4 telescopios de alta gama
+                  </p>
                 </div>
               </div>
             </div>
@@ -128,16 +135,25 @@ const values = [
             <!-- Tarjeta premio -->
             <div class="atacama-card rounded-xl p-6 relative group hover:bg-neutral-100/5 transition-all">
               <div class="flex flex-col items-center justify-center h-full space-y-3">
-                <UIcon name="i-lucide-award" class="w-12 h-12 text-primary-500 dark:text-primary-400 cobre-glow" />
-                <p class="text-neutral-200 text-center text-sm font-medium">Mejor Tour de Atacama</p>
+                <UIcon
+                  name="i-lucide-award"
+                  class="w-12 h-12 text-primary-500 dark:text-primary-400 cobre-glow"
+                />
+                <p class="text-neutral-200 text-center text-sm font-medium">
+                  Mejor Tour de Atacama
+                </p>
               </div>
             </div>
 
             <!-- Tarjeta experiencia -->
             <div class="atacama-card rounded-xl p-6 relative group hover:bg-neutral-100/5 transition-all">
               <div class="flex flex-col items-center justify-center h-full space-y-3">
-                <div class="text-4xl font-bold text-primary-500 dark:text-primary-400">15</div>
-                <p class="text-neutral-200 text-center text-sm font-medium">Años de Experiencia</p>
+                <div class="text-4xl font-bold text-primary-500 dark:text-primary-400">
+                  15
+                </div>
+                <p class="text-neutral-200 text-center text-sm font-medium">
+                  Años de Experiencia
+                </p>
               </div>
             </div>
           </div>
@@ -157,7 +173,10 @@ const values = [
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="atacama-card p-6 rounded-xl hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-colors group">
             <div class="w-14 h-14 rounded-full bg-primary-500/10 dark:bg-primary-500/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
-              <UIcon name="i-lucide-sparkles" class="w-7 h-7 text-primary-500 dark:text-primary-400" />
+              <UIcon
+                name="i-lucide-sparkles"
+                class="w-7 h-7 text-primary-500 dark:text-primary-400"
+              />
             </div>
             <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
               {{ t("about.values.experience_title") }}
@@ -169,7 +188,10 @@ const values = [
 
           <div class="atacama-card p-6 rounded-xl hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-colors group">
             <div class="w-14 h-14 rounded-full bg-primary-500/10 dark:bg-primary-500/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
-              <UIcon name="i-lucide-telescope" class="w-7 h-7 text-primary-500 dark:text-primary-400" />
+              <UIcon
+                name="i-lucide-telescope"
+                class="w-7 h-7 text-primary-500 dark:text-primary-400"
+              />
             </div>
             <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
               {{ t("about.values.equipment_title") }}
@@ -181,7 +203,10 @@ const values = [
 
           <div class="atacama-card p-6 rounded-xl hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-colors group">
             <div class="w-14 h-14 rounded-full bg-primary-500/10 dark:bg-primary-500/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
-              <UIcon name="i-lucide-award" class="w-7 h-7 text-primary-500 dark:text-primary-400" />
+              <UIcon
+                name="i-lucide-award"
+                class="w-7 h-7 text-primary-500 dark:text-primary-400"
+              />
             </div>
             <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
               {{ t("about.values.quality_title") }}
@@ -193,7 +218,10 @@ const values = [
 
           <div class="atacama-card p-6 rounded-xl hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-colors group">
             <div class="w-14 h-14 rounded-full bg-primary-500/10 dark:bg-primary-500/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
-              <UIcon name="i-lucide-mountain" class="w-7 h-7 text-primary-500 dark:text-primary-400" />
+              <UIcon
+                name="i-lucide-mountain"
+                class="w-7 h-7 text-primary-500 dark:text-primary-400"
+              />
             </div>
             <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
               {{ t("about.values.auditorium_title") }}
@@ -246,7 +274,10 @@ const values = [
                     :key="credential.text"
                     class="flex items-start gap-3 justify-center md:justify-start text-neutral-300 dark:text-neutral-300 hover:text-neutral-200 dark:hover:text-neutral-200 transition-colors"
                   >
-                    <UIcon :name="credential.icon" class="w-5 h-5 text-primary-500 dark:text-primary-400 flex-shrink-0 mt-0.5" />
+                    <UIcon
+                      :name="credential.icon"
+                      class="w-5 h-5 text-primary-500 dark:text-primary-400 flex-shrink-0 mt-0.5"
+                    />
                     <span class="text-sm md:text-base">{{ credential.text }}</span>
                   </div>
                 </div>

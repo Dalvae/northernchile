@@ -4,10 +4,10 @@
       <!-- Header -->
       <div class="flex justify-between items-center mb-6">
         <div>
-           <h1 class="text-3xl font-bold text-default">
+          <h1 class="text-3xl font-bold text-default">
             Alertas Climáticas
           </h1>
-           <p class="mt-1 text-sm text-muted">
+          <p class="mt-1 text-sm text-muted">
             Gestiona las alertas de condiciones climáticas adversas
           </p>
         </div>
@@ -44,12 +44,12 @@
               />
             </div>
             <div>
-                 <p class="text-sm text-muted">
+              <p class="text-sm text-muted">
                 Pendientes
               </p>
-<p class="text-2xl font-bold text-default">
-                 {{ stats.pending }}
-               </p>
+              <p class="text-2xl font-bold text-default">
+                {{ stats.pending }}
+              </p>
             </div>
           </div>
         </UCard>
@@ -63,12 +63,12 @@
               />
             </div>
             <div>
-                 <p class="text-sm text-muted">
+              <p class="text-sm text-muted">
                 Cancelados
               </p>
-<p class="text-2xl font-bold text-default">
-                 {{ stats.cancelled }}
-               </p>
+              <p class="text-2xl font-bold text-default">
+                {{ stats.cancelled }}
+              </p>
             </div>
           </div>
         </UCard>
@@ -82,12 +82,12 @@
               />
             </div>
             <div>
-                 <p class="text-sm text-muted">
+              <p class="text-sm text-muted">
                 Mantenidos
               </p>
-<p class="text-2xl font-bold text-default">
-                 {{ stats.kept }}
-               </p>
+              <p class="text-2xl font-bold text-default">
+                {{ stats.kept }}
+              </p>
             </div>
           </div>
         </UCard>
@@ -101,22 +101,22 @@
               />
             </div>
             <div>
-                 <p class="text-sm text-muted">
+              <p class="text-sm text-muted">
                 Reagendados
               </p>
-<p class="text-2xl font-bold text-default">
-                 {{ stats.rescheduled }}
-               </p>
+              <p class="text-2xl font-bold text-default">
+                {{ stats.rescheduled }}
+              </p>
             </div>
           </div>
         </UCard>
       </div>
 
       <!-- Filters -->
-       <div class="bg-elevated rounded-lg shadow-sm p-4 mb-6 border border-default">
+      <div class="bg-elevated rounded-lg shadow-sm p-4 mb-6 border border-default">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-             <label
+            <label
               class="block mb-2 text-sm font-medium text-default"
             >
               Estado
@@ -132,7 +132,7 @@
           </div>
 
           <div>
-             <label
+            <label
               class="block mb-2 text-sm font-medium text-default"
             >
               Severidad
@@ -148,7 +148,7 @@
           </div>
 
           <div>
-             <label
+            <label
               class="block mb-2 text-sm font-medium text-default"
             >
               Tipo
@@ -176,18 +176,18 @@
         />
       </div>
 
-       <div
+      <div
         v-else-if="filteredAlerts.length === 0"
         class="text-center py-12 bg-elevated rounded-lg border border-default"
       >
-         <UIcon
+        <UIcon
           name="i-lucide-check-circle"
           class="w-16 h-16 mx-auto mb-4 text-muted"
         />
-         <h3 class="mb-2 text-xl font-semibold text-default">
+        <h3 class="mb-2 text-xl font-semibold text-default">
           No hay alertas
         </h3>
-          <p class="text-muted">
+        <p class="text-muted">
           No se encontraron alertas con los filtros seleccionados
         </p>
       </div>
@@ -225,7 +225,7 @@
               </div>
 
               <h3
-                 class="mb-2 text-lg font-semibold text-default"
+                class="mb-2 text-lg font-semibold text-default"
               >
                 {{ alert.title }}
               </h3>
@@ -301,12 +301,12 @@
               <!-- Resolution info -->
               <div
                 v-if="alert.status !== 'PENDING' && alert.resolvedAt"
-                 class="mt-3 pt-3 border-t border-default"
+                class="mt-3 pt-3 border-t border-default"
               >
-                   <p class="text-sm text-muted">
+                <p class="text-sm text-muted">
                   <strong>Resolución:</strong> {{ alert.resolution }}
                 </p>
-                 <p class="mt-1 text-xs text-muted">
+                <p class="mt-1 text-xs text-muted">
                   Resuelto el {{ formatDate(alert.resolvedAt) }}
                 </p>
               </div>
@@ -356,9 +356,9 @@
         <div class="p-6">
           <!-- Header -->
           <div
-             class="flex items-center justify-between pb-4 border-b border-default"
+            class="flex items-center justify-between pb-4 border-b border-default"
           >
-             <h3 class="text-xl font-semibold text-default">
+            <h3 class="text-xl font-semibold text-default">
               Resolver Alerta
             </h3>
             <UButton
@@ -374,7 +374,7 @@
           <div class="py-4 space-y-4">
             <div>
               <p
-                 class="mb-1 text-sm font-medium text-default"
+                class="mb-1 text-sm font-medium text-default"
               >
                 Resolución seleccionada:
               </p>
@@ -387,11 +387,11 @@
 
             <div v-if="selectedAlert">
               <p
-                 class="mb-1 text-sm font-medium text-default"
+                class="mb-1 text-sm font-medium text-default"
               >
                 Alerta:
               </p>
-                 <p class="text-sm text-muted">
+              <p class="text-sm text-muted">
                 {{ selectedAlert.title }}
               </p>
             </div>
@@ -411,7 +411,7 @@
           </div>
 
           <!-- Footer -->
-           <div
+          <div
             class="flex justify-end gap-2 pt-4 border-t border-default"
           >
             <UButton

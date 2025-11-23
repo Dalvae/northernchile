@@ -115,7 +115,7 @@
                   class="text-primary"
                   :style="{
                     width: size * 0.55 + 'px',
-                    height: size * 0.55 + 'px',
+                    height: size * 0.55 + 'px'
                   }"
                 />
               </template>
@@ -127,7 +127,7 @@
                   class="text-primary"
                   :style="{
                     width: size * 0.55 + 'px',
-                    height: size * 0.55 + 'px',
+                    height: size * 0.55 + 'px'
                   }"
                 />
               </template>
@@ -139,7 +139,7 @@
                   class="text-primary"
                   :style="{
                     width: size * 0.55 + 'px',
-                    height: size * 0.55 + 'px',
+                    height: size * 0.55 + 'px'
                   }"
                 />
               </template>
@@ -151,7 +151,7 @@
                   class="text-primary"
                   :style="{
                     width: size * 0.55 + 'px',
-                    height: size * 0.55 + 'px',
+                    height: size * 0.55 + 'px'
                   }"
                 />
               </template>
@@ -164,6 +164,6 @@
 </template>
 
 <script setup lang="ts">
-const { t } = useI18n();
-const localePath = useLocalePath();
+const { t } = useI18n()
+const localePath = useLocalePath()
 </script>

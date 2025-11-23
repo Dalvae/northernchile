@@ -1,52 +1,52 @@
 <script setup lang="ts">
-import { useAuthStore } from "~/stores/auth";
+import { useAuthStore } from '~/stores/auth'
 
 const props = defineProps<{
-  links: { label: string; to: string }[];
-}>();
+  links: { label: string, to: string }[]
+}>()
 
 const emit = defineEmits<{
-  close: [];
-}>();
+  close: []
+}>()
 
-const { t, locales, locale: currentLocale } = useI18n();
-const switchLocalePath = useSwitchLocalePath();
-const authStore = useAuthStore();
-const cartStore = useCartStore();
-const localePath = useLocalePath();
-const { themes, setTheme, currentTheme } = useTheme();
+const { t, locales, locale: currentLocale } = useI18n()
+const switchLocalePath = useSwitchLocalePath()
+const authStore = useAuthStore()
+const cartStore = useCartStore()
+const localePath = useLocalePath()
+const { themes, setTheme, currentTheme } = useTheme()
 
-const cartItemsCount = computed(() => cartStore.totalItems);
-const isAdmin = computed(() => authStore.isAdmin);
+const cartItemsCount = computed(() => cartStore.totalItems)
+const isAdmin = computed(() => authStore.isAdmin)
 
 const accordionItems = [
   {
-    label: t("nav.language"),
-    slot: "language",
-    defaultOpen: false,
+    label: t('nav.language'),
+    slot: 'language',
+    defaultOpen: false
   },
   {
-    label: t("nav.theme"),
-    slot: "theme",
-    defaultOpen: false,
-  },
-];
+    label: t('nav.theme'),
+    slot: 'theme',
+    defaultOpen: false
+  }
+]
 
 function handleClose() {
-  emit("close");
+  emit('close')
 }
 
 async function handleLogout() {
-  handleClose();
-  await authStore.logout();
+  handleClose()
+  await authStore.logout()
 }
 
 function formatThemeName(theme: string) {
   return theme
-    .replace("atacama-", "")
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+    .replace('atacama-', '')
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
 }
 </script>
 
@@ -121,7 +121,7 @@ function formatThemeName(theme: string) {
             trigger:
               'py-5 text-xl font-medium text-neutral-300 hover:text-white flex items-center justify-between w-full group shadow-none focus-visible:ring-0 bg-transparent',
             trailingIcon:
-              'w-5 h-5 text-neutral-600 group-hover:text-white transition-transform duration-200 ms-auto',
+              'w-5 h-5 text-neutral-600 group-hover:text-white transition-transform duration-200 ms-auto'
           }"
         >
           <!-- Slot por defecto para el LABEL (el texto de la izquierda) -->
@@ -177,7 +177,9 @@ function formatThemeName(theme: string) {
                   />
                 </button>
                 <template #fallback>
-                  <div class="py-2 px-4 text-neutral-500">Cargando...</div>
+                  <div class="py-2 px-4 text-neutral-500">
+                    Cargando...
+                  </div>
                 </template>
               </ClientOnly>
             </div>
@@ -189,7 +191,10 @@ function formatThemeName(theme: string) {
     <!-- Footer Auth -->
     <div class="p-6 border-t border-white/10 bg-neutral-900/30">
       <ClientOnly>
-        <div v-if="authStore.isAuthenticated" class="space-y-4">
+        <div
+          v-if="authStore.isAuthenticated"
+          class="space-y-4"
+        >
           <div class="flex items-center gap-4 mb-4">
             <div
               class="w-12 h-12 rounded-full bg-primary-900/30 border border-primary-500/30 flex items-center justify-center text-primary-400 font-bold text-xl"
@@ -252,12 +257,15 @@ function formatThemeName(theme: string) {
             @click="handleClose"
           >
             {{ t("nav.login") }}
-            <UIcon name="i-lucide-arrow-right" class="ml-2 w-5 h-5" />
+            <UIcon
+              name="i-lucide-arrow-right"
+              class="ml-2 w-5 h-5"
+            />
           </UButton>
         </div>
 
         <template #fallback>
-          <div class="h-14 bg-white/10 rounded-xl animate-pulse"></div>
+          <div class="h-14 bg-white/10 rounded-xl animate-pulse" />
         </template>
       </ClientOnly>
     </div>

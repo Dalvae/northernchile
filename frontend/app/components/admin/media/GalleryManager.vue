@@ -220,8 +220,14 @@ watch(() => [props.tourId, props.scheduleId], () => {
     </div>
 
     <!-- Loading state -->
-    <div v-if="loading" class="flex justify-center py-8">
-      <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-neutral-300" />
+    <div
+      v-if="loading"
+      class="flex justify-center py-8"
+    >
+      <UIcon
+        name="i-heroicons-arrow-path"
+        class="w-6 h-6 animate-spin text-neutral-300"
+      />
     </div>
 
     <!-- Empty state -->
@@ -229,7 +235,10 @@ watch(() => [props.tourId, props.scheduleId], () => {
       v-else-if="gallery.length === 0"
       class="text-center py-12 border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-lg"
     >
-      <UIcon name="i-heroicons-photo" class="w-12 h-12 mx-auto mb-4 text-neutral-300" />
+      <UIcon
+        name="i-heroicons-photo"
+        class="w-12 h-12 mx-auto mb-4 text-neutral-300"
+      />
       <p class="text-neutral-600 dark:text-neutral-300 mb-4">
         No hay fotos en la galería
       </p>
@@ -255,7 +264,10 @@ watch(() => [props.tourId, props.scheduleId], () => {
     </div>
 
     <!-- Gallery grid -->
-    <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div
+      v-else
+      class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+    >
       <div
         v-for="(item, index) in gallery"
         :key="item.id"
@@ -278,7 +290,10 @@ watch(() => [props.tourId, props.scheduleId], () => {
           variant="solid"
           class="absolute top-2 left-2"
         >
-          <UIcon name="i-heroicons-star-solid" class="w-3 h-3" />
+          <UIcon
+            name="i-heroicons-star-solid"
+            class="w-3 h-3"
+          />
           Portada
         </UBadge>
 
@@ -289,7 +304,10 @@ watch(() => [props.tourId, props.scheduleId], () => {
           variant="solid"
           class="absolute top-2 left-2"
         >
-          <UIcon name="i-heroicons-heart-solid" class="w-3 h-3" />
+          <UIcon
+            name="i-heroicons-heart-solid"
+            class="w-3 h-3"
+          />
           Destacada
         </UBadge>
 
@@ -300,7 +318,10 @@ watch(() => [props.tourId, props.scheduleId], () => {
           variant="soft"
           class="absolute top-2 right-2"
         >
-          <UIcon name="i-heroicons-arrow-down-tray" class="w-3 h-3" />
+          <UIcon
+            name="i-heroicons-arrow-down-tray"
+            class="w-3 h-3"
+          />
           Del Tour
         </UBadge>
 

@@ -382,7 +382,6 @@ async function bulkDelete() {
             </UBadge>
           </div>
         </template>
-
       </UTable>
 
       <!-- Pagination -->

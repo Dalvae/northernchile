@@ -13,7 +13,7 @@
           :src="imageSrc"
           :alt="title"
           class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          :loading="isLCP ? 'eager' : 'lazy'" 
+          :loading="isLCP ? 'eager' : 'lazy'"
           :fetchpriority="isLCP ? 'high' : 'auto'"
           format="webp"
           sizes="100vw sm:50vw md:400px"
@@ -28,7 +28,7 @@
         <!-- Badges (Top) -->
         <div class="absolute top-4 left-4 right-4 flex justify-between items-start">
           <div v-if="showCategory && categoryLabel">
-             <UBadge
+            <UBadge
               :color="categoryColor"
               variant="solid"
               size="md"
@@ -37,7 +37,7 @@
               {{ categoryLabel }}
             </UBadge>
           </div>
-          
+
           <div
             v-if="showSensitivityBadges && (tour.moonSensitive || tour.windSensitive)"
             class="flex gap-1"
@@ -84,9 +84,9 @@
           >
             {{ title }}
           </h3>
-          
+
           <div class="h-0 overflow-hidden group-hover:h-auto transition-all duration-500 opacity-0 group-hover:opacity-100">
-             <p
+            <p
               v-if="showDescription && description"
               class="text-sm text-neutral-200 line-clamp-3 mb-4"
             >
@@ -103,22 +103,28 @@
               v-if="tour.durationHours"
               class="flex items-center gap-1"
             >
-              <UIcon name="i-lucide-clock" class="w-4 h-4 text-primary" />
+              <UIcon
+                name="i-lucide-clock"
+                class="w-4 h-4 text-primary"
+              />
               <span>{{ $t('tours.duration_hours', { hours: tour.durationHours }) }}</span>
             </div>
 
-             <div
+            <div
               v-if="(tour as any).maxParticipants != null"
               class="flex items-center gap-1"
-             >
-              <UIcon name="i-lucide-users" class="w-4 h-4 text-primary" />
+            >
+              <UIcon
+                name="i-lucide-users"
+                class="w-4 h-4 text-primary"
+              />
               <span>{{ $t('tours.max_participants', { count: (tour as any).maxParticipants }) }}</span>
             </div>
           </div>
-          
+
           <!-- Price and Action -->
           <div class="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
-             <div v-if="showPrice">
+            <div v-if="showPrice">
               <p class="text-xs text-neutral-300 uppercase tracking-wider">
                 {{ $t('tours.price_from') }}
               </p>
@@ -126,7 +132,7 @@
                 {{ formatPrice(tour.price) }}
               </p>
             </div>
-            
+
             <UButton
               icon="i-lucide-arrow-right"
               variant="ghost"

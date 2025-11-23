@@ -1,6 +1,6 @@
-export { default as Dock } from "./Dock.vue";
-export { default as DockIcon } from "./DockIcon.vue";
-export { default as DockSeparator } from "./DockSeparator.vue";
+export { default as Dock } from './Dock.vue'
+export { default as DockIcon } from './DockIcon.vue'
+export { default as DockSeparator } from './DockSeparator.vue'
 
 // Re-export types for convenience
-export * from "./types";
+export * from './types'
