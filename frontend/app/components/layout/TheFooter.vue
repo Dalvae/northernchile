@@ -30,7 +30,7 @@ const legalLinks = computed(() => [
             />
             <span class="font-display font-bold text-xl text-white">Northern Chile</span>
           </div>
-          <p class="text-sm text-neutral-400 max-w-xs">
+          <p class="text-sm text-neutral-300 max-w-xs">
             Experiencias astronómicas premium bajo los cielos más claros del
             planeta. San Pedro de Atacama, Chile.
           </p>
@@ -38,14 +38,14 @@ const legalLinks = computed(() => [
 
         <!-- 2. Enlaces Legales (Los avisos que mencionaste) -->
         <div class="flex flex-col gap-2">
-          <h4 class="font-semibold text-white mb-2">
+          <h3 class="font-semibold text-white mb-2">
             Legal
-          </h4>
+          </h3>
           <NuxtLink
             v-for="link in legalLinks"
             :key="link.to"
             :to="localePath(link.to)"
-            class="text-sm text-neutral-400 hover:text-primary transition-colors w-fit"
+            class="text-sm text-neutral-300 hover:text-primary transition-colors w-fit"
           >
             {{ link.label }}
           </NuxtLink>
@@ -53,9 +53,9 @@ const legalLinks = computed(() => [
 
         <!-- 3. Redes Sociales -->
         <div class="flex flex-col md:items-end gap-4">
-          <h4 class="font-semibold text-white md:text-right">
+          <h3 class="font-semibold text-white md:text-right">
             Síguenos
-          </h4>
+          </h3>
           <div class="flex gap-2">
             <UButton
               variant="ghost"
@@ -89,7 +89,7 @@ const legalLinks = computed(() => [
       </div>
 
       <div
-        class="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-neutral-500"
+        class="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-neutral-400"
       >
         <p>
           © {{ new Date().getFullYear() }} Northern Chile. Todos los derechos
@@ -103,7 +103,7 @@ const legalLinks = computed(() => [
             href="https://portfolio.dalvae.cl/"
             target="_blank"
             rel="noopener noreferrer"
-            class="font-medium text-neutral-300 hover:text-primary transition-colors flex items-center gap-1"
+            class="font-medium text-neutral-200 hover:text-primary transition-colors flex items-center gap-1"
           >
             dalvae
             <UIcon

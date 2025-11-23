@@ -94,6 +94,7 @@ const items = computed(() => [
                 color="neutral"
                 class="p-0 text-base sm:text-lg text-primary-400 hover:text-primary transition-colors group"
                 :to="localePath('/about')"
+                :aria-label="`${t('home.experience.learn_more')} - ${item.title}`"
               >
                 {{ t("home.experience.learn_more") }}
                 <UIcon
