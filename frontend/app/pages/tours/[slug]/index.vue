@@ -2,10 +2,12 @@
 import { ref, computed, watch } from 'vue'
 import type { TourRes } from 'api-client'
 import { useCalendarData } from '~/composables/useCalendarData'
+import { useCurrency } from '~/composables/useCurrency'
 
 const route = useRoute()
 const { locale } = useI18n()
 const localePath = useLocalePath()
+const { formatPrice } = useCurrency()
 const tourSlug = route.params.slug as string
 
 const {
@@ -115,12 +117,11 @@ const seoDescription = computed(() => {
   return `Descubre ${translatedName.value} en San Pedro de Atacama con Northern Chile Tours`
 })
 
-const { getSocialImage } = useSocialMeta()
-
-const seoImage = computed(() => {
-  const hero = tour.value?.images?.[0]?.imageUrl
-  // Si el tour tiene foto, usa esa. Si no, getSocialImage usará la default internamente.
-  return getSocialImage(hero)
+defineOgImageComponent('Tour', {
+  title: translatedName.value,
+  price: formatPrice(tour.value?.price),
+  image: heroImage.value,
+  category: tour.value?.category === 'ASTRONOMICAL' ? 'Astronomía' : 'Aventura'
 })
 
 useSeoMeta({
@@ -128,12 +129,10 @@ useSeoMeta({
   description: seoDescription,
   ogTitle: () => `${translatedName.value} - Tours Astronómicos en Atacama`,
   ogDescription: seoDescription,
-  ogImage: seoImage,
   ogType: 'website',
   twitterCard: 'summary_large_image',
   twitterTitle: () => `${translatedName.value} - Northern Chile Tours`,
-  twitterDescription: seoDescription,
-  twitterImage: seoImage
+  twitterDescription: seoDescription
 })
 
 // JSON-LD Structured Data for SEO (Schema.org Product)

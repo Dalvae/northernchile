@@ -80,13 +80,17 @@ const getTourImage = (tour: TourRes) => {
   return hero || first || '/images/tour-placeholder.svg'
 }
 
-const { getSocialImage } = useSocialMeta()
+defineOgImageComponent('Tour', {
+  title: t('tours.all'),
+  category: 'Catálogo',
+  image: '/images/catalogo-cover.jpg',
+  price: 'Todos los Tours'
+})
 
 useSeoMeta({
   title: () => `${t('tours.all')} - Northern Chile`,
   description: () => t('tours.seo_description'),
   ogTitle: () => `${t('tours.all')} - Northern Chile`,
-  ogImage: getSocialImage('/images/catalogo-cover.jpg'),
   twitterCard: 'summary_large_image'
 })
 </script>

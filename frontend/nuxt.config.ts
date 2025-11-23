@@ -14,7 +14,7 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxt/image',
     'nuxt-gtag',
-    '@nuxtjs/sitemap',
+    '@nuxtjs/seo',
     'nuxt-vitalizer'
   ],
 
@@ -254,44 +254,49 @@ export default defineNuxtConfig({
     }
   },
 
-  sitemap: {
-    hostname:
-      process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.cl',
-    gzip: true,
-    routes: async () => {
-      // Fetch dynamic tour routes from API
-      try {
-        const tours = await $fetch<any[]>(`${apiBaseUrl}/api/tours/published`)
-        const locales = ['es', 'en', 'pt']
+  site: {
+    url: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.cl',
+    name: 'Northern Chile Tours',
+    description: 'Tours astronómicos y expediciones en San Pedro de Atacama.',
+    defaultLocale: 'es',
+  },
 
-        return tours.flatMap((tour) => {
-          // Generate routes for each locale
-          return locales.map((locale) => {
-            const path
-              = locale === 'es'
-                ? `/tours/${tour.slug}`
-                : `/${locale}/tours/${tour.slug}`
-
-            return {
-              url: path,
-              changefreq: 'weekly',
-              priority: 0.8,
-              lastmod: tour.updatedAt || new Date().toISOString()
-            }
-          })
-        })
-      } catch (error) {
-        console.error('Error fetching tours for sitemap:', error)
-        return []
-      }
-    },
-    exclude: [
-      '/admin/**',
-      '/profile/**',
-      '/auth',
+  robots: {
+    disallow: [
+      '/admin',
+      '/profile',
+      '/bookings',
       '/cart',
       '/checkout',
-      '/payment/**'
+      '/auth',
+      '/payment'
+    ],
+  },
+
+  sitemap: {
+    sources: [
+      '/api/__sitemap__/urls'
+    ],
+    exclude: ['/admin/**', '/profile/**']
+  },
+
+  schemaOrg: {
+    identity: {
+      type: 'Organization',
+      name: 'Northern Chile Tours',
+      url: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.cl',
+      logo: '/images/logo.png'
+    }
+  },
+
+  ogImage: {
+    defaults: {
+      renderer: 'satori',
+    },
+    fonts: [
+      'Inter:400',
+      'Inter:700',
+      'Playfair+Display:700'
     ]
   },
 

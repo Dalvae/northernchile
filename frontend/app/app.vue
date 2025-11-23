@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import '~/assets/css/main.css'
 
-const { getSocialImage } = useSocialMeta()
+defineOgImageComponent('Tour', {
+  title: 'Northern Chile Tours',
+  category: 'Experiencias',
+  image: '/images/hero-bg.jpg',
+  price: 'San Pedro de Atacama'
+})
 
 useSeoMeta({
   titleTemplate: (titleChunk) => {
@@ -11,9 +16,7 @@ useSeoMeta({
   },
   ogSiteName: 'Northern Chile Tours',
   ogType: 'website',
-  twitterCard: 'summary_large_image',
-  ogImage: getSocialImage(),
-  twitterImage: getSocialImage()
+  twitterCard: 'summary_large_image'
 })
 </script>
 
