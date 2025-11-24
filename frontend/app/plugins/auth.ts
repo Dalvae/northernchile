@@ -12,12 +12,18 @@ export default defineNuxtPlugin((nuxtApp) => {
       }
     })
 
-    // Interceptor para fetch
+    // Interceptor para fetch - automatically include cookies
     const originalFetch = globalThis.$fetch
 
-    const wrappedFetch = (async (...args: any[]) => {
+    const wrappedFetch = (async (url: any, options: any = {}) => {
+      // Ensure credentials are included for cookie-based auth
+      const enhancedOptions = {
+        ...options,
+        credentials: options.credentials || 'include'
+      }
+
       try {
-        return await (originalFetch as any)(...args)
+        return await (originalFetch as any)(url, enhancedOptions)
       } catch (error: any) {
         if (error?.statusCode === 401 || error?.response?.status === 401) {
           authStore.logout()

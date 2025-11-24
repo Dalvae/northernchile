@@ -4,10 +4,14 @@ import com.northernchile.api.auth.dto.LoginReq;
 import com.northernchile.api.auth.dto.PasswordResetDto;
 import com.northernchile.api.auth.dto.PasswordResetRequestDto;
 import com.northernchile.api.auth.dto.RegisterReq;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,8 +26,27 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginReq loginReq) {
-        return ResponseEntity.ok(authService.login(loginReq));
+    public ResponseEntity<?> login(@Valid @RequestBody LoginReq loginReq, HttpServletResponse response) {
+        Map<String, Object> loginResponse = authService.login(loginReq);
+
+        // Extract token from response
+        String token = (String) loginResponse.get("token");
+
+        // Create HttpOnly cookie with JWT token using ResponseCookie
+        ResponseCookie jwtCookie = ResponseCookie.from("auth_token", token)
+                .httpOnly(true)
+                .secure(true) // Only send over HTTPS (disable in dev if needed)
+                .path("/")
+                .maxAge(Duration.ofHours(24))
+                .sameSite("Lax") // CSRF protection
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+
+        // Remove token from response body (security best practice)
+        loginResponse.remove("token");
+
+        return ResponseEntity.ok(loginResponse);
     }
 
     @PostMapping("/register")
@@ -101,5 +124,26 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Failed to send verification email."));
         }
+    }
+
+    /**
+     * Logout - clears the auth cookie
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        // Clear the auth_token cookie by setting MaxAge to 0
+        ResponseCookie jwtCookie = ResponseCookie.from("auth_token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.ZERO) // Delete cookie
+                .sameSite("Lax")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+
+        Map<String, String> responseBody = new HashMap<>();
+        responseBody.put("message", "Logged out successfully");
+        return ResponseEntity.ok(responseBody);
     }
 }

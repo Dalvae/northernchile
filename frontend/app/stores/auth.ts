@@ -11,63 +11,15 @@ interface User {
   authProvider?: string
 }
 
-interface JwtPayload {
-  sub: string
-  email: string
-  fullName: string
-  role: string
-  iat?: number
-  exp?: number
-  [key: string]: unknown
-}
-
-function decodeJwtPayload(token: string): JwtPayload | null {
-  try {
-    const payloadBase64 = token.split('.')[1]
-    if (!payloadBase64) return null
-    const decodedJson = atob(
-      payloadBase64.replace(/-/g, '+').replace(/_/g, '/')
-    )
-    return JSON.parse(decodedJson) as JwtPayload
-  } catch (error) {
-    return null
-  }
-}
-
-function getFromStorage<T = unknown>(key: string): T | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const item = localStorage.getItem(key)
-    return item ? (JSON.parse(item) as T) : null
-  } catch {
-    return null
-  }
-}
-
-function setToStorage<T = unknown>(key: string, value: T | null): void {
-  if (typeof window === 'undefined') return
-  try {
-    if (value === null) {
-      localStorage.removeItem(key)
-    } else {
-      localStorage.setItem(key, JSON.stringify(value))
-    }
-  } catch (error) {
-    console.error('Error saving to localStorage:', error)
-  }
-}
-
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    token: null as string | null,
     user: null as User | null,
     loading: true
   }),
 
   getters: {
-    // `isAuthenticated` ahora es un getter que reacciona a los cambios en `token`.
     isAuthenticated(state): boolean {
-      return !!state.token && !!state.user
+      return !!state.user
     },
     isAdmin(state): boolean {
       if (!state.user?.role) return false
@@ -86,47 +38,23 @@ export const useAuthStore = defineStore('auth', {
         const config = useRuntimeConfig()
         const apiBase = config.public.apiBase
 
-        // Llamada directa al backend Java
+        // Call backend - token will be set in HttpOnly cookie automatically
         const response = await $fetch<any>(`${apiBase}/api/auth/login`, {
           method: 'POST',
-          body: credentials
+          body: credentials,
+          credentials: 'include' // Important: include cookies in request
         })
 
-        if (response && response.token) {
-          // Guardar en el state y en localStorage
-          this.token = response.token
-          // Save token as plain string (not JSON stringified)
-          if (import.meta.client) {
-            localStorage.setItem('auth_token', response.token)
-          }
-
-          // Backend now returns user object in response - use it directly
-          if (response.user) {
-            this.user = {
-              id: response.user.id,
-              email: response.user.email,
-              fullName: response.user.fullName,
-              role: response.user.role, // Now singular string from backend
-              nationality: response.user.nationality,
-              phoneNumber: response.user.phoneNumber,
-              dateOfBirth: response.user.dateOfBirth
-            }
-            setToStorage('user', this.user)
-          } else {
-            // Fallback: decode from JWT if user not in response (shouldn't happen with new backend)
-            const payload = decodeJwtPayload(response.token)
-            if (payload) {
-              // JWT still has roles as array (Spring Security convention)
-              // Extract first role or use default
-              const roleFromJwt = Array.isArray(payload.roles) ? payload.roles[0] : payload.roles
-              this.user = {
-                id: payload.userId || payload.sub,
-                email: payload.email,
-                fullName: payload.fullName || '',
-                role: roleFromJwt || 'ROLE_CLIENT'
-              }
-              setToStorage('user', this.user)
-            }
+        // Backend now returns user object (token is in cookie, not in response)
+        if (response && response.user) {
+          this.user = {
+            id: response.user.id,
+            email: response.user.email,
+            fullName: response.user.fullName,
+            role: response.user.role,
+            nationality: response.user.nationality,
+            phoneNumber: response.user.phoneNumber,
+            dateOfBirth: response.user.dateOfBirth
           }
 
           toast.add({
@@ -193,16 +121,23 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async logout() {
-      // Limpiar state y localStorage
-      this.token = null
-      this.user = null
-      // Remove token as plain string
-      if (import.meta.client) {
-        localStorage.removeItem('auth_token')
-      }
-      setToStorage('user', null)
+      try {
+        const config = useRuntimeConfig()
+        const apiBase = config.public.apiBase
 
-      // Solo redirigir si estamos en el cliente y no estamos ya en /auth
+        // Call backend logout to clear cookie
+        await $fetch(`${apiBase}/api/auth/logout`, {
+          method: 'POST',
+          credentials: 'include'
+        })
+      } catch (error) {
+        console.error('Logout error:', error)
+      }
+
+      // Clear user state
+      this.user = null
+
+      // Redirect to auth page if not already there
       if (import.meta.client) {
         const currentPath = window.location.pathname
         if (!currentPath.startsWith('/auth')) {
@@ -213,19 +148,13 @@ export const useAuthStore = defineStore('auth', {
 
     // Cargar datos completos del usuario desde el backend
     async fetchUser() {
-      if (!this.token) {
-        return
-      }
-
       try {
         const config = useRuntimeConfig()
         const apiBase = config.public.apiBase
 
         const response = await $fetch<any>(`${apiBase}/api/profile/me`, {
           method: 'GET',
-          headers: {
-            Authorization: `Bearer ${this.token}`
-          }
+          credentials: 'include' // Cookie will be sent automatically
         })
 
         if (response) {
@@ -233,79 +162,29 @@ export const useAuthStore = defineStore('auth', {
             id: response.id,
             email: response.email,
             fullName: response.fullName,
-            role: response.role, // Backend returns singular string
+            role: response.role,
             nationality: response.nationality,
             phoneNumber: response.phoneNumber,
             dateOfBirth: response.dateOfBirth,
             authProvider: response.authProvider
           }
-          setToStorage('user', this.user)
         }
       } catch (error) {
         console.error('[Auth] Error fetching user profile:', error)
+        // If fetch fails (e.g., 401), clear user state
+        this.user = null
       }
     },
 
-    // Inicializar desde localStorage al cargar la app
-    initializeAuth() {
+    // Initialize auth by fetching user from backend (cookie-based)
+    async initializeAuth() {
       this.loading = true
       try {
-        // Cargar desde localStorage si está disponible
-        // Read token as plain string (not JSON parsed)
-        const savedToken = import.meta.client ? localStorage.getItem('auth_token') : null
-        const savedUser = getFromStorage('user')
-
-        if (savedToken) {
-          const payload = decodeJwtPayload(savedToken)
-          if (payload && payload.exp) {
-            const currentTime = Math.floor(Date.now() / 1000)
-            if (payload.exp < currentTime) {
-              // Token expirado
-              this.token = null
-              this.user = null
-              if (import.meta.client) {
-                localStorage.removeItem('auth_token')
-              }
-              setToStorage('user', null)
-            } else {
-              // Token válido
-              this.token = savedToken
-
-              // Sincronizar user desde localStorage o decodificar del token
-              if (savedUser && savedUser.role) {
-                this.user = savedUser
-              } else {
-                // Reconstruir desde el token si no hay user en localStorage
-                // JWT still has roles as array (Spring Security convention)
-                const roleFromJwt = Array.isArray(payload.roles) ? payload.roles[0] : payload.roles
-                this.user = {
-                  id: payload.userId || payload.sub,
-                  email: payload.email,
-                  fullName: payload.fullName || '',
-                  role: roleFromJwt || 'ROLE_CLIENT'
-                }
-                setToStorage('user', this.user)
-              }
-            }
-          } else {
-            // Token inválido
-            this.token = null
-            this.user = null
-            if (import.meta.client) {
-              localStorage.removeItem('auth_token')
-            }
-            setToStorage('user', null)
-          }
-        } else {
-        }
+        // Try to fetch user profile - if cookie exists, backend will authenticate
+        await this.fetchUser()
       } catch (error) {
         console.error('[Auth] Error in initializeAuth:', error)
-        this.token = null
         this.user = null
-        if (import.meta.client) {
-          localStorage.removeItem('auth_token')
-        }
-        setToStorage('user', null)
       } finally {
         this.loading = false
       }
