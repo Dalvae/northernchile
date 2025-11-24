@@ -718,5 +718,80 @@
       "title": "Algo deu errado",
       "message": "Nosso sistema está enfrentando dificuldades. Estamos trabalhando para resolver. Tente novamente em alguns instantes."
     }
+  },
+  "legal": {
+    "terms": {
+      "title": "Termos e Condições",
+      "last_updated": "Última atualização: Novembro 2025",
+      "intro": "Bem-vindo à Northern Chile. Ao reservar nossos serviços, você concorda com os seguintes termos e condições, regidos pela Lei do Consumidor (19.496) e pela Lei de Proteção de Dados Pessoais (21.719) da República do Chile.",
+      "sections": [
+        {
+          "title": "1. Reservas, Preços e Pagamentos",
+          "content": "Para confirmar uma reserva, é necessário o pagamento integral ou o depósito indicado no checkout. Todos os preços estão em Pesos Chilenos (CLP) e incluem IVA (19%). Aceitamos Webpay Plus, PIX e cartões internacionais. A reserva só é aperfeiçoada após o recebimento do comprovante (voucher) em seu e-mail."
+        },
+        {
+          "title": "2. Exclusão do Direito de Arrependimento",
+          "content": "IMPORTANTE: Conforme o artigo 3 bis, letra b) da Lei N° 19.496, a Northern Chile declara expressamente que na contratação de seus serviços turísticos NÃO se aplica o direito de arrependimento (desistência unilateral sem causa em 10 dias). As devoluções serão regidas exclusivamente por nossas Políticas de Cancelamento."
+        },
+        {
+          "title": "3. Saúde e Responsabilidade do Passageiro",
+          "content": "Os passeios ocorrem entre 2.400 e 4.300 metros acima do nível do mar. É obrigação do passageiro declarar condições médicas pré-existentes antes de contratar. A Northern Chile não se responsabiliza por problemas de saúde decorrentes da altitude se o cliente omitiu tal informação. Reservamo-nos o direito de admissão por conduta insegura ou influência de substâncias."
+        },
+        {
+          "title": "4. Conduta e 'Não Deixe Rastros'",
+          "content": "Aderimos estritamente aos princípios do turismo sustentável. É proibido extrair material geológico, alimentar a fauna ou deixar resíduos. O descumprimento pode resultar na expulsão do passeio sem reembolso e denúncia às autoridades, se aplicável."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Política de Privacidade e Proteção de Dados",
+      "intro": "Em conformidade com a Lei 21.719, a Northern Chile garante a confidencialidade, integridade e disponibilidade dos seus dados pessoais.",
+      "sections": [
+        {
+          "title": "1. Controlador de Dados e Consentimento",
+          "content": "A Northern Chile (San Pedro de Atacama) é a responsável pelo tratamento dos seus dados. A base legal para o tratamento é a execução do contrato de serviço turístico e seu consentimento explícito e informado no momento da reserva."
+        },
+        {
+          "title": "2. Dados Coletados e Finalidade",
+          "content": "Coletamos: Identificação (Nome, RG/Passaporte), Contato (E-mail, Telefone) e Dados de Saúde (apenas se relevante para segurança em altitude). A finalidade é exclusivamente operacional (gestão de reservas), comercial (envio de vouchers) e de segurança. Não cedemos nem vendemos dados a terceiros, salvo obrigação legal."
+        },
+        {
+          "title": "3. Direitos ARCOP (Seus Direitos)",
+          "content": "Você tem direito a: Acesso (saber quais dados temos), Retificação (corrigir erros), Cancelamento (apagar seus dados), Oposição (negar certo uso) e Portabilidade (levar seus dados). Para exercê-los, escreva para nosso Encarregado de Proteção de Dados em contacto{'@'}northernchile.cl. Responderemos nos prazos legais."
+        },
+        {
+          "title": "4. Segurança e Notificação de Incidentes",
+          "content": "Implementamos protocolos de segurança SSL/TLS e acesso restrito. No improvável caso de uma violação de segurança que afete seus direitos, notificaremos a autoridade competente e os afetados conforme estipulado na Lei 21.719."
+        }
+      ]
+    },
+    "cancellation": {
+      "title": "Políticas de Cancelamento e Reembolso",
+      "intro": "Nossas políticas são projetadas para serem justas tanto para o viajante quanto para a operação logística local.",
+      "summary": {
+        "more_than_24h": {
+          "title": "Mais de 24 horas",
+          "description": "Reembolso de 100% ou reagendamento gratuito. Sem perguntas."
+        },
+        "less_than_24h": {
+          "title": "Menos de 24 horas",
+          "description": "Sem reembolso. Considerado No-Show pois as vagas foram bloqueadas."
+        }
+      },
+      "sections": [
+        {
+          "title": "1. Cancelamento pelo Cliente (Regra 24h)",
+          "content": "Reembolso de 100%: Se cancelar com MAIS de 24 horas de antecedência ao início do tour. Sem Reembolso: Se cancelar com MENOS de 24 horas ou não comparecer (No-Show), pois as vagas e a logística já foram pagas."
+        },
+        {
+          "title": "2. Cancelamento por Força Maior (Clima/Autoridade)",
+          "content": "Se a Northern Chile precisar cancelar devido ao clima adverso (vento >25 nós, nebulosidade total na astronomia) ou fechamento de parques, o cliente tem direito a: a) Reagendar sem custo, ou b) Reembolso total (100%) do dinheiro pago."
+        },
+        {
+          "title": "3. Prazos de Devolução",
+          "content": "Os reembolsos aprovados são processados internamente em 24 horas úteis. Dependendo do seu banco ou método de pagamento (Webpay/Mercado Pago), o dinheiro pode levar entre 5 a 10 dias úteis para refletir em sua conta."
+        }
+      ]
+    }
   }
 }

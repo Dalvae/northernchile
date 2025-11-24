@@ -718,5 +718,80 @@
       "title": "Something went wrong",
       "message": "Our system is experiencing difficulties. We're working to resolve it. Please try again in a few moments."
     }
+  },
+  "legal": {
+    "terms": {
+      "title": "Terms and Conditions",
+      "last_updated": "Last updated: November 2025",
+      "intro": "Welcome to Northern Chile. By booking our services, you agree to the following terms and conditions, governed by the Consumer Law (19.496) and the Personal Data Protection Law (21.719) of the Republic of Chile.",
+      "sections": [
+        {
+          "title": "1. Reservations, Prices, and Payments",
+          "content": "To confirm a reservation, full payment or the deposit indicated at checkout is required. All prices are in Chilean Pesos (CLP) and include VAT (19%). We accept Webpay Plus, PIX, and international cards. The reservation is only perfected upon receipt of the voucher in your email."
+        },
+        {
+          "title": "2. Exclusion of the Right of Withdrawal",
+          "content": "IMPORTANT: Pursuant to article 3 bis, letter b) of Law No. 19.496, Northern Chile expressly declares that the right of withdrawal (unilateral regret without cause within 10 days) DOES NOT apply to the contracting of its tourism services. Refunds will be governed exclusively by our Cancellation Policies."
+        },
+        {
+          "title": "3. Health and Passenger Responsibility",
+          "content": "Tours take place between 2,400 and 4,300 meters above sea level. It is the passenger's obligation to declare pre-existing medical conditions before booking. Northern Chile is not responsible for health problems derived from altitude if the client omitted such information. We reserve the right of admission for unsafe conduct or substance influence."
+        },
+        {
+          "title": "4. Conduct and 'Leave No Trace'",
+          "content": "We strictly adhere to sustainable tourism principles. Extracting geological material, feeding wildlife, or leaving waste is prohibited. Non-compliance may result in expulsion from the tour without refund and reporting to authorities if applicable."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy Policy and Data Protection",
+      "intro": "Complying with Law 21.719, Northern Chile guarantees the confidentiality, integrity, and availability of your personal data.",
+      "sections": [
+        {
+          "title": "1. Data Controller and Consent",
+          "content": "Northern Chile (San Pedro de Atacama) is the data controller for your data. The legal basis for processing is the execution of the tourism service contract and your explicit and informed consent at the time of booking."
+        },
+        {
+          "title": "2. Collected Data and Purpose",
+          "content": "We collect: Identification (Name, ID/Passport), Contact (Email, Phone), and Health Data (only if relevant for altitude safety). The purpose is exclusively operational (booking management), commercial (sending vouchers), and safety. We do not transfer or sell data to third parties, except under legal obligation."
+        },
+        {
+          "title": "3. ARCOP Rights (Your Rights)",
+          "content": "You have the right to: Access (know what data we have), Rectification (correct errors), Cancellation (delete your data), Opposition (refuse certain uses), and Portability (take your data). To exercise them, write to our Data Protection Officer at contacto{'@'}northernchile.cl. We will respond within legal deadlines."
+        },
+        {
+          "title": "4. Security and Incident Notification",
+          "content": "We implement SSL/TLS security protocols and restricted access. In the unlikely event of a security breach affecting your rights, we will notify the competent authority and those affected as stipulated in Law 21.719."
+        }
+      ]
+    },
+    "cancellation": {
+      "title": "Cancellation and Refund Policies",
+      "intro": "Our policies are designed to be fair to both the traveler and the local logistics operation.",
+      "summary": {
+        "more_than_24h": {
+          "title": "More than 24 hours",
+          "description": "100% refund or free rescheduling. No questions asked."
+        },
+        "less_than_24h": {
+          "title": "Less than 24 hours",
+          "description": "No refund. Considered a No-Show as spots have been blocked."
+        }
+      },
+      "sections": [
+        {
+          "title": "1. Cancellation by the Client (24h Rule)",
+          "content": "100% Refund: If you cancel MORE than 24 hours before the tour starts. No Refund: If you cancel LESS than 24 hours before or do not show up (No-Show), as spots and logistics have already been paid for."
+        },
+        {
+          "title": "2. Cancellation due to Force Majeure (Weather/Authority)",
+          "content": "If Northern Chile must cancel due to adverse weather (wind >25 knots, total cloud cover in astronomy) or park closures, the client is entitled to: a) Reschedule at no cost, or b) Total refund (100%) of the money paid."
+        },
+        {
+          "title": "3. Refund Timeframes",
+          "content": "Approved refunds are processed internally within 24 business hours. Depending on your bank or payment method (Webpay/Mercado Pago), the money may take between 5 to 10 business days to reflect in your account."
+        }
+      ]
+    }
   }
 }
