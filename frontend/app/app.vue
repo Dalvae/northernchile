@@ -2,6 +2,7 @@
 import '~/assets/css/main.css'
 
 const { t } = useI18n()
+const config = useRuntimeConfig()
 
 const ogImageOptions = computed(() => ({
   title: t('home.meta.og_title'),
@@ -14,7 +15,8 @@ const ogImageOptions = computed(() => ({
 
 defineOgImageComponent('Tour', ogImageOptions)
 
-useSeoMeta({
+// SEO Meta tags globales
+const seoMetaConfig: any = {
   titleTemplate: (titleChunk) => {
     return titleChunk
       ? `${titleChunk} | Northern Chile`
@@ -25,7 +27,14 @@ useSeoMeta({
   twitterCard: 'summary_large_image',
   ogImageWidth: 1200,
   ogImageHeight: 630
-})
+}
+
+// Agregar fb:app_id solo si está configurado
+if (config.public.fbAppId) {
+  seoMetaConfig.fbAppId = config.public.fbAppId
+}
+
+useSeoMeta(seoMetaConfig)
 </script>
 
 <template>

@@ -45,7 +45,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: apiBaseUrl,
-      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.cl'
+      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.cl',
+      fbAppId: process.env.NUXT_PUBLIC_FB_APP_ID || ''
     }
   },
 
