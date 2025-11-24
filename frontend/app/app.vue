@@ -4,8 +4,8 @@ import '~/assets/css/main.css'
 const { t } = useI18n()
 
 const ogImageOptions = computed(() => ({
-  title: 'Northern Chile',
-  category: 'San Pedro de Atacama',
+  title: t('home.meta.og_title'),
+  category: t('home.meta.og_category'),
   width: 1200,
   height: 630,
   image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop',
@@ -18,7 +18,7 @@ useSeoMeta({
   titleTemplate: (titleChunk) => {
     return titleChunk
       ? `${titleChunk} | Northern Chile`
-      : t('home.hero.title_line1') + ' - Northern Chile'
+      : `${t('home.hero.title_line1')} - Northern Chile`
   },
   ogSiteName: 'Northern Chile Tours',
   ogType: 'website',

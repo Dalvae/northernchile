@@ -5,14 +5,12 @@ import type { TourRes } from 'api-client'
 const { t } = useI18n()
 const localePath = useLocalePath()
 
-// 1. SEO Primero
+// 1. SEO Primero (traducido dinámicamente)
 useSeoMeta({
-  title: 'Northern Chile - Tours Astronómicos en San Pedro de Atacama',
-  description:
-    'Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados. Experiencias únicas bajo el cielo más claro del mundo.',
-  ogTitle: 'Northern Chile - Tours Astronómicos en San Pedro de Atacama',
-  ogDescription:
-    'Descubre las estrellas del desierto de Atacama con nuestros tours astronómicos guiados',
+  title: () => t('home.meta.title'),
+  description: () => t('home.meta.description'),
+  ogTitle: () => t('home.meta.og_title'),
+  ogDescription: () => t('home.meta.og_description'),
   ogImage: 'https://www.northernchile.cl/og-image-homepage.jpg',
   twitterCard: 'summary_large_image'
 })

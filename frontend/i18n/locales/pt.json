@@ -286,6 +286,13 @@
     }
   },
   "home": {
+    "meta": {
+      "title": "Northern Chile - Tours Astronômicos em San Pedro de Atacama",
+      "description": "Descubra as estrelas do Deserto do Atacama com nossos tours astronômicos guiados. Experiências únicas sob o céu mais claro do mundo.",
+      "og_title": "Northern Chile - Tours Astronômicos em San Pedro de Atacama",
+      "og_description": "Descubra as estrelas do Deserto do Atacama com nossos tours astronômicos guiados",
+      "og_category": "San Pedro de Atacama"
+    },
     "hero": {
       "badge": "Tours astronômicos no deserto mais claro do mundo",
       "title_line1": "Descubra as Estrelas",
