@@ -3,9 +3,9 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 
 const legalLinks = computed(() => [
-  { label: 'Términos y Condiciones', to: '/terms' },
-  { label: 'Política de Privacidad', to: '/privacy' },
-  { label: 'Políticas de Cancelación', to: '/cancellation-policy' }
+  { label: t('footer.legal.terms'), to: localePath('/terms') },
+  { label: t('footer.legal.privacy'), to: localePath('/privacy') },
+  { label: t('footer.legal.cancellation'), to: localePath('/cancellation-policy') }
 ])
 </script>
 
@@ -31,15 +31,14 @@ const legalLinks = computed(() => [
             <span class="font-display font-bold text-xl text-white">Northern Chile</span>
           </div>
           <p class="text-sm text-neutral-300 max-w-xs">
-            Experiencias astronómicas premium bajo los cielos más claros del
-            planeta. San Pedro de Atacama, Chile.
+            {{ t('footer.description') }}
           </p>
         </div>
 
         <!-- 2. Enlaces Legales (Los avisos que mencionaste) -->
         <div class="flex flex-col gap-2">
           <h3 class="font-semibold text-white mb-2">
-            Legal
+            {{ t('footer.legal.title') }}
           </h3>
           <NuxtLink
             v-for="link in legalLinks"
@@ -54,7 +53,7 @@ const legalLinks = computed(() => [
         <!-- 3. Redes Sociales -->
         <div class="flex flex-col md:items-end gap-4">
           <h3 class="font-semibold text-white md:text-right">
-            Síguenos
+            {{ t('footer.social.title') }}
           </h3>
           <div class="flex gap-2">
             <UButton
@@ -92,8 +91,7 @@ const legalLinks = computed(() => [
         class="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-neutral-400"
       >
         <p>
-          © {{ new Date().getFullYear() }} Northern Chile. Todos los derechos
-          reservados.
+          © {{ new Date().getFullYear() }} Northern Chile. {{ t('footer.copyright') }}
         </p>
 
         <!-- CAMBIO 2: Tu firma -->

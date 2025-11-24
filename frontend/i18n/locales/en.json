@@ -14,6 +14,20 @@
     "language": "Language",
     "theme": "Theme"
   },
+    "footer": {
+    "description": "Premium astronomical experiences under the clearest skies on the planet. San Pedro de Atacama, Chile.",
+    "legal": {
+      "title": "Legal",
+      "terms": "Terms and Conditions",
+      "privacy": "Privacy Policy",
+      "cancellation": "Cancellation Policy"
+    },
+    "social": {
+      "title": "Follow Us"
+    },
+    "copyright": "All rights reserved.",
+    "made_by": "Made by"
+  },
   "common": {
     "menu": "Menu",
     "search": "Search",

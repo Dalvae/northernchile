@@ -14,6 +14,20 @@
     "language": "Idioma",
     "theme": "Tema"
   },
+    "footer": {
+    "description": "Experiências astronômicas premium sob os céus mais limpos do planeta. San Pedro de Atacama, Chile.",
+    "legal": {
+      "title": "Legal",
+      "terms": "Termos e Condições",
+      "privacy": "Política de Privacidade",
+      "cancellation": "Políticas de Cancelamento"
+    },
+    "social": {
+      "title": "Siga-nos"
+    },
+    "copyright": "Todos os direitos reservados.",
+    "made_by": "Feito por"
+  },
   "common": {
     "menu": "Menu",
     "search": "Buscar",
