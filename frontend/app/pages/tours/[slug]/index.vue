@@ -117,22 +117,31 @@ const seoDescription = computed(() => {
   return `Descubre ${translatedName.value} en San Pedro de Atacama con Northern Chile Tours`
 })
 
-defineOgImageComponent('Tour', {
+const categoryLabel = computed(() => {
+  if (!tour.value?.category) return 'Northern Chile'
+  return t(`tours.category.${tour.value.category}`)
+})
+
+defineOgImageComponent('Tour', computed(() => ({
   title: translatedName.value,
   price: formatPrice(tour.value?.price),
   image: heroImage.value,
-  category: tour.value?.category === 'ASTRONOMICAL' ? 'Astronomía' : 'Aventura'
-})
+  category: categoryLabel.value,
+  width: 1200,
+  height: 630
+})))
 
 useSeoMeta({
   title: () => `${translatedName.value} - Northern Chile Tours`,
   description: seoDescription,
-  ogTitle: () => `${translatedName.value} - Tours Astronómicos en Atacama`,
+  ogTitle: () => `${translatedName.value} - Northern Chile`,
   ogDescription: seoDescription,
   ogType: 'website',
   twitterCard: 'summary_large_image',
   twitterTitle: () => `${translatedName.value} - Northern Chile Tours`,
-  twitterDescription: seoDescription
+  twitterDescription: seoDescription,
+  ogImageWidth: 1200,
+  ogImageHeight: 630
 })
 
 // JSON-LD Structured Data for SEO (Schema.org Product)

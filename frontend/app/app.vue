@@ -1,24 +1,31 @@
 <script setup lang="ts">
-import "~/assets/css/main.css";
+import '~/assets/css/main.css'
 
-defineOgImageComponent("Tour", {
-  title: "Northern Chile",
-  category: "San Pedro de Atacama",
-  image:
-    "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop",
-  price: undefined,
-});
+const { t } = useI18n()
+
+const ogImageOptions = computed(() => ({
+  title: 'Northern Chile',
+  category: 'San Pedro de Atacama',
+  width: 1200,
+  height: 630,
+  image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200&auto=format&fit=crop',
+  price: undefined
+}))
+
+defineOgImageComponent('Tour', ogImageOptions)
 
 useSeoMeta({
   titleTemplate: (titleChunk) => {
     return titleChunk
       ? `${titleChunk} | Northern Chile`
-      : "Northern Chile - Tours Astronómicos";
+      : t('home.hero.title_line1') + ' - Northern Chile'
   },
-  ogSiteName: "Northern Chile Tours",
-  ogType: "website",
-  twitterCard: "summary_large_image",
-});
+  ogSiteName: 'Northern Chile Tours',
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+  ogImageWidth: 1200,
+  ogImageHeight: 630
+})
 </script>
 
 <template>

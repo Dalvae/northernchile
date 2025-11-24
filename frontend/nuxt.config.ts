@@ -54,6 +54,7 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
+    '/__og_image__/**': { headers: { 'cache-control': 'public, max-age=3600, stale-while-revalidate=60' } },
     '/': { isr: 3600 },
     '/tours': { isr: 3600 },
     '/about': { prerender: true },
@@ -292,12 +293,16 @@ export default defineNuxtConfig({
   ogImage: {
     defaults: {
       renderer: 'satori',
+      cacheMaxAgeSeconds: 60 * 60 * 24
     },
     fonts: [
       'Inter:400',
       'Inter:700',
       'Playfair+Display:700'
-    ]
+    ],
+    runtimeCacheStorage: {
+      driver: 'memory'
+    }
   },
 
   vitalizer: {
