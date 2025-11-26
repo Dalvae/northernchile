@@ -3,6 +3,7 @@ package com.northernchile.api.privatetour;
 import com.northernchile.api.model.PrivateTourRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,11 +34,13 @@ public class PrivateTourRequestController {
 
     // Endpoints de ADMINISTRACIÓN para gestionar las solicitudes
     @GetMapping("/admin/private-tours/requests")
+    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
     public ResponseEntity<List<PrivateTourRequest>> getAllRequests() {
         return ResponseEntity.ok(privateTourRequestRepository.findAll());
     }
 
     @PutMapping("/admin/private-tours/requests/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
     public ResponseEntity<PrivateTourRequest> updateRequestStatus(@PathVariable UUID id, @RequestBody Map<String, String> statusUpdate) {
         return privateTourRequestRepository.findById(id).map(request -> {
             request.setStatus(statusUpdate.get("status"));

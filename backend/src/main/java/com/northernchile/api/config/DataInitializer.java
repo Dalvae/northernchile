@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -27,6 +28,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     @Override
+    @Transactional
     public void run(String... args) {
         log.info("=== INICIALIZACIÓN DE DATOS ===");
         initializeAdminUsers();
@@ -47,7 +49,7 @@ public class DataInitializer implements CommandLineRunner {
         for (String userConfig : userConfigs) {
             String[] parts = userConfig.split(":");
             if (parts.length != 3) {
-                log.error("Configuración de usuario inválida (debe ser email:password:role): {}", userConfig);
+                log.error("Invalid user configuration format. Expected format: email:password:role");
                 continue;
             }
 

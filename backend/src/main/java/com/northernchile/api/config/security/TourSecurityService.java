@@ -35,7 +35,7 @@ public class TourSecurityService {
         }
 
         Tour tour = tourRepository.findById(tourId).orElse(null);
-        if (tour == null) {
+        if (tour == null || tour.getOwner() == null) {
             return false;
         }
 

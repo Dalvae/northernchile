@@ -29,6 +29,7 @@ public class StorageController {
     }
 
     @PostMapping("/upload")
+    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
     @Operation(summary = "Upload a file to S3", description = "Upload an image or asset file to S3 storage")
     public ResponseEntity<?> uploadFile(
             @RequestParam("file") MultipartFile file,
@@ -66,10 +67,18 @@ public class StorageController {
     }
 
     @DeleteMapping("/{folder}/{filename}")
+    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
     @Operation(summary = "Delete a file from S3", description = "Delete an uploaded file from S3 storage")
     public ResponseEntity<?> deleteFile(
             @PathVariable String folder,
             @PathVariable String filename) {
+
+        // Validate folder and filename to prevent path traversal attacks
+        if (folder.contains("..") || folder.contains("/") || folder.contains("\\") ||
+            filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Invalid folder or filename"));
+        }
 
         String key = folder + "/" + filename;
 
@@ -82,6 +91,7 @@ public class StorageController {
     }
 
     @GetMapping("/presigned-upload-url")
+    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
     @Operation(summary = "Get presigned upload URL", description = "Generate a temporary URL for direct client upload to S3")
     public ResponseEntity<?> getPresignedUploadUrl(
             @RequestParam(value = "folder", defaultValue = "general") String folder,

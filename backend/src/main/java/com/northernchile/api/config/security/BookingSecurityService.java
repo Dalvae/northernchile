@@ -36,7 +36,9 @@ public class BookingSecurityService {
         }
 
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null) {
+        if (booking == null || booking.getSchedule() == null ||
+            booking.getSchedule().getTour() == null ||
+            booking.getSchedule().getTour().getOwner() == null) {
             return false;
         }
 
@@ -57,7 +59,7 @@ public class BookingSecurityService {
         }
 
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null) {
+        if (booking == null || booking.getUser() == null) {
             return false;
         }
 
