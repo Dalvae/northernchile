@@ -114,4 +114,22 @@ public class LunarService {
 
         return "Unknown";
     }
+
+    /**
+     * Maps lunar phase (0.0-1.0) to moon emoji icon
+     *
+     * @param phase Lunar phase value between 0.0 (new moon) and 1.0 (full cycle)
+     * @return Moon emoji representing the phase
+     */
+    public String getMoonIcon(double phase) {
+        if (phase < 0.03 || phase > 0.97) return "🌑"; // New Moon
+        if (phase >= 0.03 && phase < 0.22) return "🌒"; // Waxing Crescent
+        if (phase >= 0.22 && phase < 0.28) return "🌓"; // First Quarter
+        if (phase >= 0.28 && phase < 0.47) return "🌔"; // Waxing Gibbous
+        if (phase >= 0.47 && phase < 0.53) return "🌕"; // Full Moon
+        if (phase >= 0.53 && phase < 0.72) return "🌖"; // Waning Gibbous
+        if (phase >= 0.72 && phase < 0.78) return "🌗"; // Last Quarter
+        if (phase >= 0.78 && phase <= 0.97) return "🌘"; // Waning Crescent
+        return "🌑"; // Default to new moon
+    }
 }

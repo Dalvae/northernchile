@@ -162,7 +162,6 @@ public class TourCreateReq {
     this.defaultStartTime = defaultStartTime;
   }
 
-  // AÑADIR ESTOS DOS MÉTODOS
   public String getStatus() {
     return status;
   }

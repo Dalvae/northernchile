@@ -61,7 +61,7 @@ public class CalendarDataController {
                     illumination,
                     phaseName,
                     isFullMoon,
-                    getMoonIcon(phase)
+                    lunarService.getMoonIcon(phase)
             ));
 
             current = current.plusDays(1);
@@ -78,20 +78,6 @@ public class CalendarDataController {
         return response;
     }
 
-    /**
-     * Mapea la fase lunar a un icono/emoji
-     */
-    private String getMoonIcon(double phase) {
-        if (phase < 0.03 || phase > 0.97) return "🌑"; // New Moon
-        if (phase >= 0.03 && phase < 0.22) return "🌒"; // Waxing Crescent
-        if (phase >= 0.22 && phase < 0.28) return "🌓"; // First Quarter
-        if (phase >= 0.28 && phase < 0.47) return "🌔"; // Waxing Gibbous
-        if (phase >= 0.47 && phase < 0.53) return "🌕"; // Full Moon
-        if (phase >= 0.53 && phase < 0.72) return "🌖"; // Waning Gibbous
-        if (phase >= 0.72 && phase < 0.78) return "🌗"; // Last Quarter
-        if (phase >= 0.78 && phase <= 0.97) return "🌘"; // Waning Crescent
-        return "🌑";
-    }
 
     /**
      * DTO para respuesta de fase lunar (copiado de LunarController)

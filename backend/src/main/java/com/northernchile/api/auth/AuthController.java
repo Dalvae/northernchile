@@ -50,8 +50,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterReq registerReq) {
-        authService.register(registerReq);
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterReq registerReq, jakarta.servlet.http.HttpServletRequest request) {
+        authService.register(registerReq, request);
         Map<String, String> response = new HashMap<>();
         response.put("message", "User registered successfully. Please check your email to verify your account.");
         return ResponseEntity.ok(response);
