@@ -36,21 +36,24 @@ La plataforma se compone de tres componentes principales que operan de forma ind
 ### **2.2. Stack Frontend Detallado**
 
 - **Framework:** Nuxt 3 (Universal/SSR) con Vue 3 Composition API
-- **Styling:** Tailwind CSS 3.3 + NuxtUI component library
-- **Calendario:** v-calendar con integración de fases lunares personalizada
-- **Iconos:** Heroicons Vue o NuxtIcon
-- **Estado:** Pinia para state management
-- **HTTP:** Ofetch con interceptors para autenticación
+- **Styling:** Tailwind CSS 4 + Nuxt UI v3 component library
+- **Calendario:** FullCalendar (@fullcalendar/vue3) con plugins daygrid, timegrid, interaction, list
+- **Iconos:** Nuxt Icon
+- **Estado:** Pinia para state management (stores: auth, cart, payment)
+- **HTTP:** $fetch nativo de Nuxt con cookies HttpOnly
 - **Lógica Lunar:** lunarphase-js para cálculos de fases lunares
+- **Storage:** Cloudflare R2 (S3-compatible) para media
 
 ### **2.3. Stack Backend Detallado**
 
-- **Framework:** Spring Boot 3.2+ con Spring MVC, Data JPA, Security
+- **Framework:** Spring Boot 3 con Spring MVC, Data JPA, Security
 - **Base de Datos:** PostgreSQL 15+ con connection pooling HikariCP
 - **Validación:** Bean Validation 3.0 con mensajes multilingüe
-- **Seguridad:** Spring Security 6 + JWT para autenticación stateless
+- **Seguridad:** Spring Security 6 + JWT en cookies HttpOnly
 - **Documentación:** OpenAPI 3 (Swagger) para API documentation
 - **OAuth2:** spring-boot-starter-oauth2-client para autenticación con Google
+- **Email:** Resend API para notificaciones transaccionales
+- **Storage:** AWS SDK para Cloudflare R2 (S3-compatible)
 
 ### **2.4. Arquitectura Monorepo con Docker**
 
@@ -132,53 +135,116 @@ volumes:
 
 ### **2.6. Estructura de Paquetes del Backend Spring Boot**
 
-#### **Organización "Package-by-Feature":**
+#### **Organización por Capas (Layered Architecture):**
 
 ```
-src/main/java/com/northernchile/
-├── NorthernChileApplication.java
+src/main/java/com/northernchile/api/
+├── ApiApplication.java
 ├── config/
 │   ├── SecurityConfig.java
-│   ├── WebConfig.java
-│   └── FlywayConfig.java
-├── user/
+│   ├── WebMvcConfig.java
+│   ├── AwsS3Config.java
+│   ├── CacheConfig.java
+│   ├── DataInitializer.java
+│   ├── I18nConfig.java
+│   ├── JacksonConfig.java
+│   ├── RateLimitConfig.java
+│   └── TimezoneConfig.java
+├── controller/
+│   ├── AuthController.java
 │   ├── UserController.java
-│   ├── UserService.java
-│   ├── UserRepository.java
-│   └── dto/
-│       ├── UserResponse.java
-│       └── UserRequest.java
-├── tour/
-│   ├── TourController.java
-│   ├── TourService.java
-│   ├── TourRepository.java
-│   ├── schedule/
-│   │   ├── TourScheduleService.java
-│   │   └── TourScheduleRepository.java
-│   └── dto/
-├── booking/
+│   ├── TourSchedulePublicController.java
+│   ├── TourScheduleAdminController.java
 │   ├── BookingController.java
+│   ├── AvailabilityController.java
+│   ├── WeatherAlertController.java
+│   ├── AuditLogController.java
+│   ├── PrivateTourRequestController.java
+│   ├── ReportsController.java
+│   ├── SystemSettingsController.java
+│   ├── StorageController.java
+│   ├── ContactController.java
+│   ├── WeatherController.java
+│   ├── CalendarDataController.java
+│   └── LunarController.java
+├── service/
+│   ├── AuthService.java
+│   ├── TokenService.java
+│   ├── UserService.java
+│   ├── TourService.java
+│   ├── TourScheduleService.java
 │   ├── BookingService.java
+│   ├── AvailabilityService.java
+│   ├── WeatherAlertService.java
+│   ├── AuditLogService.java
+│   ├── PrivateTourRequestService.java
+│   ├── ReportsService.java
+│   ├── SystemSettingsService.java
+│   ├── S3StorageService.java
+│   ├── MediaService.java
+│   ├── EmailService.java
+│   └── TourReminderService.java
+├── repository/
+│   ├── UserRepository.java
+│   ├── TourRepository.java
+│   ├── TourScheduleRepository.java
 │   ├── BookingRepository.java
-│   └── dto/
-├── participant/
-│   ├── ParticipantService.java
-│   └── ParticipantRepository.java
-├── cart/
-│   ├── CartController.java
-│   ├── CartService.java
-│   └── CartRepository.java
+│   ├── ParticipantRepository.java
+│   ├── CartRepository.java
+│   ├── WeatherAlertRepository.java
+│   ├── AuditLogRepository.java
+│   ├── PrivateTourRequestRepository.java
+│   ├── ContactMessageRepository.java
+│   ├── EmailVerificationTokenRepository.java
+│   └── PasswordResetTokenRepository.java
+├── model/
+│   ├── User.java
+│   ├── Tour.java
+│   ├── TourSchedule.java
+│   ├── Booking.java
+│   ├── Participant.java
+│   ├── Cart.java
+│   ├── CartItem.java
+│   ├── Media.java
+│   ├── WeatherAlert.java
+│   ├── AuditLog.java
+│   ├── PrivateTourRequest.java
+│   ├── ContactMessage.java
+│   ├── EmailVerificationToken.java
+│   └── PasswordResetToken.java
+├── dto/
+│   ├── auth/
+│   ├── user/
+│   ├── booking/
+│   ├── tour/
+│   ├── reports/
+│   └── settings/
 ├── payment/
 │   ├── PaymentController.java
-│   └── PaymentService.java
-├── external/
-│   ├── WeatherService.java
-│   └── LunarService.java
-├── notification/
-│   └── EmailService.java
-└── common/
-    ├── exceptions/
-    └── utils/
+│   ├── PaymentService.java
+│   ├── WebhookController.java
+│   ├── WebhookSecurityService.java
+│   └── provider/
+│       ├── PaymentProviderService.java
+│       ├── TransbankPaymentService.java
+│       ├── MercadoPagoPaymentService.java
+│       └── OpenPixPaymentService.java
+├── exception/
+│   ├── GlobalExceptionHandler.java
+│   ├── ResourceNotFoundException.java
+│   ├── UnauthorizedException.java
+│   └── InvalidCredentialsException.java
+├── interceptor/
+│   └── RateLimitInterceptor.java
+├── mapper/
+│   ├── BookingMapper.java
+│   └── UserMapper.java
+├── util/
+│   ├── DateTimeUtils.java
+│   └── SlugGenerator.java
+└── validation/
+    ├── ValidLanguage.java
+    └── ValidReturnUrl.java
 ```
 
 ---
@@ -457,15 +523,30 @@ public class WeatherService {
 
 #### **Integraciones Implementadas:**
 
-- **Mercado Chileno:** Transbank (Webpay Plus/REST)
-- **Mercado Brasileño:** Mercado Pago (API v2 con soporte PIX)
-- **Mercado Internacional:** Stripe para pagos internacionales
+- **Mercado Chileno:** Transbank (Webpay Plus/REST) - `TransbankPaymentService`
+- **Mercado Brasileño:** MercadoPago (API v2) + OpenPix (PIX instantáneo) - `MercadoPagoPaymentService`, `OpenPixPaymentService`
 
-#### **Flujo de Pagos Parciales:**
+#### **Arquitectura de Pagos:**
 
-- Opción "Paga solo la reserva ahora y completa el pago en destino"
-- Cálculo automático de `booking_fee` vs `total_amount`
-- Gestión de estados de pago: `PENDING`, `PARTIAL`, `FULL`
+```
+payment/
+├── PaymentController.java          # Endpoints públicos
+├── PaymentService.java             # Orquestación
+├── WebhookController.java          # Webhooks de providers
+├── WebhookSecurityService.java     # Verificación de firmas
+└── provider/
+    ├── PaymentProviderService.java # Interface común
+    ├── TransbankPaymentService.java
+    ├── MercadoPagoPaymentService.java
+    └── OpenPixPaymentService.java
+```
+
+#### **Flujo de Pagos:**
+
+- Selección de provider según país del cliente
+- Estados de pago: `PENDING`, `PAID`, `REFUNDED`, `FAILED`
+- Webhooks para confirmación asíncrona (MercadoPago, OpenPix)
+- Redirect-based flow para Transbank
 
 ### **5.3. Autenticación con Google (OAuth2)**
 
@@ -758,35 +839,56 @@ Este es el corazón de la automatización. Es un servicio en el backend que se e
 
 ## **9. Estrategia de Almacenamiento y Assets**
 
-### **9.1. Almacenamiento de Imágenes: Amazon S3**
+### **9.1. Almacenamiento de Imágenes: AWS S3**
 
 #### **Arquitectura:**
 
-- **Servicio:** Amazon S3 con CloudFront CDN
+- **Servicio:** AWS S3 (bucket `northern-chile-assets`)
+- **Región:** sa-east-1 (São Paulo)
 - **Flujo de Carga:**
-  1.  Admin sube imagen a través del panel
-  2.  Backend sube a S3 usando AWS SDK para Java
-  3.  Se almacena únicamente la URL en la base de datos
-  4.  Entrega optimizada a través de CDN global
+  1.  Frontend optimiza imagen en el cliente (WebP, compresión)
+  2.  Frontend solicita presigned URL al backend
+  3.  Upload directo desde el cliente a S3
+  4.  Backend registra metadata en tabla `media`
 
-#### **Estructura de Buckets:**
+#### **Implementación Backend:**
 
+```java
+// S3StorageService.java
+@Service
+public class S3StorageService {
+    private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
+    
+    // Genera presigned URLs para upload/download
+    // Valida path traversal attacks
+    // Gestiona lifecycle de archivos
+}
 ```
-s3://northern-chile-assets/
-├── tours/
-│   ├── {tour-id}/
-│   │   ├── hero.jpg
-│   │   ├── gallery-1.jpg
-│   │   └── gallery-2.jpg
-├── astrophotography/
-│   ├── {booking-id}/
-│   │   ├── client-photo-1.jpg
-│   │   └── client-photo-2.jpg
+
+### **9.2. Optimización de Imágenes en Cliente**
+
+El composable `useImageOptimizer` optimiza imágenes **antes** de subirlas:
+
+- **Conversión a WebP:** Mejor compresión que JPEG/PNG
+- **Compresión inteligente:** Calidad basada en tamaño original (70-85%)
+- **Redimensionamiento:** Máximo 4000px respetando aspect ratio
+- **Solo en admin:** No afecta rendimiento de páginas públicas
+
+```typescript
+// useImageOptimizer.ts
+const { optimizeImage, optimizeImages, formatFileSize } = useImageOptimizer()
+
+// Optimiza antes de subir
+const result = await optimizeImage(file)
+// result: { file, originalSize, newSize, savings }
 ```
 
-### **9.2. Optimización de Imágenes**
+### **9.3. Media Management System**
 
-- Compresión automática para web
+- **Entidad `Media`:** Almacena referencia, metadata, owner, asociaciones
+- **Admin UI:** Galería con upload drag-drop, lightbox, edición de metadata
+- **Jerarquía:** Media puede asociarse a Tour, TourSchedule, o ser general
 - Múltiples resoluciones (thumbnails, web, original)
 - Lazy loading en frontend para performance
 - CDN global para entrega rápida
@@ -914,29 +1016,47 @@ s3://northern-chile-assets/
 
 ```env
 # Database
-DATABASE_URL=postgresql://user:pass@postgres:5432/northern_chile
+DATABASE_URL=jdbc:postgresql://localhost:5432/northernchile
+DATABASE_USERNAME=postgres
+DATABASE_PASSWORD=postgres
 
 # External APIs
 WEATHER_API_KEY=tu_api_key_weather
 
-# Payment Gateways
+# Payment Gateways - Transbank (Chile)
+TRANSBANK_COMMERCE_CODE=597055555532
 TRANSBANK_API_KEY=tu_api_key_transbank
-MERCADO_PAGO_ACCESS_TOKEN=tu_token_mp
-STRIPE_SECRET_KEY=tu_key_stripe
+TRANSBANK_ENVIRONMENT=INTEGRATION
 
-# Email Service
-SMTP_HOST=smtp.office365.com
-SMTP_PORT=587
-SMTP_USER=reservas@northernchile.cl
-SMTP_PASSWORD=tu_password_email
+# Payment Gateways - MercadoPago (Brasil)
+MERCADOPAGO_ACCESS_TOKEN=tu_token_mp
+MERCADOPAGO_PUBLIC_KEY=tu_public_key_mp
+
+# Payment Gateways - OpenPix (PIX Brasil)
+OPENPIX_APP_ID=tu_app_id
+OPENPIX_API_KEY=tu_api_key
+
+# Storage - AWS S3
+AWS_ACCESS_KEY_ID=tu_access_key
+AWS_SECRET_ACCESS_KEY=tu_secret_key
+AWS_REGION=sa-east-1
+AWS_S3_BUCKET_NAME=northern-chile-assets
+
+# Email - Resend
+RESEND_API_KEY=re_xxxxx
+MAIL_FROM=Northern Chile <reservas@northernchile.cl>
 
 # OAuth2 Google
 GOOGLE_CLIENT_ID=tu_google_client_id
 GOOGLE_CLIENT_SECRET=tu_google_client_secret
 
+# JWT
+JWT_SECRET=tu_jwt_secret_muy_largo
+JWT_EXPIRATION=86400000
+
 # Application
 ADMIN_NOTIFICATION_EMAIL=alex@northernchile.cl
-TAX_RATE=0.19
+FRONTEND_URL=https://northernchile.cl
 ```
 
 ### **14.2. Frontend Environment Variables**
