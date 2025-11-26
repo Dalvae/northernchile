@@ -76,14 +76,15 @@ export default defineNuxtConfig({
         'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
         'Content-Security-Policy': [
           'default-src \'self\'',
-          'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://www.googletagmanager.com https://www.google-analytics.com',
+          'script-src \'self\' https://www.googletagmanager.com https://www.google-analytics.com',
           'style-src \'self\' \'unsafe-inline\'',
           'font-src \'self\' data:',
           'img-src \'self\' data: https: blob: https://www.google-analytics.com',
           `connect-src 'self' ${apiBaseUrl} https://api.openweathermap.org https://api.iconify.design https://www.google-analytics.com https://analytics.google.com`,
           'frame-ancestors \'self\'',
           'base-uri \'self\'',
-          'form-action \'self\''
+          'form-action \'self\'',
+          'object-src \'none\''
         ].join('; ')
       }
     }

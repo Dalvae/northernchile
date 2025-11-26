@@ -1,6 +1,7 @@
 package com.northernchile.api.tour;
 
 import com.northernchile.api.model.Tour;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -41,4 +42,17 @@ public interface TourRepository extends JpaRepository<Tour, UUID> {
     Optional<Tour> findBySlugPublished(@Param("slug") String slug);
 
     Optional<Tour> findBySlug(String slug);
+
+    // Queries with EntityGraph to avoid N+1 (eagerly fetch images)
+    @EntityGraph(attributePaths = {"images", "owner"})
+    @Query("SELECT t FROM Tour t WHERE t.status = :status AND t.deletedAt IS NULL")
+    List<Tour> findByStatusNotDeletedWithImages(@Param("status") String status);
+
+    @EntityGraph(attributePaths = {"images", "owner"})
+    @Query("SELECT t FROM Tour t WHERE t.deletedAt IS NULL")
+    List<Tour> findAllNotDeletedWithImages();
+
+    @EntityGraph(attributePaths = {"images", "owner"})
+    @Query("SELECT t FROM Tour t WHERE t.owner.id = :ownerId AND t.deletedAt IS NULL")
+    List<Tour> findByOwnerIdNotDeletedWithImages(@Param("ownerId") UUID ownerId);
 }

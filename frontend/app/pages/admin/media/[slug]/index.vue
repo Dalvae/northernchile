@@ -28,17 +28,10 @@ const {
 } = useAsyncData(
   `media-tour-${slug.value}`,
   async () => {
-    console.log('[MediaSlug] Loading tour with slug:', slug.value)
-
     const tours = await fetchAdminTours()
-    console.log('[MediaSlug] Fetched tours:', tours.length)
-    console.log('[MediaSlug] Tour slugs:', tours.map((t: any) => t.slug))
-
     const foundTour = tours.find((t: any) => t.slug === slug.value)
-    console.log('[MediaSlug] Found tour:', foundTour ? foundTour.nameTranslations?.es : 'NOT FOUND')
 
     if (!foundTour) {
-      console.error('[MediaSlug] Tour not found for slug:', slug.value)
       // Redirect to media list if tour not found
       await router.push('/admin/media')
       return null
@@ -48,9 +41,7 @@ const {
     if (foundTour.id) {
       try {
         schedules.value = await buildScheduleNodes(foundTour.id)
-        console.log('[MediaSlug] Loaded schedules:', schedules.value.length)
       } catch (scheduleError) {
-        console.warn('[MediaSlug] Error loading schedules (non-fatal):', scheduleError)
         schedules.value = [] // Empty schedules is OK
       }
     }
