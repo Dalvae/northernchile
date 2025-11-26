@@ -90,11 +90,12 @@ public class TourService {
 
     @Transactional(readOnly = true)
     public List<TourRes> getPublishedTours() {
-        List<TourRes> tours = tourRepository.findByStatusNotDeleted("PUBLISHED").stream()
+        // Use EntityGraph to eagerly fetch images and owner - avoids N+1 query
+        List<TourRes> tours = tourRepository.findByStatusNotDeletedWithImages("PUBLISHED").stream()
                 .map(tourMapper::toTourRes)
                 .collect(Collectors.toList());
 
-        // Populate images for each tour
+        // Populate images for each tour (images already loaded from EntityGraph)
         tours.forEach(this::populateImages);
 
         return tours;
@@ -102,11 +103,12 @@ public class TourService {
 
     @Transactional(readOnly = true)
     public List<TourRes> getAllToursForAdmin() {
-        List<TourRes> tours = tourRepository.findAllNotDeleted().stream()
+        // Use EntityGraph to eagerly fetch images and owner - avoids N+1 query
+        List<TourRes> tours = tourRepository.findAllNotDeletedWithImages().stream()
                 .map(tourMapper::toTourRes)
                 .collect(Collectors.toList());
 
-        // Populate images for each tour
+        // Populate images for each tour (images already loaded from EntityGraph)
         tours.forEach(this::populateImages);
 
         return tours;
@@ -114,11 +116,12 @@ public class TourService {
 
     @Transactional(readOnly = true)
     public List<TourRes> getToursByOwner(User owner) {
-        List<TourRes> tours = tourRepository.findByOwnerIdNotDeleted(owner.getId()).stream()
+        // Use EntityGraph to eagerly fetch images and owner - avoids N+1 query
+        List<TourRes> tours = tourRepository.findByOwnerIdNotDeletedWithImages(owner.getId()).stream()
                 .map(tourMapper::toTourRes)
                 .collect(Collectors.toList());
 
-        // Populate images for each tour
+        // Populate images for each tour (images already loaded from EntityGraph)
         tours.forEach(this::populateImages);
 
         return tours;

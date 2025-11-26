@@ -79,8 +79,18 @@ const faqs = computed(() => [
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   try {
-    // Simular envío
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    const config = useRuntimeConfig()
+
+    await $fetch(`${config.public.apiBaseUrl}/contact`, {
+      method: 'POST',
+      body: {
+        name: state.name,
+        email: state.email,
+        phone: state.phone,
+        message: `${state.subject}\n\n${state.message}`
+      },
+      credentials: 'include'
+    })
 
     toast.add({
       title: t('contact.form.toast.success_title'),
@@ -89,12 +99,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       icon: 'i-heroicons-check-circle'
     })
 
+    // Reset form
     state.name = ''
     state.email = ''
     state.phone = ''
     state.subject = ''
     state.message = ''
-  } catch {
+  } catch (error) {
     toast.add({
       title: t('contact.form.toast.error_title'),
       description: t('contact.form.toast.error_description'),

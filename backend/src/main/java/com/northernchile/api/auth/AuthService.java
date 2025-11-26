@@ -9,6 +9,7 @@ import com.northernchile.api.model.PasswordResetToken;
 import com.northernchile.api.model.User;
 import com.northernchile.api.notification.EmailService;
 import com.northernchile.api.user.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -49,7 +51,7 @@ public class AuthService {
     }
 
     @Transactional
-    public User register(RegisterReq registerReq) {
+    public User register(RegisterReq registerReq, HttpServletRequest request) {
         if (userRepository.findByEmail(registerReq.getEmail()).isPresent()) {
             throw new EmailAlreadyExistsException(registerReq.getEmail());
         }
@@ -70,10 +72,41 @@ public class AuthService {
         // Send verification email
         EmailVerificationToken token = tokenService.createEmailVerificationToken(savedUser);
         String verificationUrl = frontendBaseUrl + "/verify-email?token=" + token.getToken();
+        String languageCode = getLanguageFromRequest(request);
         emailService.sendVerificationEmail(savedUser.getEmail(), savedUser.getFullName(),
-                verificationUrl, "es-CL"); // TODO: Get language from request
+                verificationUrl, languageCode);
 
         return savedUser;
+    }
+
+    /**
+     * Extract language code from Accept-Language header
+     * Supports: es, en, pt
+     * Default: es-CL
+     */
+    private String getLanguageFromRequest(HttpServletRequest request) {
+        String acceptLanguage = request != null ? request.getHeader("Accept-Language") : null;
+
+        if (acceptLanguage == null || acceptLanguage.isBlank()) {
+            return "es-CL"; // Default to Spanish (Chile)
+        }
+
+        // Parse Accept-Language header (e.g., "en-US,en;q=0.9,es;q=0.8")
+        String[] languages = acceptLanguage.split(",");
+        for (String lang : languages) {
+            String langCode = lang.split(";")[0].trim().toLowerCase();
+
+            // Map to our supported locales
+            if (langCode.startsWith("es")) {
+                return "es-CL";
+            } else if (langCode.startsWith("pt")) {
+                return "pt-BR";
+            } else if (langCode.startsWith("en")) {
+                return "en-US";
+            }
+        }
+
+        return "es-CL"; // Default fallback
     }
 
     public Map<String, Object> login(LoginReq loginReq) {

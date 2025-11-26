@@ -68,7 +68,7 @@ public class WeatherAlertController {
     @PostMapping("/{id}/resolve")
     public ResponseEntity<Map<String, String>> resolveAlert(
             @PathVariable String id,
-            @RequestBody ResolveAlertRequest request,
+            @jakarta.validation.Valid @RequestBody ResolveAlertRequest request,
             @CurrentUser User currentUser) {
         try {
             alertService.resolveAlert(id, request.resolution(), currentUser.getId().toString());

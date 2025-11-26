@@ -132,7 +132,7 @@ public class WebhookController {
         @RequestParam(value = "provider", required = false) String provider,
         @RequestBody Map<String, Object> payload) {
 
-        log.info("Received generic payment webhook from provider: {} - {}", provider, payload);
+        log.info("Received generic payment webhook from provider: {}", provider);
 
         try {
             if (provider != null) {
@@ -151,7 +151,7 @@ public class WebhookController {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException e) {
         log.error("Invalid webhook payload", e);
-        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        return ResponseEntity.badRequest().body(Map.of("error", "Invalid webhook payload"));
     }
 
     @ExceptionHandler(RuntimeException.class)

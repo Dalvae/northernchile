@@ -43,6 +43,9 @@ public class BookingService {
     @Value("${tax.rate}")
     private BigDecimal taxRate;
 
+    @Value("${mail.from.email}")
+    private String adminEmail;
+
     public BookingService(
             BookingRepository bookingRepository,
             TourScheduleRepository tourScheduleRepository,
@@ -179,7 +182,7 @@ public class BookingService {
                 booking.getLanguageCode() != null ? booking.getLanguageCode() : "es-CL"
         );
 
-        emailService.sendNewBookingNotificationToAdmin(booking.getId().toString());
+        emailService.sendNewBookingNotificationToAdmin(booking, adminEmail);
     }
 
     private static class BookingPricing {

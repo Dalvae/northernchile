@@ -142,24 +142,8 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
-  onMounted(() => {
-    if (import.meta.client) {
-      try {
-        const stored = localStorage.getItem('nc-cart')
-        if (stored) {
-          cart.value = JSON.parse(stored)
-        }
-      } catch (e) {
-        console.error('Error leyendo carrito local', e)
-      }
-    }
-  })
-
-  watch(cart, (newVal) => {
-    if (import.meta.client) {
-      localStorage.setItem('nc-cart', JSON.stringify(newVal))
-    }
-  }, { deep: true })
+  // Cart persistence is handled by backend via cartId cookie
+  // No need for localStorage - backend manages cart state
 
   return {
     cart,
