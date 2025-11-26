@@ -209,9 +209,9 @@ async function handleSubmit() {
             name="role"
             required
           >
-            <USelectMenu
+            <USelect
               v-model="state.role"
-              :options="roleOptions"
+              :items="roleOptions"
               option-attribute="label"
               value-attribute="value"
               placeholder="Selecciona un rol"
