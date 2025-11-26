@@ -116,37 +116,41 @@
 
 ## 📝 OBSERVACIONES MENORES (No bloquean producción)
 
-### TODO Items Pendientes (Bajo Impacto)
+### ✅ TODO Items COMPLETADOS (Commit 3e45861)
 
-1. **EmailService TODOs** (líneas 115, 123)
-   - sendNewBookingNotificationToAdmin() - placeholder
-   - sendNewPrivateRequestNotificationToAdmin() - placeholder
-   - **Impacto:** Bajo - las notificaciones principales funcionan
+1. ✅ **EmailService TODOs** - COMPLETADO
+   - ✅ sendNewBookingNotificationToAdmin() - Implementado con HTML completo
+   - ✅ sendNewPrivateRequestNotificationToAdmin() - Implementado con HTML completo
+   - ✅ Emails incluyen todos los detalles para el admin
+   - ✅ Servicios actualizados para pasar objetos completos
 
-2. **AuthService.java:74** - Language from request
-   - TODO: Get language from Accept-Language header
-   - **Workaround actual:** Usa default "es-CL"
-   - **Impacto:** Bajo - i18n parcial funciona
+2. ✅ **AuthService.java:74** - COMPLETADO
+   - ✅ Implementado getLanguageFromRequest(HttpServletRequest)
+   - ✅ Parser de Accept-Language header (soporta es, en, pt)
+   - ✅ Mapeo automático a locales: es-CL, en-US, pt-BR
+   - ✅ Emails de verificación ahora en idioma del navegador
 
-3. **TourCreateReq.java:165** - Métodos faltantes
-   - Comentario en español sobre métodos pendientes
-   - **Impacto:** Desconocido - requiere revisión
+3. ✅ **TourCreateReq.java:165** - COMPLETADO
+   - ✅ Comentario obsoleto eliminado
+   - ✅ Métodos ya estaban implementados
+
+4. ✅ **Code Duplication - getMoonIcon()** - COMPLETADO
+   - ✅ Método centralizado en LunarService (external package)
+   - ✅ Removido de LunarController
+   - ✅ Removido de CalendarDataController
+   - ✅ Reducción: -26 líneas duplicadas
 
 ### Mejoras Recomendadas (Post-MVP)
 
-4. **Testing Suite** - No hay tests visibles
+5. **Testing Suite** - No hay tests visibles
    - Unit tests para services críticos
    - Integration tests para controllers
    - E2E tests para flows principales
 
-5. **Monitoring & Observability**
+6. **Monitoring & Observability**
    - Error tracking (Sentry)
    - Performance monitoring
    - Uptime monitoring
-
-6. **Code Duplication**
-   - getMoonIcon() duplicado en 2 controllers
-   - **Sugerencia:** Extraer a LunarService
 
 ---
 
@@ -281,13 +285,13 @@ El proyecto **Northern Chile** ahora está **PRODUCTION-READY** con:
 
 **Elaborado por:** Claude Code
 **Rama:** claude/code-audit-cleanup-01SD1sdm6LdAGgfEuUozaZCd
-**Commits:** 5 commits con 850+ líneas cambiadas
-**Archivos modificados:** 31 archivos
+**Commits:** 7 commits con 1,100+ líneas cambiadas
+**Archivos modificados:** 40+ archivos
 **Archivos creados:** 12 archivos nuevos
 
 ---
 
-## 🔧 HOTFIX POST-COMMIT
+## 🔧 HOTFIXES & MEJORAS POST-COMMIT
 
 ### V4 Migration Error - RESUELTO ✅
 
@@ -307,6 +311,40 @@ El proyecto **Northern Chile** ahora está **PRODUCTION-READY** con:
 - ✅ V4 ahora solo crea índices nuevos necesarios
 
 **Status:** Migración V4 ahora debería ejecutarse sin errores
+
+---
+
+### Completar TODOs Pendientes - COMPLETADO ✅
+
+**Problema identificado:**
+- 4 TODOs de bajo impacto pendientes en el código
+- Duplicación de código (getMoonIcon en 2 lugares)
+- Falta de i18n en emails de verificación
+
+**Solución aplicada (Commit 3e45861):**
+1. **EmailService notificaciones al admin:**
+   - Implementado sendNewBookingNotificationToAdmin() completo
+   - Implementado sendNewPrivateRequestNotificationToAdmin() completo
+   - Emails HTML con todos los detalles relevantes
+
+2. **AuthService i18n:**
+   - Parser de Accept-Language header
+   - Detección automática de idioma (es, en, pt)
+   - Emails de verificación ahora multilingües
+
+3. **TourCreateReq limpieza:**
+   - Eliminado comentario obsoleto línea 165
+
+4. **Code deduplication:**
+   - getMoonIcon() centralizado en LunarService
+   - Eliminado de LunarController y CalendarDataController
+   - -26 líneas duplicadas removidas
+
+**Archivos modificados:** 9 archivos
+**Líneas agregadas:** ~180
+**Líneas eliminadas:** ~30
+
+**Status:** Todos los TODOs de bajo impacto resueltos
 
 ---
 
