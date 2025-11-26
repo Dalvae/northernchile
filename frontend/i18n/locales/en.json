@@ -331,6 +331,26 @@
     "featured_tours_subtitle": "Discover the best of the Atacama Desert",
     "view_all_tours": "View all tours",
     "why_us_title": "Why choose us?",
+    "why_us": {
+      "features": [
+        {
+          "title": "Professional Equipment",
+          "description": "High-end telescopes and certified observation equipment"
+        },
+        {
+          "title": "Expert Guides",
+          "description": "Certified astronomers and guides with years of experience"
+        },
+        {
+          "title": "Unique Skies",
+          "description": "The best place in the world for astronomical observation"
+        },
+        {
+          "title": "Free Cancellation",
+          "description": "Cancel free of charge up to 24 hours in advance"
+        }
+      ]
+    },
     "cta_title": "Ready to explore the universe?",
     "cta_subtitle": "Join us on an unforgettable astronomical adventure",
     "book_now": "Book Now",
