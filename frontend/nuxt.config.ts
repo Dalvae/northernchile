@@ -91,7 +91,7 @@ export default defineNuxtConfig({
             ].join('; ')
           : [
               'default-src \'self\'',
-              'script-src \'self\' https://www.googletagmanager.com https://www.google-analytics.com',
+              'script-src \'self\' \'unsafe-inline\' https://www.googletagmanager.com https://www.google-analytics.com',
               'style-src \'self\' \'unsafe-inline\'',
               'font-src \'self\' data:',
               'img-src \'self\' data: https: blob: https://www.google-analytics.com',
