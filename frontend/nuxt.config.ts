@@ -106,11 +106,11 @@ export default defineNuxtConfig({
   },
   sourcemap: {
     server: false,
-    client: false
+    client: true
   },
 
   features: {
-    inlineStyles: true
+    inlineStyles: false
   },
 
   experimental: {
@@ -137,7 +137,12 @@ export default defineNuxtConfig({
       chunkSizeWarningLimit: 1000,
       sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true,
       minify: 'esbuild',
-      cssCodeSplit: true
+      cssCodeSplit: true,
+      rollupOptions: {
+        output: {
+          manualChunks: undefined
+        }
+      }
     },
     optimizeDeps: {
       include: [
@@ -323,8 +328,8 @@ export default defineNuxtConfig({
   },
 
   vitalizer: {
-    disablePrefetchLinks: true,
-    disablePreloadLinks: true,
-    disableStylesheets: 'entry'
+    disablePrefetchLinks: false,
+    disablePreloadLinks: false,
+    disableStylesheets: false
   }
 })
