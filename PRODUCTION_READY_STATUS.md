@@ -285,8 +285,8 @@ El proyecto **Northern Chile** ahora está **PRODUCTION-READY** con:
 
 **Elaborado por:** Claude Code
 **Rama:** claude/code-audit-cleanup-01SD1sdm6LdAGgfEuUozaZCd
-**Commits:** 9 commits con 1,100+ líneas cambiadas
-**Archivos modificados:** 42 archivos
+**Commits:** 11 commits con 1,100+ líneas cambiadas
+**Archivos modificados:** 43 archivos
 **Archivos creados:** 12 archivos nuevos
 
 ---
@@ -367,6 +367,29 @@ El proyecto **Northern Chile** ahora está **PRODUCTION-READY** con:
 **Líneas cambiadas:** 3 líneas
 
 **Status:** Backend compila correctamente ahora
+
+---
+
+### V4 Migration Error #2 - RESUELTO ✅
+
+**Problema detectado:**
+- V4 migration falló nuevamente en línea 41
+- Error: `column "schedule_id" does not exist`
+- Tabla: `weather_alerts`
+
+**Causa raíz:**
+- En `weather_alerts` la columna se llama `tour_schedule_id`, NO `schedule_id`
+- V4 intentaba crear índice: `idx_weather_alerts_schedule_id ON weather_alerts(schedule_id)` ❌
+- La tabla fue creada en V1 con columna `tour_schedule_id` (línea 261)
+
+**Solución aplicada (Commit 35d0da3):**
+- Corregido nombre de columna en línea 41 de V4
+- Cambio: `weather_alerts(schedule_id)` → `weather_alerts(tour_schedule_id)` ✅
+
+**Archivos modificados:** 1 archivo
+**Líneas cambiadas:** 1 línea
+
+**Status:** V4 migration debería ejecutarse correctamente ahora
 
 ---
 
