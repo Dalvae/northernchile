@@ -129,5 +129,39 @@ public class PaymentController {
         return ResponseEntity.ok(payments);
     }
 
+    @GetMapping("/test")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'PARTNER_ADMIN')")
+    @Operation(summary = "Get all test payments", description = "Get all payments marked as test (admin only)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Test payments retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden - admin access required")
+    })
+    public ResponseEntity<?> getTestPayments() {
+        log.info("Getting all test payments");
+        var testPayments = paymentService.getTestPayments();
+        return ResponseEntity.ok(Map.of(
+            "count", testPayments.size(),
+            "payments", testPayments
+        ));
+    }
+
+    @DeleteMapping("/test")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @Operation(summary = "Delete all test payments", description = "Delete all payments marked as test (super admin only)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Test payments deleted successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden - super admin access required")
+    })
+    public ResponseEntity<?> deleteTestPayments() {
+        log.warn("Deleting all test payments - SUPER ADMIN action");
+        int deletedCount = paymentService.deleteTestPayments();
+        return ResponseEntity.ok(Map.of(
+            "message", "Test payments deleted successfully",
+            "deletedCount", deletedCount
+        ));
+    }
+
     // Exception handling is managed by GlobalExceptionHandler for consistent error responses
 }

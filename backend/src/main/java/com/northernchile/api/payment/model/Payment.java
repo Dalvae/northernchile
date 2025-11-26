@@ -103,6 +103,13 @@ public class Payment {
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
+    /**
+     * Flag indicating if this is a test payment (using TEST credentials).
+     * Test payments are excluded from financial reports and accounting.
+     */
+    @Column(name = "is_test", nullable = false)
+    private boolean isTest = false;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
@@ -118,7 +125,7 @@ public class Payment {
                    String externalPaymentId, PaymentStatus status, BigDecimal amount, String currency,
                    String paymentUrl, String detailsUrl, String qrCode, String pixCode, String token,
                    Instant expiresAt, Map<String, Object> providerResponse, String errorMessage,
-                   Instant createdAt, Instant updatedAt) {
+                   boolean isTest, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.booking = booking;
         this.provider = provider;
@@ -135,6 +142,7 @@ public class Payment {
         this.expiresAt = expiresAt;
         this.providerResponse = providerResponse;
         this.errorMessage = errorMessage;
+        this.isTest = isTest;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -267,6 +275,14 @@ public class Payment {
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
+    }
+
+    public boolean isTest() {
+        return isTest;
+    }
+
+    public void setTest(boolean test) {
+        isTest = test;
     }
 
     public Instant getCreatedAt() {

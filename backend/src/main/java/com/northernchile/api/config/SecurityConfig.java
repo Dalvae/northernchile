@@ -83,6 +83,9 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/error"
                         ).permitAll()
+                        // Permitir acceso público a webhooks de payment providers
+                        // Nota: La seguridad se maneja mediante verificación de firma en WebhookSecurityService
+                        .requestMatchers("/api/webhooks/**").permitAll()
                         // Permitir acceso público al carrito (guest carts)
                         .requestMatchers("/api/cart/**").permitAll()
                         // Proteger todas las rutas de administración

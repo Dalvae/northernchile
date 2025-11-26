@@ -153,6 +153,20 @@ watch(
       <p class="text-neutral-600 dark:text-neutral-300">
         {{ t('payment.pix.scan_description') }}
       </p>
+
+      <!-- Test Mode Badge -->
+      <div
+        v-if="payment.isTest"
+        class="inline-flex items-center gap-2 mt-3 px-3 py-1.5 bg-warning/10 border border-warning/30 rounded-full"
+      >
+        <UIcon
+          name="i-lucide-flask-conical"
+          class="w-4 h-4 text-warning"
+        />
+        <span class="text-sm font-semibold text-warning">
+          {{ t('payment.test_mode') }}
+        </span>
+      </div>
     </div>
 
     <!-- QR Code -->

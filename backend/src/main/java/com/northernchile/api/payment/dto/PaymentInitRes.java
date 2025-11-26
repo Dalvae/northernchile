@@ -20,6 +20,7 @@ public class PaymentInitRes {
     private String token;
     private Instant expiresAt;
     private String message;
+    private boolean isTest;
 
     public PaymentInitRes() {
     }
@@ -107,6 +108,14 @@ public class PaymentInitRes {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public boolean isTest() {
+        return isTest;
+    }
+
+    public void setTest(boolean test) {
+        isTest = test;
     }
 
     @Override

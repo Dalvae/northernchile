@@ -4,9 +4,11 @@ import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentCreateRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
+import com.mercadopago.client.payment.PaymentRefundClient;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
+import com.mercadopago.resources.payment.PaymentRefund;
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.payment.dto.PaymentInitReq;
@@ -46,6 +48,9 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
     @Value("${mercadopago.public-key:TEST-PUBLIC-KEY}")
     private String publicKey;
 
+    @Value("${payment.test-mode:false}")
+    private boolean testMode;
+
     public MercadoPagoPaymentService(PaymentRepository paymentRepository, BookingRepository bookingRepository) {
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
@@ -56,6 +61,15 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
      */
     private void configureMercadoPago() {
         MercadoPagoConfig.setAccessToken(accessToken);
+    }
+
+    /**
+     * Check if current configuration is in TEST mode.
+     * Uses explicit payment.test-mode configuration property.
+     * @return true if in test mode
+     */
+    private boolean isTestMode() {
+        return testMode;
     }
 
     @Override
@@ -88,6 +102,7 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
             payment.setCurrency(request.getCurrency());
             payment.setExternalPaymentId(mpPayment.getId().toString());
             payment.setStatus(mapMercadoPagoStatus(mpPayment.getStatus()));
+            payment.setTest(isTestMode()); // Mark as test if using TEST- credentials
 
             // Set payment details based on payment method
             if (request.getPaymentMethod() == PaymentMethod.PIX) {
@@ -97,7 +112,9 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
                     String qrCodeBase64 = mpPayment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
                     String qrCode = mpPayment.getPointOfInteraction().getTransactionData().getQrCode();
 
-                    payment.setQrCode(qrCodeBase64);
+                    // Convert base64 to data URI for frontend display
+                    String qrCodeDataUri = "data:image/png;base64," + qrCodeBase64;
+                    payment.setQrCode(qrCodeDataUri);
                     payment.setPixCode(qrCode);
                 }
 
@@ -153,6 +170,7 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
             response.setQrCode(payment.getQrCode());
             response.setPixCode(payment.getPixCode());
             response.setExpiresAt(payment.getExpiresAt());
+            response.setTest(payment.isTest());
             response.setMessage(getPaymentInstructions(request.getPaymentMethod(), payment));
 
             return response;
@@ -269,14 +287,43 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
             // Configure Mercado Pago SDK
             configureMercadoPago();
 
-            // Create refund request
-            // Note: The Mercado Pago SDK refund API would be called here
-            // For now, this is a placeholder implementation
+            // Get payment ID from external payment ID
+            Long paymentId = Long.parseLong(payment.getExternalPaymentId());
 
-            log.warn("Mercado Pago refund not fully implemented - requires additional SDK methods");
+            // Create refund client
+            PaymentRefundClient refundClient = new PaymentRefundClient();
+
+            // Determine refund amount
+            BigDecimal refundAmount = (amount != null) ? amount : payment.getAmount();
+
+            // Create refund
+            PaymentRefund refund;
+            if (amount != null && amount.compareTo(payment.getAmount()) < 0) {
+                // Partial refund
+                log.info("Creating partial refund of {} for payment {}", amount, paymentId);
+                refund = refundClient.refund(paymentId, amount);
+            } else {
+                // Full refund
+                log.info("Creating full refund for payment {}", paymentId);
+                refund = refundClient.refund(paymentId);
+            }
+
+            log.info("Mercado Pago refund created successfully: refund ID = {}", refund.getId());
 
             // Update payment status
             payment.setStatus(PaymentStatus.REFUNDED);
+
+            // Store refund information in provider response
+            Map<String, Object> providerResponse = payment.getProviderResponse();
+            if (providerResponse == null) {
+                providerResponse = new HashMap<>();
+            }
+            providerResponse.put("refund_id", refund.getId());
+            providerResponse.put("refund_amount", refundAmount);
+            providerResponse.put("refund_status", refund.getStatus());
+            providerResponse.put("refund_date", refund.getDateCreated());
+            payment.setProviderResponse(providerResponse);
+
             payment = paymentRepository.save(payment);
 
             // Update booking status
@@ -284,7 +331,7 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
             booking.setStatus("CANCELLED");
             bookingRepository.save(booking);
 
-            log.info("Mercado Pago payment marked as refunded: {}", payment.getId());
+            log.info("Mercado Pago payment refunded successfully: {}", payment.getId());
 
             // Build response
             PaymentStatusRes response = new PaymentStatusRes();
@@ -293,11 +340,21 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
             response.setStatus(PaymentStatus.REFUNDED);
             response.setAmount(payment.getAmount());
             response.setCurrency(payment.getCurrency());
-            response.setMessage("Payment refund initiated");
+            response.setMessage("Payment refunded successfully via Mercado Pago. Refund ID: " + refund.getId());
             response.setUpdatedAt(payment.getUpdatedAt());
 
             return response;
 
+        } catch (MPApiException e) {
+            log.error("Mercado Pago API error refunding payment: {} - {}",
+                e.getApiResponse().getStatusCode(), e.getApiResponse().getContent(), e);
+            throw new RuntimeException("Failed to refund Mercado Pago payment: " + e.getApiResponse().getContent(), e);
+        } catch (MPException e) {
+            log.error("Mercado Pago error refunding payment", e);
+            throw new RuntimeException("Failed to refund Mercado Pago payment: " + e.getMessage(), e);
+        } catch (NumberFormatException e) {
+            log.error("Invalid external payment ID: {}", payment.getExternalPaymentId(), e);
+            throw new RuntimeException("Failed to refund payment - invalid payment ID format", e);
         } catch (Exception e) {
             log.error("Error refunding Mercado Pago payment", e);
             throw new RuntimeException("Failed to refund Mercado Pago payment: " + e.getMessage(), e);

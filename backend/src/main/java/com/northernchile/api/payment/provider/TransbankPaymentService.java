@@ -47,6 +47,9 @@ public class TransbankPaymentService implements PaymentProviderService {
     @Value("${transbank.environment:INTEGRATION}")
     private String environment;
 
+    @Value("${payment.test-mode:false}")
+    private boolean testMode;
+
     public TransbankPaymentService(PaymentRepository paymentRepository, BookingRepository bookingRepository) {
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
@@ -62,6 +65,20 @@ public class TransbankPaymentService implements PaymentProviderService {
         } else {
             return WebpayPlus.Transaction.buildForIntegration(commerceCode, apiKey);
         }
+    }
+
+    /**
+     * Check if current configuration is in TEST mode.
+     * Uses explicit payment.test-mode if set, otherwise falls back to environment check.
+     * @return true if in test mode
+     */
+    private boolean isTestMode() {
+        // If explicitly configured, use that
+        if (testMode) {
+            return true;
+        }
+        // Otherwise, fallback to environment detection
+        return !"PRODUCTION".equalsIgnoreCase(environment);
     }
 
     @Override
@@ -99,6 +116,7 @@ public class TransbankPaymentService implements PaymentProviderService {
             payment.setStatus(PaymentStatus.PENDING);
             payment.setToken(transbankResponse.getToken());
             payment.setPaymentUrl(transbankResponse.getUrl());
+            payment.setTest(isTestMode()); // Mark as test if using INTEGRATION environment
 
             // Store provider response
             Map<String, Object> providerResponse = new HashMap<>();
@@ -125,6 +143,7 @@ public class TransbankPaymentService implements PaymentProviderService {
             response.setStatus(payment.getStatus());
             response.setPaymentUrl(transbankResponse.getUrl());
             response.setToken(transbankResponse.getToken());
+            response.setTest(payment.isTest());
             response.setMessage("Redirect user to payment URL to complete transaction");
 
             return response;

@@ -48,6 +48,7 @@ export interface PaymentInitRes {
   token?: string
   expiresAt?: string
   message?: string
+  isTest?: boolean
 }
 
 export interface PaymentStatusRes {

@@ -34,4 +34,21 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
      * Find payment by token (e.g., Webpay token)
      */
     Optional<Payment> findByToken(String token);
+
+    /**
+     * Find all test payments (for cleanup/filtering)
+     */
+    List<Payment> findByIsTest(boolean isTest);
+
+    /**
+     * Find all real (non-test) payments
+     */
+    default List<Payment> findRealPayments() {
+        return findByIsTest(false);
+    }
+
+    /**
+     * Delete all test payments (admin only - for cleanup)
+     */
+    void deleteByIsTest(boolean isTest);
 }

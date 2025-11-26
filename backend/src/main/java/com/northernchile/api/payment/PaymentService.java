@@ -4,6 +4,7 @@ import com.northernchile.api.payment.dto.PaymentInitReq;
 import com.northernchile.api.payment.dto.PaymentInitRes;
 import com.northernchile.api.payment.dto.PaymentStatusRes;
 import com.northernchile.api.payment.model.Payment;
+import com.northernchile.api.payment.model.PaymentStatus;
 import com.northernchile.api.payment.provider.PaymentProviderFactory;
 import com.northernchile.api.payment.provider.PaymentProviderService;
 import com.northernchile.api.payment.repository.PaymentRepository;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -209,11 +212,74 @@ public class PaymentService {
 
     /**
      * Check if a payment can be refunded.
+     * Only allows refunds if:
+     * 1. Payment status is COMPLETED
+     * 2. Tour starts in more than 24 hours
      */
     private boolean canRefund(Payment payment) {
-        return switch (payment.getStatus()) {
-            case COMPLETED -> true;
-            case PENDING, PROCESSING, FAILED, CANCELLED, REFUNDED, EXPIRED -> false;
-        };
+        // Check payment status
+        if (payment.getStatus() != PaymentStatus.COMPLETED) {
+            log.warn("Cannot refund payment {} - status is {}", payment.getId(), payment.getStatus());
+            return false;
+        }
+
+        // Check 24-hour cancellation policy
+        try {
+            Instant tourStart = payment.getBooking().getSchedule().getStartDatetime();
+            Instant now = Instant.now();
+            long hoursUntilTour = ChronoUnit.HOURS.between(now, tourStart);
+
+            if (hoursUntilTour < 24) {
+                log.warn("Cannot refund payment {} - only {} hours until tour start (minimum 24 hours required)",
+                    payment.getId(), hoursUntilTour);
+                throw new IllegalStateException(
+                    String.format("Cannot refund payment less than 24 hours before tour starts. " +
+                        "Hours remaining: %d. Cancellation must be made at least 24 hours in advance.",
+                        hoursUntilTour)
+                );
+            }
+
+            log.info("Payment {} eligible for refund - {} hours until tour start",
+                payment.getId(), hoursUntilTour);
+            return true;
+
+        } catch (NullPointerException e) {
+            log.error("Cannot determine tour start time for payment {}", payment.getId(), e);
+            throw new IllegalStateException("Cannot process refund - tour schedule information is missing", e);
+        }
+    }
+
+    /**
+     * Get all test payments (for admin review/cleanup).
+     *
+     * @return List of test payments
+     */
+    public List<Payment> getTestPayments() {
+        log.info("Retrieving all test payments");
+        return paymentRepository.findByIsTest(true);
+    }
+
+    /**
+     * Delete all test payments (super admin only).
+     * IMPORTANT: This permanently deletes test payment records from the database.
+     *
+     * @return Number of deleted payments
+     */
+    @Transactional
+    public int deleteTestPayments() {
+        log.warn("Deleting all test payments - this action cannot be undone");
+
+        List<Payment> testPayments = paymentRepository.findByIsTest(true);
+        int count = testPayments.size();
+
+        if (count == 0) {
+            log.info("No test payments found to delete");
+            return 0;
+        }
+
+        paymentRepository.deleteByIsTest(true);
+        log.warn("Deleted {} test payment(s)", count);
+
+        return count;
     }
 }

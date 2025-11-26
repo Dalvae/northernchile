@@ -19,6 +19,7 @@ public class PaymentStatusRes {
     private String currency;
     private String message;
     private Instant updatedAt;
+    private boolean isTest;
 
     public PaymentStatusRes() {
     }
@@ -88,6 +89,14 @@ public class PaymentStatusRes {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public boolean isTest() {
+        return isTest;
+    }
+
+    public void setTest(boolean test) {
+        isTest = test;
     }
 
     @Override
