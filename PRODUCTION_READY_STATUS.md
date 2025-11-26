@@ -281,8 +281,33 @@ El proyecto **Northern Chile** ahora está **PRODUCTION-READY** con:
 
 **Elaborado por:** Claude Code
 **Rama:** claude/code-audit-cleanup-01SD1sdm6LdAGgfEuUozaZCd
-**Commits:** 4 commits con 850+ líneas cambiadas
-**Archivos modificados:** 30+ archivos
+**Commits:** 5 commits con 850+ líneas cambiadas
+**Archivos modificados:** 31 archivos
 **Archivos creados:** 12 archivos nuevos
+
+---
+
+## 🔧 HOTFIX POST-COMMIT
+
+### V4 Migration Error - RESUELTO ✅
+
+**Problema detectado:**
+- Migración V4 falló con error: `ERROR: column "tour_schedule_id" does not exist`
+- Línea 41 intentaba crear índice en columna inexistente
+- Líneas 39-41 duplicaban índices ya creados en V2
+
+**Solución aplicada:**
+- Eliminadas líneas 39-41 de V4__add_contact_messages_and_indexes.sql
+- Agregado comentario explicativo: "Media table indexes already exist in V2 migration"
+- Commit: `7ad96ec` - Fix V4 migration: remove duplicate media table indexes
+
+**Verificación:**
+- ✅ Columna correcta es `schedule_id` (no `tour_schedule_id`)
+- ✅ Índices ya existen en V2: idx_media_owner, idx_media_tour, idx_media_schedule
+- ✅ V4 ahora solo crea índices nuevos necesarios
+
+**Status:** Migración V4 ahora debería ejecutarse sin errores
+
+---
 
 **✅ LISTO PARA PRODUCCIÓN**
