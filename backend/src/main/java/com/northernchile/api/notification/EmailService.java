@@ -189,7 +189,7 @@ public class EmailService {
             mailSender.send(message);
 
             log.info("Booking notification email sent successfully to: {}", adminEmail);
-        } catch (MessagingException e) {
+        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
             log.error("Failed to send booking notification email", e);
             throw new RuntimeException("Failed to send booking notification email", e);
         }
@@ -273,7 +273,7 @@ public class EmailService {
             mailSender.send(message);
 
             log.info("Private tour request notification email sent successfully to: {}", adminEmail);
-        } catch (MessagingException e) {
+        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
             log.error("Failed to send private tour request notification email", e);
             throw new RuntimeException("Failed to send private tour request notification email", e);
         }

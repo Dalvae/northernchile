@@ -82,7 +82,7 @@ public class LunarController {
                 illumination,
                 phaseName,
                 isFullMoon,
-                getMoonIcon(phase)
+                lunarService.getMoonIcon(phase)
         );
     }
 
