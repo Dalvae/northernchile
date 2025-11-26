@@ -35,10 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_tours_owner_id ON tours(owner_id);
 CREATE INDEX IF NOT EXISTS idx_tours_status ON tours(status);
 CREATE INDEX IF NOT EXISTS idx_tours_slug ON tours(slug);
 
--- Media table (for gallery queries)
-CREATE INDEX IF NOT EXISTS idx_media_owner_id ON media(owner_id);
-CREATE INDEX IF NOT EXISTS idx_media_tour_id ON media(tour_id);
-CREATE INDEX IF NOT EXISTS idx_media_tour_schedule_id ON media(tour_schedule_id);
+-- Media table indexes already exist in V2 migration (idx_media_owner, idx_media_tour, idx_media_schedule)
 
 -- Weather alerts table
 CREATE INDEX IF NOT EXISTS idx_weather_alerts_schedule_id ON weather_alerts(schedule_id);
