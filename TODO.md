@@ -1,75 +1,96 @@
 # TODO - Northern Chile Platform
 
-## Media Management - Future Optimizations
-
-### Gallery Pagination (Low Priority)
-**Issue**: Gallery endpoints (`/api/admin/media/tour/{tourId}/gallery` and `/api/admin/media/schedule/{scheduleId}/gallery`) return all photos without pagination.
-
-**Current State**:
-- Returns `List<MediaRes>` (all photos)
-- Works fine for typical galleries (5-50 photos)
-- Needed for drag-and-drop reordering UX
-
-**Potential Issues**:
-- If tours have 100+ photos, could be slow
-- Currently not a problem with typical usage
-
-**Solution Options** (if becomes issue):
-1. Add pagination to gallery endpoints (but loses full-view reordering)
-2. Implement lazy loading with infinite scroll
-3. Add "Load More" button with chunked loading
-4. Virtualization with `@vueuse/virtual-list`
-
-**Decision**: Monitor in production. Only implement if users report slowness.
+**Última Actualización:** 26 de Noviembre, 2025
 
 ---
 
-## TourModal Rendering Issue (FIXED - Workaround Applied)
+## 🔴 CRÍTICO - BLOQUEA PRODUCCIÓN (11 issues)
 
-### Bug Description
-When opening the `TourModal` component, the "General" tab content didn't render on first load. Content only appeared after switching to "Media" tab and back to "General".
+### Backend (5 issues)
 
-### Root Cause
-- **Primary Issue**: UTabs slots (`#general`, `#gallery`) don't render correctly on initial modal mount
-- **Contributing Factors**:
-  - Combination of `UTabs` + `UModal` + `UForm` + nested reactive state
-  - Possible timing issue between modal opening and slot content initialization
-  - State from `useAdminTourForm` composable may not sync correctly on first render
+- [ ] **DataInitializer.java:50** - Remover logging de contraseñas en texto plano
+- [ ] **PrivateTourRequestController** - Agregar @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'PARTNER_ADMIN')") a endpoints admin
+- [ ] **StorageController** - Agregar @PreAuthorize y validación de path traversal (líneas 31-108)
+- [ ] **BookingSecurityService & TourSecurityService** - Reemplazar `.orElse(null)` con `.orElseThrow()` para evitar NPE
+- [ ] **WebhookController.java:135** - Remover logging de payload completo de webhooks
 
-### Files Affected
-```
-frontend/app/components/admin/tours/TourModal.vue
-frontend/app/composables/useAdminTourForm.ts
-```
+### Frontend (6 issues)
 
-### Solution Applied (Workaround)
-**Changed from**: Using UTabs with named slots (`<template #general>`, `<template #gallery>`)
-
-**Changed to**:
-- UTabs only handles navigation (tab buttons)
-- Content rendered separately with `v-show` based on `mainTab` value
-- Added `nextTick()` in composable watcher for better DOM sync
-
-**Key Changes**:
-```vue
-<!-- Before: Content inside slots -->
-<UTabs v-model="mainTab" :items="items">
-  <template #general><!-- content --></template>
-</UTabs>
-
-<!-- After: Content separated with v-show -->
-<UTabs v-model="mainTab" :items="items" />
-<div v-show="mainTab === 0"><!-- content --></div>
-```
-
-### Notes
-- Not a documented "bug" in Nuxt UI - may be project-specific
-- Related issues found: nuxt/ui#2356 (tabs + URL), nuxt/ui#645 (SFC in slots)
-- Workaround is a common pattern when tabs have slot rendering issues
-- Consider revisiting if Nuxt UI updates fix underlying issue
-
-### Priority
-- ✅ **FIXED** - Working with current workaround
-- 🔍 **MONITOR** - Watch for Nuxt UI updates that might resolve properly
+- [ ] **Remover authStore.token** - 8 archivos afectados (payment.ts, useAdminData.ts, checkout.vue, etc.)
+- [ ] **Remover localStorage.getItem('auth_token')** - 3 archivos (useS3Upload.ts, useCalendarData.ts, private-requests.vue)
+- [ ] **Migrar Cart Store a cookies** - cart.ts:148,160
+- [ ] **Mejorar CSP** - nuxt.config.ts - Remover unsafe-inline
+- [ ] **Implementar Contact Form backend** - contact.vue:80-104 - Crear POST /api/contact
+- [ ] **Fix hardcoded colors** - OgImage/Tour.vue - Usar semantic colors
 
 ---
+
+## 🟠 ALTA PRIORIDAD (34 issues)
+
+### Backend
+
+- [ ] **Agregar @Valid a 8 endpoints** (WeatherAlertController, TourScheduleAdminController, SystemSettingsController, etc.)
+- [ ] **DTOs sin validaciones** - CartItemReq, UserUpdateReq, MediaUpdateReq
+- [ ] **N+1 Queries** - TourService.getPublishedTours(), PrivateTourRequestController, UserService
+- [ ] **TODOs críticos** - SystemSettingsController:79, AuthService:74, EmailService:115,123, TourCreateReq:165
+- [ ] **Índices de BD** - Crear V4__add_indexes.sql con 6 índices
+
+### Frontend
+
+- [ ] **Console.log en producción** - admin/media/[slug]/index.vue (5 statements)
+- [ ] **TODO sin implementar** - admin/index.vue:146 (click handler)
+- [ ] **Migrar useLocalStorage** - Cambiar a useCookie()
+- [ ] **Validación Zod** - Contact form, private tours form
+- [ ] **Textos sin i18n** - checkout.vue, otros componentes
+
+---
+
+## 🟡 MEDIA PRIORIDAD
+
+### Backend
+
+- [ ] Duplicación de código - getMoonIcon() en LunarController y CalendarDataController
+- [ ] Lógica en controllers - Mover a service layer
+- [ ] Error handling incompleto - Mejorar GlobalExceptionHandler
+- [ ] Configuración hardcoded - Timezone, constantes
+- [ ] Transacciones faltantes - DataInitializer, AuthService.login
+
+### Frontend
+
+- [ ] Loading states inconsistentes
+- [ ] Mensajes de error genéricos
+- [ ] Performance issues - Lazy loading
+
+---
+
+## 📝 NOTAS
+
+### Issues Resueltos (ya NO aparecen en TODO)
+
+✅ **Password en toString()** - LoginReq, RegisterReq, User - RESUELTO
+✅ **@Valid en AuthController** - login, register - RESUELTO
+✅ **Payment token en logs** - PaymentService - RESUELTO
+✅ **RateLimitInterceptor** - Implementado y registrado - RESUELTO
+
+### Media Management - Future Optimizations (LOW PRIORITY)
+
+**Gallery Pagination:**
+- **Estado Actual:** Endpoints retornan todas las fotos sin paginación
+- **Funciona bien:** Para galerías típicas (5-50 fotos)
+- **Decisión:** Monitorear en producción, implementar solo si hay slowness
+
+**TourModal Rendering (FIXED):**
+- **Problema:** UTabs slots no renderizaban en primer load
+- **Solución:** Usar v-show en lugar de slots
+- **Estado:** ✅ Funcionando con workaround
+
+---
+
+## 📊 Próximos Pasos
+
+1. **Semana 1:** Implementar fixes críticos (16-24 horas)
+2. **Semana 2:** Alta prioridad (12-16 horas)
+3. **Semana 3:** Testing exhaustivo
+4. **Semana 4:** Deploy a producción
+
+Ver **AUDITORIA_COMPLETA_2025.md** para detalles completos.
