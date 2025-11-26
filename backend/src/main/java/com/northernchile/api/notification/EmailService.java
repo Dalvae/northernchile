@@ -124,6 +124,62 @@ public class EmailService {
     }
 
     /**
+     * Send admin notification for new contact form message
+     */
+    public void sendContactNotificationToAdmin(com.northernchile.api.model.ContactMessage contactMessage, String adminEmail) {
+        log.info("Sending contact notification to admin: {} from: {}", adminEmail, contactMessage.getEmail());
+
+        if (!mailEnabled) {
+            log.warn("Email sending is disabled. Would have sent contact notification to: {}", adminEmail);
+            return;
+        }
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(adminEmail);
+            helper.setSubject("New Contact Form Message - Northern Chile");
+
+            String htmlContent = String.format("""
+                <html>
+                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <h2 style="color: #d97706;">New Contact Form Message</h2>
+                    <p><strong>Name:</strong> %s</p>
+                    <p><strong>Email:</strong> %s</p>
+                    <p><strong>Phone:</strong> %s</p>
+                    <p><strong>Message:</strong></p>
+                    <div style="background: #f3f4f6; padding: 15px; border-left: 4px solid #d97706; margin: 10px 0;">
+                        %s
+                    </div>
+                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+                    <p style="color: #6b7280; font-size: 12px;">
+                        Received: %s<br>
+                        ID: %s
+                    </p>
+                </body>
+                </html>
+                """,
+                contactMessage.getName(),
+                contactMessage.getEmail(),
+                contactMessage.getPhone() != null ? contactMessage.getPhone() : "Not provided",
+                contactMessage.getMessage().replace("\n", "<br>"),
+                contactMessage.getCreatedAt().toString(),
+                contactMessage.getId().toString()
+            );
+
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            log.info("Contact notification email sent successfully to: {}", adminEmail);
+        } catch (Exception e) {
+            log.error("Failed to send contact notification email to: {}", adminEmail, e);
+            throw new RuntimeException("Failed to send contact notification email", e);
+        }
+    }
+
+    /**
      * Generic method to send HTML emails using Thymeleaf templates
      */
     private void sendHtmlEmail(String toEmail, String subject, String templateName, Context context, Locale locale) {
