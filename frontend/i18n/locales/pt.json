@@ -331,6 +331,26 @@
     "featured_tours_subtitle": "Descubra o melhor do Deserto do Atacama",
     "view_all_tours": "Ver todos os tours",
     "why_us_title": "Por que nos escolher?",
+    "why_us": {
+      "features": [
+        {
+          "title": "Equipamento Profissional",
+          "description": "Telescópios de alta qualidade e equipamentos de observação certificados"
+        },
+        {
+          "title": "Guias Especializados",
+          "description": "Astrônomos e guias certificados com anos de experiência"
+        },
+        {
+          "title": "Céus Únicos",
+          "description": "O melhor lugar do mundo para observação astronômica"
+        },
+        {
+          "title": "Cancelamento Grátis",
+          "description": "Cancele sem custo até 24 horas antes"
+        }
+      ]
+    },
     "cta_title": "Pronto para explorar o universo?",
     "cta_subtitle": "Junte-se a nós em uma aventura astronômica inesquecível",
     "book_now": "Reservar Agora",

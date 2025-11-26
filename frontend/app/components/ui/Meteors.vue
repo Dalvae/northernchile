@@ -11,7 +11,7 @@ const getMeteorStyle = () => {
   // Generamos una posición horizontal aleatoria
   const left = Math.floor(Math.random() * 100) + '%'
   // Retraso y duración aleatorios
-  const delay = Math.random() * 2 + 's'
+  const delay = Math.random() * 3 + 's'
   const duration = Math.floor(Math.random() * 3 + 2) + 's'
 
   return {
@@ -30,11 +30,11 @@ const getMeteorStyle = () => {
       v-for="index in count"
       :key="'meteor-' + index"
       :style="getMeteorStyle()"
-      class="animate-meteor-fall absolute top-0 h-1 w-1 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.1)] z-0"
+      class="animate-meteor-fall absolute top-0 h-1 w-1 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.1),0_0_8px_rgba(255,255,255,0.2)] z-0"
     >
       <!-- Cola del meteoro -->
       <span
-        class="absolute top-1/2 left-1/2 -z-10 h-[1px] w-[100px] -translate-y-1/2 bg-gradient-to-r from-white to-transparent content-['']"
+        class="absolute top-1/2 left-1/2 -z-10 h-[1px] w-[100px] -translate-y-1/2 bg-gradient-to-r from-white via-white/40 to-transparent content-['']"
       />
     </span>
   </div>

@@ -4,23 +4,23 @@ const { t } = useI18n()
 const features = [
   {
     icon: 'i-lucide-telescope',
-    title: 'Equipamiento Profesional',
-    description: 'Telescopios de alta gama y equipos de observación certificados'
+    titleKey: 'home.why_us.features.0.title',
+    descriptionKey: 'home.why_us.features.0.description'
   },
   {
     icon: 'i-lucide-users',
-    title: 'Guías Expertos',
-    description: 'Astrónomos y guías certificados con años de experiencia'
+    titleKey: 'home.why_us.features.1.title',
+    descriptionKey: 'home.why_us.features.1.description'
   },
   {
     icon: 'i-lucide-star',
-    title: 'Cielos Únicos',
-    description: 'El mejor lugar del mundo para observación astronómica'
+    titleKey: 'home.why_us.features.2.title',
+    descriptionKey: 'home.why_us.features.2.description'
   },
   {
     icon: 'i-lucide-shield-check',
-    title: 'Cancelación Gratis',
-    description: 'Cancela sin cargo hasta 24 horas antes'
+    titleKey: 'home.why_us.features.3.title',
+    descriptionKey: 'home.why_us.features.3.description'
   }
 ]
 </script>
@@ -38,14 +38,14 @@ const features = [
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         <div
           v-for="(feature, index) in features"
-          :key="feature.title"
+          :key="feature.titleKey"
           class="relative overflow-hidden atacama-card p-8 rounded-2xl text-center group hover:bg-white/5 transition-colors duration-500 border border-white/10"
         >
-          <!-- EFECTO: Visible siempre (borré opacity-0 y hover) -->
+          <!-- EFECTO: Meteoros animados de fondo -->
           <ClientOnly>
             <UiMeteors
-              :count="10"
-              class="opacity-50"
+              :count="12"
+              class="opacity-60"
             />
           </ClientOnly>
 
@@ -58,10 +58,10 @@ const features = [
               />
             </div>
             <h3 class="text-2xl font-display font-bold text-white mb-4">
-              {{ feature.title }}
+              {{ t(feature.titleKey) }}
             </h3>
             <p class="text-neutral-300 leading-relaxed">
-              {{ feature.description }}
+              {{ t(feature.descriptionKey) }}
             </p>
           </div>
         </div>
