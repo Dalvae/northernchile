@@ -2,10 +2,12 @@
 import { z } from 'zod'
 import type { UserCreateReq } from 'api-client'
 
-const emit = defineEmits<{ success: [], close: [] }>()
+const emit = defineEmits<{ success: [] }>()
 const { t } = useI18n()
 const { createAdminUser } = useAdminData()
 const toast = useToast()
+
+const isOpen = ref(false)
 
 // Role options for select
 const roleOptions = [
@@ -63,6 +65,7 @@ async function handleSubmit() {
     state.nationality = ''
     state.phoneNumber = ''
 
+    isOpen.value = false
     emit('success')
   } catch (error: unknown) {
     let description = 'Error desconocido'
@@ -90,15 +93,16 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <UModal>
-    <!-- Trigger Button -->
-    <UButton
-      icon="i-lucide-user-plus"
-      color="primary"
-    >
-      Crear Usuario
-    </UButton>
+  <!-- Trigger Button -->
+  <UButton
+    icon="i-lucide-user-plus"
+    color="primary"
+    @click="isOpen = true"
+  >
+    Crear Usuario
+  </UButton>
 
+  <UModal v-model:open="isOpen">
     <template #content>
       <div class="p-6">
         <!-- Header -->
@@ -116,7 +120,7 @@ async function handleSubmit() {
             color="neutral"
             variant="ghost"
             size="sm"
-            @click="$emit('close')"
+            @click="isOpen = false"
           />
         </div>
 
@@ -217,7 +221,7 @@ async function handleSubmit() {
             color="neutral"
             variant="outline"
             :disabled="isSubmitting"
-            @click="$emit('close')"
+            @click="isOpen = false"
           />
           <UButton
             label="Crear Usuario"

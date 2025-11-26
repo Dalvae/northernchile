@@ -4,13 +4,14 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  close: []
   saved: []
 }>()
 
 const config = useRuntimeConfig()
 const authStore = useAuthStore()
 const toast = useToast()
+
+const isOpen = ref(false)
 
 // Form state
 const state = ref({
@@ -55,8 +56,8 @@ async function saveChanges() {
       description: 'Los cambios se han guardado exitosamente.'
     })
 
+    isOpen.value = false
     emit('saved')
-    emit('close')
   } catch (error: any) {
     console.error('Error updating booking:', error)
     toast.add({
@@ -72,9 +73,9 @@ async function saveChanges() {
 </script>
 
 <template>
-  <UModal>
-    <UButton label="Editar Reserva" />
+  <UButton label="Editar Reserva" @click="isOpen = true" />
 
+  <UModal v-model:open="isOpen">
     <template #content>
       <!-- Header -->
       <div class="flex justify-between items-center pb-4 px-6 border-b border-neutral-200 dark:border-neutral-700">
@@ -90,7 +91,7 @@ async function saveChanges() {
           color="neutral"
           variant="ghost"
           icon="i-lucide-x"
-          @click="emit('close')"
+          @click="isOpen = false"
         />
       </div>
 
@@ -215,7 +216,7 @@ async function saveChanges() {
           variant="outline"
           label="Cancelar"
           :disabled="saving"
-          @click="emit('close')"
+          @click="isOpen = false"
         />
         <UButton
           color="primary"

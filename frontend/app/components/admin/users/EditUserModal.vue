@@ -8,12 +8,13 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   success: []
-  close: []
 }>()
 
 const { updateAdminUser, resetAdminUserPassword } = useAdminData()
 const toast = useToast()
 const { countries } = useCountries()
+
+const isOpen = ref(false)
 
 // Role options for select
 const roleOptions = [
@@ -109,6 +110,7 @@ async function handleSubmit() {
       color: 'success',
       icon: 'i-lucide-check-circle'
     })
+    isOpen.value = false
     emit('success')
   } catch (error: unknown) {
     let description = 'Error desconocido'
@@ -136,16 +138,17 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <UModal>
-    <!-- Trigger Button -->
-    <UButton
-      icon="i-lucide-pencil"
-      color="neutral"
-      variant="ghost"
-      size="sm"
-      aria-label="Editar usuario"
-    />
+  <!-- Trigger Button -->
+  <UButton
+    icon="i-lucide-pencil"
+    color="neutral"
+    variant="ghost"
+    size="sm"
+    aria-label="Editar usuario"
+    @click="isOpen = true"
+  />
 
+  <UModal v-model:open="isOpen">
     <template #content>
       <div class="p-6">
         <!-- Header -->
@@ -163,7 +166,7 @@ async function handleSubmit() {
             color="neutral"
             variant="ghost"
             size="sm"
-            @click="$emit('close')"
+            @click="isOpen = false"
           />
         </div>
 
@@ -308,7 +311,7 @@ async function handleSubmit() {
             color="neutral"
             variant="outline"
             :disabled="isSubmitting"
-            @click="$emit('close')"
+            @click="isOpen = false"
           />
           <UButton
             label="Guardar Cambios"

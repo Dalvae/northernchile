@@ -10,6 +10,8 @@ const { getCountryLabel, getCountryFlag } = useCountries()
 
 const { formatDateTime } = useDateTime()
 
+const isOpen = ref(false)
+
 function formatDate(dateString: string): string {
   return formatDateTime(dateString)
 }
@@ -44,16 +46,17 @@ function getStatusLabel(status: string): string {
 </script>
 
 <template>
-  <UModal>
-    <!-- Trigger Button -->
-    <UButton
-      icon="i-lucide-eye"
-      color="neutral"
-      variant="ghost"
-      size="sm"
-      aria-label="Ver detalles"
-    />
+  <!-- Trigger Button -->
+  <UButton
+    icon="i-lucide-eye"
+    color="neutral"
+    variant="ghost"
+    size="sm"
+    aria-label="Ver detalles"
+    @click="isOpen = true"
+  />
 
+  <UModal v-model:open="isOpen">
     <template #content>
       <div class="p-6">
         <!-- Header -->
@@ -71,7 +74,7 @@ function getStatusLabel(status: string): string {
             color="neutral"
             variant="ghost"
             size="sm"
-            @click="$emit('close')"
+            @click="isOpen = false"
           />
         </div>
 
@@ -227,7 +230,7 @@ function getStatusLabel(status: string): string {
             label="Cerrar"
             color="neutral"
             variant="outline"
-            @click="$emit('close')"
+            @click="isOpen = false"
           />
         </div>
       </div>
