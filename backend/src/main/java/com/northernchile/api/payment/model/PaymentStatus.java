@@ -31,6 +31,11 @@ public enum PaymentStatus {
     CANCELLED,
 
     /**
+     * Refund is in progress (transitional state for consistency)
+     */
+    REFUND_PENDING,
+
+    /**
      * Payment has been refunded (fully or partially)
      */
     REFUNDED,
