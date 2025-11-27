@@ -124,11 +124,9 @@
                 :label="t('booking.date_of_birth')"
                 name="dateOfBirth"
               >
-                <UInput
-                  v-model="state.dateOfBirth"
-                  type="date"
+                <UInputDate
+                  v-model="dateOfBirthValue"
                   size="lg"
-                  icon="i-lucide-calendar"
                   class="w-full"
                 />
               </UFormField>
@@ -221,6 +219,7 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { z } from 'zod'
+import { CalendarDate } from '@internationalized/date'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -241,6 +240,18 @@ const state = reactive({
   nationality: '',
   phoneNumber: '',
   dateOfBirth: ''
+})
+
+// Date picker state
+const dateOfBirthValue = ref<CalendarDate | null>(null)
+
+// Sync between CalendarDate and string
+watch(dateOfBirthValue, (newDate) => {
+  if (newDate) {
+    state.dateOfBirth = `${newDate.year}-${String(newDate.month).padStart(2, '0')}-${String(newDate.day).padStart(2, '0')}`
+  } else {
+    state.dateOfBirth = ''
+  }
 })
 
 // Schema de validación
@@ -275,6 +286,7 @@ function toggleForm() {
   Object.keys(state).forEach((key) => {
     state[key as keyof typeof state] = ''
   })
+  dateOfBirthValue.value = null
 }
 
 // Submit
@@ -316,6 +328,7 @@ async function handleSubmit(event: FormSubmitEvent<any>) {
       Object.keys(state).forEach((key) => {
         state[key as keyof typeof state] = ''
       })
+      dateOfBirthValue.value = null
     }
   } catch (error: any) {
     console.error('Error en auth:', error)
