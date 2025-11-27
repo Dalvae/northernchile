@@ -6,6 +6,7 @@ import com.northernchile.api.auth.dto.PasswordResetRequestDto;
 import com.northernchile.api.auth.dto.RegisterReq;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,9 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @Value("${cookie.insecure:false}")
+    private boolean cookieInsecure;
+
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
@@ -33,11 +37,12 @@ public class AuthController {
         String token = (String) loginResponse.get("token");
 
         // Create HttpOnly cookie with JWT token using ResponseCookie
+        // secure=true by default (production), set cookie.insecure=true only for local dev
         ResponseCookie jwtCookie = ResponseCookie.from("auth_token", token)
                 .httpOnly(true)
-                .secure(true) // Only send over HTTPS (disable in dev if needed)
+                .secure(!cookieInsecure) // true in production, false only if cookie.insecure=true
                 .path("/")
-                .maxAge(Duration.ofHours(24))
+                .maxAge(Duration.ofDays(7)) // 7 days
                 .sameSite("Lax") // CSRF protection
                 .build();
 
