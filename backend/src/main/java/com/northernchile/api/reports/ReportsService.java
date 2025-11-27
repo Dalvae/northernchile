@@ -2,12 +2,19 @@ package com.northernchile.api.reports;
 
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.model.Booking;
+import com.northernchile.api.payment.model.Payment;
+import com.northernchile.api.payment.model.PaymentProvider;
+import com.northernchile.api.payment.repository.PaymentRepository;
 import com.northernchile.api.reports.dto.BookingsByDayReport;
+import com.northernchile.api.reports.dto.FinancialReport;
 import com.northernchile.api.reports.dto.OverviewReport;
 import com.northernchile.api.reports.dto.TopTourReport;
 import com.northernchile.api.tour.TourRepository;
 import com.northernchile.api.tour.TourScheduleRepository;
 import com.northernchile.api.user.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,20 +32,33 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class ReportsService {
 
+    private static final Logger log = LoggerFactory.getLogger(ReportsService.class);
     private static final ZoneId ZONE_ID = ZoneId.of("America/Santiago");
     private static final int DEFAULT_PERIOD_DAYS = 30;
 
     private final BookingRepository bookingRepository;
+    private final PaymentRepository paymentRepository;
     private final TourRepository tourRepository;
     private final TourScheduleRepository tourScheduleRepository;
     private final UserRepository userRepository;
 
+    @Value("${transbank.fee.debit:0.0177}")
+    private BigDecimal transbankDebitFee;
+
+    @Value("${transbank.fee.credit:0.0351}")
+    private BigDecimal transbankCreditFee;
+
+    @Value("${transbank.fee.prepaid:0.0177}")
+    private BigDecimal transbankPrepaidFee;
+
     public ReportsService(
             BookingRepository bookingRepository,
+            PaymentRepository paymentRepository,
             TourRepository tourRepository,
             TourScheduleRepository tourScheduleRepository,
             UserRepository userRepository) {
         this.bookingRepository = bookingRepository;
+        this.paymentRepository = paymentRepository;
         this.tourRepository = tourRepository;
         this.tourScheduleRepository = tourScheduleRepository;
         this.userRepository = userRepository;
@@ -123,6 +143,109 @@ public class ReportsService {
                 .sorted((a, b) -> Integer.compare(b.getBookingsCount(), a.getBookingsCount()))
                 .limit(limit)
                 .collect(Collectors.toList());
+    }
+
+    public FinancialReport getFinancialReport(Instant start, Instant end) {
+        List<Payment> payments = paymentRepository.findCompletedBetween(start, end);
+
+        // Mercado Pago - real data from API
+        BigDecimal mpGross = BigDecimal.ZERO;
+        BigDecimal mpFees = BigDecimal.ZERO;
+        BigDecimal mpNet = BigDecimal.ZERO;
+        long mpCount = 0;
+
+        // Transbank - estimated data
+        BigDecimal tbGross = BigDecimal.ZERO;
+        BigDecimal tbFeesEstimated = BigDecimal.ZERO;
+        long tbCount = 0;
+
+        // Tax collected from bookings
+        BigDecimal totalTax = BigDecimal.ZERO;
+
+        for (Payment payment : payments) {
+            BigDecimal amount = payment.getAmount();
+            Map<String, Object> response = payment.getProviderResponse();
+
+            if (payment.getProvider() == PaymentProvider.MERCADOPAGO) {
+                mpGross = mpGross.add(amount);
+                mpCount++;
+
+                // Read net_received_amount from providerResponse
+                if (response != null && response.get("net_received_amount") != null) {
+                    try {
+                        BigDecimal netReceived = new BigDecimal(response.get("net_received_amount").toString());
+                        mpNet = mpNet.add(netReceived);
+                    } catch (NumberFormatException e) {
+                        log.warn("Could not parse net_received_amount for payment {}", payment.getId());
+                        mpNet = mpNet.add(amount); // Fallback to gross
+                    }
+                } else {
+                    mpNet = mpNet.add(amount); // Fallback if no data
+                }
+
+                // Read gateway_fee if available
+                if (response != null && response.get("gateway_fee") != null) {
+                    try {
+                        BigDecimal fee = new BigDecimal(response.get("gateway_fee").toString());
+                        mpFees = mpFees.add(fee);
+                    } catch (NumberFormatException e) {
+                        log.warn("Could not parse gateway_fee for payment {}", payment.getId());
+                    }
+                }
+
+            } else if (payment.getProvider() == PaymentProvider.TRANSBANK) {
+                tbGross = tbGross.add(amount);
+                tbCount++;
+
+                // Estimate fee based on payment_type_code
+                BigDecimal estimatedFee = estimateTransbankFee(payment, response);
+                tbFeesEstimated = tbFeesEstimated.add(estimatedFee);
+            }
+
+            // Collect tax from booking
+            if (payment.getBooking() != null && payment.getBooking().getTaxAmount() != null) {
+                totalTax = totalTax.add(payment.getBooking().getTaxAmount());
+            }
+        }
+
+        // If we didn't get fees from API, calculate from gross - net
+        if (mpFees.compareTo(BigDecimal.ZERO) == 0 && mpGross.compareTo(mpNet) > 0) {
+            mpFees = mpGross.subtract(mpNet);
+        }
+
+        // Calculate Transbank estimated net
+        BigDecimal tbEstimatedNet = tbGross.subtract(tbFeesEstimated);
+
+        return new FinancialReport(
+                start,
+                end,
+                mpGross,
+                mpFees,
+                mpNet,
+                mpCount,
+                tbGross,
+                tbFeesEstimated,
+                tbEstimatedNet,
+                tbCount,
+                totalTax
+        );
+    }
+
+    private BigDecimal estimateTransbankFee(Payment payment, Map<String, Object> response) {
+        BigDecimal amount = payment.getAmount();
+        BigDecimal feeRate = transbankCreditFee; // Default to credit
+
+        if (response != null && response.get("payment_type_code") != null) {
+            String paymentType = response.get("payment_type_code").toString();
+            feeRate = switch (paymentType) {
+                case "VD" -> transbankDebitFee;      // Venta Débito
+                case "VP" -> transbankPrepaidFee;    // Venta Prepago
+                case "VN", "VC", "SI", "S2", "NC", "NP" -> transbankCreditFee; // Credit variants
+                default -> transbankCreditFee;
+            };
+        }
+
+        return amount.multiply(feeRate).setScale(0, RoundingMode.HALF_UP);
     }
 
     public Instant parseStartDate(String startDate) {

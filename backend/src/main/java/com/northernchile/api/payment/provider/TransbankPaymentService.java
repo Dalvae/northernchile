@@ -178,15 +178,21 @@ public class TransbankPaymentService implements PaymentProviderService {
             payment.setStatus(newStatus);
             payment.setExternalPaymentId(String.valueOf(commitResponse.getBuyOrder()));
 
-            // Store commit response
+            // Store commit response with payment type for fee estimation
             Map<String, Object> providerResponse = payment.getProviderResponse();
             if (providerResponse == null) {
                 providerResponse = new HashMap<>();
             }
-            providerResponse.put("commitResponse", commitResponse);
             providerResponse.put("responseCode", commitResponse.getResponseCode());
             providerResponse.put("authorizationCode", commitResponse.getAuthorizationCode());
             providerResponse.put("transactionDate", commitResponse.getTransactionDate());
+            
+            // Store payment_type_code for fee estimation (VD=debit, VN=credit, VC=installments, etc.)
+            providerResponse.put("payment_type_code", commitResponse.getPaymentTypeCode());
+            providerResponse.put("installments_number", commitResponse.getInstallmentsNumber());
+            providerResponse.put("card_number", commitResponse.getCardDetail() != null ? 
+                commitResponse.getCardDetail().getCardNumber() : null);
+            
             payment.setProviderResponse(providerResponse);
 
             payment = paymentRepository.save(payment);

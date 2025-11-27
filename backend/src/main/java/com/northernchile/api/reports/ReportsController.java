@@ -1,6 +1,7 @@
 package com.northernchile.api.reports;
 
 import com.northernchile.api.reports.dto.BookingsByDayReport;
+import com.northernchile.api.reports.dto.FinancialReport;
 import com.northernchile.api.reports.dto.OverviewReport;
 import com.northernchile.api.reports.dto.TopTourReport;
 import org.springframework.http.ResponseEntity;
@@ -70,6 +71,24 @@ public class ReportsController {
         Instant end = reportsService.parseEndDate(endDate);
 
         List<TopTourReport> report = reportsService.getTopTours(start, end, limit);
+        return ResponseEntity.ok(report);
+    }
+
+    /**
+     * GET /api/admin/reports/financial
+     * Financial reconciliation report with gateway fees and net received.
+     * Mercado Pago: real data from API.
+     * Transbank: estimated fees based on payment_type_code.
+     */
+    @GetMapping("/financial")
+    public ResponseEntity<FinancialReport> getFinancialReport(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+
+        Instant start = reportsService.parseStartDate(startDate);
+        Instant end = reportsService.parseEndDate(endDate);
+
+        FinancialReport report = reportsService.getFinancialReport(start, end);
         return ResponseEntity.ok(report);
     }
 }

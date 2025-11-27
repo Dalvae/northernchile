@@ -69,4 +69,13 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
      * Find payment by idempotency key
      */
     Optional<Payment> findByIdempotencyKey(String idempotencyKey);
+
+    /**
+     * Find completed payments within a date range (for financial reports).
+     * Excludes test payments.
+     */
+    @Query("SELECT p FROM Payment p WHERE p.status = com.northernchile.api.payment.model.PaymentStatus.COMPLETED " +
+           "AND p.isTest = false " +
+           "AND p.createdAt >= :start AND p.createdAt < :end")
+    List<Payment> findCompletedBetween(@Param("start") Instant start, @Param("end") Instant end);
 }

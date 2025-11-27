@@ -214,7 +214,7 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
             PaymentStatus newStatus = mapMercadoPagoStatus(mpPayment.getStatus());
             payment.setStatus(newStatus);
 
-            // Update provider response
+            // Update provider response with financial details for reconciliation
             Map<String, Object> providerResponse = payment.getProviderResponse();
             if (providerResponse == null) {
                 providerResponse = new HashMap<>();
@@ -222,6 +222,20 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
             providerResponse.put("status", mpPayment.getStatus());
             providerResponse.put("status_detail", mpPayment.getStatusDetail());
             providerResponse.put("last_updated", mpPayment.getDateLastUpdated());
+            
+            // Extract fee details for financial reconciliation
+            if (mpPayment.getFeeDetails() != null && !mpPayment.getFeeDetails().isEmpty()) {
+                var feeDetail = mpPayment.getFeeDetails().get(0);
+                providerResponse.put("gateway_fee", feeDetail.getAmount());
+                providerResponse.put("fee_type", feeDetail.getType());
+            }
+            
+            // Extract net received amount
+            if (mpPayment.getTransactionDetails() != null) {
+                providerResponse.put("net_received_amount", mpPayment.getTransactionDetails().getNetReceivedAmount());
+                providerResponse.put("total_paid_amount", mpPayment.getTransactionDetails().getTotalPaidAmount());
+            }
+            
             payment.setProviderResponse(providerResponse);
 
             payment = paymentRepository.save(payment);
