@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -16,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class EmailService {
@@ -44,7 +46,8 @@ public class EmailService {
     /**
      * Send email verification link to new users
      */
-    public void sendVerificationEmail(String toEmail, String userName, String verificationUrl, String languageCode) {
+    @Async
+    public CompletableFuture<Void> sendVerificationEmail(String toEmail, String userName, String verificationUrl, String languageCode) {
         Locale locale = Locale.forLanguageTag(languageCode);
 
         Context context = new Context(locale);
@@ -53,12 +56,14 @@ public class EmailService {
 
         String subject = messageSource.getMessage("email.verification.title", null, locale);
         sendHtmlEmail(toEmail, subject, "email/verification", context, locale);
+        return CompletableFuture.completedFuture(null);
     }
 
     /**
      * Send password reset link to users
      */
-    public void sendPasswordResetEmail(String toEmail, String userName, String resetUrl, String languageCode) {
+    @Async
+    public CompletableFuture<Void> sendPasswordResetEmail(String toEmail, String userName, String resetUrl, String languageCode) {
         Locale locale = Locale.forLanguageTag(languageCode);
 
         Context context = new Context(locale);
@@ -67,12 +72,14 @@ public class EmailService {
 
         String subject = messageSource.getMessage("email.password.reset.title", null, locale);
         sendHtmlEmail(toEmail, subject, "email/password-reset", context, locale);
+        return CompletableFuture.completedFuture(null);
     }
 
     /**
      * Send booking confirmation email after checkout
      */
-    public void sendBookingConfirmationEmail(String toEmail, String customerName, String bookingId,
+    @Async
+    public CompletableFuture<Void> sendBookingConfirmationEmail(String toEmail, String customerName, String bookingId,
                                             String tourName, String tourDate, String tourTime,
                                             int participantCount, String totalAmount, String languageCode) {
         Locale locale = Locale.forLanguageTag(languageCode);
@@ -88,12 +95,14 @@ public class EmailService {
 
         String subject = messageSource.getMessage("email.booking.confirmation.title", null, locale);
         sendHtmlEmail(toEmail, subject, "email/booking-confirmation", context, locale);
+        return CompletableFuture.completedFuture(null);
     }
 
     /**
      * Send tour reminder email 24 hours before the tour
      */
-    public void sendTourReminderEmail(String toEmail, String customerName, String bookingId,
+    @Async
+    public CompletableFuture<Void> sendTourReminderEmail(String toEmail, String customerName, String bookingId,
                                      String tourName, String tourDateTime, String languageCode) {
         Locale locale = Locale.forLanguageTag(languageCode);
 
@@ -105,17 +114,19 @@ public class EmailService {
 
         String subject = messageSource.getMessage("email.reminder.title", null, locale);
         sendHtmlEmail(toEmail, subject, "email/tour-reminder", context, locale);
+        return CompletableFuture.completedFuture(null);
     }
 
     /**
      * Send admin notification for new booking
      */
-    public void sendNewBookingNotificationToAdmin(com.northernchile.api.model.Booking booking, String adminEmail) {
+    @Async
+    public CompletableFuture<Void> sendNewBookingNotificationToAdmin(com.northernchile.api.model.Booking booking, String adminEmail) {
         log.info("Sending booking notification to admin: {} - Booking ID: {}", adminEmail, booking.getId());
 
         if (!mailEnabled) {
             log.warn("Email sending is disabled. Would have sent booking notification to: {}", adminEmail);
-            return;
+            return CompletableFuture.completedFuture(null);
         }
 
         try {
@@ -191,19 +202,20 @@ public class EmailService {
             log.info("Booking notification email sent successfully to: {}", adminEmail);
         } catch (MessagingException | java.io.UnsupportedEncodingException e) {
             log.error("Failed to send booking notification email", e);
-            throw new RuntimeException("Failed to send booking notification email", e);
         }
+        return CompletableFuture.completedFuture(null);
     }
 
     /**
      * Send admin notification for new private tour request
      */
-    public void sendNewPrivateRequestNotificationToAdmin(com.northernchile.api.model.PrivateTourRequest request, String adminEmail) {
+    @Async
+    public CompletableFuture<Void> sendNewPrivateRequestNotificationToAdmin(com.northernchile.api.model.PrivateTourRequest request, String adminEmail) {
         log.info("Sending private tour request notification to admin: {} - Request ID: {}", adminEmail, request.getId());
 
         if (!mailEnabled) {
             log.warn("Email sending is disabled. Would have sent private tour request notification to: {}", adminEmail);
-            return;
+            return CompletableFuture.completedFuture(null);
         }
 
         try {
@@ -275,19 +287,20 @@ public class EmailService {
             log.info("Private tour request notification email sent successfully to: {}", adminEmail);
         } catch (MessagingException | java.io.UnsupportedEncodingException e) {
             log.error("Failed to send private tour request notification email", e);
-            throw new RuntimeException("Failed to send private tour request notification email", e);
         }
+        return CompletableFuture.completedFuture(null);
     }
 
     /**
      * Send admin notification for new contact form message
      */
-    public void sendContactNotificationToAdmin(com.northernchile.api.model.ContactMessage contactMessage, String adminEmail) {
+    @Async
+    public CompletableFuture<Void> sendContactNotificationToAdmin(com.northernchile.api.model.ContactMessage contactMessage, String adminEmail) {
         log.info("Sending contact notification to admin: {} from: {}", adminEmail, contactMessage.getEmail());
 
         if (!mailEnabled) {
             log.warn("Email sending is disabled. Would have sent contact notification to: {}", adminEmail);
-            return;
+            return CompletableFuture.completedFuture(null);
         }
 
         try {
@@ -331,8 +344,8 @@ public class EmailService {
             log.info("Contact notification email sent successfully to: {}", adminEmail);
         } catch (Exception e) {
             log.error("Failed to send contact notification email to: {}", adminEmail, e);
-            throw new RuntimeException("Failed to send contact notification email", e);
         }
+        return CompletableFuture.completedFuture(null);
     }
 
     /**
