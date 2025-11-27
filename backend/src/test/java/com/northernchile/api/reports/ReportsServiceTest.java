@@ -5,7 +5,12 @@ import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.Participant;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
+import com.northernchile.api.payment.model.Payment;
+import com.northernchile.api.payment.model.PaymentProvider;
+import com.northernchile.api.payment.model.PaymentStatus;
+import com.northernchile.api.payment.repository.PaymentRepository;
 import com.northernchile.api.reports.dto.BookingsByDayReport;
+import com.northernchile.api.reports.dto.FinancialReport;
 import com.northernchile.api.reports.dto.OverviewReport;
 import com.northernchile.api.reports.dto.TopTourReport;
 import com.northernchile.api.tour.TourRepository;
@@ -13,11 +18,12 @@ import com.northernchile.api.tour.TourScheduleRepository;
 import com.northernchile.api.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -41,6 +47,9 @@ class ReportsServiceTest {
     private BookingRepository bookingRepository;
 
     @Mock
+    private PaymentRepository paymentRepository;
+
+    @Mock
     private TourRepository tourRepository;
 
     @Mock
@@ -49,7 +58,6 @@ class ReportsServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    @InjectMocks
     private ReportsService reportsService;
 
     private Instant start;
@@ -58,6 +66,18 @@ class ReportsServiceTest {
 
     @BeforeEach
     void setUp() {
+        reportsService = new ReportsService(
+                bookingRepository,
+                paymentRepository,
+                tourRepository,
+                tourScheduleRepository,
+                userRepository
+        );
+        // Set default fee rates
+        ReflectionTestUtils.setField(reportsService, "transbankDebitFee", new BigDecimal("0.0177"));
+        ReflectionTestUtils.setField(reportsService, "transbankCreditFee", new BigDecimal("0.0351"));
+        ReflectionTestUtils.setField(reportsService, "transbankPrepaidFee", new BigDecimal("0.0177"));
+        
         start = Instant.now().minus(30, ChronoUnit.DAYS);
         end = Instant.now();
         mockBookings = createMockBookings();
@@ -308,5 +328,141 @@ class ReportsServiceTest {
         booking.setParticipants(participants);
 
         return booking;
+    }
+
+    @Nested
+    @DisplayName("Financial Report Tests")
+    class FinancialReportTests {
+
+        @Test
+        @DisplayName("Should calculate financial report with MercadoPago payments")
+        void shouldCalculateFinancialReportWithMercadoPago() {
+            // Given
+            Payment mpPayment = new Payment();
+            mpPayment.setId(UUID.randomUUID());
+            mpPayment.setProvider(PaymentProvider.MERCADOPAGO);
+            mpPayment.setAmount(new BigDecimal("100000"));
+            mpPayment.setStatus(PaymentStatus.COMPLETED);
+            mpPayment.setProviderResponse(Map.of(
+                    "net_received_amount", "95500",
+                    "gateway_fee", "4500"
+            ));
+
+            Booking booking = new Booking();
+            booking.setTaxAmount(new BigDecimal("15966"));
+            mpPayment.setBooking(booking);
+
+            when(paymentRepository.findCompletedBetween(any(), any()))
+                    .thenReturn(List.of(mpPayment));
+
+            // When
+            FinancialReport report = reportsService.getFinancialReport(start, end);
+
+            // Then
+            assertThat(report).isNotNull();
+            assertThat(report.getMpGrossAmount()).isEqualByComparingTo(new BigDecimal("100000"));
+            assertThat(report.getMpNetReceived()).isEqualByComparingTo(new BigDecimal("95500"));
+            assertThat(report.getMpGatewayFees()).isEqualByComparingTo(new BigDecimal("4500"));
+            assertThat(report.getMpTransactionCount()).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("Should calculate financial report with Transbank payments")
+        void shouldCalculateFinancialReportWithTransbank() {
+            // Given
+            Payment tbPayment = new Payment();
+            tbPayment.setId(UUID.randomUUID());
+            tbPayment.setProvider(PaymentProvider.TRANSBANK);
+            tbPayment.setAmount(new BigDecimal("100000"));
+            tbPayment.setStatus(PaymentStatus.COMPLETED);
+            tbPayment.setProviderResponse(Map.of(
+                    "payment_type_code", "VD" // Débito
+            ));
+
+            when(paymentRepository.findCompletedBetween(any(), any()))
+                    .thenReturn(List.of(tbPayment));
+
+            // When
+            FinancialReport report = reportsService.getFinancialReport(start, end);
+
+            // Then
+            assertThat(report).isNotNull();
+            assertThat(report.getTbGrossAmount()).isEqualByComparingTo(new BigDecimal("100000"));
+            assertThat(report.getTbTransactionCount()).isEqualTo(1);
+            // Fee should be 1.77% for debit = 1770
+            assertThat(report.getTbEstimatedFees()).isEqualByComparingTo(new BigDecimal("1770"));
+        }
+
+        @Test
+        @DisplayName("Should handle mixed payment providers")
+        void shouldHandleMixedPaymentProviders() {
+            // Given
+            Payment mpPayment = new Payment();
+            mpPayment.setId(UUID.randomUUID());
+            mpPayment.setProvider(PaymentProvider.MERCADOPAGO);
+            mpPayment.setAmount(new BigDecimal("50000"));
+            mpPayment.setStatus(PaymentStatus.COMPLETED);
+            mpPayment.setProviderResponse(Map.of("net_received_amount", "47500"));
+
+            Payment tbPayment = new Payment();
+            tbPayment.setId(UUID.randomUUID());
+            tbPayment.setProvider(PaymentProvider.TRANSBANK);
+            tbPayment.setAmount(new BigDecimal("75000"));
+            tbPayment.setStatus(PaymentStatus.COMPLETED);
+            tbPayment.setProviderResponse(Map.of("payment_type_code", "VN")); // Crédito
+
+            when(paymentRepository.findCompletedBetween(any(), any()))
+                    .thenReturn(List.of(mpPayment, tbPayment));
+
+            // When
+            FinancialReport report = reportsService.getFinancialReport(start, end);
+
+            // Then
+            assertThat(report.getMpTransactionCount()).isEqualTo(1);
+            assertThat(report.getTbTransactionCount()).isEqualTo(1);
+            assertThat(report.getMpGrossAmount()).isEqualByComparingTo(new BigDecimal("50000"));
+            assertThat(report.getTbGrossAmount()).isEqualByComparingTo(new BigDecimal("75000"));
+        }
+
+        @Test
+        @DisplayName("Should collect tax from bookings")
+        void shouldCollectTaxFromBookings() {
+            // Given
+            Payment payment = new Payment();
+            payment.setId(UUID.randomUUID());
+            payment.setProvider(PaymentProvider.MERCADOPAGO);
+            payment.setAmount(new BigDecimal("100000"));
+            payment.setStatus(PaymentStatus.COMPLETED);
+            payment.setProviderResponse(Map.of("net_received_amount", "95500"));
+
+            Booking booking = new Booking();
+            booking.setTaxAmount(new BigDecimal("15966"));
+            payment.setBooking(booking);
+
+            when(paymentRepository.findCompletedBetween(any(), any()))
+                    .thenReturn(List.of(payment));
+
+            // When
+            FinancialReport report = reportsService.getFinancialReport(start, end);
+
+            // Then
+            assertThat(report.getTotalTaxCollected()).isEqualByComparingTo(new BigDecimal("15966"));
+        }
+
+        @Test
+        @DisplayName("Should handle empty payment list")
+        void shouldHandleEmptyPaymentList() {
+            // Given
+            when(paymentRepository.findCompletedBetween(any(), any())).thenReturn(List.of());
+
+            // When
+            FinancialReport report = reportsService.getFinancialReport(start, end);
+
+            // Then
+            assertThat(report).isNotNull();
+            assertThat(report.getMpGrossAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+            assertThat(report.getTbGrossAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+            assertThat(report.getTotalTaxCollected()).isEqualByComparingTo(BigDecimal.ZERO);
+        }
     }
 }

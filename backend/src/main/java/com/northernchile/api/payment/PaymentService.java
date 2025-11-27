@@ -269,6 +269,12 @@ public class PaymentService {
         if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Amount must be positive");
         }
+        if (request.getCurrency() != null && !request.getCurrency().isBlank()) {
+            String currency = request.getCurrency().toUpperCase();
+            if (!currency.equals("CLP") && !currency.equals("BRL") && !currency.equals("USD")) {
+                throw new IllegalArgumentException("Unsupported currency: " + currency + ". Only CLP, BRL, and USD are supported");
+            }
+        }
     }
 
     /**
