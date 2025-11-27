@@ -39,6 +39,9 @@ public class PaymentService {
 
     /**
      * Create a new payment transaction.
+     * Implements idempotency to prevent duplicate payment attempts:
+     * 1. If an idempotency key is provided, returns existing payment if found
+     * 2. Checks for any active (pending/processing) payments for the booking
      *
      * @param request Payment initialization request
      * @return Payment initialization response
@@ -51,6 +54,27 @@ public class PaymentService {
         // Validate request
         validatePaymentRequest(request);
 
+        // Check idempotency key first
+        if (request.getIdempotencyKey() != null && !request.getIdempotencyKey().isBlank()) {
+            var existingByKey = paymentRepository.findByIdempotencyKey(request.getIdempotencyKey());
+            if (existingByKey.isPresent()) {
+                Payment existing = existingByKey.get();
+                log.info("Returning existing payment {} for idempotency key: {}",
+                    existing.getId(), request.getIdempotencyKey());
+                return buildPaymentInitRes(existing);
+            }
+        }
+
+        // Check for active payments for this booking
+        var activePayment = paymentRepository.findActivePaymentForBooking(
+            request.getBookingId(), java.time.Instant.now());
+        if (activePayment.isPresent()) {
+            Payment existing = activePayment.get();
+            log.info("Found active payment {} for booking {}, returning it instead of creating new",
+                existing.getId(), request.getBookingId());
+            return buildPaymentInitRes(existing);
+        }
+
         // Get the appropriate payment provider
         PaymentProviderService provider = providerFactory.getProvider(request.getProvider());
 
@@ -59,6 +83,23 @@ public class PaymentService {
 
         log.info("Payment created successfully: {}", response.getPaymentId());
         return response;
+    }
+
+    /**
+     * Build a PaymentInitRes from an existing Payment entity.
+     */
+    private PaymentInitRes buildPaymentInitRes(Payment payment) {
+        PaymentInitRes res = new PaymentInitRes();
+        res.setPaymentId(payment.getId());
+        res.setStatus(payment.getStatus());
+        res.setPaymentUrl(payment.getPaymentUrl());
+        res.setDetailsUrl(payment.getDetailsUrl());
+        res.setQrCode(payment.getQrCode());
+        res.setPixCode(payment.getPixCode());
+        res.setToken(payment.getToken());
+        res.setExpiresAt(payment.getExpiresAt());
+        res.setTest(payment.isTest());
+        return res;
     }
 
     /**
@@ -139,7 +180,11 @@ public class PaymentService {
     }
 
     /**
-     * Refund a payment.
+     * Refund a payment with proper consistency handling.
+     * Uses a two-phase approach to prevent inconsistencies:
+     * 1. Mark payment as REFUND_PENDING in DB first
+     * 2. Call provider API
+     * 3. Update to final status (REFUNDED or revert to COMPLETED)
      *
      * @param paymentId Payment ID
      * @param amount Amount to refund (null for full refund)
@@ -157,14 +202,30 @@ public class PaymentService {
             throw new IllegalStateException("Payment cannot be refunded in current state: " + payment.getStatus());
         }
 
-        // Get the appropriate payment provider
-        PaymentProviderService provider = providerFactory.getProvider(payment.getProvider());
+        PaymentStatus originalStatus = payment.getStatus();
 
-        // Delegate to provider
-        PaymentStatusRes response = provider.refundPayment(payment, amount);
+        // Phase 1: Mark as REFUND_PENDING to indicate refund in progress
+        payment.setStatus(PaymentStatus.REFUND_PENDING);
+        paymentRepository.save(payment);
+        paymentRepository.flush();
 
-        log.info("Payment refunded: {} with status: {}", response.getPaymentId(), response.getStatus());
-        return response;
+        try {
+            // Phase 2: Call the provider API
+            PaymentProviderService provider = providerFactory.getProvider(payment.getProvider());
+            PaymentStatusRes response = provider.refundPayment(payment, amount);
+
+            // Phase 3: Update to final status based on provider response
+            log.info("Payment refunded: {} with status: {}", response.getPaymentId(), response.getStatus());
+            return response;
+
+        } catch (Exception e) {
+            // Rollback: Revert to original status if provider call fails
+            log.error("Refund failed for payment {}, reverting status to {}", paymentId, originalStatus, e);
+            payment.setStatus(originalStatus);
+            payment.setErrorMessage("Refund failed: " + e.getMessage());
+            paymentRepository.save(payment);
+            throw new IllegalStateException("Refund failed: " + e.getMessage(), e);
+        }
     }
 
     /**

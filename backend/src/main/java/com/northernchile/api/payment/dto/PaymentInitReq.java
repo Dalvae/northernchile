@@ -63,6 +63,12 @@ public class PaymentInitReq {
      */
     private List<UUID> additionalBookingIds;
 
+    /**
+     * Idempotency key to prevent duplicate payment attempts.
+     * If provided, a second request with the same key will return the existing payment.
+     */
+    private String idempotencyKey;
+
     public PaymentInitReq() {
     }
 
@@ -167,6 +173,14 @@ public class PaymentInitReq {
 
     public void setAdditionalBookingIds(List<UUID> additionalBookingIds) {
         this.additionalBookingIds = additionalBookingIds;
+    }
+
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
+    public void setIdempotencyKey(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
     }
 
     @Override

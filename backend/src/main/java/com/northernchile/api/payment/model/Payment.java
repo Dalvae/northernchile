@@ -21,7 +21,8 @@ import java.util.UUID;
 @Table(name = "payments", indexes = {
     @Index(name = "idx_payment_booking", columnList = "booking_id"),
     @Index(name = "idx_payment_external_id", columnList = "external_payment_id"),
-    @Index(name = "idx_payment_status", columnList = "status")
+    @Index(name = "idx_payment_status", columnList = "status"),
+    @Index(name = "idx_payment_idempotency", columnList = "idempotency_key")
 })
 public class Payment {
 
@@ -109,6 +110,13 @@ public class Payment {
      */
     @Column(name = "is_test", nullable = false)
     private boolean isTest = false;
+
+    /**
+     * Idempotency key to prevent duplicate payment attempts.
+     * If a client sends the same key, they'll receive the existing payment instead of creating a new one.
+     */
+    @Column(name = "idempotency_key", length = 100, unique = true)
+    private String idempotencyKey;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -283,6 +291,14 @@ public class Payment {
 
     public void setTest(boolean test) {
         isTest = test;
+    }
+
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
+    public void setIdempotencyKey(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
     }
 
     public Instant getCreatedAt() {
