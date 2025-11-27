@@ -1,14 +1,29 @@
 import { defineStore } from 'pinia'
 
-interface CartItem {
+interface AddCartItemRequest {
   scheduleId: string
   numParticipants: number
+}
+
+interface CartItem {
+  id?: string
+  scheduleId: string
+  numParticipants: number
+  tourName?: string
+  pricePerParticipant?: number
+  itemTotal?: number
 }
 
 interface Cart {
   cartId: string | null
   items: CartItem[]
   cartTotal: number
+}
+
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void
+  }
 }
 
 export const useCartStore = defineStore('cart', () => {
@@ -24,9 +39,7 @@ export const useCartStore = defineStore('cart', () => {
   const toast = useToast()
 
   const totalItems = computed(() => {
-    // Si cart.value es null o undefined, o si no tiene items, devuelve 0
     if (!cart.value || !cart.value.items) return 0
-
     return cart.value.items.reduce((sum, item) => sum + item.numParticipants, 0)
   })
 
@@ -35,10 +48,6 @@ export const useCartStore = defineStore('cart', () => {
     return cart.value.cartTotal || 0
   })
 
-  /**
-   * Fetch cart from backend
-   * Backend handles both authenticated users and anonymous users via cartId cookie
-   */
   async function fetchCart() {
     isLoading.value = true
     try {
@@ -54,7 +63,32 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
+  /**
+   * Add item to cart with optimistic UI update.
+   * Updates UI immediately, then syncs with backend. Reverts on failure.
+   */
   async function addItem(itemData: AddCartItemRequest) {
+    const previousCart = JSON.parse(JSON.stringify(cart.value)) as Cart
+
+    // Optimistic update: add item immediately
+    const optimisticItem: CartItem = {
+      scheduleId: itemData.scheduleId,
+      numParticipants: itemData.numParticipants
+    }
+
+    const existingIndex = cart.value.items.findIndex(
+      item => item.scheduleId === itemData.scheduleId
+    )
+
+    if (existingIndex >= 0) {
+      const existing = cart.value.items[existingIndex]
+      if (existing) {
+        existing.numParticipants += itemData.numParticipants
+      }
+    } else {
+      cart.value.items.push(optimisticItem)
+    }
+
     isLoading.value = true
     try {
       const response = await $fetch<Cart>('/api/cart/items', {
@@ -64,7 +98,6 @@ export const useCartStore = defineStore('cart', () => {
       })
       cart.value = response
 
-      // Google Analytics: Track add_to_cart event
       if (typeof window !== 'undefined' && window.gtag) {
         const addedItem = response.items.find(item => item.scheduleId === itemData.scheduleId)
         if (addedItem) {
@@ -85,6 +118,8 @@ export const useCartStore = defineStore('cart', () => {
       return true
     } catch (error) {
       console.error('Error adding item to cart:', error)
+      // Revert to previous state
+      cart.value = previousCart
       const errorMessage = error && typeof error === 'object' && 'data' in error
         ? (error.data as { message?: string })?.message
         : undefined
@@ -99,7 +134,16 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
+  /**
+   * Remove item from cart with optimistic UI update.
+   * Removes from UI immediately, then syncs with backend. Reverts on failure.
+   */
   async function removeItem(itemId: string) {
+    const previousCart = JSON.parse(JSON.stringify(cart.value)) as Cart
+
+    // Optimistic update: remove item immediately
+    cart.value.items = cart.value.items.filter(item => item.id !== itemId && item.scheduleId !== itemId)
+
     isLoading.value = true
     try {
       const response = await $fetch<Cart>(`/api/cart/items/${itemId}`, {
@@ -117,6 +161,8 @@ export const useCartStore = defineStore('cart', () => {
       return true
     } catch (error) {
       console.error('Error removing item from cart:', error)
+      // Revert to previous state
+      cart.value = previousCart
       const errorMessage = error && typeof error === 'object' && 'data' in error
         ? (error.data as { message?: string })?.message
         : undefined
@@ -131,9 +177,6 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
-  /**
-   * Clear cart (useful after successful checkout)
-   */
   function clearCart() {
     cart.value = {
       cartId: null,
@@ -141,9 +184,6 @@ export const useCartStore = defineStore('cart', () => {
       cartTotal: 0
     }
   }
-
-  // Cart persistence is handled by backend via cartId cookie
-  // No need for localStorage - backend manages cart state
 
   return {
     cart,
