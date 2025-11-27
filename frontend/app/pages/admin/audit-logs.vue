@@ -433,7 +433,7 @@ const fetchAuditLogs = async () => {
       params.append('userEmail', filters.value.userEmail)
 
     const response = await $fetch<AuditLogsResponse>(
-      `${config.public.apiBaseUrl}/admin/audit-logs?${params.toString()}`,
+      `${config.public.apiBase}/api/admin/audit-logs?${params.toString()}`,
       {
         credentials: 'include'
       }
@@ -454,7 +454,7 @@ const fetchAuditLogs = async () => {
 const fetchStats = async () => {
   try {
     const response = await $fetch<AuditStatsResponse>(
-      `${config.public.apiBaseUrl}/admin/audit-logs/stats`,
+      `${config.public.apiBase}/api/admin/audit-logs/stats`,
       {
         credentials: 'include'
       }

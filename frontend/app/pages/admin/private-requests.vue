@@ -150,7 +150,7 @@ const updateRequestStatus = async () => {
     updatingStatus.value = true
 
     await $fetch(
-      `${config.public.apiBaseUrl}/admin/private-tours/requests/${selectedRequest.value.id}`,
+      `${config.public.apiBase}/api/admin/private-tours/requests/${selectedRequest.value.id}`,
       {
         method: 'PUT',
         body: {

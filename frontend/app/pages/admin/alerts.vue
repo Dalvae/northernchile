@@ -466,7 +466,7 @@ const { data: alertsData, refresh: refreshAlerts } = await useAsyncData(
   'admin-alerts',
   async () => {
     const response = await $fetch<AlertHistoryResponse>(
-      `${config.public.apiBaseUrl}/admin/alerts/history`,
+      `${config.public.apiBase}/api/admin/alerts/history`,
       {
         credentials: 'include'
       }
@@ -567,7 +567,7 @@ const checkAlertsManually = async () => {
   checking.value = true
   try {
     const response = await $fetch<{ pendingAlerts: number }>(
-      `${config.public.apiBaseUrl}/admin/alerts/check`,
+      `${config.public.apiBase}/api/admin/alerts/check`,
       {
         method: 'POST',
         credentials: 'include'
@@ -617,7 +617,7 @@ const resolveAlert = async () => {
   resolving.value = true
   try {
     await $fetch(
-      `${config.public.apiBaseUrl}/admin/alerts/${selectedAlert.value.id}/resolve`,
+      `${config.public.apiBase}/api/admin/alerts/${selectedAlert.value.id}/resolve`,
       {
         method: 'POST',
         body: {

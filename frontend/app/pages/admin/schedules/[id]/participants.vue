@@ -34,7 +34,7 @@ const {
         pickupAddress: string
       }>
     }>(
-      `${config.public.apiBaseUrl}/admin/schedules/${scheduleId}/participants`,
+      `${config.public.apiBase}/api/admin/schedules/${scheduleId}/participants`,
       {
         credentials: 'include'
       }
