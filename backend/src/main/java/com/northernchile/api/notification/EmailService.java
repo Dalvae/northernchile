@@ -349,6 +349,76 @@ public class EmailService {
     }
 
     /**
+     * Send manifest email to operator when schedule is closed
+     */
+    @Async
+    public CompletableFuture<Void> sendManifestEmail(String operatorEmail, String tourName, String tourDate,
+                                                      String tourTime, String guideName, int totalParticipants,
+                                                      java.util.List<com.northernchile.api.tour.ManifestService.ManifestParticipant> participants) {
+        log.info("Sending manifest email to: {} for tour: {}", operatorEmail, tourName);
+
+        if (!mailEnabled) {
+            log.warn("Email sending is disabled. Would have sent manifest to: {}", operatorEmail);
+            return CompletableFuture.completedFuture(null);
+        }
+
+        try {
+            Locale locale = Locale.forLanguageTag("es");
+            Context context = new Context(locale);
+            context.setVariable("tourName", tourName);
+            context.setVariable("tourDate", tourDate);
+            context.setVariable("tourTime", tourTime);
+            context.setVariable("guideName", guideName);
+            context.setVariable("totalParticipants", totalParticipants);
+            context.setVariable("participants", participants);
+
+            String subject = "Manifiesto: " + tourName + " - " + tourDate + " " + tourTime;
+            sendHtmlEmail(operatorEmail, subject, "email/manifest", context, locale);
+        } catch (Exception e) {
+            log.error("Failed to send manifest email to: {}", operatorEmail, e);
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * Send pickup reminder to participant 2 hours before tour
+     */
+    @Async
+    public CompletableFuture<Void> sendPickupReminderToParticipant(String toEmail, String participantName,
+                                                                    String tourName, String tourDate, String tourTime,
+                                                                    String pickupAddress, String equipment,
+                                                                    String languageCode) {
+        log.info("Sending pickup reminder to: {} for tour: {}", toEmail, tourName);
+
+        if (!mailEnabled) {
+            log.warn("Email sending is disabled. Would have sent pickup reminder to: {}", toEmail);
+            return CompletableFuture.completedFuture(null);
+        }
+
+        try {
+            // Normalize language code (es-CL -> es)
+            String lang = languageCode != null && languageCode.length() >= 2 
+                    ? languageCode.substring(0, 2) 
+                    : "es";
+            Locale locale = Locale.forLanguageTag(lang);
+
+            Context context = new Context(locale);
+            context.setVariable("participantName", participantName);
+            context.setVariable("tourName", tourName);
+            context.setVariable("tourDate", tourDate);
+            context.setVariable("tourTime", tourTime);
+            context.setVariable("pickupAddress", pickupAddress);
+            context.setVariable("equipment", equipment);
+
+            String subject = messageSource.getMessage("pickup.subject", null, locale);
+            sendHtmlEmail(toEmail, subject, "email/pickup-reminder", context, locale);
+        } catch (Exception e) {
+            log.error("Failed to send pickup reminder to: {}", toEmail, e);
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /**
      * Generic method to send HTML emails using Thymeleaf templates
      */
     private void sendHtmlEmail(String toEmail, String subject, String templateName, Context context, Locale locale) {

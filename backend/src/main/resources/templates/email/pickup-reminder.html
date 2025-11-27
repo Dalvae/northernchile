@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .alert-banner {
+            background-color: #e94560;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        .alert-banner .time {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .alert-banner .message {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+        .email-body {
+            padding: 30px;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .tour-card {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .tour-card h2 {
+            color: #1a1a2e;
+            margin: 0 0 15px 0;
+            font-size: 20px;
+        }
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+        .info-row .icon {
+            width: 30px;
+            font-size: 18px;
+        }
+        .info-row .label {
+            color: #666;
+            min-width: 80px;
+        }
+        .info-row .value {
+            color: #1a1a2e;
+            font-weight: 500;
+        }
+        .pickup-highlight {
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .pickup-highlight .title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+        .pickup-highlight .address {
+            font-size: 16px;
+            color: #1a1a2e;
+        }
+        .equipment-section {
+            background-color: #e8f4fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .equipment-section h3 {
+            color: #0c5460;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .equipment-section p {
+            color: #333;
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .contact-box {
+            background-color: #1a1a2e;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .contact-box .label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        .contact-box .phone {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 13px;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-body {
+                padding: 20px;
+            }
+            .alert-banner .time {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>Northern Chile Tours</h1>
+        </div>
+        
+        <div class="alert-banner">
+            <div class="time">2h</div>
+            <div class="message" th:text="#{pickup.alert.message}">¡Tu tour comienza pronto!</div>
+        </div>
+
+        <div class="email-body">
+            <p class="greeting">
+                <span th:text="#{pickup.greeting(${participantName})}">¡Hola Juan!</span>
+            </p>
+
+            <p th:text="#{pickup.intro}">
+                Te recordamos que tu tour está por comenzar. Por favor, prepárate para el pickup.
+            </p>
+
+            <div class="tour-card">
+                <h2 th:text="${tourName}">Tour Astronómico Premium</h2>
+                <div class="info-row">
+                    <span class="icon">📅</span>
+                    <span class="label" th:text="#{pickup.date}">Fecha:</span>
+                    <span class="value" th:text="${tourDate}">27/11/2025</span>
+                </div>
+                <div class="info-row">
+                    <span class="icon">🕐</span>
+                    <span class="label" th:text="#{pickup.time}">Hora:</span>
+                    <span class="value" th:text="${tourTime}">20:00</span>
+                </div>
+            </div>
+
+            <div class="pickup-highlight" th:if="${pickupAddress != null and !pickupAddress.isEmpty()}">
+                <div class="title" th:text="#{pickup.location.title}">📍 Punto de recogida</div>
+                <div class="address" th:text="${pickupAddress}">Hotel Explora, recepción principal</div>
+            </div>
+
+            <div class="equipment-section" th:if="${equipment != null and !equipment.isEmpty()}">
+                <h3 th:text="#{pickup.equipment.title}">Qué llevar</h3>
+                <p th:utext="${equipment}">Ropa abrigada, agua, cámara</p>
+            </div>
+
+            <p th:text="#{pickup.ready}">
+                Por favor, esté listo en el punto de recogida 5 minutos antes de la hora indicada.
+            </p>
+
+            <div class="contact-box">
+                <div class="label" th:text="#{pickup.emergency}">Contacto de emergencia</div>
+                <div class="phone">+56 9 5555 1234</div>
+            </div>
+        </div>
+
+        <div class="email-footer">
+            <p>Northern Chile Tours | San Pedro de Atacama, Chile</p>
+            <p>
+                <a href="https://www.northernchile.cl" style="color: #e94560; text-decoration: none;">www.northernchile.cl</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

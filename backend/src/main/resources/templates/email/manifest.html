@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            color: #ffffff;
+            margin: 0 0 5px 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .email-header .subtitle {
+            color: #e94560;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .tour-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-bottom: 3px solid #e94560;
+        }
+        .tour-info h2 {
+            margin: 0 0 15px 0;
+            color: #1a1a2e;
+            font-size: 20px;
+        }
+        .tour-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .tour-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+        .tour-meta-item strong {
+            color: #1a1a2e;
+        }
+        .participant-list {
+            padding: 20px;
+        }
+        .participant-list h3 {
+            color: #1a1a2e;
+            font-size: 16px;
+            margin: 0 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .participant-card {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+        .participant-card:last-child {
+            margin-bottom: 0;
+        }
+        .participant-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .participant-number {
+            background-color: #1a1a2e;
+            color: #ffffff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .participant-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #1a1a2e;
+            margin-left: 10px;
+        }
+        .participant-details {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.8;
+        }
+        .participant-details .icon {
+            display: inline-block;
+            width: 20px;
+            text-align: center;
+        }
+        .special-alert {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #856404;
+        }
+        .special-alert .icon {
+            margin-right: 5px;
+        }
+        .email-footer {
+            background-color: #1a1a2e;
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+        }
+        .summary-box {
+            background-color: #e94560;
+            color: #ffffff;
+            padding: 15px 20px;
+            text-align: center;
+        }
+        .summary-box .count {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        .summary-box .label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        @media only screen and (max-width: 600px) {
+            .tour-meta {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .participant-card {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <div class="subtitle">Manifiesto de Tour</div>
+            <h1>Northern Chile Tours</h1>
+        </div>
+        
+        <div class="tour-info">
+            <h2 th:text="${tourName}">Tour Astronómico Premium</h2>
+            <div class="tour-meta">
+                <div class="tour-meta-item">
+                    <span>📅</span>
+                    <span><strong>Fecha:</strong> <span th:text="${tourDate}">27/11/2025</span></span>
+                </div>
+                <div class="tour-meta-item">
+                    <span>🕐</span>
+                    <span><strong>Hora:</strong> <span th:text="${tourTime}">20:00</span></span>
+                </div>
+                <div class="tour-meta-item">
+                    <span>👤</span>
+                    <span><strong>Guía:</strong> <span th:text="${guideName}">Sin asignar</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-box">
+            <div class="count" th:text="${totalParticipants}">8</div>
+            <div class="label">Participantes Confirmados</div>
+        </div>
+
+        <div class="participant-list">
+            <h3>Lista de Participantes</h3>
+            
+            <div class="participant-card" th:each="p : ${participants}">
+                <div class="participant-header">
+                    <div>
+                        <span class="participant-number" th:text="${p.number}">1</span>
+                        <span class="participant-name" th:text="${p.fullName}">Juan Pérez</span>
+                    </div>
+                </div>
+                <div class="participant-details">
+                    <div th:if="${p.phoneNumber != null and !p.phoneNumber.isEmpty()}">
+                        <span class="icon">📱</span> <span th:text="${p.phoneNumber}">+56 9 1234 5678</span>
+                    </div>
+                    <div th:if="${p.pickupAddress != null and !p.pickupAddress.isEmpty()}">
+                        <span class="icon">📍</span> <span th:text="${p.pickupAddress}">Hotel Explora, hab 204</span>
+                    </div>
+                    <div th:if="${p.nationality != null and !p.nationality.isEmpty()}">
+                        <span class="icon">🌍</span> <span th:text="${p.nationality}">Chileno</span>
+                        <span th:if="${p.documentId != null and !p.documentId.isEmpty()}"> | Doc: <span th:text="${p.documentId}">12.345.678-9</span></span>
+                    </div>
+                </div>
+                <div class="special-alert" th:if="${(p.specialRequirements != null and !p.specialRequirements.isEmpty()) or (p.bookingSpecialRequests != null and !p.bookingSpecialRequests.isEmpty())}">
+                    <span class="icon">⚠️</span>
+                    <span th:if="${p.specialRequirements != null and !p.specialRequirements.isEmpty()}" th:text="${p.specialRequirements}">Vegetariano</span>
+                    <span th:if="${p.specialRequirements != null and !p.specialRequirements.isEmpty() and p.bookingSpecialRequests != null and !p.bookingSpecialRequests.isEmpty()}"> | </span>
+                    <span th:if="${p.bookingSpecialRequests != null and !p.bookingSpecialRequests.isEmpty()}" th:text="${p.bookingSpecialRequests}">Requiere silla de ruedas</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="email-footer">
+            <p>Este manifiesto fue generado automáticamente 2 horas antes del inicio del tour.</p>
+            <p>Northern Chile Tours | San Pedro de Atacama</p>
+        </div>
+    </div>
+</body>
+</html>

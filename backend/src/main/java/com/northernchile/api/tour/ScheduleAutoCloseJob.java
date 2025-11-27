@@ -17,6 +17,9 @@ import java.util.List;
  * when they are within the booking cutoff window.
  * 
  * This prevents last-minute bookings that could cause operational issues.
+ * When closing a schedule, it also:
+ * - Sends a manifest email to the operator
+ * - Sends pickup reminder emails to all participants
  */
 @Component
 public class ScheduleAutoCloseJob {
@@ -24,16 +27,20 @@ public class ScheduleAutoCloseJob {
     private static final Logger log = LoggerFactory.getLogger(ScheduleAutoCloseJob.class);
 
     private final TourScheduleRepository tourScheduleRepository;
+    private final ManifestService manifestService;
 
     @Value("${booking.min-hours-before-tour:2}")
     private int minHoursBeforeTour;
 
-    public ScheduleAutoCloseJob(TourScheduleRepository tourScheduleRepository) {
+    public ScheduleAutoCloseJob(TourScheduleRepository tourScheduleRepository, 
+                                 ManifestService manifestService) {
         this.tourScheduleRepository = tourScheduleRepository;
+        this.manifestService = manifestService;
     }
 
     /**
      * Runs every 5 minutes to close schedules that are within the cutoff window.
+     * For each closed schedule, generates and sends manifest + participant reminders.
      */
     @Scheduled(fixedRate = 300000)
     @Transactional
@@ -51,12 +58,23 @@ public class ScheduleAutoCloseJob {
                 schedulesToClose.size(), minHoursBeforeTour);
 
         for (TourSchedule schedule : schedulesToClose) {
-            schedule.setStatus("CLOSED");
-            tourScheduleRepository.save(schedule);
-            log.debug("Closed schedule {} for tour {} starting at {}", 
-                    schedule.getId(), 
-                    schedule.getTour().getDisplayName(),
-                    schedule.getStartDatetime());
+            try {
+                // Close the schedule
+                schedule.setStatus("CLOSED");
+                tourScheduleRepository.save(schedule);
+                
+                log.info("Closed schedule {} for tour {} starting at {}", 
+                        schedule.getId(), 
+                        schedule.getTour().getDisplayName(),
+                        schedule.getStartDatetime());
+
+                // Generate and send manifest + participant reminders
+                manifestService.generateAndSendManifest(schedule);
+                
+            } catch (Exception e) {
+                log.error("Error processing schedule {}: {}", schedule.getId(), e.getMessage(), e);
+                // Continue with next schedule even if one fails
+            }
         }
 
         log.info("Successfully auto-closed {} schedules", schedulesToClose.size());
