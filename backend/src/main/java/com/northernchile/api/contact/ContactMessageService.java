@@ -19,7 +19,7 @@ public class ContactMessageService {
     private final ContactMessageRepository contactMessageRepository;
     private final EmailService emailService;
 
-    @Value("${mail.from.email}")
+    @Value("${notification.admin.email}")
     private String adminEmail;
 
     public ContactMessageService(

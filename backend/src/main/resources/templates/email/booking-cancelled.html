@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .email-body {
+            padding: 40px 30px;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .alert-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #e94560;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .refund-box {
+            background-color: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-body {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>Northern Chile Tours</h1>
+        </div>
+        <div class="email-body">
+            <h2 style="color: #ef4444; margin-top: 0;" th:text="#{email.cancelled.title}">Booking Cancelled</h2>
+            <p th:text="#{email.cancelled.greeting(${customerName})}">Hello,</p>
+            
+            <div class="alert-box">
+                <p style="margin: 0;" th:text="#{email.cancelled.notice}">
+                    We regret to inform you that your booking has been cancelled.
+                </p>
+            </div>
+
+            <!-- Reason if provided -->
+            <div th:if="${reason != null and !reason.isEmpty()}" class="info-box">
+                <p style="margin: 0;">
+                    <strong th:text="#{email.cancelled.reason}">Reason:</strong><br>
+                    <span th:text="${reason}">Weather conditions</span>
+                </p>
+            </div>
+
+            <div class="info-box">
+                <h3 style="margin-top: 0; color: #1a1a2e;" th:text="#{email.booking.details}">Booking Details</h3>
+                <div class="info-row">
+                    <span class="info-label" th:text="#{email.booking.id}">Booking ID:</span>
+                    <span th:text="${bookingId}">NCH-12345</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label" th:text="#{email.booking.tour}">Tour:</span>
+                    <span th:text="${tourName}">Tour Name</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label" th:text="#{email.booking.date}">Date:</span>
+                    <span th:text="${tourDate}">2025-01-15</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label" th:text="#{email.booking.participants}">Participants:</span>
+                    <span th:text="${participantCount}">2</span>
+                </div>
+            </div>
+
+            <!-- Refund information if applicable -->
+            <div th:if="${refundAmount != null}" class="refund-box">
+                <h3 style="margin-top: 0; color: #10b981;" th:text="#{email.cancelled.refund.title}">Refund Information</h3>
+                <p th:text="#{email.cancelled.refund.body}">
+                    Your payment will be refunded to the original payment method.
+                </p>
+                <div class="info-row" style="margin-top: 15px;">
+                    <span class="info-label" th:text="#{email.cancelled.refund.amount}">Refund Amount:</span>
+                    <span style="font-size: 18px; font-weight: 600; color: #10b981;" th:text="${refundAmount}">$150.00</span>
+                </div>
+                <p style="font-size: 14px; color: #6b7280; margin-bottom: 0;" th:text="#{email.cancelled.refund.timing}">
+                    Please allow 5-10 business days for the refund to appear in your account.
+                </p>
+            </div>
+
+            <p th:text="#{email.cancelled.reschedule}">
+                If you'd like to reschedule for another date, please visit our website or contact us.
+            </p>
+
+            <p style="margin-top: 30px;">
+                <strong th:text="#{email.booking.confirmation.questions}">Questions?</strong><br>
+                <span th:text="#{email.booking.confirmation.contact}">Contact us at contacto@northernchile.cl or +56 9 1234 5678</span>
+            </p>
+
+            <p th:text="#{email.cancelled.apology}">
+                We apologize for any inconvenience and hope to see you on a future tour.
+            </p>
+        </div>
+        <div class="email-footer">
+            <p>Northern Chile Tours | San Pedro de Atacama, Chile</p>
+            <p>
+                <a href="https://www.northernchile.cl" style="color: #e94560; text-decoration: none;">www.northernchile.cl</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

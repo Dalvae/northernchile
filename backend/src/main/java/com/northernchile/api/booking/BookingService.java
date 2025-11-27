@@ -45,7 +45,7 @@ public class BookingService {
     @Value("${tax.rate}")
     private BigDecimal taxRate;
 
-    @Value("${mail.from.email}")
+    @Value("${notification.admin.email}")
     private String adminEmail;
 
     @Value("${booking.min-hours-before-tour:2}")

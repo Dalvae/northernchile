@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .email-body {
+            padding: 30px;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 12px;
+        }
+        .info-box {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .info-row {
+            margin: 8px 0;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #1a1a2e;
+            display: inline-block;
+            min-width: 100px;
+        }
+        .message-box {
+            background-color: #f3f4f6;
+            border-left: 4px solid #6b7280;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>Nuevo Mensaje de Contacto</h1>
+        </div>
+        <div class="email-body">
+            <p>Se ha recibido un nuevo mensaje desde el formulario de contacto.</p>
+
+            <div class="info-box">
+                <h3 style="margin-top: 0; color: #92400e;">Información del Contacto</h3>
+                <div class="info-row">
+                    <span class="info-label">Nombre:</span>
+                    <span th:text="${name}">Juan Pérez</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <a th:href="'mailto:' + ${email}" th:text="${email}">cliente@email.com</a>
+                </div>
+                <div class="info-row" th:if="${phone != null and !phone.isEmpty()}">
+                    <span class="info-label">Teléfono:</span>
+                    <span th:text="${phone}">+56 9 1234 5678</span>
+                </div>
+            </div>
+
+            <div class="message-box">
+                <h3 style="margin-top: 0; color: #374151;">Mensaje</h3>
+                <p style="margin-bottom: 0; white-space: pre-wrap;" th:text="${message}">
+                    Hola, me gustaría saber más información sobre sus tours...
+                </p>
+            </div>
+
+            <p style="font-size: 12px; color: #6b7280; margin-top: 20px;">
+                <strong>Recibido:</strong> <span th:text="${createdAt}">2025-01-10 15:30</span><br>
+                <strong>ID:</strong> <span th:text="${messageId}">MSG-12345</span>
+            </p>
+        </div>
+        <div class="email-footer">
+            <p>Este es un mensaje automático del sistema Northern Chile Tours.</p>
+        </div>
+    </div>
+</body>
+</html>

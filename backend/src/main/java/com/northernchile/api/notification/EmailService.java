@@ -1,5 +1,6 @@
 package com.northernchile.api.notification;
 
+import com.northernchile.api.util.DateTimeUtils;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
@@ -13,10 +14,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.time.format.DateTimeFormatter;
-import java.time.LocalDateTime;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -130,77 +128,30 @@ public class EmailService {
         }
 
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setFrom(fromEmail, fromName);
-            helper.setTo(adminEmail);
-            helper.setSubject("New Booking Received - Northern Chile");
-
-            // Format dates for display
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-
             String tourName = (booking.getSchedule() != null && booking.getSchedule().getTour() != null)
-                ? booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Unknown Tour")
-                : "Unknown Tour";
+                ? (String) booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour desconocido")
+                : "Tour desconocido";
 
-            String userName = (booking.getUser() != null)
-                ? booking.getUser().getFullName() + " (" + booking.getUser().getEmail() + ")"
-                : "Unknown User";
+            String customerName = (booking.getUser() != null) ? booking.getUser().getFullName() : "Cliente desconocido";
+            String customerEmail = (booking.getUser() != null) ? booking.getUser().getEmail() : "";
 
-            String htmlContent = String.format("""
-                <html>
-                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                    <h2 style="color: #d97706;">New Booking Received</h2>
+            Context context = new Context(Locale.forLanguageTag("es"));
+            context.setVariable("bookingId", booking.getId().toString());
+            context.setVariable("status", booking.getStatus().toString());
+            context.setVariable("tourName", tourName);
+            context.setVariable("tourDate", DateTimeUtils.formatForDisplay(
+                    DateTimeUtils.toInstantStartOfDay(booking.getTourDate()), "dd/MM/yyyy"));
+            context.setVariable("customerName", customerName);
+            context.setVariable("customerEmail", customerEmail);
+            context.setVariable("participantCount", (booking.getParticipants() != null) ? booking.getParticipants().size() : 0);
+            context.setVariable("subtotal", String.format("$%,.0f", booking.getSubtotal()));
+            context.setVariable("taxAmount", String.format("$%,.0f", booking.getTaxAmount()));
+            context.setVariable("totalAmount", String.format("$%,.0f", booking.getTotalAmount()));
+            context.setVariable("specialRequests", booking.getSpecialRequests());
+            context.setVariable("createdAt", DateTimeUtils.formatForDisplay(booking.getCreatedAt(), "dd/MM/yyyy HH:mm"));
 
-                    <h3>Booking Details</h3>
-                    <p><strong>Booking ID:</strong> %s</p>
-                    <p><strong>Status:</strong> <span style="color: #059669; font-weight: bold;">%s</span></p>
-                    <p><strong>Tour:</strong> %s</p>
-                    <p><strong>Tour Date:</strong> %s</p>
-
-                    <h3>Customer Information</h3>
-                    <p><strong>Customer:</strong> %s</p>
-                    <p><strong>Number of Participants:</strong> %d</p>
-
-                    <h3>Payment Information</h3>
-                    <p><strong>Subtotal:</strong> $%,.2f</p>
-                    <p><strong>Tax (IVA):</strong> $%,.2f</p>
-                    <p><strong>Total Amount:</strong> <strong style="color: #059669;">$%,.2f</strong></p>
-
-                    %s
-
-                    <p><strong>Booking Created:</strong> %s</p>
-
-                    <hr style="margin: 20px 0; border: none; border-top: 1px solid #e5e7eb;">
-                    <p style="font-size: 12px; color: #6b7280;">
-                        This is an automated notification from Northern Chile Tours.<br>
-                        Please review and process this booking in your admin dashboard.
-                    </p>
-                </body>
-                </html>
-                """,
-                booking.getId(),
-                booking.getStatus(),
-                tourName,
-                booking.getTourDate().format(dateFormatter),
-                userName,
-                (booking.getParticipants() != null) ? booking.getParticipants().size() : 0,
-                booking.getSubtotal(),
-                booking.getTaxAmount(),
-                booking.getTotalAmount(),
-                (booking.getSpecialRequests() != null && !booking.getSpecialRequests().isBlank())
-                    ? "<h3>Special Requests</h3><p>" + booking.getSpecialRequests() + "</p>"
-                    : "",
-                booking.getCreatedAt().toString()
-            );
-
-            helper.setText(htmlContent, true);
-            mailSender.send(message);
-
-            log.info("Booking notification email sent successfully to: {}", adminEmail);
-        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
+            sendHtmlEmail(adminEmail, "Nueva Reserva - Northern Chile", "email/admin-new-booking", context, Locale.forLanguageTag("es"));
+        } catch (Exception e) {
             log.error("Failed to send booking notification email", e);
         }
         return CompletableFuture.completedFuture(null);
@@ -219,73 +170,22 @@ public class EmailService {
         }
 
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            Context context = new Context(Locale.forLanguageTag("es"));
+            context.setVariable("requestId", request.getId().toString());
+            context.setVariable("status", request.getStatus());
+            context.setVariable("tourType", request.getRequestedTourType());
+            context.setVariable("requestedDate", (request.getRequestedDatetime() != null)
+                ? DateTimeUtils.formatForDisplay(request.getRequestedDatetime(), "dd/MM/yyyy HH:mm")
+                : "No especificada");
+            context.setVariable("participantCount", request.getNumParticipants());
+            context.setVariable("customerName", request.getCustomerName());
+            context.setVariable("customerEmail", request.getCustomerEmail());
+            context.setVariable("customerPhone", request.getCustomerPhone());
+            context.setVariable("specialRequests", request.getSpecialRequests());
+            context.setVariable("createdAt", DateTimeUtils.formatForDisplay(request.getCreatedAt(), "dd/MM/yyyy HH:mm"));
 
-            helper.setFrom(fromEmail, fromName);
-            helper.setTo(adminEmail);
-            helper.setSubject("New Private Tour Request - Northern Chile");
-
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-
-            String htmlContent = String.format("""
-                <html>
-                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                    <h2 style="color: #d97706;">New Private Tour Request</h2>
-
-                    <h3>Request Details</h3>
-                    <p><strong>Request ID:</strong> %s</p>
-                    <p><strong>Status:</strong> <span style="color: #3b82f6; font-weight: bold;">%s</span></p>
-                    <p><strong>Tour Type:</strong> %s</p>
-                    <p><strong>Requested Date:</strong> %s</p>
-                    <p><strong>Number of Participants:</strong> %d</p>
-
-                    <h3>Customer Information</h3>
-                    <p><strong>Name:</strong> %s</p>
-                    <p><strong>Email:</strong> <a href="mailto:%s">%s</a></p>
-                    <p><strong>Phone:</strong> %s</p>
-
-                    %s
-
-                    %s
-
-                    <p><strong>Request Created:</strong> %s</p>
-
-                    <hr style="margin: 20px 0; border: none; border-top: 1px solid #e5e7eb;">
-                    <p style="font-size: 12px; color: #6b7280;">
-                        This is an automated notification from Northern Chile Tours.<br>
-                        Please review this private tour request and contact the customer to provide a quote.
-                    </p>
-                </body>
-                </html>
-                """,
-                request.getId(),
-                request.getStatus(),
-                request.getRequestedTourType(),
-                (request.getRequestedDatetime() != null)
-                    ? java.time.LocalDateTime.ofInstant(request.getRequestedDatetime(), java.time.ZoneId.of("America/Santiago")).format(dateTimeFormatter)
-                    : "Not specified",
-                request.getNumParticipants(),
-                request.getCustomerName(),
-                request.getCustomerEmail(),
-                request.getCustomerEmail(),
-                (request.getCustomerPhone() != null && !request.getCustomerPhone().isBlank())
-                    ? request.getCustomerPhone()
-                    : "Not provided",
-                (request.getSpecialRequests() != null && !request.getSpecialRequests().isBlank())
-                    ? "<h3>Special Requests</h3><p>" + request.getSpecialRequests() + "</p>"
-                    : "",
-                (request.getQuotedPrice() != null)
-                    ? "<p><strong>Quoted Price:</strong> $" + String.format("%,.2f", request.getQuotedPrice()) + "</p>"
-                    : "",
-                request.getCreatedAt().toString()
-            );
-
-            helper.setText(htmlContent, true);
-            mailSender.send(message);
-
-            log.info("Private tour request notification email sent successfully to: {}", adminEmail);
-        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
+            sendHtmlEmail(adminEmail, "Nueva Solicitud de Tour Privado - Northern Chile", "email/admin-private-request", context, Locale.forLanguageTag("es"));
+        } catch (Exception e) {
             log.error("Failed to send private tour request notification email", e);
         }
         return CompletableFuture.completedFuture(null);
@@ -304,44 +204,15 @@ public class EmailService {
         }
 
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            Context context = new Context(Locale.forLanguageTag("es"));
+            context.setVariable("name", contactMessage.getName());
+            context.setVariable("email", contactMessage.getEmail());
+            context.setVariable("phone", contactMessage.getPhone());
+            context.setVariable("message", contactMessage.getMessage());
+            context.setVariable("createdAt", DateTimeUtils.formatForDisplay(contactMessage.getCreatedAt(), "dd/MM/yyyy HH:mm"));
+            context.setVariable("messageId", contactMessage.getId().toString());
 
-            helper.setFrom(fromEmail, fromName);
-            helper.setTo(adminEmail);
-            helper.setSubject("New Contact Form Message - Northern Chile");
-
-            String htmlContent = String.format("""
-                <html>
-                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                    <h2 style="color: #d97706;">New Contact Form Message</h2>
-                    <p><strong>Name:</strong> %s</p>
-                    <p><strong>Email:</strong> %s</p>
-                    <p><strong>Phone:</strong> %s</p>
-                    <p><strong>Message:</strong></p>
-                    <div style="background: #f3f4f6; padding: 15px; border-left: 4px solid #d97706; margin: 10px 0;">
-                        %s
-                    </div>
-                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-                    <p style="color: #6b7280; font-size: 12px;">
-                        Received: %s<br>
-                        ID: %s
-                    </p>
-                </body>
-                </html>
-                """,
-                contactMessage.getName(),
-                contactMessage.getEmail(),
-                contactMessage.getPhone() != null ? contactMessage.getPhone() : "Not provided",
-                contactMessage.getMessage().replace("\n", "<br>"),
-                contactMessage.getCreatedAt().toString(),
-                contactMessage.getId().toString()
-            );
-
-            helper.setText(htmlContent, true);
-
-            mailSender.send(message);
-            log.info("Contact notification email sent successfully to: {}", adminEmail);
+            sendHtmlEmail(adminEmail, "Nuevo Mensaje de Contacto - Northern Chile", "email/admin-contact", context, Locale.forLanguageTag("es"));
         } catch (Exception e) {
             log.error("Failed to send contact notification email to: {}", adminEmail, e);
         }
@@ -415,6 +286,80 @@ public class EmailService {
         } catch (Exception e) {
             log.error("Failed to send pickup reminder to: {}", toEmail, e);
         }
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * Send booking cancellation email to customer
+     */
+    @Async
+    public CompletableFuture<Void> sendBookingCancelledEmail(String toEmail, String customerName, String bookingId,
+                                                              String tourName, String tourDate, int participantCount,
+                                                              String reason, String refundAmount, String languageCode) {
+        log.info("Sending booking cancellation email to: {} for booking: {}", toEmail, bookingId);
+
+        Locale locale = Locale.forLanguageTag(languageCode != null ? languageCode : "es");
+
+        Context context = new Context(locale);
+        context.setVariable("customerName", customerName);
+        context.setVariable("bookingId", bookingId);
+        context.setVariable("tourName", tourName);
+        context.setVariable("tourDate", tourDate);
+        context.setVariable("participantCount", participantCount);
+        context.setVariable("reason", reason);
+        context.setVariable("refundAmount", refundAmount);
+
+        String subject = messageSource.getMessage("email.cancelled.title", null, locale);
+        sendHtmlEmail(toEmail, subject, "email/booking-cancelled", context, locale);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * Send refund confirmation email to customer
+     */
+    @Async
+    public CompletableFuture<Void> sendRefundConfirmationEmail(String toEmail, String customerName, String bookingId,
+                                                                String tourName, String refundAmount,
+                                                                String paymentMethod, String languageCode) {
+        log.info("Sending refund confirmation email to: {} for booking: {}", toEmail, bookingId);
+
+        Locale locale = Locale.forLanguageTag(languageCode != null ? languageCode : "es");
+
+        Context context = new Context(locale);
+        context.setVariable("customerName", customerName);
+        context.setVariable("bookingId", bookingId);
+        context.setVariable("tourName", tourName);
+        context.setVariable("refundAmount", refundAmount);
+        context.setVariable("paymentMethod", paymentMethod);
+
+        String subject = messageSource.getMessage("email.refund.title", null, locale);
+        sendHtmlEmail(toEmail, subject, "email/refund-confirmation", context, locale);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * Send private tour quote email to customer
+     */
+    @Async
+    public CompletableFuture<Void> sendPrivateTourQuoteEmail(String toEmail, String customerName, String tourType,
+                                                              String requestedDate, int participantCount,
+                                                              String quotedPrice, String specialRequests,
+                                                              String adminNotes, String languageCode) {
+        log.info("Sending private tour quote email to: {}", toEmail);
+
+        Locale locale = Locale.forLanguageTag(languageCode != null ? languageCode : "es");
+
+        Context context = new Context(locale);
+        context.setVariable("customerName", customerName);
+        context.setVariable("tourType", tourType);
+        context.setVariable("requestedDate", requestedDate);
+        context.setVariable("participantCount", participantCount);
+        context.setVariable("quotedPrice", quotedPrice);
+        context.setVariable("specialRequests", specialRequests);
+        context.setVariable("adminNotes", adminNotes);
+
+        String subject = messageSource.getMessage("email.private.quote.title", null, locale);
+        sendHtmlEmail(toEmail, subject, "email/private-tour-quote", context, locale);
         return CompletableFuture.completedFuture(null);
     }
 

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .email-body {
+            padding: 40px 30px;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .quote-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #e94560;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        .price-highlight {
+            font-size: 28px;
+            font-weight: 700;
+            color: #e94560;
+            text-align: center;
+            margin: 20px 0;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-body {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>Northern Chile Tours</h1>
+        </div>
+        <div class="email-body">
+            <h2 style="color: #1a1a2e; margin-top: 0;" th:text="#{email.private.quote.title}">Your Private Tour Quote</h2>
+            <p th:text="#{email.private.quote.greeting(${customerName})}">Hello,</p>
+            
+            <p th:text="#{email.private.quote.intro}">
+                Thank you for your interest in a private tour. We've prepared a personalized quote for you.
+            </p>
+
+            <div class="quote-box">
+                <h3 style="margin-top: 0; color: #92400e;" th:text="#{email.private.quote.details}">Tour Details</h3>
+                <div class="info-row">
+                    <span class="info-label" th:text="#{email.private.quote.type}">Tour Type:</span>
+                    <span th:text="${tourType}">Astronomical Tour</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label" th:text="#{email.booking.date}">Requested Date:</span>
+                    <span th:text="${requestedDate}">2025-01-15</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label" th:text="#{email.booking.participants}">Participants:</span>
+                    <span th:text="${participantCount}">4</span>
+                </div>
+                
+                <div class="price-highlight">
+                    <span th:text="#{email.private.quote.price}">Total Price:</span><br>
+                    <span th:text="${quotedPrice}">$500.000 CLP</span>
+                </div>
+                
+                <p style="font-size: 14px; color: #78350f; margin-bottom: 0;" th:text="#{email.private.quote.validity}">
+                    This quote is valid for 7 days.
+                </p>
+            </div>
+
+            <!-- Special requests if any -->
+            <div th:if="${specialRequests != null and !specialRequests.isEmpty()}" class="info-box">
+                <p style="margin: 0;">
+                    <strong th:text="#{email.private.quote.requests}">Your Special Requests:</strong><br>
+                    <span th:text="${specialRequests}">Special requirements</span>
+                </p>
+            </div>
+
+            <!-- Admin notes if any -->
+            <div th:if="${adminNotes != null and !adminNotes.isEmpty()}" class="info-box">
+                <p style="margin: 0;">
+                    <strong th:text="#{email.private.quote.notes}">Notes:</strong><br>
+                    <span th:text="${adminNotes}">Additional information</span>
+                </p>
+            </div>
+
+            <p th:text="#{email.private.quote.next}">
+                To confirm your booking, please reply to this email or contact us. We'll coordinate payment details and finalize your reservation.
+            </p>
+
+            <p style="margin-top: 30px;">
+                <strong th:text="#{email.booking.confirmation.questions}">Questions?</strong><br>
+                <span th:text="#{email.booking.confirmation.contact}">Contact us at contacto@northernchile.cl or +56 9 1234 5678</span>
+            </p>
+        </div>
+        <div class="email-footer">
+            <p>Northern Chile Tours | San Pedro de Atacama, Chile</p>
+            <p>
+                <a href="https://www.northernchile.cl" style="color: #e94560; text-decoration: none;">www.northernchile.cl</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

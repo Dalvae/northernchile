@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .email-body {
+            padding: 30px;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 12px;
+        }
+        .info-box {
+            background-color: #f5f3ff;
+            border-left: 4px solid #7c3aed;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .info-row {
+            margin: 8px 0;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #1a1a2e;
+            display: inline-block;
+            min-width: 140px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: #ddd6fe;
+            color: #5b21b6;
+        }
+        .special-requests {
+            background-color: #fef9c3;
+            border-left: 4px solid #eab308;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .action-needed {
+            background-color: #fef2f2;
+            border: 2px solid #ef4444;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>Nueva Solicitud de Tour Privado</h1>
+        </div>
+        <div class="email-body">
+            <div class="action-needed">
+                <p style="margin: 0; color: #dc2626; font-weight: 600;">
+                    Se requiere cotización para esta solicitud
+                </p>
+            </div>
+
+            <div class="info-box">
+                <h3 style="margin-top: 0; color: #5b21b6;">Detalles de la Solicitud</h3>
+                <div class="info-row">
+                    <span class="info-label">ID Solicitud:</span>
+                    <strong th:text="${requestId}">PTR-12345</strong>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Estado:</span>
+                    <span class="status-badge" th:text="${status}">PENDING</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Tipo de Tour:</span>
+                    <span th:text="${tourType}">Tour Astronómico Privado</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Fecha Solicitada:</span>
+                    <span th:text="${requestedDate}">15/01/2025 20:00</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Participantes:</span>
+                    <span th:text="${participantCount}">6</span>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h3 style="margin-top: 0; color: #5b21b6;">Información del Cliente</h3>
+                <div class="info-row">
+                    <span class="info-label">Nombre:</span>
+                    <span th:text="${customerName}">María García</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <a th:href="'mailto:' + ${customerEmail}" th:text="${customerEmail}">cliente@email.com</a>
+                </div>
+                <div class="info-row" th:if="${customerPhone != null and !customerPhone.isEmpty()}">
+                    <span class="info-label">Teléfono:</span>
+                    <span th:text="${customerPhone}">+56 9 1234 5678</span>
+                </div>
+            </div>
+
+            <div th:if="${specialRequests != null and !specialRequests.isEmpty()}" class="special-requests">
+                <h3 style="margin-top: 0; color: #92400e;">Solicitudes Especiales</h3>
+                <p style="margin-bottom: 0;" th:text="${specialRequests}">Queremos celebrar un cumpleaños...</p>
+            </div>
+
+            <p style="font-size: 12px; color: #6b7280; margin-top: 20px;">
+                <strong>Solicitud creada:</strong> <span th:text="${createdAt}">2025-01-10 15:30</span>
+            </p>
+        </div>
+        <div class="email-footer">
+            <p>Este es un mensaje automático del sistema Northern Chile Tours.</p>
+            <p>Revisa esta solicitud y contacta al cliente para proporcionar una cotización.</p>
+        </div>
+    </div>
+</body>
+</html>
