@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { CalendarDate } from '@internationalized/date'
+
 const { t } = useI18n();
 const toast = useToast();
 const config = useRuntimeConfig();
@@ -22,6 +24,18 @@ const state = reactive({
   specialRequests: "",
   loading: false,
 });
+
+// Date picker state
+const preferredDateValue = ref<CalendarDate | null>(null)
+
+// Sync between CalendarDate and string
+watch(preferredDateValue, (newDate) => {
+  if (newDate) {
+    state.preferredDate = `${newDate.year}-${String(newDate.month).padStart(2, '0')}-${String(newDate.day).padStart(2, '0')}`
+  } else {
+    state.preferredDate = ''
+  }
+})
 
 const tourTypeOptions = [
   {
@@ -109,6 +123,7 @@ async function submitRequest() {
     state.phone = "";
     state.numberOfPeople = 2;
     state.preferredDate = "";
+    preferredDateValue.value = null;
     state.preferredTime = "evening";
     state.tourType = "ASTRONOMICAL";
     state.specialRequests = "";
@@ -384,19 +399,12 @@ async function submitRequest() {
                     {{ t("privateTours.form.preferred_date_label") }}
                     <span class="text-primary-500">*</span>
                   </label>
-                  <UInput
-                    v-model="state.preferredDate"
-                    type="date"
+                  <UInputDate
+                    v-model="preferredDateValue"
                     size="xl"
-                    icon="i-lucide-calendar"
                     class="w-full"
                     :ui="{
-                      color: {
-                        white: {
-                          outline:
-                            'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
-                        },
-                      },
+                      base: 'bg-neutral-950 text-white ring-neutral-700 focus-within:ring-primary-500'
                     }"
                     required
                   />
