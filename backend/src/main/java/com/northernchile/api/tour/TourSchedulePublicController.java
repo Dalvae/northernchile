@@ -44,7 +44,8 @@ public class TourSchedulePublicController {
                 endInstant
         );
 
-        // Filter by tourId and only include OPEN schedules for public
+        // Filter by tourId and only include OPEN schedules
+        // (ScheduleAutoCloseJob handles closing schedules within cutoff window)
         List<TourScheduleRes> response = schedules.stream()
                 .filter(s -> s.getTour().getId().equals(tourId))
                 .filter(s -> "OPEN".equals(s.getStatus()))
