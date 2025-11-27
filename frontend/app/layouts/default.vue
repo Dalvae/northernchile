@@ -16,6 +16,21 @@ useHead(() => ({
   link: [...(i18nHead.value.link || [])],
   meta: [...(i18nHead.value.meta || [])]
 }))
+
+// Initialize Google Analytics only on public pages
+const route = useRoute()
+const { initialize } = useGtag()
+
+// Routes that should NOT be tracked
+const excludedRoutes = ['/admin', '/profile', '/bookings', '/cart', '/checkout', '/auth', '/payment']
+
+// Initialize gtag only if we're on a public route
+onMounted(() => {
+  const isPublicRoute = !excludedRoutes.some(excluded => route.path.startsWith(excluded))
+  if (isPublicRoute) {
+    initialize()
+  }
+})
 </script>
 
 <template>

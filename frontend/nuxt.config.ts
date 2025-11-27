@@ -91,7 +91,7 @@ export default defineNuxtConfig({
             ].join('; ')
           : [
               'default-src \'self\'',
-              'script-src \'self\' \'unsafe-inline\' https://www.googletagmanager.com https://www.google-analytics.com',
+              'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://www.googletagmanager.com https://www.google-analytics.com',
               'style-src \'self\' \'unsafe-inline\'',
               'font-src \'self\' data:',
               'img-src \'self\' data: https: blob: https://www.google-analytics.com',
@@ -200,6 +200,7 @@ export default defineNuxtConfig({
   gtag: {
     id: process.env.NUXT_PUBLIC_GTAG_ID || '',
     enabled: process.env.NODE_ENV === 'production',
+    initMode: 'manual', // Don't auto-initialize, we'll do it selectively
     config: {
       anonymize_ip: true,
       send_page_view: true,
