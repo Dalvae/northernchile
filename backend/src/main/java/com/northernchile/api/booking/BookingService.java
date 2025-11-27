@@ -20,8 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +48,9 @@ public class BookingService {
     @Value("${mail.from.email}")
     private String adminEmail;
 
+    @Value("${booking.min-hours-before-tour:2}")
+    private int minHoursBeforeTour;
+
     public BookingService(
             BookingRepository bookingRepository,
             TourScheduleRepository tourScheduleRepository,
@@ -61,10 +66,14 @@ public class BookingService {
         this.availabilityValidator = availabilityValidator;
     }
 
-    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.SERIALIZABLE)
+    @Transactional
     public BookingRes createBooking(BookingCreateReq req, User currentUser) {
-        var schedule = tourScheduleRepository.findById(req.getScheduleId())
+        // Use pessimistic locking to prevent race conditions instead of SERIALIZABLE isolation
+        var schedule = tourScheduleRepository.findByIdWithLock(req.getScheduleId())
                 .orElseThrow(() -> new EntityNotFoundException("TourSchedule not found with id: " + req.getScheduleId()));
+
+        // Validate booking is not too close to tour start time
+        validateBookingCutoffTime(schedule);
 
         validateAvailability(schedule, req.getParticipants().size());
 
@@ -84,6 +93,18 @@ public class BookingService {
         var availabilityResult = availabilityValidator.validateAvailability(schedule, requestedSlots);
         if (!availabilityResult.isAvailable()) {
             throw new IllegalStateException(availabilityResult.getErrorMessage());
+        }
+    }
+
+    private void validateBookingCutoffTime(com.northernchile.api.model.TourSchedule schedule) {
+        Instant now = Instant.now();
+        Instant cutoffTime = schedule.getStartDatetime().minus(minHoursBeforeTour, ChronoUnit.HOURS);
+
+        if (now.isAfter(cutoffTime)) {
+            throw new IllegalStateException(
+                "Bookings for this tour are closed. Reservations must be made at least " +
+                minHoursBeforeTour + " hours in advance."
+            );
         }
     }
 

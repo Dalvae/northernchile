@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -68,4 +69,10 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
            "LEFT JOIN FETCH b.participants " +
            "WHERE b.status = :status AND s.startDatetime BETWEEN :start AND :end")
     List<Booking> findByStatusAndTourSchedule_StartDateTimeBetween(String status, Instant start, Instant end);
+
+    /**
+     * Find stale pending bookings (older than specified time) for cleanup
+     */
+    @Query("SELECT b FROM Booking b WHERE b.status = 'PENDING' AND b.createdAt < :cutoff")
+    List<Booking> findStalePendingBookings(@Param("cutoff") Instant cutoff);
 }
