@@ -17,20 +17,23 @@ useHead(() => ({
   meta: [...(i18nHead.value.meta || [])]
 }))
 
-// Initialize Google Analytics only on public pages
+// Initialize Google Analytics only on public pages when user accepts cookies
 const route = useRoute()
 const { initialize } = useGtag()
+const { consentGiven } = useCookieConsent()
 
 // Routes that should NOT be tracked
 const excludedRoutes = ['/admin', '/profile', '/bookings', '/cart', '/checkout', '/auth', '/payment']
 
-// Initialize gtag only if we're on a public route
-onMounted(() => {
-  const isPublicRoute = !excludedRoutes.some(excluded => route.path.startsWith(excluded))
-  if (isPublicRoute) {
-    initialize()
+// Watch for consent changes and initialize gtag accordingly
+watch(() => consentGiven.value, (hasConsent) => {
+  if (hasConsent === true) {
+    const isPublicRoute = !excludedRoutes.some(excluded => route.path.startsWith(excluded))
+    if (isPublicRoute) {
+      initialize()
+    }
   }
-})
+}, { immediate: true })
 </script>
 
 <template>
@@ -42,5 +45,9 @@ onMounted(() => {
     </UMain>
 
     <LazyLayoutTheFooter />
+
+    <ClientOnly>
+      <CookieBanner />
+    </ClientOnly>
   </div>
 </template>

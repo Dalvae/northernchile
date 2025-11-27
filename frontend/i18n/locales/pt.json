@@ -812,6 +812,12 @@
           "content": "Os reembolsos aprovados são processados internamente em 24 horas úteis. Dependendo do seu banco ou método de pagamento (Webpay/Mercado Pago), o dinheiro pode levar entre 5 a 10 dias úteis para refletir em sua conta."
         }
       ]
+    },
+    "cookie_banner": {
+      "message": "Usamos cookies para melhorar sua experiência e analisar o tráfego do site. Apenas cookies essenciais e de análise.",
+      "accept": "Aceitar",
+      "reject": "Rejeitar",
+      "learn_more": "Saiba mais"
     }
   }
 }
