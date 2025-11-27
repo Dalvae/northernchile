@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { CalendarDate } from '@internationalized/date'
+
 definePageMeta({
   layout: 'admin'
 })
@@ -11,20 +13,46 @@ const config = useRuntimeConfig()
 const toast = useToast()
 const { formatPrice } = useCurrency()
 const { formatDate } = useDateTime()
+const { locale } = useI18n()
+const authStore = useAuthStore()
 
-// Date range filter
+// Date range filter using UInputDate
 const today = new Date()
 const thirtyDaysAgo = new Date()
 thirtyDaysAgo.setDate(today.getDate() - 30)
 
-const dateRange = ref({
-  start: thirtyDaysAgo.toISOString().split('T')[0],
-  end: today.toISOString().split('T')[0]
+const inputDateRef = useTemplateRef('inputDateRef')
+
+const dateRange = shallowRef({
+  start: new CalendarDate(
+    thirtyDaysAgo.getFullYear(),
+    thirtyDaysAgo.getMonth() + 1,
+    thirtyDaysAgo.getDate()
+  ),
+  end: new CalendarDate(
+    today.getFullYear(),
+    today.getMonth() + 1,
+    today.getDate()
+  )
 })
 
+// Computed values for API calls
+const startDate = computed(() => {
+  const { start } = dateRange.value
+  return `${start.year}-${String(start.month).padStart(2, '0')}-${String(start.day).padStart(2, '0')}`
+})
+
+const endDate = computed(() => {
+  const { end } = dateRange.value
+  return `${end.year}-${String(end.month).padStart(2, '0')}-${String(end.day).padStart(2, '0')}`
+})
+
+// Force refresh counter
+const refreshKey = ref(0)
+
 // Fetch overview data
-const { data: overview, pending: overviewPending, refresh: refreshOverview } = await useAsyncData(
-  'reports-overview',
+const { data: overview, pending: overviewPending, refresh: refreshOverview, error: overviewError } = useAsyncData(
+  () => `reports-overview-${refreshKey.value}`,
   async () => {
     try {
       const response = await $fetch<{
@@ -40,44 +68,43 @@ const { data: overview, pending: overviewPending, refresh: refreshOverview } = a
         totalUsers: number
         totalTours: number
         totalSchedules: number
-      }>(`${config.public.apiBaseUrl}/admin/reports/overview`, {
+      }>(`${config.public.apiBase}/api/admin/reports/overview`, {
         params: {
-          startDate: dateRange.value.start,
-          endDate: dateRange.value.end
+          startDate: startDate.value,
+          endDate: endDate.value
         },
         credentials: 'include'
       })
       return response
-    } catch (err) {
-      console.error('Error fetching overview:', err)
+    } catch (err: any) {
+      console.error('❌ Error fetching overview:', err)
       toast.add({
         color: 'error',
-        title: 'Error',
-        description: 'No se pudieron cargar los datos del reporte'
+        title: 'Error al cargar reportes',
+        description: err?.data?.message || 'No se pudieron cargar los datos del reporte'
       })
-      throw err
+      return null
     }
   },
   {
     server: false,
-    lazy: true,
-    watch: [dateRange]
+    lazy: true
   }
 )
 
 // Fetch bookings by day
-const { data: bookingsByDay, pending: bookingsByDayPending } = await useAsyncData(
-  'reports-bookings-by-day',
+const { data: bookingsByDay, pending: bookingsByDayPending, refresh: refreshBookingsByDay } = useAsyncData(
+  () => `reports-bookings-by-day-${refreshKey.value}`,
   async () => {
     try {
       const response = await $fetch<Array<{
         date: string
         count: number
         revenue: number
-      }>>(`${config.public.apiBaseUrl}/admin/reports/bookings-by-day`, {
+      }>>(`${config.public.apiBase}/api/admin/reports/bookings-by-day`, {
         params: {
-          startDate: dateRange.value.start,
-          endDate: dateRange.value.end
+          startDate: startDate.value,
+          endDate: endDate.value
         },
         credentials: 'include'
       })
@@ -89,14 +116,13 @@ const { data: bookingsByDay, pending: bookingsByDayPending } = await useAsyncDat
   },
   {
     server: false,
-    lazy: true,
-    watch: [dateRange]
+    lazy: true
   }
 )
 
 // Fetch top tours
-const { data: topTours, pending: topToursPending } = await useAsyncData(
-  'reports-top-tours',
+const { data: topTours, pending: topToursPending, refresh: refreshTopTours } = useAsyncData(
+  () => `reports-top-tours-${refreshKey.value}`,
   async () => {
     try {
       const response = await $fetch<Array<{
@@ -104,10 +130,10 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
         bookingsCount: number
         revenue: number
         participants: number
-      }>>(`${config.public.apiBaseUrl}/admin/reports/top-tours`, {
+      }>>(`${config.public.apiBase}/api/admin/reports/top-tours`, {
         params: {
-          startDate: dateRange.value.start,
-          endDate: dateRange.value.end,
+          startDate: startDate.value,
+          endDate: endDate.value,
           limit: 10
         },
         credentials: 'include'
@@ -120,10 +146,14 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
   },
   {
     server: false,
-    lazy: true,
-    watch: [dateRange]
+    lazy: true
   }
 )
+
+// Función para refrescar todos los datos
+function handleRefresh() {
+  refreshKey.value++
+}
 </script>
 
 <template>
@@ -145,25 +175,40 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
           <label class="block text-sm font-medium text-default mb-2">
             Rango de Fechas
           </label>
-          <div class="grid grid-cols-2 gap-4">
-            <UInput
-              v-model="dateRange.start"
-              type="date"
-              size="xl"
-            />
-            <UInput
-              v-model="dateRange.end"
-              type="date"
-              size="xl"
-            />
-          </div>
+          <UInputDate
+            ref="inputDateRef"
+            v-model="dateRange"
+            range
+            size="xl"
+          >
+            <template #trailing>
+              <UPopover :reference="inputDateRef?.inputsRef[0]?.$el">
+                <UButton
+                  color="neutral"
+                  variant="link"
+                  size="sm"
+                  icon="i-lucide-calendar"
+                  aria-label="Seleccionar rango de fechas"
+                  class="px-0"
+                />
+
+                <template #content>
+                  <UCalendar
+                    v-model="dateRange"
+                    class="p-2"
+                    :number-of-months="2"
+                    range
+                  />
+                </template>
+              </UPopover>
+            </template>
+          </UInputDate>
         </div>
         <UButton
           color="primary"
           icon="i-lucide-refresh-cw"
-          :loading="overviewPending"
           size="xl"
-          @click="() => refreshOverview()"
+          @click="handleRefresh"
         >
           Actualizar
         </UButton>
@@ -181,8 +226,31 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
       />
     </div>
 
+    <!-- Error state -->
+    <div
+      v-else-if="!overview"
+      class="bg-elevated rounded-lg p-12 border border-default text-center"
+    >
+      <UIcon
+        name="i-lucide-alert-circle"
+        class="w-16 h-16 mx-auto mb-4 text-error"
+      />
+      <h3 class="text-lg font-semibold text-default mb-2">
+        Error al cargar los reportes
+      </h3>
+      <p class="text-muted mb-4">
+        No se pudieron cargar los datos. Verifica tu conexión e intenta nuevamente.
+      </p>
+      <UButton
+        color="primary"
+        @click="() => refreshOverview()"
+      >
+        Reintentar
+      </UButton>
+    </div>
+
     <!-- Overview Stats -->
-    <div v-else-if="overview">
+    <div v-else>
       <!-- Main KPIs -->
       <div class="grid grid-cols-1 gap-4 mb-6 md:grid-cols-4">
         <AdminDashboardStat
@@ -245,8 +313,8 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
         <h3 class="mb-4 text-lg font-semibold text-default">
           Resumen del Sistema
         </h3>
-        <div class="grid grid-cols-3 gap-4">
-          <div class="text-center">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="text-center p-4 bg-primary/5 rounded-lg border border-primary/20">
             <div class="mb-1 text-3xl font-bold text-primary">
               {{ overview.totalUsers }}
             </div>
@@ -254,7 +322,7 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
               Usuarios Registrados
             </div>
           </div>
-          <div class="text-center">
+          <div class="text-center p-4 bg-success/5 rounded-lg border border-success/20">
             <div class="text-3xl font-bold text-success mb-1">
               {{ overview.totalTours }}
             </div>
@@ -262,7 +330,7 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
               Tours Activos
             </div>
           </div>
-          <div class="text-center">
+          <div class="text-center p-4 bg-info/5 rounded-lg border border-info/20">
             <div class="text-3xl font-bold text-info mb-1">
               {{ overview.totalSchedules }}
             </div>
@@ -288,7 +356,22 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
           />
         </div>
         <div
-          v-else-if="bookingsByDay && bookingsByDay.length > 0"
+          v-else-if="!bookingsByDay || bookingsByDay.length === 0"
+          class="text-center py-12"
+        >
+          <UIcon
+            name="i-lucide-calendar-x"
+            class="w-12 h-12 mx-auto mb-3 text-muted"
+          />
+          <p class="text-muted text-lg font-medium">
+            No hay datos de reservas en este período
+          </p>
+          <p class="text-muted text-sm mt-2">
+            Selecciona un rango de fechas diferente o crea algunas reservas
+          </p>
+        </div>
+        <div
+          v-else
           class="overflow-x-auto"
         >
           <table class="min-w-full divide-y divide-default">
@@ -323,14 +406,6 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
             </tbody>
           </table>
         </div>
-        <div
-          v-else
-          class="text-center py-8"
-        >
-          <p class="text-muted">
-            No hay datos de reservas en este período
-          </p>
-        </div>
       </div>
 
       <!-- Top Tours -->
@@ -348,7 +423,22 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
           />
         </div>
         <div
-          v-else-if="topTours && topTours.length > 0"
+          v-else-if="!topTours || topTours.length === 0"
+          class="text-center py-12"
+        >
+          <UIcon
+            name="i-lucide-map-pin-off"
+            class="w-12 h-12 mx-auto mb-3 text-muted"
+          />
+          <p class="text-muted text-lg font-medium">
+            No hay datos de tours en este período
+          </p>
+          <p class="text-muted text-sm mt-2">
+            Las reservas confirmadas aparecerán aquí ordenadas por popularidad
+          </p>
+        </div>
+        <div
+          v-else
           class="overflow-x-auto"
         >
           <table class="min-w-full divide-y divide-default">
@@ -396,14 +486,6 @@ const { data: topTours, pending: topToursPending } = await useAsyncData(
               </tr>
             </tbody>
           </table>
-        </div>
-        <div
-          v-else
-          class="text-center py-8"
-        >
-          <p class="text-muted">
-            No hay datos de tours en este período
-          </p>
         </div>
       </div>
     </div>
