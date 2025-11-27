@@ -15,7 +15,7 @@ useHead({
 const { fetchAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser }
   = useAdminData()
 const { getCountryLabel, getCountryFlag } = useCountries()
-const { formatDate } = useDateTime()
+const { formatDateTime } = useDateTime()
 
 const {
   data: users,
@@ -61,7 +61,11 @@ const columns: Array<{ id: string, accessorKey?: keyof UserRes, header: string, 
   {
     id: 'createdAt',
     accessorKey: 'createdAt',
-    header: 'Fecha Creación'
+    header: 'Fecha Creación',
+    cell: ({ row }) => {
+      const value = row.getValue('createdAt') as string
+      return h('span', { class: 'text-sm text-default' }, formatDateTime(value))
+    }
   },
   {
     id: 'actions',
@@ -222,12 +226,6 @@ function getRoleBadgeColor(role: string): string {
           <template #phoneNumber-data="{ row }">
             <span class="text-sm">
               {{ row.getValue("phoneNumber") || "-" }}
-            </span>
-          </template>
-
-          <template #createdAt-data="{ row }">
-            <span class="text-sm text-default">
-              {{ formatDate(row.getValue("createdAt")) }}
             </span>
           </template>
 
