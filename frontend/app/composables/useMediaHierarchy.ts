@@ -47,11 +47,13 @@ export function useMediaHierarchy() {
 
     loading.value = true
     try {
+      const startDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] ?? ''
+      const endDate = new Date().toISOString().split('T')[0] ?? ''
       const schedules = await fetchAdminSchedules({
         tourId,
         mode: 'past', // Only past schedules
-        start: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Last 90 days
-        end: new Date().toISOString().split('T')[0]
+        start: startDate,
+        end: endDate
       })
       schedulesByTour.value[tourId] = schedules
       return schedules
@@ -93,18 +95,20 @@ export function useMediaHierarchy() {
   async function buildScheduleNodes(tourId: string): Promise<MediaHierarchyNode[]> {
     const schedules = await loadSchedulesForTour(tourId)
 
-    return schedules.map(schedule => ({
-      id: schedule.id!,
-      label: `${new Date(schedule.startDatetime).toLocaleDateString('es-CL', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })}`,
-      icon: 'i-lucide-calendar',
-      type: 'schedule' as const,
-      scheduleId: schedule.id!,
-      tourId
-    }))
+    return schedules
+      .filter(schedule => schedule.id && schedule.startDatetime)
+      .map(schedule => ({
+        id: schedule.id!,
+        label: `${new Date(schedule.startDatetime!).toLocaleDateString('es-CL', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })}`,
+        icon: 'i-lucide-calendar',
+        type: 'schedule' as const,
+        scheduleId: schedule.id!,
+        tourId
+      }))
   }
 
   return {

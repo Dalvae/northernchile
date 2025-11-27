@@ -1,14 +1,12 @@
 <script setup lang="ts">
-const i18nHead = useLocaleHead({
-  addSeoAttributes: true
-})
+const i18nHead = useLocaleHead()
 
 useHead(() => ({
   htmlAttrs: {
     lang: i18nHead.value.htmlAttrs?.lang,
     dir: i18nHead.value.htmlAttrs?.dir as 'ltr' | 'rtl' | 'auto' | undefined
   },
-  titleTemplate: (titleChunk) => {
+  titleTemplate: (titleChunk: string | undefined) => {
     return titleChunk
       ? `${titleChunk} | Northern Chile`
       : 'Northern Chile - Tours Astronómicos en Atacama'

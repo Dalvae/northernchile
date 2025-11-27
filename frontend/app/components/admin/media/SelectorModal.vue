@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { MediaRes } from 'api-client'
 import { formatFileSize } from '~/utils/media'
 
 const props = defineProps<{
@@ -17,7 +18,7 @@ const isOpen = computed({
 })
 
 // State
-const media = ref([])
+const media = ref<MediaRes[]>([])
 const loading = ref(false)
 const selectedItems = ref<string[]>([])
 const search = ref('')
@@ -30,7 +31,7 @@ const availableMedia = computed(() => {
   if (!props.excludeMediaIds || props.excludeMediaIds.length === 0) {
     return media.value
   }
-  return media.value.filter(m => !props.excludeMediaIds!.includes(m.id))
+  return media.value.filter(m => !props.excludeMediaIds!.includes(m.id!))
 })
 
 // Fetch media
@@ -87,7 +88,7 @@ watch(isOpen, (open) => {
 <template>
   <UModal
     v-model:open="isOpen"
-    :ui="{ width: 'sm:max-w-5xl' }"
+    class="sm:max-w-5xl"
   >
     <template #content>
       <div class="p-6">
@@ -163,14 +164,14 @@ watch(isOpen, (open) => {
               v-for="item in availableMedia"
               :key="item.id"
               class="relative cursor-pointer group"
-              @click="toggleSelect(item.id)"
+              @click="item.id && toggleSelect(item.id)"
             >
               <!-- Image -->
               <NuxtImg
                 :src="item.url"
                 :alt="item.altTranslations?.es || item.originalFilename"
                 class="w-full h-32 object-cover rounded-lg shadow-sm transition-all"
-                :class="selectedItems.includes(item.id) ? 'ring-4 ring-primary-500' : 'group-hover:opacity-80'"
+                :class="item.id && selectedItems.includes(item.id) ? 'ring-4 ring-primary-500' : 'group-hover:opacity-80'"
                 format="webp"
                 loading="lazy"
                 placeholder
@@ -178,7 +179,7 @@ watch(isOpen, (open) => {
 
               <!-- Selection indicator -->
               <div
-                v-if="selectedItems.includes(item.id)"
+                v-if="item.id && selectedItems.includes(item.id)"
                 class="absolute top-2 right-2 bg-primary-500 text-white rounded-full p-1"
               >
                 <UIcon

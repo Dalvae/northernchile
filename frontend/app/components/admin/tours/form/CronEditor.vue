@@ -43,12 +43,12 @@ watch(() => props.modelValue, (newVal) => {
     const parts = newVal.split(' ')
     // Asumiendo formato: 0 min hour * * days
     if (parts.length >= 6) {
-      const min = parts[1].padStart(2, '0')
-      const hour = parts[2].padStart(2, '0')
+      const min = parts[1]?.padStart(2, '0') || '00'
+      const hour = parts[2]?.padStart(2, '0') || '00'
       time.value = `${hour}:${min}`
 
       const days = parts[5]
-      if (days === '*' || days === '?') {
+      if (!days || days === '*' || days === '?') {
         mode.value = 'daily'
         selectedDays.value = []
       } else {

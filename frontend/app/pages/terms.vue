@@ -9,7 +9,7 @@ useSeoMeta({
 
 // Obtenemos el número de secciones
 const sections = computed(() => {
-  const sectionsArray = tm('legal.terms.sections')
+  const sectionsArray = tm('legal.terms.sections') as unknown[]
   return Array.isArray(sectionsArray) ? sectionsArray.length : 0
 })
 </script>

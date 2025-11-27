@@ -74,7 +74,6 @@ function clearFilters() {
           size="xl"
           variant="ghost"
           class="w-full bg-white/5 text-white placeholder-neutral-400 focus:ring-primary-500"
-          :ui="{ icon: { trailing: { pointer: '' } } }"
           aria-label="Buscar tours"
         />
       </div>

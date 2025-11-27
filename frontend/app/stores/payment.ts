@@ -1,12 +1,8 @@
 import { defineStore } from 'pinia'
-import { useAuthStore } from './auth'
 import type {
   PaymentInitReq,
   PaymentInitRes,
-  PaymentStatusRes,
-  PaymentProvider,
-  PaymentMethod,
-  PaymentStatus
+  PaymentStatusRes
 } from '~/types/payment'
 
 interface PaymentState {
@@ -43,7 +39,6 @@ export const usePaymentStore = defineStore('payment', {
       this.error = null
 
       const config = useRuntimeConfig()
-      const authStore = useAuthStore()
 
       try {
         const response = await $fetch<PaymentInitRes>(
@@ -51,8 +46,8 @@ export const usePaymentStore = defineStore('payment', {
           {
             method: 'POST',
             body: request,
+            credentials: 'include',
             headers: {
-              'Authorization': `Bearer ${authStore.token}`,
               'Content-Type': 'application/json'
             }
           }
@@ -74,16 +69,13 @@ export const usePaymentStore = defineStore('payment', {
      */
     async getPaymentStatus(paymentId: string): Promise<PaymentStatusRes> {
       const config = useRuntimeConfig()
-      const authStore = useAuthStore()
 
       try {
         const response = await $fetch<PaymentStatusRes>(
           `${config.public.apiBase}/api/payments/${paymentId}/status`,
           {
             method: 'GET',
-            headers: {
-              Authorization: `Bearer ${authStore.token}`
-            }
+            credentials: 'include'
           }
         )
 

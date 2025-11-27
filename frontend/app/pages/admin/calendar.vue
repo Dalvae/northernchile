@@ -399,8 +399,15 @@ const loadCalendarData = async () => {
 // Helper para obtener headers con autenticación
 const getAuthHeaders = () => {
   return {
-    'Content-Type': 'application/json',
-    ...(authStore.token ? { Authorization: `Bearer ${authStore.token}` } : {})
+    'Content-Type': 'application/json'
+  }
+}
+
+// Helper to add credentials to fetch options
+const getAuthOptions = () => {
+  return {
+    credentials: 'include' as const,
+    headers: getAuthHeaders()
   }
 }
 
@@ -410,7 +417,7 @@ const generateSchedules = async () => {
     generating.value = true
     await $fetch<void>(`${config.public.apiBase}/api/admin/schedules/generate`, {
       method: 'POST',
-      headers: getAuthHeaders()
+      ...getAuthOptions()
     })
 
     toast.add({
@@ -536,7 +543,7 @@ const saveSchedule = async () => {
         `${config.public.apiBase}/api/admin/schedules/${selectedSchedule.value.id}`,
         {
           method: 'PATCH',
-          headers: getAuthHeaders(),
+          ...getAuthOptions(),
           body: payload
         }
       )
@@ -550,7 +557,7 @@ const saveSchedule = async () => {
       // Create new schedule
       await $fetch(`${config.public.apiBase}/api/admin/schedules`, {
         method: 'POST',
-        headers: getAuthHeaders(),
+        ...getAuthOptions(),
         body: payload
       })
 

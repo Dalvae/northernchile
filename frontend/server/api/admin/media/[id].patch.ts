@@ -1,4 +1,6 @@
-export default defineEventHandler(async (event) => {
+import type { MediaRes } from 'api-client'
+
+export default defineEventHandler(async (event): Promise<MediaRes> => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
   const authToken = getHeader(event, 'Authorization')
@@ -6,7 +8,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
   try {
-    const updatedMedia = await $fetch(`${backendUrl}/api/admin/media/${mediaId}`, {
+    const updatedMedia = await $fetch<MediaRes>(`${backendUrl}/api/admin/media/${mediaId}`, {
       method: 'PATCH',
       headers: {
         'Authorization': authToken || '',

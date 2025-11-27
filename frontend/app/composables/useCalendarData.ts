@@ -66,7 +66,6 @@ export interface WeatherAlert {
 
 export const useCalendarData = () => {
   const config = useRuntimeConfig()
-  const { locale } = useI18n()
 
   /**
    * Helper to get auth token from store or localStorage

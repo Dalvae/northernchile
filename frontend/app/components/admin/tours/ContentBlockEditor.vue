@@ -35,8 +35,8 @@ function removeBlock(index: number) {
 function moveBlockUp(index: number) {
   if (index === 0) return
   const newBlocks = [...blocks.value]
-  const temp = newBlocks[index]
-  newBlocks[index] = newBlocks[index - 1]
+  const temp = newBlocks[index]!
+  newBlocks[index] = newBlocks[index - 1]!
   newBlocks[index - 1] = temp
   blocks.value = newBlocks
 }
@@ -44,8 +44,8 @@ function moveBlockUp(index: number) {
 function moveBlockDown(index: number) {
   if (index === blocks.value.length - 1) return
   const newBlocks = [...blocks.value]
-  const temp = newBlocks[index]
-  newBlocks[index] = newBlocks[index + 1]
+  const temp = newBlocks[index]!
+  newBlocks[index] = newBlocks[index + 1]!
   newBlocks[index + 1] = temp
   blocks.value = newBlocks
 }
@@ -120,7 +120,7 @@ function getPlaceholder(type: string): string {
                 value-attribute="value"
                 size="sm"
                 class="w-full"
-                @update:model-value="(value: string) => updateBlock(index, 'type', value)"
+                @update:model-value="(value: string | undefined) => value && updateBlock(index, 'type', value)"
               />
               <span class="text-xs text-neutral-500 dark:text-neutral-300 whitespace-nowrap">
                 Bloque {{ index + 1 }}
@@ -130,7 +130,7 @@ function getPlaceholder(type: string): string {
             <!-- Editor de contenido -->
             <UTextarea
               :model-value="block.content"
-              :placeholder="getPlaceholder(block.type)"
+              :placeholder="getPlaceholder(block.type || 'paragraph')"
               :rows="block.type === 'heading' ? 2 : 4"
               autoresize
               size="md"

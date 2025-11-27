@@ -7,7 +7,7 @@ useSeoMeta({
 })
 
 const sections = computed(() => {
-  const sectionsArray = tm('legal.cancellation.sections')
+  const sectionsArray = tm('legal.cancellation.sections') as unknown[]
   return Array.isArray(sectionsArray) ? sectionsArray.length : 0
 })
 </script>

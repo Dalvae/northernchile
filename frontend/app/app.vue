@@ -17,7 +17,7 @@ defineOgImageComponent('Tour', ogImageOptions)
 
 // SEO Meta tags globales
 const seoMetaConfig: any = {
-  titleTemplate: (titleChunk) => {
+  titleTemplate: (titleChunk: string | undefined) => {
     return titleChunk
       ? `${titleChunk} | Northern Chile`
       : `${t('home.hero.title_line1')} - Northern Chile`

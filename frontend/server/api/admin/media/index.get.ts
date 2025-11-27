@@ -1,4 +1,6 @@
-export default defineEventHandler(async (event) => {
+import type { PageMediaRes } from 'api-client'
+
+export default defineEventHandler(async (event): Promise<PageMediaRes> => {
   const config = useRuntimeConfig()
   const backendUrl = config.public.apiBase || 'http://localhost:8080'
 
@@ -13,7 +15,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const response = await $fetch(`${backendUrl}/api/admin/media`, {
+    const response = await $fetch<PageMediaRes>(`${backendUrl}/api/admin/media`, {
       method: 'GET',
       params: query,
       headers

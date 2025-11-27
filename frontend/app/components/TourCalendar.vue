@@ -78,7 +78,7 @@ async function fetchSchedules() {
     const end = new Date()
     end.setDate(end.getDate() + 90)
 
-    const formatDate = (date: Date) => date.toISOString().split('T')[0]
+    const formatDate = (date: Date) => date.toISOString().split('T')[0] || ''
 
     const allSchedules = await Promise.all(
       props.tours.map(async (tour) => {
@@ -114,7 +114,7 @@ async function fetchLunarData() {
     const end = new Date()
     end.setDate(end.getDate() + 90)
 
-    const formatDate = (date: Date) => date.toISOString().split('T')[0]
+    const formatDate = (date: Date) => date.toISOString().split('T')[0] || ''
 
     const response = await $fetch<LunarPhase[]>(
       `${config.public.apiBase}/api/lunar/calendar`,
@@ -164,7 +164,7 @@ async function fetchWeatherData() {
     const weatherArray: WeatherDay[] = []
     if (response?.daily) {
       for (const day of response.daily) {
-        const date = new Date(day.dt * 1000).toISOString().split('T')[0]
+      const date = new Date(day.dt * 1000).toISOString().split('T')[0] || ''
         weatherArray.push({
           date,
           maxWindKph: (day.windSpeed || 0) / 0.514444,
@@ -179,7 +179,7 @@ async function fetchWeatherData() {
     weatherMap.value.clear()
     if (response?.daily) {
       response.daily.forEach((day: any) => {
-        const date = new Date(day.dt * 1000).toISOString().split('T')[0]
+        const date = new Date(day.dt * 1000).toISOString().split('T')[0] || ''
         weatherMap.value.set(date, {
           date,
           maxWindKph: (day.windSpeed || 0) / 0.514444,
@@ -265,8 +265,8 @@ const calendarEvents = computed(() => {
       })}`,
       start: schedule.startDatetime,
       allDay: false,
-      backgroundColor: getTourColor(schedule.tour?.id),
-      borderColor: getTourColor(schedule.tour?.id),
+      backgroundColor: getTourColor(schedule.tour?.id || ''),
+      borderColor: getTourColor(schedule.tour?.id || ''),
       textColor: 'var(--color-atacama-oxide-50)',
       extendedProps: {
         type: 'schedule',
@@ -367,7 +367,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   listDaySideFormat: false,
 
   dayCellContent: (arg) => {
-    const date = arg.date.toISOString().split('T')[0]
+    const date = arg.date.toISOString().split('T')[0] || ''
     const moon = lunarMap.value.get(date)
     const weather = weatherMap.value.get(date)
 
@@ -435,8 +435,8 @@ function renderEventContent(arg: EventContentArg) {
   // VISTA DE LISTA (MÓVIL)
   if (arg.view.type.includes('list')) {
     if (eventType === 'schedule') {
-      const available = arg.event.extendedProps.availableSpots
-      const max = arg.event.extendedProps.maxParticipants
+      const available = arg.event.extendedProps.availableSpots as number
+      const max = arg.event.extendedProps.maxParticipants as number
       const color = arg.event.backgroundColor
       const titleParts = arg.event.title.split(' - ')
       const tourName = titleParts[0]

@@ -369,10 +369,7 @@ async function saveProfile() {
 
     await $fetch(`${apiBase}/api/profile/me`, {
       method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${authStore.token}`,
-        'Content-Type': 'application/json'
-      },
+      credentials: 'include',
       body: {
         fullName: profileForm.fullName,
         nationality: profileForm.nationality || null,

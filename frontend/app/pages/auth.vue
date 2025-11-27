@@ -219,7 +219,6 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { z } from 'zod'
-import { CalendarDate } from '@internationalized/date'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -243,7 +242,7 @@ const state = reactive({
 })
 
 // Date picker state
-const dateOfBirthValue = ref<CalendarDate | null>(null)
+const dateOfBirthValue = ref<any>(undefined)
 
 // Sync between CalendarDate and string
 watch(dateOfBirthValue, (newDate) => {
@@ -286,7 +285,7 @@ function toggleForm() {
   Object.keys(state).forEach((key) => {
     state[key as keyof typeof state] = ''
   })
-  dateOfBirthValue.value = null
+  dateOfBirthValue.value = undefined
 }
 
 // Submit
@@ -328,7 +327,7 @@ async function handleSubmit(event: FormSubmitEvent<any>) {
       Object.keys(state).forEach((key) => {
         state[key as keyof typeof state] = ''
       })
-      dateOfBirthValue.value = null
+      dateOfBirthValue.value = undefined
     }
   } catch (error: any) {
     console.error('Error en auth:', error)

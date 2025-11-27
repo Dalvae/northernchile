@@ -94,7 +94,7 @@ function formatAmount(amount: number, currency: string) {
     USD: { locale: 'en-US', code: 'USD' }
   }
 
-  const config = currencyMap[currency] || currencyMap.CLP
+  const config = currencyMap[currency] ?? currencyMap.CLP!
 
   return new Intl.NumberFormat(config.locale, {
     style: 'currency',

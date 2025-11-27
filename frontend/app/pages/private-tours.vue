@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { CalendarDate } from '@internationalized/date'
-
 const { t } = useI18n();
 const toast = useToast();
 const config = useRuntimeConfig();
@@ -26,7 +24,7 @@ const state = reactive({
 });
 
 // Date picker state
-const preferredDateValue = ref<CalendarDate | null>(null)
+const preferredDateValue = ref<any>(undefined)
 
 // Sync between CalendarDate and string
 watch(preferredDateValue, (newDate) => {
@@ -123,7 +121,7 @@ async function submitRequest() {
     state.phone = "";
     state.numberOfPeople = 2;
     state.preferredDate = "";
-    preferredDateValue.value = null;
+    preferredDateValue.value = undefined;
     state.preferredTime = "evening";
     state.tourType = "ASTRONOMICAL";
     state.specialRequests = "";
@@ -192,8 +190,7 @@ async function submitRequest() {
               color="primary"
               variant="solid"
               to="#request-form"
-              :ui="{ rounded: 'rounded-full', padding: { xl: 'px-8 py-4' } }"
-              class="font-semibold shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1"
+              class="rounded-full px-8 py-4 font-semibold shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40 transition-all duration-300 transform hover:-translate-y-1"
             >
               {{ t("privateTours.form.send_request") }}
               <UIcon name="i-lucide-arrow-right" class="ml-2 w-5 h-5" />
@@ -222,16 +219,7 @@ async function submitRequest() {
           <UCard
             v-for="benefit in benefits"
             :key="benefit.title"
-            class="group hover:ring-2 hover:ring-primary-500/50 transition-all duration-500 bg-neutral-900/50 border-neutral-800 relative overflow-hidden"
-            :ui="{
-              body: {
-                ClassNameArray:
-                  'h-full flex flex-col items-center text-center p-8',
-              },
-              ring: 'ring-1 ring-neutral-800',
-              shadow:
-                'shadow-none hover:shadow-2xl hover:shadow-primary-900/20',
-            }"
+            class="group hover:ring-2 hover:ring-primary-500/50 transition-all duration-500 bg-neutral-900/50 border-neutral-800 relative overflow-hidden ring-1 ring-neutral-800 shadow-none hover:shadow-2xl hover:shadow-primary-900/20"
           >
             <!-- Meteor Effect -->
             <ClientOnly>
@@ -286,9 +274,8 @@ async function submitRequest() {
 
           <UCard
             class="bg-neutral-900/80 backdrop-blur border-neutral-800 shadow-2xl"
-            :ui="{ body: { padding: 'p-8 sm:p-12' } }"
           >
-            <form class="space-y-8" @submit.prevent="submitRequest">
+            <form class="space-y-8 p-8 sm:p-12" @submit.prevent="submitRequest">
               <!-- Personal Info -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-2">
@@ -301,15 +288,7 @@ async function submitRequest() {
                     size="xl"
                     :placeholder="t('privateTours.form.full_name_placeholder')"
                     icon="i-lucide-user"
-                    class="w-full"
-                    :ui="{
-                      color: {
-                        white: {
-                          outline:
-                            'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
-                        },
-                      },
-                    }"
+                    class="w-full bg-neutral-950 text-white"
                     required
                   />
                 </div>
@@ -325,15 +304,7 @@ async function submitRequest() {
                     size="xl"
                     placeholder="juan@gmail.com"
                     icon="i-lucide-mail"
-                    class="w-full"
-                    :ui="{
-                      color: {
-                        white: {
-                          outline:
-                            'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
-                        },
-                      },
-                    }"
+                    class="w-full bg-neutral-950 text-white"
                     required
                   />
                 </div>
@@ -350,15 +321,7 @@ async function submitRequest() {
                     size="xl"
                     :placeholder="t('privateTours.form.phone_placeholder')"
                     icon="i-lucide-phone"
-                    class="w-full"
-                    :ui="{
-                      color: {
-                        white: {
-                          outline:
-                            'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
-                        },
-                      },
-                    }"
+                    class="w-full bg-neutral-950 text-white"
                     required
                   />
                 </div>
@@ -378,15 +341,7 @@ async function submitRequest() {
                       t('privateTours.form.number_of_people_placeholder')
                     "
                     icon="i-lucide-users"
-                    class="w-full"
-                    :ui="{
-                      color: {
-                        white: {
-                          outline:
-                            'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
-                        },
-                      },
-                    }"
+                    class="w-full bg-neutral-950 text-white"
                     required
                   />
                 </div>
@@ -402,10 +357,7 @@ async function submitRequest() {
                   <UInputDate
                     v-model="preferredDateValue"
                     size="xl"
-                    class="w-full"
-                    :ui="{
-                      base: 'bg-neutral-950 text-white ring-neutral-700 focus-within:ring-primary-500'
-                    }"
+                    class="w-full bg-neutral-950 text-white"
                     required
                   />
                 </div>
@@ -421,15 +373,7 @@ async function submitRequest() {
                     value-attribute="value"
                     size="xl"
                     icon="i-lucide-clock"
-                    class="w-full"
-                    :ui="{
-                      color: {
-                        white: {
-                          outline:
-                            'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
-                        },
-                      },
-                    }"
+                    class="w-full bg-neutral-950 text-white"
                   />
                 </div>
               </div>
@@ -446,15 +390,7 @@ async function submitRequest() {
                   value-attribute="value"
                   size="xl"
                   icon="i-lucide-map"
-                  class="w-full"
-                  :ui="{
-                    color: {
-                      white: {
-                        outline:
-                          'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
-                      },
-                    },
-                  }"
+                  class="w-full bg-neutral-950 text-white"
                 />
               </div>
 
@@ -469,15 +405,7 @@ async function submitRequest() {
                   :placeholder="
                     t('privateTours.form.special_requests_placeholder')
                   "
-                  class="w-full"
-                  :ui="{
-                    color: {
-                      white: {
-                        outline:
-                          'bg-neutral-950 text-white ring-neutral-700 focus:ring-primary-500',
-                      },
-                    },
-                  }"
+                  class="w-full bg-neutral-950 text-white"
                 />
               </div>
 
@@ -488,8 +416,7 @@ async function submitRequest() {
                   color="primary"
                   :loading="state.loading"
                   block
-                  :ui="{ rounded: 'rounded-xl', padding: { xl: 'py-4' } }"
-                  class="font-bold text-lg shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40 transition-all"
+                  class="rounded-xl py-4 font-bold text-lg shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40 transition-all"
                 >
                   {{
                     state.loading

@@ -24,7 +24,6 @@ const { data: allTours } = await useFetch<TourRes[]>('/api/tours', {
       windSensitive: tour.windSensitive,
       status: tour.status,
 
-      descriptionTranslations: tour.descriptionTranslations,
       descriptionBlocksTranslations: (tour as any)
         .descriptionBlocksTranslations
     }))
@@ -36,8 +35,9 @@ const calendarTriggerRef = ref(null)
 
 useIntersectionObserver(
   calendarTriggerRef,
-  ([{ isIntersecting }]) => {
-    if (isIntersecting) {
+  (entries) => {
+    const entry = entries[0]
+    if (entry?.isIntersecting) {
       showCalendar.value = true
     }
   },
@@ -168,7 +168,7 @@ useSeoMeta({
                 variant="soft"
                 class="uppercase tracking-widest"
               >
-                {{ t(`tours.category.${tour.category}`, tour.category) }}
+                {{ t(`tours.category.${tour.category}`) || tour.category }}
               </UBadge>
               <div
                 v-if="tour.moonSensitive"

@@ -18,11 +18,8 @@ async function fetchBookings() {
 
   loading.value = true
   try {
-    const token = authStore.token
     const response = await $fetch<any[]>(`${config.public.apiBase}/api/bookings`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      credentials: 'include'
     })
     bookings.value = response
   } catch (error: any) {
@@ -110,12 +107,9 @@ async function cancelBooking(bookingId: string) {
 
   loading.value = true
   try {
-    const token = authStore.token
     await $fetch<void>(`${config.public.apiBase}/api/bookings/${bookingId}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      credentials: 'include'
     })
 
     // Refresh bookings list

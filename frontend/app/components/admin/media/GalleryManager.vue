@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { MediaRes } from 'api-client'
+
 const props = defineProps<{
   tourId?: string
   scheduleId?: string
@@ -19,7 +21,7 @@ const {
 } = useAdminData()
 
 // State
-const gallery = ref([])
+const gallery = ref<MediaRes[]>([])
 const loading = ref(false)
 const selectorModalOpen = ref(false)
 const uploadModalOpen = ref(false)
@@ -107,8 +109,11 @@ async function moveUp(index: number) {
   if (props.scheduleId && gallery.value[index - 1]?.isInherited) return
 
   const temp = gallery.value[index]
-  gallery.value[index] = gallery.value[index - 1]
-  gallery.value[index - 1] = temp
+  const prev = gallery.value[index - 1]
+  if (temp && prev) {
+    gallery.value[index] = prev
+    gallery.value[index - 1] = temp
+  }
 
   await saveOrder()
 }
@@ -118,8 +123,11 @@ async function moveDown(index: number) {
   if (index === gallery.value.length - 1) return
 
   const temp = gallery.value[index]
-  gallery.value[index] = gallery.value[index + 1]
-  gallery.value[index + 1] = temp
+  const next = gallery.value[index + 1]
+  if (temp && next) {
+    gallery.value[index] = next
+    gallery.value[index + 1] = temp
+  }
 
   await saveOrder()
 }
@@ -134,10 +142,12 @@ async function saveOrder() {
       ? gallery.value.filter(m => !m.isInherited)
       : gallery.value
 
-    const orders = photosToReorder.map((m, index) => ({
-      mediaId: m.id,
-      displayOrder: index
-    }))
+    const orders = photosToReorder
+      .filter(m => m.id !== undefined)
+      .map((m, index) => ({
+        mediaId: m.id!,
+        displayOrder: index
+      }))
 
     if (props.tourId) {
       await reorderTourGallery(props.tourId, orders)
@@ -177,7 +187,7 @@ async function handleMediaSelected(selectedMediaIds: string[]) {
 
 // Get IDs of photos already in gallery (to exclude from selector)
 const excludedMediaIds = computed(() => {
-  return gallery.value.map(item => item.id)
+  return gallery.value.map(item => item.id).filter((id): id is string => id !== undefined)
 })
 
 // Watch for prop changes
@@ -353,7 +363,7 @@ watch(() => [props.tourId, props.scheduleId], () => {
               icon="i-heroicons-star"
               size="sm"
               color="primary"
-              @click="setHero(item.id)"
+              @click="item.id && setHero(item.id)"
             />
 
             <!-- Toggle featured (only for tours) -->
@@ -362,7 +372,7 @@ watch(() => [props.tourId, props.scheduleId], () => {
               :icon="item.isFeatured ? 'i-heroicons-heart-solid' : 'i-heroicons-heart'"
               size="sm"
               :color="item.isFeatured ? 'error' : 'neutral'"
-              @click="toggleFeatured(item.id)"
+              @click="item.id && toggleFeatured(item.id)"
             />
 
             <!-- Remove -->
@@ -370,7 +380,7 @@ watch(() => [props.tourId, props.scheduleId], () => {
               icon="i-heroicons-trash"
               size="sm"
               color="error"
-              @click="removeFromGallery(item.id)"
+              @click="item.id && removeFromGallery(item.id)"
             />
           </template>
 

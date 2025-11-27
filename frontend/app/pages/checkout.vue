@@ -217,7 +217,7 @@ async function submitBooking() {
       }
     }
 
-    const token = authStore.token
+    const token = authStore.user ? 'authenticated' : null
 
     // Step 2: Create bookings for ALL cart items
     toast.add({
@@ -265,8 +265,8 @@ async function submitBooking() {
       const bookingRes = await $fetch<any>(`${config.public.apiBase}/api/bookings`, {
         method: 'POST',
         body: bookingReq,
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })
@@ -292,7 +292,6 @@ async function submitBooking() {
 
     const paymentResult = await paymentStore.initializePayment({
       bookingId: primaryBooking.id,
-      additionalBookingIds: additionalBookingIds.length > 0 ? additionalBookingIds : undefined,
       provider: selectedPaymentMethod.value.provider,
       paymentMethod: selectedPaymentMethod.value.method,
       amount: total.value,
@@ -310,8 +309,7 @@ async function submitBooking() {
         toast.add({
           color: 'success',
           title: '🔒 Redirigiendo a entorno seguro...',
-          description: 'Te estamos llevando a la pasarela de pago de Transbank. No cierres esta ventana.',
-          timeout: 0 // Keep toast until redirect
+          description: 'Te estamos llevando a la pasarela de pago de Transbank. No cierres esta ventana.'
         })
 
         // Redirect to Transbank with a slight delay for better UX
@@ -334,9 +332,7 @@ async function submitBooking() {
         try {
           await $fetch(`${config.public.apiBase}/api/admin/bookings/${bookingId}`, {
             method: 'DELETE',
-            headers: {
-              Authorization: `Bearer ${authStore.token}`
-            }
+            credentials: 'include'
           })
         } catch (e) {
           console.error(`Error rolling back booking ${bookingId}:`, e)
@@ -348,13 +344,17 @@ async function submitBooking() {
     let errorMessage = 'Hubo un error procesando tu reserva.'
 
     // Handle specific errors
-    if (error.data?.message) {
-      if (error.data.message.includes('Not enough available slots')) {
+    const errorData = error && typeof error === 'object' && 'data' in error
+      ? (error as { data?: { message?: string } }).data
+      : undefined
+
+    if (errorData?.message) {
+      if (errorData.message.includes('Not enough available slots')) {
         errorMessage = 'No hay suficientes cupos disponibles para esta fecha.'
-      } else if (error.data.message.includes('not found')) {
+      } else if (errorData.message.includes('not found')) {
         errorMessage = 'El tour seleccionado ya no está disponible.'
       } else {
-        errorMessage = error.data.message
+        errorMessage = errorData.message
       }
     }
 
@@ -756,7 +756,7 @@ const total = computed(() => subtotal.value + tax.value)
                 <!-- Cart Items -->
                 <div
                   v-for="item in cartStore.cart.items"
-                  :key="item.itemId"
+                  :key="item.id || item.scheduleId"
                   class="pb-4 border-b border-neutral-200 dark:border-neutral-700"
                 >
                   <p
@@ -773,7 +773,7 @@ const total = computed(() => subtotal.value + tax.value)
                   <p
                     class="text-sm font-semibold text-neutral-900 dark:text-white mt-2"
                   >
-                    {{ formatCurrency(item.itemTotal) }}
+                    {{ formatCurrency(item.itemTotal ?? 0) }}
                   </p>
                 </div>
 

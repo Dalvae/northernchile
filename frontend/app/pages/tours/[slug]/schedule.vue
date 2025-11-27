@@ -31,8 +31,9 @@ const calendarSectionRef = ref(null)
 
 useIntersectionObserver(
   calendarSectionRef,
-  ([{ isIntersecting }]) => {
-    if (isIntersecting) {
+  (entries) => {
+    const entry = entries[0]
+    if (entry?.isIntersecting) {
       showCalendar.value = true
     }
   },
@@ -46,12 +47,14 @@ const translatedName = computed(
     || ''
 )
 
-const translatedDescription = computed(
-  () =>
-    tour.value?.descriptionTranslations?.[locale.value]
-    || tour.value?.descriptionTranslations?.['es']
-    || ''
-)
+const translatedDescription = computed(() => {
+  // Get first paragraph from descriptionBlocksTranslations
+  const blocks = tour.value?.descriptionBlocksTranslations?.[locale.value]
+    || tour.value?.descriptionBlocksTranslations?.['es']
+    || []
+  const firstParagraph = blocks.find((b) => b.type === 'paragraph')
+  return firstParagraph?.content || ''
+})
 
 // Fetch tour data
 async function fetchTour() {
@@ -75,7 +78,7 @@ function handleScheduleClick(schedule: TourScheduleRes, _tour: TourRes) {
 
 // Add to cart
 async function addToCart() {
-  if (!selectedSchedule.value) return
+  if (!selectedSchedule.value || !selectedSchedule.value.id) return
 
   try {
     await cartStore.addItem({
@@ -87,7 +90,7 @@ async function addToCart() {
       color: 'success',
       title: t('schedule.added_to_cart'),
       description: `${translatedName.value} - ${new Date(
-        selectedSchedule.value.startDatetime
+        selectedSchedule.value.startDatetime!
       ).toLocaleDateString(locale.value)}`
     })
 
@@ -344,7 +347,7 @@ useSeoMeta({
                   {{ t("schedule.selected_date") }}
                 </p>
                 <p class="font-semibold text-neutral-900 dark:text-white">
-                  {{ new Date(selectedSchedule.startDatetime).toLocaleDateString(locale, {
+                  {{ new Date(selectedSchedule.startDatetime!).toLocaleDateString(locale, {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
@@ -352,7 +355,7 @@ useSeoMeta({
                   }) }}
                 </p>
                 <p class="text-sm text-neutral-600 dark:text-neutral-300 mt-2">
-                  {{ t("schedule.start_time") }}: {{ new Date(selectedSchedule.startDatetime).toLocaleTimeString(locale, {
+                  {{ t("schedule.start_time") }}: {{ new Date(selectedSchedule.startDatetime!).toLocaleTimeString(locale, {
                     hour: '2-digit',
                     minute: '2-digit'
                   }) }}

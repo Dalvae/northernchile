@@ -117,8 +117,7 @@ async function processFiles(files: File[]) {
       toast.add({
         title: `${validFiles.length} imágenes optimizadas`,
         description: `Reducción promedio: ${avgSavings.toFixed(0)}%`,
-        color: 'success',
-        timeout: 4000
+        color: 'success'
       })
     }
   } catch (error) {
@@ -236,7 +235,7 @@ function openFileDialog() {
 <template>
   <UModal
     v-model:open="isOpen"
-    :ui="{ width: 'sm:max-w-3xl' }"
+    class="sm:max-w-3xl"
   >
     <template #content>
       <div class="p-6">

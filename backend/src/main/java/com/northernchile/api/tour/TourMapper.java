@@ -91,6 +91,7 @@ public interface TourMapper {
     @Mappings({
             @Mapping(source = "media.id", target = "id"),
             @Mapping(source = "media.url", target = "imageUrl"),
+            @Mapping(source = "media.variants", target = "variants"),
             @Mapping(source = "isHero", target = "isHeroImage"),
             @Mapping(source = "isFeatured", target = "isFeatured"),
             @Mapping(source = "displayOrder", target = "displayOrder")

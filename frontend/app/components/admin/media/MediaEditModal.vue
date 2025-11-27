@@ -21,8 +21,8 @@ const state = ref({
   captionTranslations: { es: '', en: '', pt: '' },
   tags: [] as string[],
   takenAt: '',
-  tourId: null as string | null,
-  scheduleId: null as string | null
+  tourId: undefined as string | undefined,
+  scheduleId: undefined as string | undefined
 })
 
 // Fetch tours for assignment
@@ -40,14 +40,14 @@ const { data: schedules } = useAsyncData('schedules-for-media', () => fetchAdmin
 })
 
 const tourOptions = computed(() => [
-  { label: 'Sin asignar', value: null },
+  { label: 'Sin asignar', value: undefined },
   ...(tours.value?.map(t => ({ label: t.nameTranslations?.es || 'Sin nombre', value: t.id })) || [])
 ])
 
 const scheduleOptions = computed(() => [
-  { label: 'Sin asignar', value: null },
+  { label: 'Sin asignar', value: undefined },
   ...(schedules.value?.map(s => ({
-    label: `${s.tourName} - ${new Date(s.startDatetime).toLocaleDateString('es-CL')}`,
+    label: `${s.tourName} - ${s.startDatetime ? new Date(s.startDatetime).toLocaleDateString('es-CL') : ''}`,
     value: s.id
   })) || [])
 ])
@@ -81,8 +81,8 @@ watch(() => props.media, (media) => {
       captionTranslations: media.captionTranslations || { es: '', en: '', pt: '' },
       tags: media.tags || [],
       takenAt: media.takenAt ? formatForDateTimeInput(media.takenAt) : '',
-      tourId: media.tourId || null,
-      scheduleId: media.scheduleId || null
+      tourId: media.tourId || undefined,
+      scheduleId: media.scheduleId || undefined
     }
   }
 }, { immediate: true })
@@ -93,7 +93,7 @@ async function save() {
       altTranslations: state.value.altTranslations,
       captionTranslations: state.value.captionTranslations,
       tags: state.value.tags,
-      takenAt: state.value.takenAt ? new Date(state.value.takenAt).toISOString() : null,
+      takenAt: state.value.takenAt ? new Date(state.value.takenAt).toISOString() : undefined,
       tourId: state.value.tourId,
       scheduleId: state.value.scheduleId
     })
@@ -111,7 +111,7 @@ async function save() {
 <template>
   <UModal
     v-model:open="isOpen"
-    :ui="{ width: 'sm:max-w-2xl' }"
+    class="sm:max-w-2xl"
   >
     <template #content>
       <div class="p-6">

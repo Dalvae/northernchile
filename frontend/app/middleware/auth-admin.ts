@@ -20,8 +20,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
     toast.add({
       title: 'Access Denied',
       description: 'You do not have permission to access this page',
-      color: 'error',
-      timeout: 5000
+      color: 'error'
     })
     return navigateTo('/')
   }

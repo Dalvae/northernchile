@@ -181,6 +181,7 @@ const breadcrumbItems = computed(() => {
 
   for (let i = 0; i < adminSegments.length; i++) {
     const segment = adminSegments[i]
+    if (!segment) continue
     currentPath += `/${segment}`
 
     // If previous segment was 'media' and this looks like a tour slug

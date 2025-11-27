@@ -5,7 +5,7 @@ import { useCalendarData } from '~/composables/useCalendarData'
 import { useCurrency } from '~/composables/useCurrency'
 
 const route = useRoute()
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 const localePath = useLocalePath()
 const { formatPrice } = useCurrency()
 const tourSlug = route.params.slug as string
@@ -99,7 +99,8 @@ const featuredImages = computed(() => {
 })
 
 const galleryImages = computed(() => {
-  return tour.value?.images?.filter((img: any) => !img.isHeroImage) || []
+  return (tour.value?.images?.filter((img) => !img.isHeroImage) || [])
+    .filter((img): img is typeof img & { imageUrl: string } => !!img.imageUrl)
 })
 
 const seoDescription = computed(() => {
@@ -217,12 +218,12 @@ onMounted(async () => {
     window.removeEventListener('scroll', handleScroll)
   })
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Date().toISOString().split('T')[0]!
 
   try {
     const moonData = await fetchMoonPhases(today, today)
     if (moonData && moonData.length > 0) {
-      const phase = moonData[0]
+      const phase = moonData[0]!
       currentMoonLabel.value = `${phase.phaseName} (${phase.illumination}%)`
     } else {
       currentMoonLabel.value = 'No disponible'

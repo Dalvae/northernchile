@@ -98,7 +98,7 @@ function proceedToCheckout() {
         <div class="lg:col-span-2 space-y-4">
           <UCard
             v-for="item in cartStore.cart.items"
-            :key="item.itemId"
+            :key="item.id || item.scheduleId"
           >
             <div class="flex gap-6">
               <!-- Tour Info -->
@@ -158,7 +158,7 @@ function proceedToCheckout() {
                   color="error"
                   variant="soft"
                   size="sm"
-                  @click="removeItem(item.itemId)"
+                  @click="removeItem(item.id || item.scheduleId)"
                 >
                   {{ t('cart.remove') }}
                 </UButton>

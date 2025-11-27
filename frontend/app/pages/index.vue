@@ -34,7 +34,7 @@ const { data: featuredTours } = useFetch<TourRes[]>('/api/tours', {
         defaultMaxParticipants: (tour as any).defaultMaxParticipants,
         moonSensitive: tour.moonSensitive,
         windSensitive: tour.windSensitive,
-        descriptionTranslations: tour.descriptionTranslations
+        descriptionBlocksTranslations: tour.descriptionBlocksTranslations
       }))
   }
 })
@@ -147,8 +147,8 @@ const { data: featuredTours } = useFetch<TourRes[]>('/api/tours', {
             :to="localePath('/contact')"
             size="xl"
             variant="outline"
-            color="white"
-            class="w-full sm:w-auto max-w-xs justify-center px-6 py-3 sm:px-12 sm:py-4 text-base sm:text-lg font-medium backdrop-blur-sm hover:bg-white/10 rounded-xl border-white/20"
+            color="neutral"
+            class="w-full sm:w-auto max-w-xs justify-center px-6 py-3 sm:px-12 sm:py-4 text-base sm:text-lg font-medium backdrop-blur-sm hover:bg-white/10 rounded-xl border-white/20 text-white"
           >
             {{ t("home.contact_us") }}
           </UButton>

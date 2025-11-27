@@ -719,6 +719,12 @@
     "server_error": "Internal server error",
     "service_unavailable": "Service unavailable"
   },
+  "cookie_banner": {
+    "message": "We use cookies to improve your experience and analyze site traffic. Only essential and analytics cookies.",
+    "accept": "Accept",
+    "reject": "Reject",
+    "learn_more": "Learn more"
+  },
   "error": {
     "code": "Code",
     "goHome": "Go to Homepage",
@@ -812,12 +818,6 @@
           "content": "Approved refunds are processed internally within 24 business hours. Depending on your bank or payment method (Webpay/Mercado Pago), the money may take between 5 to 10 business days to reflect in your account."
         }
       ]
-    },
-    "cookie_banner": {
-      "message": "We use cookies to improve your experience and analyze site traffic. Only essential and analytics cookies.",
-      "accept": "Accept",
-      "reject": "Reject",
-      "learn_more": "Learn more"
     }
   }
 }

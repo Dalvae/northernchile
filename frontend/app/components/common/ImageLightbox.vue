@@ -69,7 +69,7 @@ onUnmounted(() => {
 <template>
   <UModal
     v-model:open="isOpen"
-    :ui="{ width: 'sm:max-w-7xl' }"
+    class="sm:max-w-7xl"
   >
     <template #content>
       <div class="relative bg-neutral-950">

@@ -34,7 +34,7 @@
             :key="link.label"
             :to="link.to"
             variant="ghost"
-            color="neutral-200"
+            color="neutral"
             class="font-medium text-neutral-200 hover:text-white hover:bg-white/10 transition-colors"
           >
             {{ link.label }}
@@ -117,9 +117,9 @@
               <template #fallback>
                 <UButton
                   variant="ghost"
-                  color="white"
+                  color="neutral"
                   icon="i-lucide-log-in"
-                  class="hover:bg-white/10 opacity-70"
+                  class="hover:bg-white/10 opacity-70 text-white"
                   disabled
                 >
                   {{ t("nav.login") }}
@@ -132,11 +132,6 @@
           <USlideover
             v-model:open="mobileMenuOpen"
             side="right"
-            :ui="{
-              overlay: 'bg-black/60 backdrop-blur-sm',
-              width: 'w-screen max-w-xs',
-              base: 'border-l border-white/10'
-            }"
           >
             <UButton
               variant="ghost"

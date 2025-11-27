@@ -21,7 +21,7 @@ const isLoading = ref(true)
 const paymentStatus = ref<PaymentStatus | null>(null)
 const paymentId = ref<string | null>(null)
 const bookingId = ref<string | null>(null)
-const errorMessage = ref<string | null>(null)
+const errorMessage = ref<string | undefined>(undefined)
 
 // Check if success/error from query params
 const queryStatus = route.query.status as string
@@ -71,8 +71,7 @@ async function handleTransbankCallback(token: string) {
         window.gtag('event', 'purchase', {
           transaction_id: result.paymentId,
           value: result.amount,
-          currency: 'CLP',
-          items: result.items || []
+          currency: result.currency || 'CLP'
         })
       }
 

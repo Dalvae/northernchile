@@ -272,7 +272,7 @@ const statusOptions = [
             name="recurrenceRule"
             :error="findError('recurrenceRule')"
           >
-            <CronEditor v-model="state.recurrenceRule" />
+            <CronEditor v-model="state.recurrenceRule as string" />
           </UFormField>
         </div>
       </div>

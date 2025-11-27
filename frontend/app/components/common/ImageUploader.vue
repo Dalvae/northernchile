@@ -172,8 +172,7 @@ const processFile = async (file: File) => {
       toast.add({
         title: 'Imagen optimizada',
         description: `Reducida en ${savings.toFixed(0)}%: ${formatFileSize(originalSize)} → ${formatFileSize(newSize)}`,
-        color: 'success',
-        timeout: 4000
+        color: 'success'
       })
     }
 

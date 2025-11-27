@@ -70,8 +70,10 @@ function getTypeLabel(type?: string) {
   return labels[type || ''] || type || '-'
 }
 
-function getTypeBadgeColor(type?: string) {
-  const colors: Record<string, string> = {
+type BadgeColor = 'error' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'info' | 'warning' | 'neutral'
+
+function getTypeBadgeColor(type?: string): BadgeColor {
+  const colors: Record<string, BadgeColor> = {
     TOUR: 'primary',
     SCHEDULE: 'secondary',
     LOOSE: 'neutral'
@@ -83,7 +85,7 @@ function getTypeBadgeColor(type?: string) {
 <template>
   <UModal
     v-model:open="isOpen"
-    :ui="{ width: 'sm:max-w-6xl' }"
+    class="sm:max-w-6xl"
   >
     <template #content>
       <div class="relative bg-neutral-900 dark:bg-neutral-950">

@@ -12,6 +12,8 @@ interface CartItem {
   tourName?: string
   pricePerParticipant?: number
   itemTotal?: number
+  startDatetime?: string
+  durationHours?: number
 }
 
 interface Cart {

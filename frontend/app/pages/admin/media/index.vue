@@ -355,8 +355,8 @@ async function bulkDelete() {
         <!-- Select checkbox data -->
         <template #select-data="{ row }">
           <UCheckbox
-            :model-value="selectedItems.includes(row.original.id)"
-            @update:model-value="toggleSelect(row.original.id)"
+            :model-value="row.original.id ? selectedItems.includes(row.original.id) : false"
+            @update:model-value="row.original.id && toggleSelect(row.original.id)"
           />
         </template>
 

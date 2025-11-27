@@ -1,6 +1,6 @@
 import type { TourRes } from 'api-client'
 
-export default defineEventHandler<TourRes>(async (event) => {
+export default defineEventHandler(async (event): Promise<TourRes> => {
   const config = useRuntimeConfig()
   const slugParam = event.context.params?.slug
 

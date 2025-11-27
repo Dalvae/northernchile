@@ -192,12 +192,15 @@ export const useImageOptimizer = () => {
       onProgress?: (current: number, total: number) => void
     }
   ): Promise<Array<{ file: File, originalSize: number, newSize: number, savings: number }>> => {
-    const results = []
+    const results: Array<{ file: File, originalSize: number, newSize: number, savings: number }> = []
     const total = files.length
 
     for (let i = 0; i < files.length; i++) {
-      const result = await optimizeImage(files[i], options)
-      results.push(result)
+      const file = files[i]
+      if (file) {
+        const result = await optimizeImage(file, options)
+        results.push(result)
+      }
 
       if (options?.onProgress) {
         options.onProgress(i + 1, total)

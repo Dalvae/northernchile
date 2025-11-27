@@ -1,11 +1,13 @@
-export default defineEventHandler(async (event) => {
+import type { MediaRes } from 'api-client'
+
+export default defineEventHandler(async (event): Promise<MediaRes> => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
   const authToken = getHeader(event, 'Authorization')
   const mediaId = getRouterParam(event, 'id')
 
   try {
-    const media = await $fetch(`${backendUrl}/api/admin/media/${mediaId}`, {
+    const media = await $fetch<MediaRes>(`${backendUrl}/api/admin/media/${mediaId}`, {
       method: 'GET',
       headers: { Authorization: authToken || '' }
     })

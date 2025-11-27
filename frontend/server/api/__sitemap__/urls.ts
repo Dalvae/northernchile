@@ -12,8 +12,8 @@ export default defineSitemapEventHandler(async () => {
           : `/${locale}/tours/${tour.slug}`
 
         return {
-          url: path,
-          changefreq: 'weekly',
+          loc: path,
+          changefreq: 'weekly' as const,
           priority: 0.8,
           lastmod: tour.updatedAt || new Date().toISOString()
         }

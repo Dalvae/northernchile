@@ -31,11 +31,10 @@ const saving = ref(false)
 async function saveChanges() {
   saving.value = true
   try {
-    const token = authStore.token
     await $fetch<void>(`${config.public.apiBase}/api/bookings/${props.booking.id}`, {
       method: 'PUT',
+      credentials: 'include',
       headers: {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({

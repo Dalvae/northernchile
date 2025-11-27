@@ -90,7 +90,7 @@
             :to="localePath('/contact')"
             size="md"
             variant="ghost"
-            color="white"
+            color="neutral"
             class="w-auto justify-center px-6 py-2.5 sm:px-8 sm:py-3.5 text-xs sm:text-base font-medium rounded-full text-neutral-200 border border-white/10 bg-white/5 min-w-[100px] sm:min-w-[140px] hover:bg-white/10"
           >
             {{ t("home.hero.cta_secondary") }}

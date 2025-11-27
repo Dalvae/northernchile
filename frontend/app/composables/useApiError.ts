@@ -165,8 +165,7 @@ export function useApiError() {
     toast.add({
       color: 'error',
       title: fallbackTitle || getFriendlyMessage(apiError.statusCode),
-      description: apiError.message,
-      timeout: 5000
+      description: apiError.message
     })
 
     // Log validation errors if present

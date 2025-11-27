@@ -60,11 +60,11 @@ const options = computed(() => [
 <template>
   <UDropdownMenu :items="options">
     <UButton
-      color="white"
+      color="neutral"
       variant="ghost"
       icon="i-lucide-swatch-book"
       aria-label="Theme switcher"
-      class="hover:bg-white/10"
+      class="hover:bg-white/10 text-white"
     />
   </UDropdownMenu>
 </template>

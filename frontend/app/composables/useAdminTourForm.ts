@@ -1,18 +1,16 @@
 // composables/useAdminTourForm.ts
 import { z } from 'zod'
 import type { FormSubmitEvent, FormErrorEvent, FormError } from '@nuxt/ui'
-import type { TourRes, TourCreateReq, TourUpdateReq, ContentBlock } from 'api-client'
+import type { TourRes, TourCreateReq, TourUpdateReq, ContentBlock, ItineraryItem, LocalTime } from 'api-client'
 
-// Definimos interfaces locales si es necesario
-export interface StructuredContent {
-  guideName?: string
-  itineraryTranslations?: Record<string, { time: string, description: string }[]>
+// Extended TourRes with optional properties that may exist in responses
+interface ExtendedTourRes extends TourRes {
+  itineraryTranslations?: Record<string, ItineraryItem[]>
   equipmentTranslations?: Record<string, string[]>
   additionalInfoTranslations?: Record<string, string[]>
-  descriptionBlocksTranslations?: Record<string, ContentBlock[]>
 }
 
-// 1. Esquema Zod (Copiado de tu código original)
+// Schema definition
 const schema = z.object({
   nameTranslations: z.object({
     es: z.string().min(3, 'El nombre (ES) debe tener al menos 3 caracteres'),
@@ -22,8 +20,6 @@ const schema = z.object({
   moonSensitive: z.boolean(),
   windSensitive: z.boolean(),
   cloudSensitive: z.boolean(),
-  recurring: z.boolean(),
-  recurrenceRule: z.string().optional(),
   category: z.string().min(1, 'La categoría es requerida'),
   price: z.number().min(1, 'El precio debe ser mayor a 0'),
   defaultMaxParticipants: z
@@ -33,10 +29,12 @@ const schema = z.object({
   durationHours: z.number().int().min(1, 'Debe ser al menos 1 hora'),
   defaultStartTime: z.string().optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
-  contentKey: z.string().min(1, 'La clave de contenido es requerida')
+  contentKey: z.string().min(1, 'La clave de contenido es requerida'),
+  recurring: z.boolean().optional(),
+  recurrenceRule: z.string().optional()
 }).passthrough()
 
-// Esquema extendido
+// Extended schema
 export const fullSchema = schema.extend({
   guideName: z.string().optional().or(z.literal('')),
   itineraryTranslations: z.any().optional(),
@@ -45,15 +43,13 @@ export const fullSchema = schema.extend({
   descriptionBlocksTranslations: z.any().optional()
 })
 
-export type TourSchema = z.output<typeof fullSchema> & StructuredContent
+export type TourSchema = z.output<typeof fullSchema>
 
 const initialState: TourSchema = {
   nameTranslations: { es: '', en: '', pt: '' },
   moonSensitive: false,
   windSensitive: false,
   cloudSensitive: false,
-  recurring: false,
-  recurrenceRule: undefined,
   category: 'ASTRONOMICAL',
   price: 1,
   defaultMaxParticipants: 10,
@@ -62,53 +58,71 @@ const initialState: TourSchema = {
   status: 'DRAFT',
   contentKey: '',
   guideName: undefined,
+  recurring: false,
+  recurrenceRule: undefined,
   itineraryTranslations: undefined,
   equipmentTranslations: undefined,
   additionalInfoTranslations: undefined,
   descriptionBlocksTranslations: undefined
 }
 
-export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: any) => {
+/**
+ * Convert LocalTime object to HH:mm string
+ */
+function localTimeToString(lt?: LocalTime): string | undefined {
+  if (!lt || lt.hour === undefined) return undefined
+  const h = String(lt.hour).padStart(2, '0')
+  const m = String(lt.minute ?? 0).padStart(2, '0')
+  return `${h}:${m}`
+}
+
+/**
+ * Convert HH:mm string to LocalTime object
+ */
+function stringToLocalTime(str?: string): LocalTime | undefined {
+  if (!str) return undefined
+  const [hour, minute] = str.split(':').map(Number)
+  return { hour, minute, second: 0, nano: 0 }
+}
+
+export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event: 'success') => void) => {
   const { createAdminTour, updateAdminTour } = useAdminData()
   const toast = useToast()
   const loading = ref(false)
   const formErrors = ref<FormError[]>([])
 
-  // Estado reactivo
+  // Reactive state
   const state = reactive<TourSchema>({ ...initialState })
 
-  // Watch para rellenar datos al editar o resetear cuando se crea uno nuevo
+  // Watch to populate data when editing or reset when creating new
   watch(
     () => props.tour,
     (tour) => {
-      // Usar nextTick para asegurar que el DOM está listo
       nextTick(() => {
         if (tour) {
+          const extendedTour = tour as ExtendedTourRes
           Object.assign(state, {
-            nameTranslations:
-              tour.nameTranslations || initialState.nameTranslations,
-            moonSensitive: tour.moonSensitive || false,
-            windSensitive: tour.windSensitive || false,
-            cloudSensitive: tour.cloudSensitive || false,
-            recurring: tour.recurring ?? false,
-            recurrenceRule: (tour as any).recurrenceRule || undefined,
+            nameTranslations: tour.nameTranslations || initialState.nameTranslations,
+            moonSensitive: tour.moonSensitive ?? tour.isMoonSensitive ?? false,
+            windSensitive: tour.windSensitive ?? tour.isWindSensitive ?? false,
+            cloudSensitive: tour.cloudSensitive ?? tour.isCloudSensitive ?? false,
             category: tour.category,
             price: tour.price,
             defaultMaxParticipants: tour.defaultMaxParticipants,
             durationHours: tour.durationHours,
-            defaultStartTime: (tour as any).defaultStartTime || undefined,
+            defaultStartTime: localTimeToString(tour.defaultStartTime),
             status: tour.status,
             contentKey: tour.contentKey || '',
-            guideName: (tour as any).guideName || undefined,
-            itineraryTranslations: (tour as any).itineraryTranslations || undefined,
-            equipmentTranslations: (tour as any).equipmentTranslations || undefined,
-            additionalInfoTranslations: (tour as any).additionalInfoTranslations || undefined,
-            descriptionBlocksTranslations: (tour as any).descriptionBlocksTranslations || undefined
+            guideName: tour.guideName || undefined,
+            itineraryTranslations: extendedTour.itineraryTranslations || undefined,
+            equipmentTranslations: extendedTour.equipmentTranslations || undefined,
+            additionalInfoTranslations: extendedTour.additionalInfoTranslations || undefined,
+            descriptionBlocksTranslations: tour.descriptionBlocksTranslations || undefined
           })
         } else {
-          // Resetear completamente el estado
+          // Reset state completely
           Object.keys(state).forEach((key) => {
-            delete (state as any)[key]
+            delete (state as Record<string, unknown>)[key]
           })
           Object.assign(state, { ...initialState })
         }
@@ -117,66 +131,72 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: any) =>
     { immediate: true, deep: true }
   )
 
-  // Lógica de Submit
+  // Submit logic
   const onSubmit = async (event: FormSubmitEvent<TourSchema>) => {
-    formErrors.value = [] // Limpiar errores al intentar enviar
+    formErrors.value = []
     loading.value = true
     try {
       // Clean up empty structured content before sending
-      const cleanItinerary = event.data.itineraryTranslations
+      const itineraryData = event.data.itineraryTranslations as Record<string, ItineraryItem[]> | undefined
+      const cleanItinerary = itineraryData
         ? Object.fromEntries(
-            Object.entries(event.data.itineraryTranslations)
-              // Filter out languages with empty or invalid items
+            Object.entries(itineraryData)
               .map(([lang, items]) => [
                 lang,
-                items.filter(item => item.time?.trim() && item.description?.trim())
+                items.filter((item: ItineraryItem) => item.time?.trim() && item.description?.trim())
               ])
-              // Only include languages that have at least one valid item
-              .filter(([_, items]) => items.length > 0)
+              .filter(([, items]) => (items as ItineraryItem[]).length > 0)
           )
         : undefined
 
-      const cleanEquipment = event.data.equipmentTranslations
+      const equipmentData = event.data.equipmentTranslations as Record<string, string[]> | undefined
+      const cleanEquipment = equipmentData
         ? Object.fromEntries(
-            Object.entries(event.data.equipmentTranslations)
-              // Filter empty strings in each language
-              .map(([lang, items]) => [lang, items.filter(item => item?.trim())])
-              // Only include languages that have at least one item
-              .filter(([_, items]) => items.length > 0)
+            Object.entries(equipmentData)
+              .map(([lang, items]) => [lang, items.filter((item: string) => item?.trim())])
+              .filter(([, items]) => (items as string[]).length > 0)
           )
         : undefined
 
-      const cleanAdditionalInfo = event.data.additionalInfoTranslations
+      const additionalInfoData = event.data.additionalInfoTranslations as Record<string, string[]> | undefined
+      const cleanAdditionalInfo = additionalInfoData
         ? Object.fromEntries(
-            Object.entries(event.data.additionalInfoTranslations)
-              // Filter empty strings in each language
-              .map(([lang, items]) => [lang, items.filter(item => item?.trim())])
-              // Only include languages that have at least one item
-              .filter(([_, items]) => items.length > 0)
+            Object.entries(additionalInfoData)
+              .map(([lang, items]) => [lang, items.filter((item: string) => item?.trim())])
+              .filter(([, items]) => (items as string[]).length > 0)
           )
         : undefined
 
-      // Clean description blocks
-      const cleanDescriptionBlocks = event.data.descriptionBlocksTranslations
+      const descBlocksData = event.data.descriptionBlocksTranslations as Record<string, ContentBlock[]> | undefined
+      const cleanDescriptionBlocks = descBlocksData
         ? Object.fromEntries(
-            Object.entries(event.data.descriptionBlocksTranslations)
-              // Filter out blocks with empty content
+            Object.entries(descBlocksData)
               .map(([lang, blocks]) => [
                 lang,
-                blocks.filter(block => block.content?.trim())
+                blocks.filter((block: ContentBlock) => block.content?.trim())
               ])
-              // Only include languages that have at least one block
-              .filter(([_, blocks]) => blocks.length > 0)
+              .filter(([, blocks]) => (blocks as ContentBlock[]).length > 0)
           )
         : undefined
 
+      // Build payload
       const basePayload: TourCreateReq = {
-        ...event.data,
+        nameTranslations: event.data.nameTranslations,
+        descriptionBlocksTranslations: cleanDescriptionBlocks || {},
+        moonSensitive: event.data.moonSensitive,
+        windSensitive: event.data.windSensitive,
+        cloudSensitive: event.data.cloudSensitive,
+        category: event.data.category,
+        price: event.data.price,
+        defaultMaxParticipants: event.data.defaultMaxParticipants,
+        durationHours: event.data.durationHours,
+        defaultStartTime: stringToLocalTime(event.data.defaultStartTime),
+        status: event.data.status,
+        contentKey: event.data.contentKey,
         guideName: event.data.guideName?.trim() || undefined,
         itineraryTranslations: Object.keys(cleanItinerary || {}).length > 0 ? cleanItinerary : undefined,
         equipmentTranslations: Object.keys(cleanEquipment || {}).length > 0 ? cleanEquipment : undefined,
-        additionalInfoTranslations: Object.keys(cleanAdditionalInfo || {}).length > 0 ? cleanAdditionalInfo : undefined,
-        descriptionBlocksTranslations: Object.keys(cleanDescriptionBlocks || {}).length > 0 ? cleanDescriptionBlocks : undefined
+        additionalInfoTranslations: Object.keys(cleanAdditionalInfo || {}).length > 0 ? cleanAdditionalInfo : undefined
       }
 
       if (props.tour?.id) {
@@ -202,11 +222,8 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: any) =>
       if (typeof error === 'string') {
         description = error
       } else if (error && typeof error === 'object') {
-        const anyError = error as { data?: any, message?: string }
-        description
-          = anyError.data?.message
-            || anyError.message
-            || description
+        const anyError = error as { data?: { message?: string }, message?: string }
+        description = anyError.data?.message || anyError.message || description
       }
 
       toast.add({

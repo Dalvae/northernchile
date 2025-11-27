@@ -569,7 +569,7 @@ const checkAlertsManually = async () => {
     const response = await $fetch<{ pendingAlerts: number }>(
       `${config.public.apiBase}/api/admin/alerts/check`,
       {
-        method: 'POST',
+        method: 'post',
         credentials: 'include'
       }
     )
@@ -624,7 +624,7 @@ const resolveAlert = async () => {
           resolution: resolveForm.value.resolution
         },
         credentials: 'include'
-      }
+      } as any
     )
 
     toast.add({

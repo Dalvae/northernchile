@@ -140,8 +140,8 @@ const publishedCount = computed(() => tours.value.filter(t => t.status === 'PUBL
           <!-- Tour Cover Image -->
           <div class="aspect-video bg-neutral-100 dark:bg-neutral-800 rounded-lg mb-4 overflow-hidden relative">
             <NuxtImg
-              v-if="tour.images && tour.images.length > 0"
-              :src="tour.images[0].variants?.medium || tour.images[0].url"
+              v-if="tour.images && tour.images.length > 0 && tour.images[0]"
+              :src="tour.images[0].variants?.medium || tour.images[0].imageUrl"
               :alt="tour.nameTranslations?.es || 'Tour'"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               format="webp"

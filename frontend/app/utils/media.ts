@@ -29,8 +29,10 @@ export function getMediaTypeLabel(type?: string): string {
   return labels[type || ''] || type || '-'
 }
 
-export function getMediaTypeBadgeColor(type?: string): string {
-  const colors: Record<string, string> = {
+type BadgeColor = 'primary' | 'secondary' | 'tertiary' | 'info' | 'success' | 'warning' | 'error' | 'neutral'
+
+export function getMediaTypeBadgeColor(type?: string): BadgeColor {
+  const colors: Record<string, BadgeColor> = {
     TOUR: 'primary',
     SCHEDULE: 'secondary',
     LOOSE: 'neutral'

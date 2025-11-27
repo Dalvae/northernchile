@@ -1,4 +1,6 @@
-export default defineEventHandler(async (event) => {
+import type { MediaRes } from 'api-client'
+
+export default defineEventHandler(async (event): Promise<MediaRes> => {
   const config = useRuntimeConfig()
   const backendUrl = config.public.apiBase || 'http://localhost:8080'
 
@@ -18,7 +20,7 @@ export default defineEventHandler(async (event) => {
   for (const part of formData) {
     if (part.name === 'file' && part.data) {
       // Create a Blob from the buffer for the file
-      const blob = new Blob([part.data], { type: part.type || 'application/octet-stream' })
+      const blob = new Blob([new Uint8Array(part.data)], { type: part.type || 'application/octet-stream' })
       backendFormData.append('file', blob, part.filename || 'file')
     } else if (part.data) {
       // For other fields, convert buffer to string
@@ -34,7 +36,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const response = await $fetch(`${backendUrl}/api/admin/media`, {
+    const response = await $fetch<MediaRes>(`${backendUrl}/api/admin/media`, {
       method: 'POST',
       body: backendFormData,
       headers
