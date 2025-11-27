@@ -81,7 +81,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   try {
     const config = useRuntimeConfig()
 
-    await $fetch(`${config.public.apiBaseUrl}/contact`, {
+    await $fetch(`${config.public.apiBase}/api/contact`, {
       method: 'POST',
       body: {
         name: state.name,
