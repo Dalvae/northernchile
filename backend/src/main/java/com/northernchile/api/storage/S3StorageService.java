@@ -22,24 +22,31 @@ public class S3StorageService {
 
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
+    private final FileValidationService fileValidationService;
 
     @Value("${aws.s3.bucketName}")
     private String bucketName;
 
-    public S3StorageService(S3Client s3Client, S3Presigner s3Presigner) {
+    public S3StorageService(S3Client s3Client, S3Presigner s3Presigner, FileValidationService fileValidationService) {
         this.s3Client = s3Client;
         this.s3Presigner = s3Presigner;
+        this.fileValidationService = fileValidationService;
     }
 
     /**
-     * Upload a file to S3 and return the file key
+     * Upload a file to S3 and return the file key.
+     * Validates the file using magic numbers before upload.
      *
      * @param file      The file to upload
      * @param folder    The folder path in S3 (e.g., "tours", "profiles")
      * @return The S3 object key
      * @throws IOException if upload fails
+     * @throws IllegalArgumentException if file validation fails
      */
     public String uploadFile(MultipartFile file, String folder) throws IOException {
+        // Validate file using magic numbers
+        fileValidationService.validateImageFile(file);
+
         String originalFilename = file.getOriginalFilename();
         String extension = originalFilename != null && originalFilename.contains(".")
                 ? originalFilename.substring(originalFilename.lastIndexOf("."))
