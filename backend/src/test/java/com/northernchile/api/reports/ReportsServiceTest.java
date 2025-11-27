@@ -3,6 +3,8 @@ package com.northernchile.api.reports;
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.Participant;
+import com.northernchile.api.model.Tour;
+import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.reports.dto.BookingsByDayReport;
 import com.northernchile.api.reports.dto.OverviewReport;
 import com.northernchile.api.reports.dto.TopTourReport;
@@ -24,6 +26,8 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -280,6 +284,19 @@ class ReportsServiceTest {
         booking.setStatus(status);
         booking.setTotalAmount(totalAmount);
         booking.setCreatedAt(Instant.now().minus(1, ChronoUnit.DAYS));
+
+        // Create Tour with name translations
+        Tour tour = new Tour();
+        tour.setId(UUID.randomUUID());
+        tour.setNameTranslations(Map.of("es", "Tour de Prueba", "en", "Test Tour"));
+
+        // Create TourSchedule with Tour
+        TourSchedule schedule = new TourSchedule();
+        schedule.setId(UUID.randomUUID());
+        schedule.setTour(tour);
+        schedule.setStartDatetime(Instant.now().plus(1, ChronoUnit.DAYS));
+        schedule.setMaxParticipants(10);
+        booking.setSchedule(schedule);
 
         // Create participants
         List<Participant> participants = new ArrayList<>();

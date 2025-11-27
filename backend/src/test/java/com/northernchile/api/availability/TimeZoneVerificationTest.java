@@ -188,7 +188,8 @@ class TimeZoneVerificationTest {
     @DisplayName("Should compare weather predictions with correct timezone")
     void shouldCompareWeatherPredictionsWithCorrectTimezone() {
         // Given - Weather API retorna epoch timestamp
-        long weatherEpoch = 1736899200L; // 15 Jan 2025 00:00:00 UTC
+        // Using 15 Jan 2025 12:00:00 UTC which is 09:00 Chile time (still Jan 15)
+        long weatherEpoch = 1736942400L; // 15 Jan 2025 12:00:00 UTC
 
         // Given - Schedule en la misma fecha (Chile time)
         Instant scheduleTime = LocalDate.of(2025, 1, 15)

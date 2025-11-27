@@ -167,20 +167,37 @@ class AvailabilityValidatorTest {
     }
 
     @Test
-    @DisplayName("Should exclude cart when validating cart update")
+    @DisplayName("Should exclude cart when validating cart update - within limit")
     void shouldExcludeCartWhenUpdating() {
         // Given
         UUID myCartId = UUID.randomUUID();
         when(bookingRepository.countConfirmedParticipantsByScheduleId(scheduleId)).thenReturn(5);
         when(cartRepository.countParticipantsByScheduleIdExcludingCart(scheduleId, myCartId)).thenReturn(2);
 
-        // When - Update cart (exclude my cart's 2 participants)
-        var result = availabilityValidator.validateAvailability(schedule, 4, myCartId, null);
+        // When - Update cart requesting exactly what's available (3 slots)
+        var result = availabilityValidator.validateAvailability(schedule, 3, myCartId, null);
 
-        // Then
+        // Then - Should be available since we're requesting exactly the available slots
         assertThat(result.isAvailable()).isTrue();
         assertThat(result.getAvailableSlots()).isEqualTo(3); // 10 - 5 - 2 = 3
-        assertThat(result.getRequestedSlots()).isEqualTo(4); // Still can't add 4
+        assertThat(result.getRequestedSlots()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("Should reject cart update when requesting more than available")
+    void shouldRejectCartUpdateWhenExceedingAvailable() {
+        // Given
+        UUID myCartId = UUID.randomUUID();
+        when(bookingRepository.countConfirmedParticipantsByScheduleId(scheduleId)).thenReturn(5);
+        when(cartRepository.countParticipantsByScheduleIdExcludingCart(scheduleId, myCartId)).thenReturn(2);
+
+        // When - Update cart requesting more than available (4 > 3)
+        var result = availabilityValidator.validateAvailability(schedule, 4, myCartId, null);
+
+        // Then - Should NOT be available
+        assertThat(result.isAvailable()).isFalse();
+        assertThat(result.getAvailableSlots()).isEqualTo(3); // 10 - 5 - 2 = 3
+        assertThat(result.getRequestedSlots()).isEqualTo(4);
     }
 
     @Test
