@@ -569,24 +569,9 @@ async function handleSubmit(_event: FormSubmitEvent<z.infer<typeof schema.value>
       dateOfBirthValue.value = undefined
     }
   } catch (error: unknown) {
-    const err = error as { response?: { status?: number }, message?: string }
     console.error('Error en auth:', error)
-
-    let errorMessage = t('common.error')
-
-    if (err.response?.status === 403) {
-      errorMessage = t('auth.invalid_credentials')
-    } else if (err.response?.status === 400) {
-      errorMessage = t('auth.invalid_data')
-    } else if (err.message) {
-      errorMessage = err.message
-    }
-
-    toast.add({
-      title: t('common.error'),
-      description: errorMessage,
-      color: 'error'
-    })
+    const { showErrorToast } = useApiError()
+    showErrorToast(error)
   } finally {
     loading.value = false
   }
@@ -661,20 +646,9 @@ async function handleResetPassword(_event: FormSubmitEvent<z.infer<typeof resetP
     // Limpiar token de la URL
     await router.replace(localePath('/auth'))
   } catch (error: unknown) {
-    const err = error as { data?: { message?: string }, response?: { status?: number } }
     console.error('Error en reset password:', error)
-
-    let errorMessage = t('auth.reset_password_error')
-
-    if (err.response?.status === 400) {
-      errorMessage = t('auth.reset_token_invalid')
-    }
-
-    toast.add({
-      title: t('common.error'),
-      description: errorMessage,
-      color: 'error'
-    })
+    const { showErrorToast } = useApiError()
+    showErrorToast(error, t('auth.reset_password_error'))
   } finally {
     loading.value = false
   }
