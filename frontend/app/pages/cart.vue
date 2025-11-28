@@ -15,10 +15,10 @@ useSeoMeta({
 
 const isEmpty = computed(() => cartStore.cart.items.length === 0)
 
-// Calculations
-const subtotal = computed(() => cartStore.cart.cartTotal)
-const tax = computed(() => subtotal.value * 0.19) // IVA 19%
-const total = computed(() => subtotal.value + tax.value)
+// Totals from backend cart API (tax is calculated server-side)
+const subtotal = computed(() => cartStore.cart.subtotal)
+const tax = computed(() => cartStore.cart.taxAmount)
+const total = computed(() => cartStore.cart.cartTotal)
 
 // Actions
 async function removeItem(itemId: string) {

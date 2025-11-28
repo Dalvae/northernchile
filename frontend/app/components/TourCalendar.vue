@@ -49,7 +49,7 @@ const emit = defineEmits<{
   scheduleClick: [schedule: TourSchedule, tour: TourRes]
 }>()
 
-const router = useRouter()
+const _router = useRouter()
 const { locale, t } = useI18n()
 const config = useRuntimeConfig()
 
@@ -58,7 +58,24 @@ const lunarData = ref<LunarPhase[]>([])
 const weatherData = ref<WeatherDay[]>([])
 const loading = ref(false)
 
-const weatherMap = ref(new Map<string, any>())
+interface WeatherDayData {
+  date: string
+  maxWindKph: number
+  cloudCover: number
+  chanceOfRain: number
+  temp?: {
+    day: number
+    min: number
+    max: number
+  }
+  weather?: Array<{
+    main: string
+    description: string
+    icon: string
+  }>
+}
+
+const weatherMap = ref(new Map<string, WeatherDayData>())
 const lunarMap = ref(new Map<string, LunarPhase>())
 
 // Detect mobile
@@ -164,7 +181,7 @@ async function fetchWeatherData() {
     const weatherArray: WeatherDay[] = []
     if (response?.daily) {
       for (const day of response.daily) {
-      const date = new Date(day.dt * 1000).toISOString().split('T')[0] || ''
+        const date = new Date(day.dt * 1000).toISOString().split('T')[0] || ''
         weatherArray.push({
           date,
           maxWindKph: (day.windSpeed || 0) / 0.514444,
@@ -178,7 +195,7 @@ async function fetchWeatherData() {
 
     weatherMap.value.clear()
     if (response?.daily) {
-      response.daily.forEach((day: any) => {
+      response.daily.forEach((day) => {
         const date = new Date(day.dt * 1000).toISOString().split('T')[0] || ''
         weatherMap.value.set(date, {
           date,
@@ -388,8 +405,8 @@ const calendarOptions = computed<CalendarOptions>(() => ({
     const infoBox = document.createElement('div')
     infoBox.className = 'flex justify-between items-end mt-auto'
 
-    if (weather && (weather as any).temp) {
-      const wData = weather as any
+    if (weather && weather.temp) {
+      const wData = weather
       const weatherDiv = document.createElement('div')
       weatherDiv.className = 'text-xs text-neutral-500 flex flex-col'
 

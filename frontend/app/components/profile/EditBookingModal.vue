@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import type { BookingRes, ParticipantRes, ParticipantUpdateReq } from '~/lib/api-client/api'
+
 const props = defineProps<{
-  booking: any
+  booking: BookingRes
 }>()
 
 const emit = defineEmits<{
@@ -8,22 +10,25 @@ const emit = defineEmits<{
 }>()
 
 const config = useRuntimeConfig()
-const authStore = useAuthStore()
 const toast = useToast()
 
 const isOpen = ref(false)
 
+interface ParticipantFormState extends ParticipantUpdateReq {
+  fullName: string
+}
+
 // Form state
 const state = ref({
   specialRequests: props.booking.specialRequests || '',
-  participants: props.booking.participants.map((p: any) => ({
-    id: p.id,
-    fullName: p.fullName,
+  participants: (props.booking.participants || []).map((p: ParticipantRes) => ({
+    id: p.id || '',
+    fullName: p.fullName || '',
     pickupAddress: p.pickupAddress || '',
     specialRequirements: p.specialRequirements || '',
     phoneNumber: p.phoneNumber || '',
     email: p.email || ''
-  }))
+  } as ParticipantFormState))
 })
 
 const saving = ref(false)
@@ -39,7 +44,7 @@ async function saveChanges() {
       },
       body: JSON.stringify({
         specialRequests: state.value.specialRequests,
-        participants: state.value.participants.map((p: any) => ({
+        participants: state.value.participants.map((p: ParticipantFormState): ParticipantUpdateReq => ({
           id: p.id,
           pickupAddress: p.pickupAddress,
           specialRequirements: p.specialRequirements,
@@ -57,13 +62,14 @@ async function saveChanges() {
 
     isOpen.value = false
     emit('saved')
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating booking:', error)
+    const apiError = error as { data?: { message?: string } }
     toast.add({
       color: 'error',
       title: 'Error',
       description:
-        error.data?.message || 'No se pudieron guardar los cambios. Por favor, inténtalo de nuevo.'
+        apiError.data?.message || 'No se pudieron guardar los cambios. Por favor, inténtalo de nuevo.'
     })
   } finally {
     saving.value = false

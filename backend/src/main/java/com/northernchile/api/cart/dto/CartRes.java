@@ -10,6 +10,9 @@ public class CartRes {
     private UUID cartId;
     private List<CartItemRes> items;
     private BigDecimal cartTotal;
+    private BigDecimal subtotal;
+    private BigDecimal taxAmount;
+    private BigDecimal taxRate;
 
     public CartRes() {
     }
@@ -44,17 +47,41 @@ public class CartRes {
         this.cartTotal = cartTotal;
     }
 
+    public BigDecimal getSubtotal() {
+        return subtotal;
+    }
+
+    public void setSubtotal(BigDecimal subtotal) {
+        this.subtotal = subtotal;
+    }
+
+    public BigDecimal getTaxAmount() {
+        return taxAmount;
+    }
+
+    public void setTaxAmount(BigDecimal taxAmount) {
+        this.taxAmount = taxAmount;
+    }
+
+    public BigDecimal getTaxRate() {
+        return taxRate;
+    }
+
+    public void setTaxRate(BigDecimal taxRate) {
+        this.taxRate = taxRate;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CartRes cartRes = (CartRes) o;
-        return Objects.equals(cartId, cartRes.cartId) && Objects.equals(items, cartRes.items) && Objects.equals(cartTotal, cartRes.cartTotal);
+        return Objects.equals(cartId, cartRes.cartId) && Objects.equals(items, cartRes.items) && Objects.equals(cartTotal, cartRes.cartTotal) && Objects.equals(subtotal, cartRes.subtotal) && Objects.equals(taxAmount, cartRes.taxAmount) && Objects.equals(taxRate, cartRes.taxRate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(cartId, items, cartTotal);
+        return Objects.hash(cartId, items, cartTotal, subtotal, taxAmount, taxRate);
     }
 
     @Override
@@ -62,7 +89,10 @@ public class CartRes {
         return "CartRes{" +
                 "cartId=" + cartId +
                 ", items=" + items +
+                ", subtotal=" + subtotal +
+                ", taxAmount=" + taxAmount +
                 ", cartTotal=" + cartTotal +
+                ", taxRate=" + taxRate +
                 '}';
     }
 }

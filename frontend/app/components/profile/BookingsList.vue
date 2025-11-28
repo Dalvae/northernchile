@@ -1,15 +1,18 @@
 <script setup lang="ts">
+import type { BookingRes } from '~/lib/api-client/api'
+
 const { locale } = useI18n()
 const authStore = useAuthStore()
 const config = useRuntimeConfig()
 const toast = useToast()
 const localePath = useLocalePath()
 const { getCountryLabel, getCountryFlag } = useCountries()
+const { formatPrice } = useCurrency()
 
 // Load bookings from backend
-const bookings = ref<any[]>([])
+const bookings = ref<BookingRes[]>([])
 const loading = ref(true)
-const editingBooking = ref<any | null>(null)
+const editingBooking = ref<BookingRes | null>(null)
 
 async function fetchBookings() {
   if (!authStore.isAuthenticated) {
@@ -18,11 +21,11 @@ async function fetchBookings() {
 
   loading.value = true
   try {
-    const response = await $fetch<any[]>(`${config.public.apiBase}/api/bookings`, {
+    const response = await $fetch<BookingRes[]>(`${config.public.apiBase}/api/bookings`, {
       credentials: 'include'
     })
     bookings.value = response
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching bookings:', error)
     toast.add({
       color: 'error',
@@ -37,14 +40,6 @@ async function fetchBookings() {
 onMounted(() => {
   fetchBookings()
 })
-
-// Format currency
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP'
-  }).format(amount)
-}
 
 // Format date and time
 function formatDateTime(dateString: string, timeString: string) {
@@ -92,7 +87,7 @@ function getStatusLabel(status: string) {
   return labels[status] || status
 }
 
-function downloadBooking(booking: any) {
+function downloadBooking(_booking: BookingRes) {
   toast.add({
     color: 'info',
     title: 'En desarrollo',
@@ -120,7 +115,7 @@ async function cancelBooking(bookingId: string) {
       title: 'Reserva Cancelada',
       description: 'La reserva ha sido cancelada exitosamente.'
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error cancelling booking:', error)
     toast.add({
       color: 'error',
@@ -132,7 +127,7 @@ async function cancelBooking(bookingId: string) {
   }
 }
 
-function openEditModal(booking: any) {
+function openEditModal(booking: BookingRes) {
   editingBooking.value = booking
 }
 
@@ -305,19 +300,19 @@ async function handleBookingSaved() {
               class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
             >
               <span>Subtotal</span>
-              <span>{{ formatCurrency(booking.subtotal) }}</span>
+              <span>{{ formatPrice(booking.subtotal) }}</span>
             </div>
             <div
               class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
             >
               <span>IVA (19%)</span>
-              <span>{{ formatCurrency(booking.taxAmount) }}</span>
+              <span>{{ formatPrice(booking.taxAmount) }}</span>
             </div>
             <div
               class="flex justify-between text-lg font-bold text-neutral-900 dark:text-white pt-2 border-t border-neutral-200 dark:border-neutral-700"
             >
               <span>Total</span>
-              <span>{{ formatCurrency(booking.totalAmount) }}</span>
+              <span>{{ formatPrice(booking.totalAmount) }}</span>
             </div>
           </div>
         </div>

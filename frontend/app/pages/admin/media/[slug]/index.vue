@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TourRes } from 'api-client'
 import type { MediaHierarchyNode } from '~/composables/useMediaHierarchy'
 
 definePageMeta({
@@ -15,7 +16,7 @@ const { buildScheduleNodes } = useMediaHierarchy()
 
 // Schedules tree for this tour
 const schedules = ref<MediaHierarchyNode[]>([])
-const expandedSchedules = ref<string[]>([])
+const _expandedSchedules = ref<string[]>([])
 
 // Selected schedule (from query param)
 const selectedScheduleId = computed(() => route.query.schedule as string | undefined)
@@ -24,12 +25,12 @@ const selectedScheduleId = computed(() => route.query.schedule as string | undef
 const {
   data: tour,
   pending: loading,
-  refresh
+  refresh: _refresh
 } = useAsyncData(
   `media-tour-${slug.value}`,
   async () => {
     const tours = await fetchAdminTours()
-    const foundTour = tours.find((t: any) => t.slug === slug.value)
+    const foundTour = tours.find((t: TourRes) => t.slug === slug.value)
 
     if (!foundTour) {
       // Redirect to media list if tour not found
@@ -41,7 +42,7 @@ const {
     if (foundTour.id) {
       try {
         schedules.value = await buildScheduleNodes(foundTour.id)
-      } catch (scheduleError) {
+      } catch {
         schedules.value = [] // Empty schedules is OK
       }
     }
@@ -55,7 +56,7 @@ const {
 )
 
 // Handle schedule selection
-function onScheduleSelect(schedule: any) {
+function onScheduleSelect(schedule: MediaHierarchyNode) {
   if (schedule.scheduleId) {
     router.push({
       query: { schedule: schedule.scheduleId }
@@ -207,7 +208,7 @@ function clearScheduleSelection() {
               <div>
                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
                   <template v-if="selectedScheduleId">
-                    {{ (schedules as any[]).find((s: any) => s.scheduleId === selectedScheduleId)?.label || 'Fecha' }}
+                    {{ schedules.find((s) => s.scheduleId === selectedScheduleId)?.label || 'Fecha' }}
                   </template>
                   <template v-else>
                     Galería Principal

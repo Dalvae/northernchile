@@ -9,11 +9,12 @@ import com.northernchile.api.model.CartItem;
 import com.northernchile.api.model.User;
 import com.northernchile.api.tour.TourScheduleRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.time.LocalDate;
@@ -36,6 +37,9 @@ public class CartService {
     private final TourScheduleRepository tourScheduleRepository;
     private final BookingRepository bookingRepository;
     private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
+
+    @Value("${tax.rate:0.19}")
+    private BigDecimal taxRate;
 
     public CartService(
             CartRepository cartRepository,
@@ -178,9 +182,19 @@ public class CartService {
 
         res.setItems(itemResponses);
 
-        BigDecimal cartTotal = itemResponses.stream()
+        // Calculate subtotal (sum of all item totals)
+        BigDecimal subtotal = itemResponses.stream()
                 .map(CartItemRes::getItemTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        res.setSubtotal(subtotal);
+
+        // Calculate tax amount based on configured tax rate
+        BigDecimal taxAmount = subtotal.multiply(taxRate).setScale(0, RoundingMode.HALF_UP);
+        res.setTaxAmount(taxAmount);
+        res.setTaxRate(taxRate);
+
+        // Cart total includes tax
+        BigDecimal cartTotal = subtotal.add(taxAmount);
         res.setCartTotal(cartTotal);
 
         return res;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TourRes, TourScheduleRes } from 'api-client'
+import type { TourRes, TourScheduleRes, ContentBlock, TourImageRes } from 'api-client'
 import { useIntersectionObserver } from '@vueuse/core'
 
 const router = useRouter()
@@ -18,14 +18,12 @@ const { data: allTours } = await useFetch<TourRes[]>('/api/tours', {
       price: tour.price,
       durationHours: tour.durationHours,
 
-      defaultMaxParticipants:
-        (tour as any).defaultMaxParticipants || (tour as any).maxParticipants,
+      defaultMaxParticipants: tour.defaultMaxParticipants,
       moonSensitive: tour.moonSensitive,
       windSensitive: tour.windSensitive,
       status: tour.status,
 
-      descriptionBlocksTranslations: (tour as any)
-        .descriptionBlocksTranslations
+      descriptionBlocksTranslations: tour.descriptionBlocksTranslations
     }))
   }
 })
@@ -50,7 +48,7 @@ const sortedTours = computed(() => {
     .sort((a, b) => (a.price || 0) - (b.price || 0))
 })
 
-function handleScheduleClick(schedule: TourScheduleRes, tour: TourRes) {
+function handleScheduleClick(_schedule: TourScheduleRes, tour: TourRes) {
   if (tour?.slug) {
     router.push(`/tours/${tour.slug}/schedule`)
   }
@@ -61,22 +59,18 @@ const getTourName = (tour: TourRes) =>
 
 const getTourDescription = (tour: TourRes) => {
   const blocks
-    = (tour as any).descriptionBlocksTranslations?.[locale.value]
-      || (tour as any).descriptionBlocksTranslations?.es
+    = tour.descriptionBlocksTranslations?.[locale.value]
+      || tour.descriptionBlocksTranslations?.es
   if (Array.isArray(blocks) && blocks.length) {
-    const firstText = blocks.find((b: any) => b?.content)?.content
+    const firstText = blocks.find((b: ContentBlock) => b?.content)?.content
     if (firstText) return firstText
   }
-  return (
-    (tour as any).descriptionTranslations?.[locale.value]
-    || (tour as any).descriptionTranslations?.es
-    || ''
-  )
+  return ''
 }
 
 const getTourImage = (tour: TourRes) => {
-  const hero = tour.images?.find(img => (img as any).isHeroImage)?.imageUrl
-  const first = tour.images?.[0]?.imageUrl || (tour as any).images?.[0]
+  const hero = tour.images?.find((img: TourImageRes) => img.isHeroImage)?.imageUrl
+  const first = tour.images?.[0]?.imageUrl
   return hero || first || '/images/tour-placeholder.svg'
 }
 
@@ -211,7 +205,7 @@ useSeoMeta({
                 />
                 <span>{{
                   t("tours.max_participants", {
-                    count: (tour as any).defaultMaxParticipants || 10
+                    count: tour.defaultMaxParticipants || 10
                   })
                 }}</span>
               </div>

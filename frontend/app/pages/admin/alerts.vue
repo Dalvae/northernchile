@@ -436,6 +436,8 @@
 </template>
 
 <script setup lang="ts">
+import type { WeatherAlert } from '~/lib/api-client/api'
+
 definePageMeta({
   layout: 'admin'
 })
@@ -448,18 +450,27 @@ const config = useRuntimeConfig()
 const toast = useToast()
 const { formatDateTime: formatDate } = useDateTime()
 
+// Extended alert type with additional UI fields
+interface AlertWithDetails extends WeatherAlert {
+  title?: string
+  description?: string
+  scheduleDate?: string
+  tourScheduleId?: string
+  moonIllumination?: number
+}
+
 // State
 const pending = ref(false)
 const refreshing = ref(false)
 const checking = ref(false)
 const resolving = ref(false)
 const showResolveModal = ref(false)
-const selectedAlert = ref<any>(null)
+const selectedAlert = ref<AlertWithDetails | null>(null)
 
 // Alerts data
 interface AlertHistoryResponse {
-  all: any[]
-  bySchedule: Record<string, any[]>
+  all: AlertWithDetails[]
+  bySchedule: Record<string, AlertWithDetails[]>
 }
 
 const { data: alertsData, refresh: refreshAlerts } = await useAsyncData(
@@ -525,26 +536,26 @@ const filteredAlerts = computed(() => {
 
   if (filters.value.status !== 'ALL') {
     filtered = filtered.filter(
-      (alert: any) => alert.status === filters.value.status
+      (alert: AlertWithDetails) => alert.status === filters.value.status
     )
   }
 
   if (filters.value.severity !== 'ALL') {
     filtered = filtered.filter(
-      (alert: any) => alert.severity === filters.value.severity
+      (alert: AlertWithDetails) => alert.severity === filters.value.severity
     )
   }
 
   if (filters.value.type !== 'ALL') {
     filtered = filtered.filter(
-      (alert: any) => alert.alertType === filters.value.type
+      (alert: AlertWithDetails) => alert.alertType === filters.value.type
     )
   }
 
   // Sort by createdAt descending (newest first)
   return filtered.sort(
-    (a: any, b: any) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    (a: AlertWithDetails, b: AlertWithDetails) =>
+      new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
   )
 })
 
@@ -553,11 +564,11 @@ const stats = computed(() => {
     return { pending: 0, cancelled: 0, kept: 0, rescheduled: 0 }
 
   return {
-    pending: alertsData.value.all.filter((a: any) => a.status === 'PENDING').length,
-    cancelled: alertsData.value.all.filter((a: any) => a.status === 'CANCELLED')
+    pending: alertsData.value.all.filter((a: AlertWithDetails) => a.status === 'PENDING').length,
+    cancelled: alertsData.value.all.filter((a: AlertWithDetails) => a.status === 'CANCELLED')
       .length,
-    kept: alertsData.value.all.filter((a: any) => a.status === 'KEPT').length,
-    rescheduled: alertsData.value.all.filter((a: any) => a.status === 'RESCHEDULED')
+    kept: alertsData.value.all.filter((a: AlertWithDetails) => a.status === 'KEPT').length,
+    rescheduled: alertsData.value.all.filter((a: AlertWithDetails) => a.status === 'RESCHEDULED')
       .length
   }
 })
@@ -593,7 +604,7 @@ const checkAlertsManually = async () => {
   }
 }
 
-const openResolveModal = (alert: any, resolution: string) => {
+const openResolveModal = (alert: AlertWithDetails, resolution: string) => {
   selectedAlert.value = alert
   resolveForm.value = {
     resolution,
@@ -624,7 +635,7 @@ const resolveAlert = async () => {
           resolution: resolveForm.value.resolution
         },
         credentials: 'include'
-      } as any
+      }
     )
 
     toast.add({
@@ -635,11 +646,12 @@ const resolveAlert = async () => {
 
     await refreshAlerts()
     closeResolveModal()
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error resolving alert:', error)
+    const apiError = error as { data?: { error?: string } }
     toast.add({
       title: 'Error',
-      description: error.data?.error || 'No se pudo resolver la alerta',
+      description: apiError.data?.error || 'No se pudo resolver la alerta',
       color: 'error'
     })
   } finally {

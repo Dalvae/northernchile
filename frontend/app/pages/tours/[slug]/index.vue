@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { TourRes } from 'api-client'
+import type { TourRes, ContentBlock, TourImageRes } from 'api-client'
 import { useCalendarData } from '~/composables/useCalendarData'
 import { useCurrency } from '~/composables/useCurrency'
 
@@ -16,7 +16,11 @@ const {
   error: tourError
 } = await useFetch<TourRes>(`/api/tours/slug/${tourSlug}`)
 
-const tourContent = ref<any>(null)
+interface TourContent {
+  [key: string]: unknown
+}
+
+const tourContent = ref<TourContent | null>(null)
 
 const { fetchWeatherForecast, fetchMoonPhases } = useCalendarData()
 
@@ -57,10 +61,10 @@ const translatedContent = computed(() => {
 
 const descriptionBlocks = computed(() => {
   const blocks
-    = (tour.value as any)?.descriptionBlocksTranslations?.[locale.value]
-      || (tour.value as any)?.descriptionBlocksTranslations?.es
+    = tour.value?.descriptionBlocksTranslations?.[locale.value]
+      || tour.value?.descriptionBlocksTranslations?.es
   return Array.isArray(blocks)
-    ? blocks.filter((b: any) => b?.type && b?.content)
+    ? blocks.filter((b: ContentBlock) => b?.type && b?.content)
     : []
 })
 
@@ -68,11 +72,7 @@ const translatedDescription = computed(() => {
   if (descriptionBlocks.value.length) {
     return ''
   }
-  return (
-    (tour.value as any)?.descriptionTranslations?.[locale.value]
-    || (tour.value as any)?.descriptionTranslations?.es
-    || ''
-  )
+  return ''
 })
 
 const translatedName = computed(
@@ -84,7 +84,7 @@ const translatedName = computed(
 
 const heroImage = computed(() => {
   const hero = tour.value?.images?.find(
-    (img: any) => img.isHeroImage
+    (img: TourImageRes) => img.isHeroImage
   )?.imageUrl
   const first = tour.value?.images?.[0]?.imageUrl
   return hero || first || 'default-image.jpg'
@@ -93,20 +93,20 @@ const heroImage = computed(() => {
 const featuredImages = computed(() => {
   return (
     tour.value?.images
-      ?.filter((img: any) => img.isFeatured && !img.isHeroImage)
+      ?.filter((img: TourImageRes) => img.isFeatured && !img.isHeroImage)
       .slice(0, 3) || []
   )
 })
 
 const galleryImages = computed(() => {
-  return (tour.value?.images?.filter((img) => !img.isHeroImage) || [])
-    .filter((img): img is typeof img & { imageUrl: string } => !!img.imageUrl)
+  return (tour.value?.images?.filter((img: TourImageRes) => !img.isHeroImage) || [])
+    .filter((img): img is TourImageRes & { imageUrl: string } => !!img.imageUrl)
 })
 
 const seoDescription = computed(() => {
   if (descriptionBlocks.value.length > 0) {
     const firstTextBlock = descriptionBlocks.value.find(
-      (b: any) => b.type === 'paragraph'
+      (b: ContentBlock) => b.type === 'paragraph'
     )
     if (firstTextBlock?.content) {
       return firstTextBlock.content.substring(0, 200)

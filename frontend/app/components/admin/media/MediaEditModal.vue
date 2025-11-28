@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import type { MediaRes } from 'api-client'
 import { formatFileSize, formatDateTime, getMediaTypeLabel, getMediaTypeBadgeColor, formatForDateTimeInput } from '~/utils/media'
 
 const props = defineProps<{
   modelValue: boolean
-  media: any | null
+  media: MediaRes | null
 }>()
 
 const emit = defineEmits(['update:modelValue', 'success'])

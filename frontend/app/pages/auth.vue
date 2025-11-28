@@ -10,31 +10,135 @@
             class="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center"
           >
             <UIcon
-              :name="isLogin ? 'i-lucide-log-in' : 'i-lucide-user-plus'"
+              :name="currentView === 'login' ? 'i-lucide-log-in' : currentView === 'register' ? 'i-lucide-user-plus' : 'i-lucide-key'"
               class="w-6 h-6 text-primary"
             />
           </div>
           <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">
-            {{ isLogin ? t("auth.login") : t("auth.register") }}
+            {{ viewTitle }}
           </h2>
           <p class="text-sm text-neutral-600 dark:text-neutral-300">
-            {{
-              isLogin
-                ? t("auth.login_description")
-                : t("auth.register_description")
-            }}
+            {{ viewDescription }}
           </p>
         </div>
 
-        <!-- Form -->
+        <!-- Password Reset Request Form -->
+        <template v-if="currentView === 'forgot-password'">
+          <UForm
+            :state="forgotPasswordState"
+            :schema="forgotPasswordSchema"
+            @submit="handleForgotPassword"
+          >
+            <div class="space-y-4">
+              <UFormField
+                :label="t('auth.email')"
+                name="email"
+                required
+              >
+                <UInput
+                  v-model="forgotPasswordState.email"
+                  type="email"
+                  :placeholder="t('auth.email_placeholder')"
+                  size="lg"
+                  icon="i-lucide-mail"
+                  class="w-full"
+                />
+              </UFormField>
+
+              <UButton
+                type="submit"
+                color="primary"
+                size="lg"
+                block
+                :loading="loading"
+              >
+                {{ t('auth.send_reset_link') }}
+              </UButton>
+            </div>
+          </UForm>
+
+          <div class="text-center text-sm">
+            <UButton
+              variant="link"
+              color="primary"
+              @click="currentView = 'login'"
+            >
+              {{ t('auth.back_to_login') }}
+            </UButton>
+          </div>
+        </template>
+
+        <!-- Password Reset Confirm Form -->
+        <template v-else-if="currentView === 'reset-password'">
+          <UForm
+            :state="resetPasswordState"
+            :schema="resetPasswordSchema"
+            @submit="handleResetPassword"
+          >
+            <div class="space-y-4">
+              <UFormField
+                :label="t('auth.new_password')"
+                name="newPassword"
+                required
+              >
+                <UInput
+                  v-model="resetPasswordState.newPassword"
+                  type="password"
+                  :placeholder="t('auth.password_placeholder')"
+                  size="lg"
+                  icon="i-lucide-lock"
+                  class="w-full"
+                />
+              </UFormField>
+
+              <UFormField
+                :label="t('auth.confirm_password')"
+                name="confirmPassword"
+                required
+              >
+                <UInput
+                  v-model="resetPasswordState.confirmPassword"
+                  type="password"
+                  :placeholder="t('auth.confirm_password_placeholder')"
+                  size="lg"
+                  icon="i-lucide-lock"
+                  class="w-full"
+                />
+              </UFormField>
+
+              <UButton
+                type="submit"
+                color="primary"
+                size="lg"
+                block
+                :loading="loading"
+              >
+                {{ t('auth.reset_password') }}
+              </UButton>
+            </div>
+          </UForm>
+
+          <div class="text-center text-sm">
+            <UButton
+              variant="link"
+              color="primary"
+              @click="currentView = 'login'"
+            >
+              {{ t('auth.back_to_login') }}
+            </UButton>
+          </div>
+        </template>
+
+        <!-- Login/Register Form -->
         <UForm
+          v-else
           :state="state"
           :schema="schema"
           @submit="handleSubmit"
         >
           <div class="space-y-4">
             <!-- Login Fields -->
-            <template v-if="isLogin">
+            <template v-if="currentView === 'login'">
               <UFormField
                 :label="t('auth.email')"
                 name="email"
@@ -64,10 +168,22 @@
                   class="w-full"
                 />
               </UFormField>
+
+              <div class="flex justify-end">
+                <UButton
+                  variant="link"
+                  color="primary"
+                  size="sm"
+                  class="p-0"
+                  @click="currentView = 'forgot-password'"
+                >
+                  {{ t('auth.forgot_password') }}
+                </UButton>
+              </div>
             </template>
 
             <!-- Register Fields -->
-            <template v-else>
+            <template v-else-if="currentView === 'register'">
               <UFormField
                 :label="t('auth.full_name')"
                 name="fullName"
@@ -170,16 +286,19 @@
               block
               :loading="loading"
             >
-              {{ isLogin ? t("auth.login") : t("auth.register") }}
+              {{ currentView === 'login' ? t("auth.login") : t("auth.register") }}
             </UButton>
           </div>
         </UForm>
 
         <!-- Toggle Login/Register -->
-        <div class="text-center text-sm">
+        <div
+          v-if="currentView === 'login' || currentView === 'register'"
+          class="text-center text-sm"
+        >
           <span class="text-neutral-600 dark:text-neutral-300">
             {{
-              isLogin
+              currentView === 'login'
                 ? t("auth.dont_have_account")
                 : t("auth.already_have_account")
             }}
@@ -190,12 +309,15 @@
             class="ml-1"
             @click="toggleForm"
           >
-            {{ isLogin ? t("auth.register") : t("auth.login") }}
+            {{ currentView === 'login' ? t("auth.register") : t("auth.login") }}
           </UButton>
         </div>
 
         <!-- Terms -->
-        <p class="text-xs text-center text-neutral-500 dark:text-neutral-300">
+        <p
+          v-if="currentView === 'login' || currentView === 'register'"
+          class="text-xs text-center text-neutral-500 dark:text-neutral-300"
+        >
           {{ t("auth.terms_text") }}
           <NuxtLink
             :to="localePath('/terms')"
@@ -223,14 +345,58 @@ import { z } from 'zod'
 const { t } = useI18n()
 const authStore = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 const localePath = useLocalePath()
 const toast = useToast()
+const config = useRuntimeConfig()
+
+type AuthView = 'login' | 'register' | 'forgot-password' | 'reset-password'
 
 // Estado
-const isLogin = ref(true)
+const currentView = ref<AuthView>('login')
 const loading = ref(false)
 
-// State del formulario
+// Check for reset token in URL
+onMounted(() => {
+  const token = route.query.token as string | undefined
+  if (token) {
+    currentView.value = 'reset-password'
+    resetPasswordState.token = token
+  }
+})
+
+// View title and description
+const viewTitle = computed(() => {
+  switch (currentView.value) {
+    case 'login':
+      return t('auth.login')
+    case 'register':
+      return t('auth.register')
+    case 'forgot-password':
+      return t('auth.forgot_password')
+    case 'reset-password':
+      return t('auth.reset_password')
+    default:
+      return t('auth.login')
+  }
+})
+
+const viewDescription = computed(() => {
+  switch (currentView.value) {
+    case 'login':
+      return t('auth.login_description')
+    case 'register':
+      return t('auth.register_description')
+    case 'forgot-password':
+      return t('auth.forgot_password_description')
+    case 'reset-password':
+      return t('auth.reset_password_description')
+    default:
+      return t('auth.login_description')
+  }
+})
+
+// State del formulario principal
 const state = reactive({
   email: '',
   password: '',
@@ -241,8 +407,20 @@ const state = reactive({
   dateOfBirth: ''
 })
 
+// State para recuperar contraseña
+const forgotPasswordState = reactive({
+  email: ''
+})
+
+// State para reset de contraseña
+const resetPasswordState = reactive({
+  token: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
 // Date picker state
-const dateOfBirthValue = ref<any>(undefined)
+const dateOfBirthValue = ref<{ year: number, month: number, day: number } | undefined>(undefined)
 
 // Sync between CalendarDate and string
 watch(dateOfBirthValue, (newDate) => {
@@ -253,9 +431,9 @@ watch(dateOfBirthValue, (newDate) => {
   }
 })
 
-// Schema de validación
+// Schema de validación principal
 const schema = computed(() => {
-  if (isLogin.value) {
+  if (currentView.value === 'login') {
     return z.object({
       email: z.string().email(t('auth.email_invalid')),
       password: z.string().min(1, t('auth.password_required'))
@@ -278,9 +456,27 @@ const schema = computed(() => {
   }
 })
 
+// Schema para recuperar contraseña
+const forgotPasswordSchema = z.object({
+  email: z.string().email(t('auth.email_invalid'))
+})
+
+// Schema para reset de contraseña
+const resetPasswordSchema = computed(() => {
+  return z
+    .object({
+      newPassword: z.string().min(8, t('auth.password_min')),
+      confirmPassword: z.string()
+    })
+    .refine(data => data.newPassword === data.confirmPassword, {
+      message: t('auth.passwords_dont_match'),
+      path: ['confirmPassword']
+    })
+})
+
 // Alternar formulario
 function toggleForm() {
-  isLogin.value = !isLogin.value
+  currentView.value = currentView.value === 'login' ? 'register' : 'login'
   // Reset form
   Object.keys(state).forEach((key) => {
     state[key as keyof typeof state] = ''
@@ -288,12 +484,12 @@ function toggleForm() {
   dateOfBirthValue.value = undefined
 }
 
-// Submit
-async function handleSubmit(event: FormSubmitEvent<any>) {
+// Submit principal (login/register)
+async function handleSubmit(_event: FormSubmitEvent<z.infer<typeof schema.value>>) {
   loading.value = true
 
   try {
-    if (isLogin.value) {
+    if (currentView.value === 'login') {
       await authStore.login({
         email: state.email,
         password: state.password
@@ -313,7 +509,6 @@ async function handleSubmit(event: FormSubmitEvent<any>) {
         fullName: state.fullName,
         nationality: state.nationality || undefined,
         phoneNumber: state.phoneNumber || undefined
-        // dateOfBirth currently not in RegisterReq schema, omit for now
       })
 
       toast.add({
@@ -323,23 +518,112 @@ async function handleSubmit(event: FormSubmitEvent<any>) {
       })
 
       // Cambiar a login
-      isLogin.value = true
+      currentView.value = 'login'
       Object.keys(state).forEach((key) => {
         state[key as keyof typeof state] = ''
       })
       dateOfBirthValue.value = undefined
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { response?: { status?: number }, message?: string }
     console.error('Error en auth:', error)
 
     let errorMessage = t('common.error')
 
-    if (error.response?.status === 403) {
+    if (err.response?.status === 403) {
       errorMessage = t('auth.invalid_credentials')
-    } else if (error.response?.status === 400) {
+    } else if (err.response?.status === 400) {
       errorMessage = t('auth.invalid_data')
-    } else if (error.message) {
-      errorMessage = error.message
+    } else if (err.message) {
+      errorMessage = err.message
+    }
+
+    toast.add({
+      title: t('common.error'),
+      description: errorMessage,
+      color: 'error'
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+// Solicitar recuperación de contraseña
+async function handleForgotPassword(_event: FormSubmitEvent<z.infer<typeof forgotPasswordSchema>>) {
+  loading.value = true
+
+  try {
+    const apiBase = config.public.apiBase
+
+    await $fetch(`${apiBase}/api/password-reset/request`, {
+      method: 'POST',
+      body: { email: forgotPasswordState.email }
+    })
+
+    toast.add({
+      title: t('common.success'),
+      description: t('auth.reset_link_sent'),
+      color: 'success'
+    })
+
+    // Volver a login
+    currentView.value = 'login'
+    forgotPasswordState.email = ''
+  } catch (error: unknown) {
+    const err = error as { data?: { message?: string } }
+    console.error('Error en forgot password:', error)
+
+    // Siempre mostrar mensaje genérico por seguridad
+    toast.add({
+      title: t('common.success'),
+      description: t('auth.reset_link_sent'),
+      color: 'success'
+    })
+
+    currentView.value = 'login'
+    forgotPasswordState.email = ''
+  } finally {
+    loading.value = false
+  }
+}
+
+// Confirmar reset de contraseña
+async function handleResetPassword(_event: FormSubmitEvent<z.infer<typeof resetPasswordSchema.value>>) {
+  loading.value = true
+
+  try {
+    const apiBase = config.public.apiBase
+
+    await $fetch(`${apiBase}/api/password-reset/confirm`, {
+      method: 'POST',
+      body: {
+        token: resetPasswordState.token,
+        newPassword: resetPasswordState.newPassword
+      }
+    })
+
+    toast.add({
+      title: t('common.success'),
+      description: t('auth.password_reset_success'),
+      color: 'success'
+    })
+
+    // Limpiar estado y volver a login
+    resetPasswordState.token = ''
+    resetPasswordState.newPassword = ''
+    resetPasswordState.confirmPassword = ''
+    currentView.value = 'login'
+
+    // Limpiar token de la URL
+    await router.replace(localePath('/auth'))
+  } catch (error: unknown) {
+    const err = error as { data?: { message?: string }, response?: { status?: number } }
+    console.error('Error en reset password:', error)
+
+    let errorMessage = t('auth.reset_password_error')
+
+    if (err.response?.status === 400) {
+      errorMessage = t('auth.reset_token_invalid')
     }
 
     toast.add({

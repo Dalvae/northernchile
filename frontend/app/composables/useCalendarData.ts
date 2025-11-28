@@ -101,9 +101,21 @@ export const useCalendarData = () => {
   /**
    * Obtiene pronóstico climático (solo próximos 8 días desde OpenWeatherMap)
    */
+  interface WeatherForecastResponse {
+    daily?: Array<{
+      dt: number
+      temp: { min: number, max: number, day: number }
+      windSpeed: number
+      windGust?: number
+      clouds: number
+      pop: number
+      weather: Array<{ id: number, main: string, description: string, icon: string }>
+    }>
+  }
+
   const fetchWeatherForecast = async (): Promise<Map<string, DailyWeather>> => {
     try {
-      const response = await $fetch<any>(`${config.public.apiBase}/api/weather/forecast`)
+      const response = await $fetch<WeatherForecastResponse>(`${config.public.apiBase}/api/weather/forecast`)
 
       // Convertir a Map por fecha
       const weatherMap = new Map<string, DailyWeather>()
@@ -183,8 +195,13 @@ export const useCalendarData = () => {
       // Obtener token si existe
       const token = getAuthToken()
 
+      interface CalendarDataResponse {
+        moonPhases?: MoonPhase[]
+        weather?: WeatherForecastResponse
+      }
+
       // Llamada combinada al backend: fases lunares + pronóstico meteorológico
-      const calendarResponse = await $fetch<any>(`${config.public.apiBase}/api/calendar/data`, {
+      const calendarResponse = await $fetch<CalendarDataResponse>(`${config.public.apiBase}/api/calendar/data`, {
         params: { startDate, endDate },
         headers: token
           ? {
@@ -202,7 +219,7 @@ export const useCalendarData = () => {
       // Crear mapa de fases lunares por fecha
       const moonMap = new Map<string, MoonPhase>()
       if (calendarResponse.moonPhases && Array.isArray(calendarResponse.moonPhases)) {
-        calendarResponse.moonPhases.forEach((moon: any) => moonMap.set(moon.date, moon))
+        calendarResponse.moonPhases.forEach(moon => moonMap.set(moon.date, moon))
       }
 
       // Convertir weather response a Map

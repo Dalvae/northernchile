@@ -269,6 +269,7 @@ import type {
   EventClickArg
 } from '@fullcalendar/core'
 import esLocale from '@fullcalendar/core/locales/es'
+import type { TourRes, TourScheduleRes, TourScheduleCreateReq, WeatherAlert } from '~/lib/api-client/api'
 
 definePageMeta({
   layout: 'admin'
@@ -281,17 +282,25 @@ useHead({
 const config = useRuntimeConfig()
 const { locale } = useI18n()
 const toast = useToast()
-const authStore = useAuthStore()
 
 const { fetchCalendarData, hasAdverseConditions, getWeatherIcon }
   = useCalendarData()
 
 const { fetchAdminTours } = useAdminData()
 
+// Calendar data interface
+interface CalendarDataResponse {
+  schedules: TourScheduleRes[]
+  moonPhases: Map<string, { icon: string; illumination: number }>
+  weather: Map<string, { temp: { max: number; min: number }; weather: Array<{ main: string }> }>
+  alerts: Map<string, WeatherAlert[]>
+  allAlerts?: WeatherAlert[]
+}
+
 // Estado
-const calendarData = ref<any>(null)
+const calendarData = ref<CalendarDataResponse | null>(null)
 const showScheduleModal = ref(false)
-const selectedSchedule = ref<any>(null)
+const selectedSchedule = ref<TourScheduleRes | null>(null)
 const generating = ref(false)
 const savingSchedule = ref(false)
 const pendingAlerts = ref(0)
@@ -319,15 +328,15 @@ const { data: toursData } = await useAsyncData(
 
 // Computed options for selects
 const tourOptions = computed(() => {
-  const list = Array.isArray(toursData.value) ? toursData.value : (toursData.value as any)?.data || []
+  const list = Array.isArray(toursData.value) ? toursData.value : (toursData.value as { data?: TourRes[] })?.data || []
   return list
-    .filter((tour: any) => tour.status === 'PUBLISHED')
-    .map((tour: any) => ({
+    .filter((tour: TourRes) => tour.status === 'PUBLISHED')
+    .map((tour: TourRes) => ({
       value: tour.id,
       label:
-        tour.nameTranslations[locale.value]
-        || tour.nameTranslations.es
-        || tour.name
+        tour.nameTranslations?.[locale.value]
+        || tour.nameTranslations?.es
+        || ''
     }))
 })
 
@@ -341,10 +350,12 @@ const isEditMode = computed(() => !!selectedSchedule.value)
 
 // Map de tours por ID para acceso rápido
 const toursMap = computed(() => {
-  const list = Array.isArray(toursData.value) ? toursData.value : (toursData.value as any)?.data || []
-  const map = new Map()
-  list.forEach((tour: any) => {
-    map.set(tour.id, tour)
+  const list = Array.isArray(toursData.value) ? toursData.value : (toursData.value as { data?: TourRes[] })?.data || []
+  const map = new Map<string, TourRes>()
+  list.forEach((tour: TourRes) => {
+    if (tour.id) {
+      map.set(tour.id, tour)
+    }
   })
   return map
 })
@@ -356,8 +367,10 @@ watch(() => scheduleForm.value.tourId, (newTourId) => {
   const selectedTour = toursMap.value.get(newTourId)
   if (selectedTour?.defaultStartTime) {
     // defaultStartTime viene como "HH:mm:ss", tomamos solo HH:mm
-    const timeParts = selectedTour.defaultStartTime.split(':')
-    scheduleForm.value.time = `${timeParts[0]}:${timeParts[1]}`
+    const timeObj = selectedTour.defaultStartTime
+    if (timeObj.hour !== undefined && timeObj.minute !== undefined) {
+      scheduleForm.value.time = `${String(timeObj.hour).padStart(2, '0')}:${String(timeObj.minute).padStart(2, '0')}`
+    }
   }
 })
 
@@ -381,10 +394,10 @@ onMounted(() => {
 // Cargar datos del calendario
 const loadCalendarData = async () => {
   try {
-    const data = await fetchCalendarData(startDate.value, endDate.value)
+    const data = await fetchCalendarData(startDate.value, endDate.value) as CalendarDataResponse
     calendarData.value = data
     pendingAlerts.value = Array.isArray(data.allAlerts)
-      ? data.allAlerts.filter((a: any) => a.status === 'PENDING').length
+      ? data.allAlerts.filter((a: WeatherAlert) => a.status === 'PENDING').length
       : 0
   } catch (error) {
     console.error('Error loading calendar data:', error)
@@ -442,24 +455,24 @@ const generateSchedules = async () => {
 
 // Click en evento (schedule)
 const handleEventClick = (info: EventClickArg) => {
-  const schedule = info.event.extendedProps.schedule
+  const schedule = info.event.extendedProps.schedule as TourScheduleRes
   selectedSchedule.value = schedule
 
   // Fill form with schedule data
-  const scheduleDate = new Date(schedule.startDatetime)
+  const scheduleDate = new Date(schedule.startDatetime || '')
   scheduleForm.value = {
-    tourId: schedule.tourId,
+    tourId: schedule.tourId || '',
     date: scheduleDate.toISOString().split('T')[0]!,
     time: scheduleDate.toTimeString().slice(0, 5),
-    maxParticipants: schedule.maxParticipants,
-    status: schedule.status
+    maxParticipants: schedule.maxParticipants || 10,
+    status: schedule.status || 'OPEN'
   }
 
   showScheduleModal.value = true
 }
 
 // Click en día vacío
-const handleDateClick = (info: any) => {
+const handleDateClick = (info: DateClickArg) => {
   selectedSchedule.value = null
 
   // Pre-fill with clicked date
@@ -528,7 +541,7 @@ const saveSchedule = async () => {
     )
     const isoDatetime = datetime.toISOString()
 
-    const payload: any = {
+    const payload: TourScheduleCreateReq & { status?: string } = {
       tourId: scheduleForm.value.tourId,
       startDatetime: isoDatetime,
       maxParticipants: scheduleForm.value.maxParticipants
@@ -540,7 +553,7 @@ const saveSchedule = async () => {
 
       // Update existing schedule
       await $fetch(
-        `${config.public.apiBase}/api/admin/schedules/${selectedSchedule.value.id}`,
+        `${config.public.apiBase}/api/admin/schedules/${selectedSchedule.value?.id}`,
         {
           method: 'PATCH',
           ...getAuthOptions(),
@@ -571,11 +584,12 @@ const saveSchedule = async () => {
     // Reload calendar data
     await loadCalendarData()
     closeScheduleModal()
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error saving schedule:', error)
+    const apiError = error as { data?: { message?: string } }
     toast.add({
       title: 'Error',
-      description: error.data?.message || 'No se pudo guardar el schedule',
+      description: apiError.data?.message || 'No se pudo guardar el schedule',
       color: 'error'
     })
   } finally {
@@ -609,8 +623,8 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
 
     // Eventos (schedules)
     events: Array.isArray(schedules)
-      ? schedules.map((schedule: any) => {
-          const start = new Date(schedule.startDatetime)
+      ? schedules.map((schedule: TourScheduleRes) => {
+          const start = new Date(schedule.startDatetime || '')
           const end = new Date(start)
           end.setHours(start.getHours() + (schedule.tourDurationHours || 2))
 
@@ -618,9 +632,9 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
           let backgroundColor = 'var(--color-atacama-dorado-500)'
 
           // Verificar si tiene alertas críticas
-          const scheduleAlerts = alerts?.get(schedule.id) || []
+          const scheduleAlerts = schedule.id ? alerts?.get(schedule.id) || [] : []
           const hasCriticalAlert = scheduleAlerts.some(
-            (a: any) => a.severity === 'CRITICAL' && a.status === 'PENDING'
+            (a: WeatherAlert) => a.severity === 'CRITICAL' && a.status === 'PENDING'
           )
 
           if (hasCriticalAlert) {

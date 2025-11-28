@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TourRes } from '~/lib/api-client/api'
 import { useAuthStore } from '~/stores/auth'
 
 definePageMeta({
@@ -86,7 +87,7 @@ const navigationLinks = computed(() => {
 
   // Add tours dynamically
   if (tours.value && tours.value.length > 0) {
-    tours.value.forEach((tour: any) => {
+    tours.value.forEach((tour: TourRes) => {
       mediaChildren.push({
         label: tour.nameTranslations?.es || 'Sin nombre',
         description: tour.category || '',
@@ -186,7 +187,7 @@ const breadcrumbItems = computed(() => {
 
     // If previous segment was 'media' and this looks like a tour slug
     if (i > 0 && adminSegments[i - 1] === 'media' && segment !== 'browser') {
-      const tour = tours.value?.find((t: any) => t.slug === segment)
+      const tour = tours.value?.find((t: TourRes) => t.slug === segment)
       if (tour) {
         items.push({
           label: tour.nameTranslations?.es || segment,

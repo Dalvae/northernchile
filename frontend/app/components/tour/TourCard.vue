@@ -111,14 +111,14 @@
             </div>
 
             <div
-              v-if="(tour as any).maxParticipants != null"
+              v-if="tour.defaultMaxParticipants != null"
               class="flex items-center gap-1"
             >
               <UIcon
                 name="i-lucide-users"
                 class="w-4 h-4 text-primary"
               />
-              <span>{{ $t('tours.max_participants', { count: (tour as any).maxParticipants }) }}</span>
+              <span>{{ $t('tours.max_participants', { count: tour.defaultMaxParticipants }) }}</span>
             </div>
           </div>
 
@@ -183,22 +183,20 @@ const title = computed(() =>
 )
 
 const description = computed(() => {
-  const blocks = (props.tour as any).descriptionBlocksTranslations?.[locale.value]
-    || (props.tour as any).descriptionBlocksTranslations?.es
+  const blocks = props.tour.descriptionBlocksTranslations?.[locale.value]
+    || props.tour.descriptionBlocksTranslations?.es
   if (Array.isArray(blocks) && blocks.length) {
-    const firstText = blocks.find((b: any) => b?.content)?.content
+    const firstText = blocks.find(b => b?.content)?.content
     if (firstText) return firstText
   }
-  return (props.tour as any).descriptionTranslations?.[locale.value]
-    || (props.tour as any).descriptionTranslations?.es
-    || ''
+  return ''
 })
 
 const imageSrc = computed(() => {
   // Priority: 1. Hero -> 2. First Featured -> 3. First image -> 4. Placeholder
-  const hero = props.tour.images?.find(img => (img as any).isHeroImage)?.imageUrl
-  const featured = props.tour.images?.find(img => (img as any).isFeatured)?.imageUrl
-  const first = props.tour.images?.[0]?.imageUrl || (props.tour as any).images?.[0]
+  const hero = props.tour.images?.find(img => img.isHeroImage)?.imageUrl
+  const featured = props.tour.images?.find(img => img.isFeatured)?.imageUrl
+  const first = props.tour.images?.[0]?.imageUrl
 
   return hero || featured || first || '/images/tour-placeholder.svg'
 })

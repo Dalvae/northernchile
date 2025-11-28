@@ -10,6 +10,9 @@ import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.payment.PaymentRefund;
 import com.northernchile.api.booking.BookingRepository;
+import com.northernchile.api.exception.PaymentDeclinedException;
+import com.northernchile.api.exception.PaymentProviderException;
+import com.northernchile.api.exception.RefundException;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.payment.dto.PaymentInitReq;
 import com.northernchile.api.payment.dto.PaymentInitRes;
@@ -178,10 +181,31 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
         } catch (MPApiException e) {
             log.error("Mercado Pago API error: {} - {}", e.getApiResponse().getStatusCode(),
                 e.getApiResponse().getContent(), e);
-            throw new RuntimeException("Failed to create Mercado Pago payment: " + e.getApiResponse().getContent(), e);
+
+            // Check if it's a declined payment vs provider error
+            int statusCode = e.getApiResponse().getStatusCode();
+            if (statusCode == 400 || statusCode == 401) {
+                throw new PaymentDeclinedException(
+                    "Payment was declined by Mercado Pago",
+                    mapMercadoPagoDeclineReason(e.getApiResponse().getContent()),
+                    e.getApiResponse().getContent()
+                );
+            }
+
+            throw new PaymentProviderException(
+                "Failed to create payment with Mercado Pago",
+                "MERCADOPAGO",
+                e.getApiResponse().getContent(),
+                e
+            );
         } catch (MPException e) {
             log.error("Mercado Pago error", e);
-            throw new RuntimeException("Failed to create Mercado Pago payment: " + e.getMessage(), e);
+            throw new PaymentProviderException(
+                "Connection error with Mercado Pago payment service",
+                "MERCADOPAGO",
+                e.getMessage(),
+                e
+            );
         }
     }
 
@@ -285,10 +309,20 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
         } catch (MPApiException e) {
             log.error("Mercado Pago API error getting payment status: {} - {}",
                 e.getApiResponse().getStatusCode(), e.getApiResponse().getContent(), e);
-            throw new RuntimeException("Failed to get Mercado Pago payment status: " + e.getApiResponse().getContent(), e);
+            throw new PaymentProviderException(
+                "Failed to get payment status from Mercado Pago",
+                "MERCADOPAGO",
+                e.getApiResponse().getContent(),
+                e
+            );
         } catch (MPException e) {
             log.error("Error getting Mercado Pago payment status", e);
-            throw new RuntimeException("Failed to get Mercado Pago payment status: " + e.getMessage(), e);
+            throw new PaymentProviderException(
+                "Connection error with Mercado Pago payment service",
+                "MERCADOPAGO",
+                e.getMessage(),
+                e
+            );
         }
     }
 
@@ -362,16 +396,31 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
         } catch (MPApiException e) {
             log.error("Mercado Pago API error refunding payment: {} - {}",
                 e.getApiResponse().getStatusCode(), e.getApiResponse().getContent(), e);
-            throw new RuntimeException("Failed to refund Mercado Pago payment: " + e.getApiResponse().getContent(), e);
+            throw new RefundException(
+                "Failed to refund payment via Mercado Pago",
+                e.getApiResponse().getContent(),
+                e
+            );
         } catch (MPException e) {
             log.error("Mercado Pago error refunding payment", e);
-            throw new RuntimeException("Failed to refund Mercado Pago payment: " + e.getMessage(), e);
+            throw new RefundException(
+                "Connection error refunding via Mercado Pago",
+                e.getMessage(),
+                e
+            );
         } catch (NumberFormatException e) {
             log.error("Invalid external payment ID: {}", payment.getExternalPaymentId(), e);
-            throw new RuntimeException("Failed to refund payment - invalid payment ID format", e);
+            throw new RefundException(
+                "Invalid payment ID format - cannot process refund",
+                e
+            );
         } catch (Exception e) {
             log.error("Error refunding Mercado Pago payment", e);
-            throw new RuntimeException("Failed to refund Mercado Pago payment: " + e.getMessage(), e);
+            throw new RefundException(
+                "Unexpected error refunding payment via Mercado Pago",
+                e.getMessage(),
+                e
+            );
         }
     }
 
@@ -397,8 +446,47 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
 
         } catch (Exception e) {
             log.error("Error processing Mercado Pago webhook", e);
-            throw new RuntimeException("Failed to process Mercado Pago webhook: " + e.getMessage(), e);
+            throw new PaymentProviderException(
+                "Failed to process Mercado Pago webhook",
+                "MERCADOPAGO",
+                e.getMessage(),
+                e
+            );
         }
+    }
+
+    /**
+     * Map Mercado Pago API error response to decline reason
+     */
+    private String mapMercadoPagoDeclineReason(String apiResponse) {
+        if (apiResponse == null) {
+            return PaymentDeclinedException.DeclineReason.UNKNOWN;
+        }
+
+        String lowerResponse = apiResponse.toLowerCase();
+        if (lowerResponse.contains("insufficient_amount") || lowerResponse.contains("insufficient_funds")) {
+            return PaymentDeclinedException.DeclineReason.INSUFFICIENT_FUNDS;
+        }
+        if (lowerResponse.contains("expired")) {
+            return PaymentDeclinedException.DeclineReason.CARD_EXPIRED;
+        }
+        if (lowerResponse.contains("blocked") || lowerResponse.contains("disabled")) {
+            return PaymentDeclinedException.DeclineReason.CARD_BLOCKED;
+        }
+        if (lowerResponse.contains("invalid_card") || lowerResponse.contains("invalid_number")) {
+            return PaymentDeclinedException.DeclineReason.INVALID_CARD;
+        }
+        if (lowerResponse.contains("rejected") || lowerResponse.contains("denied")) {
+            return PaymentDeclinedException.DeclineReason.BANK_REJECTED;
+        }
+        if (lowerResponse.contains("fraud") || lowerResponse.contains("high_risk")) {
+            return PaymentDeclinedException.DeclineReason.FRAUD_SUSPECTED;
+        }
+        if (lowerResponse.contains("limit") || lowerResponse.contains("max_attempts")) {
+            return PaymentDeclinedException.DeclineReason.LIMIT_EXCEEDED;
+        }
+
+        return PaymentDeclinedException.DeclineReason.UNKNOWN;
     }
 
     /**

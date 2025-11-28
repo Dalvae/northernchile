@@ -10,6 +10,7 @@ const toast = useToast()
 const { locale, t } = useI18n()
 const localePath = useLocalePath()
 const { countries } = useCountries()
+const { formatPrice } = useCurrency()
 
 // SEO: Prevent indexing of checkout page
 useHead({
@@ -296,8 +297,8 @@ async function submitBooking() {
       paymentMethod: selectedPaymentMethod.value.method,
       amount: total.value,
       currency: 'CLP',
-      returnUrl: `${window.location.origin}/payment/callback?bookingId=${primaryBooking.id}`,
-      cancelUrl: `${window.location.origin}/checkout`,
+      returnUrl: `${config.public.baseUrl}/payment/callback?bookingId=${primaryBooking.id}`,
+      cancelUrl: `${config.public.baseUrl}/checkout`,
       userEmail: contactForm.value.email,
       description: `Reserva para ${tourNames}`
     })
@@ -397,18 +398,10 @@ function handlePIXExpired() {
   })
 }
 
-// Format currency
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP'
-  }).format(amount)
-}
-
-// Calculate totals
-const subtotal = computed(() => cartStore.cart.cartTotal)
-const tax = computed(() => subtotal.value * 0.19)
-const total = computed(() => subtotal.value + tax.value)
+// Calculate totals - use values from backend cart API
+const subtotal = computed(() => cartStore.cart.subtotal)
+const tax = computed(() => cartStore.cart.taxAmount)
+const total = computed(() => cartStore.cart.cartTotal)
 </script>
 
 <template>
@@ -733,7 +726,7 @@ const total = computed(() => subtotal.value + tax.value)
                   :disabled="isSubmitting || !selectedPaymentMethod"
                   @click="submitBooking"
                 >
-                  {{ isSubmitting ? t('booking.mock_payment_processing') : `${t('common.confirm')} ${formatCurrency(total)}` }}
+                  {{ isSubmitting ? t('booking.mock_payment_processing') : `${t('common.confirm')} ${formatPrice(total)}` }}
                 </UButton>
               </div>
             </template>
@@ -773,7 +766,7 @@ const total = computed(() => subtotal.value + tax.value)
                   <p
                     class="text-sm font-semibold text-neutral-900 dark:text-white mt-2"
                   >
-                    {{ formatCurrency(item.itemTotal ?? 0) }}
+                    {{ formatPrice(item.itemTotal ?? 0) }}
                   </p>
                 </div>
 
@@ -783,20 +776,20 @@ const total = computed(() => subtotal.value + tax.value)
                     class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
                   >
                     <span>Subtotal</span>
-                    <span>{{ formatCurrency(subtotal) }}</span>
+                    <span>{{ formatPrice(subtotal) }}</span>
                   </div>
                   <div
                     class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
                   >
                     <span>IVA (19%)</span>
-                    <span>{{ formatCurrency(tax) }}</span>
+                    <span>{{ formatPrice(tax) }}</span>
                   </div>
                   <UDivider />
                   <div
                     class="flex justify-between text-lg font-bold text-neutral-900 dark:text-white"
                   >
                     <span>Total</span>
-                    <span>{{ formatCurrency(total) }}</span>
+                    <span>{{ formatPrice(total) }}</span>
                   </div>
                 </div>
               </div>

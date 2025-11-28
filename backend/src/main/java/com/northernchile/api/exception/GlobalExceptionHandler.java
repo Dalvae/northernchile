@@ -154,6 +154,132 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles PaymentDeclinedException - when payment is rejected by bank/provider
+     * Returns HTTP 402 Payment Required
+     */
+    @ExceptionHandler(PaymentDeclinedException.class)
+    public ResponseEntity<PaymentErrorResponse> handlePaymentDeclined(
+            PaymentDeclinedException ex,
+            WebRequest request) {
+        log.warn("Payment declined: {} - Reason: {}", ex.getMessage(), ex.getDeclineReason());
+
+        PaymentErrorResponse errorResponse = new PaymentErrorResponse(
+                Instant.now(),
+                HttpStatus.PAYMENT_REQUIRED.value(),
+                "Payment Declined",
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", ""),
+                ex.getErrorCode(),
+                ex.getDeclineReason()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.PAYMENT_REQUIRED);
+    }
+
+    /**
+     * Handles PaymentProviderException - when there's an error with the payment provider
+     * Returns HTTP 502 Bad Gateway
+     */
+    @ExceptionHandler(PaymentProviderException.class)
+    public ResponseEntity<PaymentErrorResponse> handlePaymentProviderError(
+            PaymentProviderException ex,
+            WebRequest request) {
+        log.error("Payment provider error [{}]: {}", ex.getProvider(), ex.getMessage(), ex);
+
+        String userMessage = messageProvider.getMessage(
+            "error.payment.provider",
+            "Payment service temporarily unavailable. Please try again later."
+        );
+
+        PaymentErrorResponse errorResponse = new PaymentErrorResponse(
+                Instant.now(),
+                HttpStatus.BAD_GATEWAY.value(),
+                "Payment Provider Error",
+                userMessage,
+                request.getDescription(false).replace("uri=", ""),
+                ex.getErrorCode(),
+                null
+        );
+
+        // Add provider details only in dev mode
+        if (isDevMode()) {
+            errorResponse.setProviderMessage(ex.getProviderMessage());
+        }
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_GATEWAY);
+    }
+
+    /**
+     * Handles PaymentExpiredException - when payment session expires
+     * Returns HTTP 410 Gone
+     */
+    @ExceptionHandler(PaymentExpiredException.class)
+    public ResponseEntity<PaymentErrorResponse> handlePaymentExpired(
+            PaymentExpiredException ex,
+            WebRequest request) {
+        log.info("Payment expired: {}", ex.getMessage());
+
+        PaymentErrorResponse errorResponse = new PaymentErrorResponse(
+                Instant.now(),
+                HttpStatus.GONE.value(),
+                "Payment Expired",
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", ""),
+                ex.getErrorCode(),
+                null
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.GONE);
+    }
+
+    /**
+     * Handles RefundException - when refund operation fails
+     * Returns HTTP 422 Unprocessable Entity
+     */
+    @ExceptionHandler(RefundException.class)
+    public ResponseEntity<PaymentErrorResponse> handleRefundError(
+            RefundException ex,
+            WebRequest request) {
+        log.error("Refund error: {}", ex.getMessage(), ex);
+
+        PaymentErrorResponse errorResponse = new PaymentErrorResponse(
+                Instant.now(),
+                HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                "Refund Failed",
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", ""),
+                ex.getErrorCode(),
+                null
+        );
+
+        if (isDevMode()) {
+            errorResponse.setProviderMessage(ex.getProviderMessage());
+        }
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    /**
+     * Handles generic PaymentException
+     * Returns HTTP 400 Bad Request
+     */
+    @ExceptionHandler(PaymentException.class)
+    public ResponseEntity<PaymentErrorResponse> handlePaymentError(
+            PaymentException ex,
+            WebRequest request) {
+        log.error("Payment error: {}", ex.getMessage(), ex);
+
+        PaymentErrorResponse errorResponse = new PaymentErrorResponse(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Payment Error",
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", ""),
+                ex.getErrorCode(),
+                null
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
      * Handles validation errors from @Valid annotations
      * Returns HTTP 400 Bad Request with field-specific error messages
      */
@@ -279,6 +405,31 @@ public class GlobalExceptionHandler {
         public void setPath(String path) { this.path = path; }
         public void setExceptionType(String exceptionType) { this.exceptionType = exceptionType; }
         public void setStackTrace(String stackTrace) { this.stackTrace = stackTrace; }
+    }
+
+    /**
+     * Payment-specific error response with additional fields
+     */
+    public static class PaymentErrorResponse extends ErrorResponse {
+        private String errorCode;
+        private String declineReason;
+        private String providerMessage;
+
+        public PaymentErrorResponse(Instant timestamp, int status, String error, String message, String path,
+                                    String errorCode, String declineReason) {
+            super(timestamp, status, error, message, path);
+            this.errorCode = errorCode;
+            this.declineReason = declineReason;
+        }
+
+        public String getErrorCode() { return errorCode; }
+        public void setErrorCode(String errorCode) { this.errorCode = errorCode; }
+
+        public String getDeclineReason() { return declineReason; }
+        public void setDeclineReason(String declineReason) { this.declineReason = declineReason; }
+
+        public String getProviderMessage() { return providerMessage; }
+        public void setProviderMessage(String providerMessage) { this.providerMessage = providerMessage; }
     }
 
     /**

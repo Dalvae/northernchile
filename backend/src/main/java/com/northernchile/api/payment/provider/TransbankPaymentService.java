@@ -7,6 +7,10 @@ import cl.transbank.webpay.webpayplus.WebpayPlus;
 import cl.transbank.webpay.webpayplus.responses.WebpayPlusTransactionCommitResponse;
 import cl.transbank.webpay.webpayplus.responses.WebpayPlusTransactionCreateResponse;
 import cl.transbank.webpay.webpayplus.responses.WebpayPlusTransactionStatusResponse;
+import com.northernchile.api.exception.PaymentDeclinedException;
+import com.northernchile.api.exception.PaymentExpiredException;
+import com.northernchile.api.exception.PaymentProviderException;
+import com.northernchile.api.exception.RefundException;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.payment.dto.PaymentInitReq;
 import com.northernchile.api.payment.dto.PaymentInitRes;
@@ -150,10 +154,20 @@ public class TransbankPaymentService implements PaymentProviderService {
 
         } catch (TransactionCreateException e) {
             log.error("Error creating Transbank transaction", e);
-            throw new RuntimeException("Failed to create Transbank payment: " + e.getMessage(), e);
+            throw new PaymentProviderException(
+                "Failed to create payment with Transbank",
+                "TRANSBANK",
+                e.getMessage(),
+                e
+            );
         } catch (java.io.IOException e) {
             log.error("IO error creating Transbank transaction", e);
-            throw new RuntimeException("Failed to create Transbank payment: " + e.getMessage(), e);
+            throw new PaymentProviderException(
+                "Connection error with Transbank payment service",
+                "TRANSBANK",
+                e.getMessage(),
+                e
+            );
         }
     }
 
@@ -241,10 +255,20 @@ public class TransbankPaymentService implements PaymentProviderService {
 
         } catch (TransactionCommitException e) {
             log.error("Error committing Transbank transaction", e);
-            throw new RuntimeException("Failed to confirm Transbank payment: " + e.getMessage(), e);
+            throw new PaymentProviderException(
+                "Failed to confirm payment with Transbank",
+                "TRANSBANK",
+                e.getMessage(),
+                e
+            );
         } catch (java.io.IOException e) {
             log.error("IO error committing Transbank transaction", e);
-            throw new RuntimeException("Failed to confirm Transbank payment: " + e.getMessage(), e);
+            throw new PaymentProviderException(
+                "Connection error with Transbank payment service",
+                "TRANSBANK",
+                e.getMessage(),
+                e
+            );
         }
     }
 
@@ -282,10 +306,20 @@ public class TransbankPaymentService implements PaymentProviderService {
 
         } catch (TransactionStatusException e) {
             log.error("Error getting Transbank transaction status", e);
-            throw new RuntimeException("Failed to get Transbank payment status: " + e.getMessage(), e);
+            throw new PaymentProviderException(
+                "Failed to get payment status from Transbank",
+                "TRANSBANK",
+                e.getMessage(),
+                e
+            );
         } catch (java.io.IOException e) {
             log.error("IO error getting Transbank transaction status", e);
-            throw new RuntimeException("Failed to get Transbank payment status: " + e.getMessage(), e);
+            throw new PaymentProviderException(
+                "Connection error with Transbank payment service",
+                "TRANSBANK",
+                e.getMessage(),
+                e
+            );
         }
     }
 
@@ -331,7 +365,11 @@ public class TransbankPaymentService implements PaymentProviderService {
 
         } catch (Exception e) {
             log.error("Error refunding Transbank payment", e);
-            throw new RuntimeException("Failed to refund Transbank payment: " + e.getMessage(), e);
+            throw new RefundException(
+                "Failed to refund payment via Transbank",
+                e.getMessage(),
+                e
+            );
         }
     }
 

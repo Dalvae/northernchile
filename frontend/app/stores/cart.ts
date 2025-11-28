@@ -19,6 +19,9 @@ interface CartItem {
 interface Cart {
   cartId: string | null
   items: CartItem[]
+  subtotal: number
+  taxAmount: number
+  taxRate: number
   cartTotal: number
 }
 
@@ -32,6 +35,9 @@ export const useCartStore = defineStore('cart', () => {
   const defaultCart: Cart = {
     cartId: null,
     items: [],
+    subtotal: 0,
+    taxAmount: 0,
+    taxRate: 0.19,
     cartTotal: 0
   }
 
@@ -183,6 +189,9 @@ export const useCartStore = defineStore('cart', () => {
     cart.value = {
       cartId: null,
       items: [],
+      subtotal: 0,
+      taxAmount: 0,
+      taxRate: 0.19,
       cartTotal: 0
     }
   }
