@@ -47,19 +47,6 @@
           <div class="hidden md:flex items-center gap-3">
             <LanguageSwitcher />
 
-            <ClientOnly>
-              <ThemeSwitcher />
-              <template #fallback>
-                <UButton
-                  color="neutral"
-                  variant="ghost"
-                  icon="i-lucide-swatch-book"
-                  class="hover:bg-white/10 opacity-70"
-                  disabled
-                />
-              </template>
-            </ClientOnly>
-
             <UButton
               :to="localePath('/cart')"
               variant="ghost"

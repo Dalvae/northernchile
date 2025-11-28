@@ -34,8 +34,6 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(credentials: { email: string, password: string }) {
       this.loading = true
-      const { showErrorToast, showSuccessToast, isAuthError } = useApiError()
-      const { t } = useI18n()
 
       try {
         const config = useRuntimeConfig()
@@ -59,18 +57,8 @@ export const useAuthStore = defineStore('auth', {
             phoneNumber: response.user.phoneNumber,
             dateOfBirth: response.user.dateOfBirth
           }
-
-          showSuccessToast(
-            t('auth.welcome', '¡Bienvenido!'),
-            t('auth.login_success', 'Has iniciado sesión correctamente.')
-          )
         }
       } catch (error) {
-        if (isAuthError(error)) {
-          showErrorToast(error, t('auth.invalid_credentials', 'Credenciales inválidas'))
-        } else {
-          showErrorToast(error, t('auth.login_error', 'Error de autenticación'))
-        }
         throw error
       } finally {
         this.loading = false
@@ -85,8 +73,6 @@ export const useAuthStore = defineStore('auth', {
       nationality?: string | null
     }) {
       this.loading = true
-      const { showErrorToast, showSuccessToast, isStatusCode } = useApiError()
-      const { t } = useI18n()
 
       try {
         const config = useRuntimeConfig()
@@ -98,17 +84,7 @@ export const useAuthStore = defineStore('auth', {
             'Content-Type': 'application/json'
           }
         })
-
-        showSuccessToast(
-          t('auth.register_success', 'Registro Exitoso'),
-          t('auth.register_success_description', 'Tu cuenta ha sido creada. Ahora puedes iniciar sesión.')
-        )
       } catch (error) {
-        if (isStatusCode(error, 409)) {
-          showErrorToast(error, t('auth.email_in_use', 'El correo electrónico ya está en uso'))
-        } else {
-          showErrorToast(error, t('auth.register_error', 'Error de registro'))
-        }
         throw error
       } finally {
         this.loading = false

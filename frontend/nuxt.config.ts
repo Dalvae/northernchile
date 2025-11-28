@@ -44,6 +44,14 @@ export default defineNuxtConfig({
     }
   },
 
+  colorMode: {
+    preference: 'dark',
+    fallback: 'dark',
+    dataValue: 'dark',
+    storageKey: 'nuxt-color-mode',
+    classSuffix: ''
+  },
+
   runtimeConfig: {
     public: {
       apiBase: apiBaseUrl,

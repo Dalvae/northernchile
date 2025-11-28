@@ -11,10 +11,9 @@ const emit = defineEmits<{
 
 const { t, locales, locale: currentLocale } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
+const localePath = useLocalePath()
 const authStore = useAuthStore()
 const cartStore = useCartStore()
-const localePath = useLocalePath()
-const { themes, setTheme, currentTheme } = useTheme()
 
 const cartItemsCount = computed(() => cartStore.totalItems)
 const isAdmin = computed(() => authStore.isAdmin)
@@ -23,11 +22,6 @@ const accordionItems = [
   {
     label: t('nav.language'),
     slot: 'language',
-    defaultOpen: false
-  },
-  {
-    label: t('nav.theme'),
-    slot: 'theme',
     defaultOpen: false
   }
 ]
@@ -39,14 +33,6 @@ function handleClose() {
 async function handleLogout() {
   handleClose()
   await authStore.logout()
-}
-
-function formatThemeName(theme: string) {
-  return theme
-    .replace('atacama-', '')
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
 }
 </script>
 
@@ -135,7 +121,7 @@ function formatThemeName(theme: string) {
               <NuxtLink
                 v-for="loc in locales"
                 :key="loc.code"
-                :to="switchLocalePath(loc.code)"
+                :to="switchLocalePath(loc.code) || '/'"
                 class="flex items-center justify-between py-2 px-4 rounded-lg transition-colors"
                 :class="
                   currentLocale === loc.code
@@ -151,37 +137,6 @@ function formatThemeName(theme: string) {
                   class="w-5 h-5"
                 />
               </NuxtLink>
-            </div>
-          </template>
-
-          <!-- Contenido: Tema -->
-          <template #theme>
-            <div class="pb-5 pl-4 space-y-2">
-              <ClientOnly>
-                <button
-                  v-for="theme in themes"
-                  :key="theme"
-                  class="w-full flex items-center justify-between py-2 px-4 rounded-lg transition-colors text-left"
-                  :class="
-                    currentTheme === theme
-                      ? 'bg-primary-500/10 text-primary-400'
-                      : 'text-neutral-400 hover:text-white hover:bg-white/5'
-                  "
-                  @click="setTheme(theme)"
-                >
-                  <span class="text-lg">{{ formatThemeName(theme) }}</span>
-                  <UIcon
-                    v-if="currentTheme === theme"
-                    name="i-lucide-check"
-                    class="w-5 h-5"
-                  />
-                </button>
-                <template #fallback>
-                  <div class="py-2 px-4 text-neutral-500">
-                    Cargando...
-                  </div>
-                </template>
-              </ClientOnly>
             </div>
           </template>
         </UAccordion>
