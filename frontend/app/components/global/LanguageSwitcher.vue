@@ -10,15 +10,24 @@
   </UDropdownMenu>
 </template>
 
-<script setup>
-const { locales } = useI18n()
+<script setup lang="ts">
+const { locales, setLocale } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
 
 const items = computed(() => {
-  const menuItems = locales.value.map(l => ({
-    label: l.name,
-    to: switchLocalePath(l.code)
-  }))
+  const menuItems = locales.value.map((l) => {
+    const path = switchLocalePath(l.code)
+    if (path && typeof path === 'string' && !path.includes('undefined')) {
+      return {
+        label: l.name,
+        to: path
+      }
+    }
+    return {
+      label: l.name,
+      onClick: () => setLocale(l.code)
+    }
+  })
   return [menuItems]
 })
 </script>

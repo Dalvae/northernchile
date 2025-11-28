@@ -2,29 +2,33 @@ import { useAuthStore } from '~/stores/auth'
 
 export default defineNuxtRouteMiddleware(async (to) => {
   // Solo aplicar a rutas que empiecen con /admin
-  if (to.path.startsWith('/admin')) {
-    const authStore = useAuthStore()
+  if (!to.path.startsWith('/admin')) {
+    return
+  }
 
-    // Si el store de autenticación está cargando, no hacer nada y esperar.
-    if (authStore.loading) {
-      return
-    }
+  const authStore = useAuthStore()
 
-    // Verificar autenticación
-    if (!authStore.isAuthenticated) {
-      return navigateTo('/auth')
-    }
+  // Esperar a que la autenticación se inicialice (solo en cliente)
+  if (import.meta.client && authStore.loading) {
+    await new Promise<void>((resolve) => {
+      const checkLoading = () => {
+        if (!authStore.loading) {
+          resolve()
+        } else {
+          setTimeout(checkLoading, 50)
+        }
+      }
+      checkLoading()
+    })
+  }
 
-    // Verificar rol de admin usando el getter isAdmin
-    if (!authStore.isAdmin) {
-      return navigateTo('/')
-    }
+  // Verificar autenticación
+  if (!authStore.isAuthenticated) {
+    return navigateTo('/auth')
+  }
 
-    // Specific check for /admin/users, if needed, can be re-added here
-    // if (to.path === '/admin/users') {
-    //   if (!authStore.user?.role.includes("ROLE_SUPER_ADMIN")) {
-    //     return navigateTo("/");
-    //   }
-    // }
+  // Verificar rol de admin usando el getter isAdmin
+  if (!authStore.isAdmin) {
+    return navigateTo('/')
   }
 })

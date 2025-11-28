@@ -14,7 +14,8 @@ interface User {
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null as User | null,
-    loading: true
+    loading: true,
+    initialized: false
   }),
 
   getters: {
@@ -163,24 +164,34 @@ export const useAuthStore = defineStore('auth', {
             authProvider: response.authProvider
           }
         }
-      } catch (error) {
-        console.error('[Auth] Error fetching user profile:', error)
-        // If fetch fails (e.g., 401), clear user state
+      } catch (error: unknown) {
+        // 401/403 are expected when not authenticated - don't log as error
+        const status = (error as { statusCode?: number })?.statusCode
+          || (error as { response?: { status?: number } })?.response?.status
+        if (status !== 401 && status !== 403) {
+          console.error('[Auth] Error fetching user profile:', error)
+        }
         this.user = null
       }
     },
 
     // Initialize auth by fetching user from backend (cookie-based)
     async initializeAuth() {
+      // Prevent multiple initializations
+      if (this.initialized) {
+        return
+      }
+
       this.loading = true
       try {
         // Try to fetch user profile - if cookie exists, backend will authenticate
         await this.fetchUser()
-      } catch (error) {
-        console.error('[Auth] Error in initializeAuth:', error)
+      } catch {
+        // Errors are already handled in fetchUser
         this.user = null
       } finally {
         this.loading = false
+        this.initialized = true
       }
     }
   }
