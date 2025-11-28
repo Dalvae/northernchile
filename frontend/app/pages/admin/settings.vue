@@ -8,7 +8,7 @@ useHead({
 })
 
 const toast = useToast()
-const { fetchAdminSettings, updateAdminSettings } = useAdminData()
+const { fetchAdminSettings } = useAdminData()
 
 const { data: settings, pending, error, refresh } = await useAsyncData(
   'system-settings',
@@ -31,86 +31,6 @@ const { data: settings, pending, error, refresh } = await useAsyncData(
     lazy: true
   }
 )
-
-// Form state - debe coincidir con la estructura del API
-const settingsForm = ref<any>({
-  weatherAlerts: {
-    windThreshold: 25,
-    cloudCoverThreshold: 80,
-    rainProbabilityThreshold: 50,
-    checkFrequency: 3
-  },
-  bookingSettings: {
-    cancellationWindowHours: 24,
-    maxAdvanceBookingDays: 90,
-    minAdvanceBookingHours: 2,
-    autoConfirmBookings: false
-  },
-  astronomicalTours: {
-    moonIlluminationThreshold: 90,
-    autoBlockFullMoon: true,
-    scheduleGenerationDaysAhead: 90
-  },
-  notifications: {
-    emailEnabled: true,
-    smsEnabled: false,
-    sendBookingConfirmation: true,
-    sendCancellationNotice: true,
-    sendWeatherAlerts: true
-  },
-  payments: {
-    mockPaymentMode: false,
-    currency: 'CLP',
-    taxRate: 19,
-    depositPercentage: 0
-  }
-})
-
-// Initialize form when settings load
-watch(settings, (newSettings) => {
-  if (newSettings) {
-    settingsForm.value = JSON.parse(JSON.stringify(newSettings))
-  }
-}, { immediate: true })
-
-// Save settings
-const saving = ref(false)
-const saveSettings = async () => {
-  try {
-    saving.value = true
-
-    await updateAdminSettings(settingsForm.value)
-
-    toast.add({
-      color: 'success',
-      title: 'Configuración guardada',
-      description: 'Las configuraciones se han actualizado correctamente'
-    })
-
-    await refresh()
-  } catch (err) {
-    console.error('Error saving settings:', err)
-    toast.add({
-      color: 'error',
-      title: 'Error',
-      description: 'No se pudieron guardar las configuraciones'
-    })
-  } finally {
-    saving.value = false
-  }
-}
-
-// Reset to defaults
-const resetSettings = () => {
-  if (settings.value) {
-    settingsForm.value = JSON.parse(JSON.stringify(settings.value))
-    toast.add({
-      color: 'info',
-      title: 'Cambios descartados',
-      description: 'Se han restaurado las configuraciones guardadas'
-    })
-  }
-}
 </script>
 
 <template>
@@ -121,7 +41,7 @@ const resetSettings = () => {
         Configuración del Sistema
       </h1>
       <p class="text-sm text-muted mt-1">
-        Ajusta los parámetros operacionales del sistema
+        Vista de solo lectura de la configuración actual del sistema
       </p>
     </div>
 
@@ -158,9 +78,9 @@ const resetSettings = () => {
       </UButton>
     </div>
 
-    <!-- Settings Form -->
+    <!-- Settings Display -->
     <div
-      v-else-if="settingsForm"
+      v-else-if="settings"
       class="space-y-6"
     >
       <!-- Weather Alerts -->
@@ -180,9 +100,10 @@ const resetSettings = () => {
               Umbral de Viento (nudos)
             </label>
             <UInput
-              v-model.number="settingsForm.weatherAlerts.windThreshold"
+              :model-value="settings.weatherAlerts.windThreshold"
               type="number"
               size="lg"
+              disabled
             />
             <p class="text-xs text-muted mt-1">
               Se genera alerta si el viento supera este valor
@@ -193,9 +114,10 @@ const resetSettings = () => {
               Umbral de Cobertura Nubosa (%)
             </label>
             <UInput
-              v-model.number="settingsForm.weatherAlerts.cloudCoverThreshold"
+              :model-value="settings.weatherAlerts.cloudCoverThreshold"
               type="number"
               size="lg"
+              disabled
             />
             <p class="text-xs text-muted mt-1">
               Se genera alerta si las nubes superan este porcentaje
@@ -206,9 +128,10 @@ const resetSettings = () => {
               Umbral de Probabilidad de Lluvia (%)
             </label>
             <UInput
-              v-model.number="settingsForm.weatherAlerts.rainProbabilityThreshold"
+              :model-value="settings.weatherAlerts.rainProbabilityThreshold"
               type="number"
               size="lg"
+              disabled
             />
           </div>
           <div>
@@ -216,9 +139,10 @@ const resetSettings = () => {
               Frecuencia de Verificación (horas)
             </label>
             <UInput
-              v-model.number="settingsForm.weatherAlerts.checkFrequency"
+              :model-value="settings.weatherAlerts.checkFrequency"
               type="number"
               size="lg"
+              disabled
             />
           </div>
         </div>
@@ -241,9 +165,10 @@ const resetSettings = () => {
               Ventana de Cancelación (horas)
             </label>
             <UInput
-              v-model.number="settingsForm.bookingSettings.cancellationWindowHours"
+              :model-value="settings.bookingSettings.cancellationWindowHours"
               type="number"
               size="lg"
+              disabled
             />
             <p class="text-xs text-muted mt-1">
               Horas antes del tour para permitir cancelación
@@ -254,9 +179,10 @@ const resetSettings = () => {
               Reserva Máxima Adelantada (días)
             </label>
             <UInput
-              v-model.number="settingsForm.bookingSettings.maxAdvanceBookingDays"
+              :model-value="settings.bookingSettings.maxAdvanceBookingDays"
               type="number"
               size="lg"
+              disabled
             />
           </div>
           <div>
@@ -264,9 +190,10 @@ const resetSettings = () => {
               Anticipación Mínima (horas)
             </label>
             <UInput
-              v-model.number="settingsForm.bookingSettings.minAdvanceBookingHours"
+              :model-value="settings.bookingSettings.minAdvanceBookingHours"
               type="number"
               size="lg"
+              disabled
             />
             <p class="text-xs text-muted mt-1">
               Horas mínimas de anticipación para reservar
@@ -274,8 +201,9 @@ const resetSettings = () => {
           </div>
           <div class="flex items-center gap-3">
             <UCheckbox
-              v-model="settingsForm.bookingSettings.autoConfirmBookings"
+              :model-value="settings.bookingSettings.autoConfirmBookings"
               label="Confirmar reservas automáticamente"
+              disabled
             />
           </div>
         </div>
@@ -298,9 +226,10 @@ const resetSettings = () => {
               Umbral de Iluminación Lunar (%)
             </label>
             <UInput
-              v-model.number="settingsForm.astronomicalTours.moonIlluminationThreshold"
+              :model-value="settings.astronomicalTours.moonIlluminationThreshold"
               type="number"
               size="lg"
+              disabled
             />
             <p class="text-xs text-muted mt-1">
               No se crean tours astronómicos si supera este valor
@@ -311,15 +240,17 @@ const resetSettings = () => {
               Días de Generación Adelantada
             </label>
             <UInput
-              v-model.number="settingsForm.astronomicalTours.scheduleGenerationDaysAhead"
+              :model-value="settings.astronomicalTours.scheduleGenerationDaysAhead"
               type="number"
               size="lg"
+              disabled
             />
           </div>
           <div class="flex items-center gap-3">
             <UCheckbox
-              v-model="settingsForm.astronomicalTours.autoBlockFullMoon"
+              :model-value="settings.astronomicalTours.autoBlockFullMoon"
               label="Bloquear automáticamente durante luna llena"
+              disabled
             />
           </div>
         </div>
@@ -339,32 +270,37 @@ const resetSettings = () => {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex items-center gap-3">
             <UCheckbox
-              v-model="settingsForm.notifications.emailEnabled"
+              :model-value="settings.notifications.emailEnabled"
               label="Notificaciones por Email habilitadas"
+              disabled
             />
           </div>
           <div class="flex items-center gap-3">
             <UCheckbox
-              v-model="settingsForm.notifications.smsEnabled"
+              :model-value="settings.notifications.smsEnabled"
               label="Notificaciones por SMS habilitadas"
+              disabled
             />
           </div>
           <div class="flex items-center gap-3">
             <UCheckbox
-              v-model="settingsForm.notifications.sendBookingConfirmation"
+              :model-value="settings.notifications.sendBookingConfirmation"
               label="Enviar confirmación de reserva"
+              disabled
             />
           </div>
           <div class="flex items-center gap-3">
             <UCheckbox
-              v-model="settingsForm.notifications.sendCancellationNotice"
+              :model-value="settings.notifications.sendCancellationNotice"
               label="Enviar aviso de cancelación"
+              disabled
             />
           </div>
           <div class="flex items-center gap-3">
             <UCheckbox
-              v-model="settingsForm.notifications.sendWeatherAlerts"
+              :model-value="settings.notifications.sendWeatherAlerts"
               label="Enviar alertas climáticas"
+              disabled
             />
           </div>
         </div>
@@ -384,8 +320,9 @@ const resetSettings = () => {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex items-center gap-3">
             <UCheckbox
-              v-model="settingsForm.payments.mockPaymentMode"
+              :model-value="settings.payments.mockPaymentMode"
               label="Modo de pago simulado (para pruebas)"
+              disabled
             />
           </div>
           <div>
@@ -393,7 +330,7 @@ const resetSettings = () => {
               Moneda
             </label>
             <UInput
-              v-model="settingsForm.payments.currency"
+              :model-value="settings.payments.currency"
               size="lg"
               disabled
             />
@@ -403,9 +340,10 @@ const resetSettings = () => {
               Tasa de Impuesto (%)
             </label>
             <UInput
-              v-model.number="settingsForm.payments.taxRate"
+              :model-value="settings.payments.taxRate"
               type="number"
               size="lg"
+              disabled
             />
             <p class="text-xs text-muted mt-1">
               IVA aplicado a todas las reservas
@@ -416,9 +354,10 @@ const resetSettings = () => {
               Depósito Inicial (%)
             </label>
             <UInput
-              v-model.number="settingsForm.payments.depositPercentage"
+              :model-value="settings.payments.depositPercentage"
               type="number"
               size="lg"
+              disabled
             />
             <p class="text-xs text-muted mt-1">
               Porcentaje a pagar al momento de reservar (0 = pago completo)
@@ -427,41 +366,21 @@ const resetSettings = () => {
         </div>
       </div>
 
-      <!-- Actions -->
-      <div class="flex justify-end gap-3">
-        <UButton
-          color="neutral"
-          variant="ghost"
-          icon="i-lucide-rotate-ccw"
-          @click="resetSettings"
-        >
-          Descartar Cambios
-        </UButton>
-        <UButton
-          color="primary"
-          icon="i-lucide-save"
-          :loading="saving"
-          @click="saveSettings"
-        >
-          Guardar Configuración
-        </UButton>
-      </div>
-
-      <!-- Warning Notice -->
-      <div class="bg-warning/10 border border-warning/20 rounded-lg p-4">
+      <!-- Info Notice -->
+      <div class="bg-info/10 border border-info/20 rounded-lg p-4">
         <div class="flex gap-3">
           <UIcon
-            name="i-lucide-alert-triangle"
-            class="w-5 h-5 text-warning flex-shrink-0 mt-0.5"
+            name="i-lucide-info"
+            class="w-5 h-5 text-info flex-shrink-0 mt-0.5"
           />
           <div>
-            <p class="text-sm font-medium text-warning mb-1">
-              Nota de Implementación
+            <p class="text-sm font-medium text-info mb-1">
+              Configuración del Sistema
             </p>
             <p class="text-sm text-default">
-              Esta es una interfaz básica de configuración. En producción, estos valores deberían persistirse en base de datos
-              y aplicarse dinámicamente en el sistema. Actualmente, algunas configuraciones requieren reiniciar la aplicación
-              para tener efecto completo.
+              Esta página muestra la configuración actual del sistema. Los valores se configuran mediante variables de entorno
+              y archivos de configuración del backend. Para modificar estos valores, edita el archivo <code class="bg-neutral-100 dark:bg-neutral-800 px-1 rounded">.env</code>
+              y reinicia la aplicación.
             </p>
           </div>
         </div>

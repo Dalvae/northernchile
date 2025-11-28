@@ -9,8 +9,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { t, locales, locale: currentLocale } = useI18n()
-const switchLocalePath = useSwitchLocalePath()
+const { t, locales, locale: currentLocale, setLocale } = useI18n()
 const localePath = useLocalePath()
 const authStore = useAuthStore()
 const cartStore = useCartStore()
@@ -118,17 +117,16 @@ async function handleLogout() {
           <!-- Contenido: Idioma -->
           <template #language>
             <div class="pb-5 pl-4 space-y-2">
-              <NuxtLink
+              <button
                 v-for="loc in locales"
                 :key="loc.code"
-                :to="switchLocalePath(loc.code) || '/'"
-                class="flex items-center justify-between py-2 px-4 rounded-lg transition-colors"
+                class="flex items-center justify-between py-2 px-4 rounded-lg transition-colors w-full"
                 :class="
                   currentLocale === loc.code
                     ? 'bg-primary-500/10 text-primary-400'
                     : 'text-neutral-400 hover:text-white hover:bg-white/5'
                 "
-                @click="handleClose"
+                @click="() => { setLocale(loc.code); handleClose(); }"
               >
                 <span class="text-lg">{{ loc.name }}</span>
                 <UIcon
@@ -136,7 +134,7 @@ async function handleLogout() {
                   name="i-lucide-check"
                   class="w-5 h-5"
                 />
-              </NuxtLink>
+              </button>
             </div>
           </template>
         </UAccordion>

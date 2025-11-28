@@ -11,14 +11,13 @@
 </template>
 
 <script setup lang="ts">
-const { locales } = useI18n()
-const switchLocalePath = useSwitchLocalePath()
+const { locale, locales, setLocale } = useI18n()
 
 const items = computed(() => {
   const menuItems = locales.value.map((l) => {
     return {
       label: l.name,
-      to: switchLocalePath(l.code) || '/'
+      onSelect: () => setLocale(l.code)
     }
   })
   return [menuItems]

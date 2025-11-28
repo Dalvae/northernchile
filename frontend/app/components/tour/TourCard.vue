@@ -171,7 +171,7 @@ const props = withDefaults(defineProps<{
 })
 
 const localePath = useLocalePath()
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 const { formatPrice } = useCurrency()
 
 const linkTo = computed(() => localePath(`/tours/${props.tour.slug || props.tour.id}`))
@@ -214,7 +214,7 @@ const categoryColor = computed((): BadgeColor => {
 })
 
 const categoryLabel = computed(() =>
-  (useI18n().t(`tours.category.${props.tour.category}`, props.tour.category || 'REGULAR') as string)
+  (t(`tours.category.${props.tour.category}`, props.tour.category || 'REGULAR') as string)
 )
 
 const isLCP = computed(() => (props.index ?? 10) < 2)
