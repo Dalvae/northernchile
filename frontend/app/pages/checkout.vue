@@ -303,21 +303,26 @@ async function submitBooking() {
     })
 
     // Step 4: Handle payment flow based on method
-    if (selectedPaymentMethod.value.method === PaymentMethod.WEBPAY) {
-      // Transbank: Redirect to payment URL
+    if (selectedPaymentMethod.value.method === PaymentMethod.WEBPAY ||
+        selectedPaymentMethod.value.method === PaymentMethod.CREDIT_CARD) {
+      // Redirect-based payments: Transbank Webpay or MercadoPago Checkout Pro
       if (paymentResult.paymentUrl) {
+        const providerName = selectedPaymentMethod.value.method === PaymentMethod.WEBPAY
+          ? 'Transbank'
+          : 'MercadoPago'
+
         toast.add({
           color: 'success',
           title: t('checkout.toast.redirecting_payment'),
-          description: t('checkout.toast.redirecting_transbank')
+          description: t('checkout.toast.redirecting_provider', { provider: providerName })
         })
 
-        // Redirect to Transbank with a slight delay for better UX
+        // Redirect to payment provider with a slight delay for better UX
         setTimeout(() => {
           window.location.href = paymentResult.paymentUrl!
         }, 1500)
       } else {
-        throw new Error('No payment URL received from Transbank')
+        throw new Error('No payment URL received from payment provider')
       }
     } else if (selectedPaymentMethod.value.method === PaymentMethod.PIX) {
       // PIX: Show QR code modal

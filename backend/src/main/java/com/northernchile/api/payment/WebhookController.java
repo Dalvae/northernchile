@@ -43,38 +43,48 @@ public class WebhookController {
     })
     public ResponseEntity<Map<String, String>> handleMercadoPagoWebhook(
             @RequestBody String rawBody,
-            @RequestHeader(value = "x-signature", required = false) String signature,
+            @RequestHeader(value = "x-signature", required = false) String xSignature,
             @RequestHeader(value = "x-request-id", required = false) String requestId) {
 
         log.info("Received Mercado Pago webhook with request ID: {}", requestId);
 
         try {
-            // 1. Verify signature
-            if (signature != null && !webhookSecurityService.verifyMercadoPagoSignature(rawBody, signature)) {
+            // 1. Parse payload first to extract data.id for signature verification
+            @SuppressWarnings("unchecked")
+            Map<String, Object> payload = new com.fasterxml.jackson.databind.ObjectMapper().readValue(rawBody, Map.class);
+
+            // 2. Extract data.id from payload for signature verification
+            String dataId = null;
+            Object dataObj = payload.get("data");
+            if (dataObj instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> data = (Map<String, Object>) dataObj;
+                Object id = data.get("id");
+                if (id != null) {
+                    dataId = id.toString();
+                }
+            }
+
+            // 3. Verify signature using the correct method with data.id, request-id, and x-signature
+            if (!webhookSecurityService.verifyMercadoPagoSignature(dataId, requestId, xSignature)) {
                 log.error("Mercado Pago webhook signature verification failed");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid signature"));
             }
 
-            // 2. Check for duplicate requests
+            // 4. Check for duplicate requests
             if (requestId != null && webhookSecurityService.isDuplicateRequest(requestId)) {
                 log.warn("Duplicate Mercado Pago webhook request detected: {}", requestId);
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of("error", "Duplicate request"));
             }
 
-            // 3. Parse payload
-            @SuppressWarnings("unchecked")
-            Map<String, Object> payload = new com.fasterxml.jackson.databind.ObjectMapper().readValue(rawBody, Map.class);
-
-            // 4. Validate timestamp (if present in payload)
-            Object dataObj = payload.get("data");
+            // 5. Validate timestamp (if present in payload)
             if (dataObj instanceof Map) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> data = (Map<String, Object>) dataObj;
                 Object dateCreated = data.get("date_created");
                 if (dateCreated != null) {
-                    // Mercado Pago sends ISO timestamp, convert to epoch seconds for validation
                     try {
                         Instant timestamp = Instant.parse(dateCreated.toString());
                         if (!webhookSecurityService.isValidTimestamp(timestamp.getEpochSecond())) {
@@ -88,11 +98,11 @@ public class WebhookController {
                 }
             }
 
-            // 5. Process webhook
+            // 6. Process webhook
             PaymentStatusRes response = paymentService.processWebhook("MERCADOPAGO", payload);
             log.info("Mercado Pago webhook processed successfully: {}", response.getPaymentId());
 
-            // 6. Mark request as processed
+            // 7. Mark request as processed
             if (requestId != null) {
                 webhookSecurityService.markRequestAsProcessed(requestId);
             }

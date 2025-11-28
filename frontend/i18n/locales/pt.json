@@ -131,6 +131,10 @@
     "participant_details": "Dados dos Participantes",
     "payment": "Pagamento",
     "confirmation": "Confirmação",
+    "tour_info": "Informações do Tour",
+    "date": "Data",
+    "status_label": "Status",
+    "payment_summary": "Resumo do Pagamento",
     "adults": "Adultos",
     "children": "Crianças",
     "participant": "Participante {number}",
@@ -240,6 +244,13 @@
     "download": "Baixar",
     "download_coming_soon": "Em breve",
     "download_coming_soon_description": "O download da reserva em PDF estará disponível em breve.",
+    "booking_confirmation": "Confirmação de Reserva",
+    "pdf_footer_contact": "Para dúvidas, entre em contato pelo info{'@'}northernchiletours.com",
+    "pdf_footer_thanks": "Obrigado por reservar com Northern Chile Tours!",
+    "pdf_download_success": "PDF baixado",
+    "pdf_download_success_description": "O comprovante da sua reserva foi baixado.",
+    "pdf_download_error": "Erro ao gerar PDF",
+    "pdf_download_error_description": "Não foi possível gerar o PDF. Tente novamente.",
     "edit": "Editar",
     "email_cannot_change": "O email não pode ser alterado",
     "current_password": "Senha Atual",
@@ -571,7 +582,8 @@
       "credit_card": {
         "name": "Cartão de Crédito Internacional",
         "description": "Visa, Mastercard, American Express",
-        "countries": "Internacional"
+        "countries": "Internacional",
+        "info": "Você será redirecionado ao MercadoPago para completar o pagamento de forma segura."
       }
     },
     "pix": {
@@ -631,7 +643,9 @@
       "reason_user_cancelled": "Você cancelou o pagamento manualmente",
       "support_message": "Se você precisa de ajuda, entre em contato e iremos ajudá-lo com sua reserva",
       "try_again_button": "Tentar Novamente",
-      "back_to_cart_button": "Voltar ao Carrinho"
+      "back_to_cart_button": "Voltar ao Carrinho",
+      "pending_title": "Pagamento em processamento",
+      "pending_description": "Seu pagamento está sendo processado. Notificaremos você quando for confirmado."
     }
   },
   "schedule": {
@@ -782,6 +796,7 @@
       "preparing_payment": "Preparando gateway de pagamento seguro...",
       "redirecting_payment": "Redirecionando para ambiente seguro...",
       "redirecting_transbank": "Estamos levando você ao gateway de pagamento do Transbank. Não feche esta janela.",
+      "redirecting_provider": "Estamos levando você ao gateway de pagamento do {provider}. Não feche esta janela.",
       "account_exists": "Você já tem uma conta. Por favor, faça login."
     },
     "errors": {

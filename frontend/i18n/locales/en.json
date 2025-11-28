@@ -131,6 +131,10 @@
     "participant_details": "Participant Details",
     "payment": "Payment",
     "confirmation": "Confirmation",
+    "tour_info": "Tour Information",
+    "date": "Date",
+    "status_label": "Status",
+    "payment_summary": "Payment Summary",
     "adults": "Adults",
     "children": "Children",
     "participant": "Participant {number}",
@@ -240,6 +244,13 @@
     "download": "Download",
     "download_coming_soon": "Coming Soon",
     "download_coming_soon_description": "PDF booking download will be available soon.",
+    "booking_confirmation": "Booking Confirmation",
+    "pdf_footer_contact": "For inquiries, contact us at info{'@'}northernchiletours.com",
+    "pdf_footer_thanks": "Thank you for booking with Northern Chile Tours!",
+    "pdf_download_success": "PDF downloaded",
+    "pdf_download_success_description": "Your booking voucher has been downloaded.",
+    "pdf_download_error": "Error generating PDF",
+    "pdf_download_error_description": "Could not generate PDF. Please try again.",
     "edit": "Edit",
     "email_cannot_change": "Email cannot be changed",
     "current_password": "Current Password",
@@ -571,7 +582,8 @@
       "credit_card": {
         "name": "International Credit Card",
         "description": "Visa, Mastercard, American Express",
-        "countries": "International"
+        "countries": "International",
+        "info": "You will be redirected to MercadoPago to complete the payment securely."
       }
     },
     "pix": {
@@ -631,7 +643,9 @@
       "reason_user_cancelled": "You cancelled the payment manually",
       "support_message": "If you need help, contact us and we'll assist you with your booking",
       "try_again_button": "Try Again",
-      "back_to_cart_button": "Back to Cart"
+      "back_to_cart_button": "Back to Cart",
+      "pending_title": "Payment in progress",
+      "pending_description": "Your payment is being processed. We'll notify you when it's confirmed."
     }
   },
   "schedule": {
@@ -782,6 +796,7 @@
       "preparing_payment": "Preparing secure payment gateway...",
       "redirecting_payment": "Redirecting to secure environment...",
       "redirecting_transbank": "We are taking you to the Transbank payment gateway. Do not close this window.",
+      "redirecting_provider": "We are taking you to the {provider} payment gateway. Do not close this window.",
       "account_exists": "You already have an account. Please log in."
     },
     "errors": {

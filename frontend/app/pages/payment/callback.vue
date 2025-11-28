@@ -23,9 +23,15 @@ const paymentId = ref<string | null>(null)
 const bookingId = ref<string | null>(null)
 const errorMessage = ref<string | undefined>(undefined)
 
-// Check if success/error from query params
+// Check query params for different providers
 const queryStatus = route.query.status as string
 const tokenWs = route.query.token_ws as string
+
+// MercadoPago specific params
+const mpCollectionStatus = route.query.collection_status as string
+const mpPaymentId = route.query.payment_id as string
+const mpExternalReference = route.query.external_reference as string
+const mpPreferenceId = route.query.preference_id as string
 
 // Process payment callback on mount
 onMounted(async () => {
@@ -34,11 +40,15 @@ onMounted(async () => {
     if (tokenWs) {
       await handleTransbankCallback(tokenWs)
     }
-    // Case 2: Direct success/error from query
+    // Case 2: MercadoPago Checkout Pro redirect
+    else if (mpCollectionStatus || mpPaymentId) {
+      await handleMercadoPagoCallback()
+    }
+    // Case 3: Direct success/error from query (PIX polling success)
     else if (queryStatus) {
       handleDirectCallback()
     }
-    // Case 3: No valid params, redirect to home
+    // Case 4: No valid params, redirect to home
     else {
       toast.add({
         color: 'warning',
@@ -100,6 +110,69 @@ async function handleTransbankCallback(token: string) {
       title: t('payment.error.title'),
       description: errorMessage.value
     })
+  }
+}
+
+async function handleMercadoPagoCallback() {
+  try {
+    // Map MercadoPago status to our PaymentStatus
+    const statusMap: Record<string, PaymentStatus> = {
+      approved: PaymentStatus.COMPLETED,
+      pending: PaymentStatus.PENDING,
+      in_process: PaymentStatus.PROCESSING,
+      rejected: PaymentStatus.FAILED,
+      cancelled: PaymentStatus.CANCELLED,
+      refunded: PaymentStatus.REFUNDED,
+      null: PaymentStatus.PENDING
+    }
+
+    paymentStatus.value = statusMap[mpCollectionStatus] || PaymentStatus.PENDING
+    paymentId.value = mpPaymentId || mpPreferenceId || null
+    bookingId.value = mpExternalReference || route.query.bookingId as string || null
+
+    if (paymentStatus.value === PaymentStatus.COMPLETED) {
+      // Google Analytics: Track purchase event
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'purchase', {
+          transaction_id: paymentId.value || 'unknown',
+          value: 0,
+          currency: 'USD'
+        })
+      }
+
+      // Clear cart after successful payment
+      cartStore.clearCart()
+
+      toast.add({
+        color: 'success',
+        title: t('payment.success.title'),
+        description: t('payment.success.description')
+      })
+    } else if (paymentStatus.value === PaymentStatus.FAILED) {
+      errorMessage.value = t('payment.error.transaction_failed')
+      toast.add({
+        color: 'error',
+        title: t('payment.error.title'),
+        description: errorMessage.value
+      })
+    } else if (paymentStatus.value === PaymentStatus.CANCELLED) {
+      errorMessage.value = t('payment.error.cancelled_by_user')
+      toast.add({
+        color: 'warning',
+        title: t('payment.error.cancelled'),
+        description: errorMessage.value
+      })
+    } else if (paymentStatus.value === PaymentStatus.PENDING) {
+      toast.add({
+        color: 'info',
+        title: t('payment.callback.pending_title'),
+        description: t('payment.callback.pending_description')
+      })
+    }
+  } catch (error: any) {
+    console.error('Error handling MercadoPago callback:', error)
+    paymentStatus.value = PaymentStatus.FAILED
+    errorMessage.value = error.message || t('payment.error.confirmation_failed')
   }
 }
 

@@ -5,10 +5,17 @@ import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentCreateRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
 import com.mercadopago.client.payment.PaymentRefundClient;
+import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
+import com.mercadopago.client.preference.PreferenceClient;
+import com.mercadopago.client.preference.PreferenceItemRequest;
+import com.mercadopago.client.preference.PreferencePayerRequest;
+import com.mercadopago.client.preference.PreferencePaymentMethodsRequest;
+import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.payment.PaymentRefund;
+import com.mercadopago.resources.preference.Preference;
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.exception.PaymentDeclinedException;
 import com.northernchile.api.exception.PaymentProviderException;
@@ -28,9 +35,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -108,94 +116,14 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
             // Configure Mercado Pago SDK
             configureMercadoPago();
 
-            // Create payment request using trusted amount
-            PaymentCreateRequest paymentRequest = buildPaymentRequest(request, booking, trustedAmount);
-
-            // Create payment with Mercado Pago
-            PaymentClient client = new PaymentClient();
-            Payment mpPayment = client.create(paymentRequest);
-
-            // Create payment record
-            com.northernchile.api.payment.model.Payment payment = new com.northernchile.api.payment.model.Payment();
-            payment.setBooking(booking);
-            payment.setProvider(request.getProvider());
-            payment.setPaymentMethod(request.getPaymentMethod());
-            payment.setAmount(trustedAmount); // Use validated amount from booking(s)
-            payment.setCurrency(request.getCurrency() != null ? request.getCurrency() : "BRL");
-            payment.setExternalPaymentId(mpPayment.getId().toString());
-            payment.setStatus(mapMercadoPagoStatus(mpPayment.getStatus()));
-            payment.setTest(isTestMode()); // Mark as test if using TEST- credentials
-
-            // Set payment details based on payment method
-            if (request.getPaymentMethod() == PaymentMethod.PIX) {
-                // For PIX, store QR code and payment code
-                if (mpPayment.getPointOfInteraction() != null &&
-                    mpPayment.getPointOfInteraction().getTransactionData() != null) {
-                    String qrCodeBase64 = mpPayment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
-                    String qrCode = mpPayment.getPointOfInteraction().getTransactionData().getQrCode();
-
-                    // Convert base64 to data URI for frontend display
-                    String qrCodeDataUri = "data:image/png;base64," + qrCodeBase64;
-                    payment.setQrCode(qrCodeDataUri);
-                    payment.setPixCode(qrCode);
-                }
-
-                // Set expiration time (default 30 minutes for PIX)
-                int expirationMinutes = request.getExpirationMinutes() != null ?
-                    request.getExpirationMinutes() : 30;
-                payment.setExpiresAt(Instant.now().plus(expirationMinutes, ChronoUnit.MINUTES));
+            // Use Checkout Pro (Preferences) for credit/debit cards - user is redirected to MercadoPago
+            // Use Payment API for PIX - displays QR code inline
+            if (request.getPaymentMethod() == PaymentMethod.CREDIT_CARD ||
+                request.getPaymentMethod() == PaymentMethod.DEBIT_CARD) {
+                return createCheckoutProPayment(request, booking, trustedAmount);
+            } else {
+                return createDirectPayment(request, booking, trustedAmount);
             }
-
-            // Set payment URL (ticket URL for PIX or 3DS redirect)
-            if (mpPayment.getPointOfInteraction() != null) {
-                // Try to get ticket URL if available
-                String ticketUrl = null;
-                try {
-                    // The ticket_url is typically available in the main payment object
-                    if (mpPayment.getTransactionDetails() != null &&
-                        mpPayment.getTransactionDetails().getExternalResourceUrl() != null) {
-                        ticketUrl = mpPayment.getTransactionDetails().getExternalResourceUrl();
-                    }
-                } catch (Exception e) {
-                    log.debug("Could not retrieve ticket URL: {}", e.getMessage());
-                }
-                if (ticketUrl != null) {
-                    payment.setPaymentUrl(ticketUrl);
-                }
-            }
-
-            // Store provider response
-            Map<String, Object> providerResponse = new HashMap<>();
-            providerResponse.put("id", mpPayment.getId());
-            providerResponse.put("status", mpPayment.getStatus());
-            providerResponse.put("status_detail", mpPayment.getStatusDetail());
-            providerResponse.put("payment_type_id", mpPayment.getPaymentTypeId());
-
-            // Store additional booking IDs for multi-item cart checkout
-            if (request.getAdditionalBookingIds() != null && !request.getAdditionalBookingIds().isEmpty()) {
-                providerResponse.put("additionalBookingIds", request.getAdditionalBookingIds());
-                log.info("Payment includes {} additional bookings", request.getAdditionalBookingIds().size());
-            }
-
-            payment.setProviderResponse(providerResponse);
-
-            payment = paymentRepository.save(payment);
-
-            log.info("Mercado Pago payment created successfully: {} with external ID: {}",
-                payment.getId(), mpPayment.getId());
-
-            // Build response
-            PaymentInitRes response = new PaymentInitRes();
-            response.setPaymentId(payment.getId());
-            response.setStatus(payment.getStatus());
-            response.setPaymentUrl(payment.getPaymentUrl());
-            response.setQrCode(payment.getQrCode());
-            response.setPixCode(payment.getPixCode());
-            response.setExpiresAt(payment.getExpiresAt());
-            response.setTest(payment.isTest());
-            response.setMessage(getPaymentInstructions(request.getPaymentMethod(), payment));
-
-            return response;
 
         } catch (MPApiException e) {
             log.error("Mercado Pago API error: {} - {}", e.getApiResponse().getStatusCode(),
@@ -226,6 +154,203 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
                 e
             );
         }
+    }
+
+    /**
+     * Create a Checkout Pro payment (redirect to MercadoPago).
+     * Used for credit/debit cards - more secure as card data never touches our servers.
+     */
+    private PaymentInitRes createCheckoutProPayment(PaymentInitReq request, Booking booking, BigDecimal trustedAmount)
+            throws MPException, MPApiException {
+        log.info("Creating Checkout Pro preference for booking: {}", booking.getId());
+
+        // Build preference item
+        PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
+            .id(booking.getId().toString())
+            .title(request.getDescription() != null ? request.getDescription() : "Tour booking")
+            .description("Booking #" + booking.getId())
+            .quantity(1)
+            .currencyId(request.getCurrency() != null ? request.getCurrency() : "USD")
+            .unitPrice(trustedAmount)
+            .build();
+
+        List<PreferenceItemRequest> items = new ArrayList<>();
+        items.add(itemRequest);
+
+        // Build payer info
+        PreferencePayerRequest payerRequest = null;
+        if (request.getUserEmail() != null) {
+            payerRequest = PreferencePayerRequest.builder()
+                .email(request.getUserEmail())
+                .build();
+        }
+
+        // Build back URLs for redirect after payment
+        PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
+            .success(request.getReturnUrl())
+            .failure(request.getCancelUrl() != null ? request.getCancelUrl() : request.getReturnUrl())
+            .pending(request.getReturnUrl())
+            .build();
+
+        // Configure accepted payment methods based on request
+        PreferencePaymentMethodsRequest.PreferencePaymentMethodsRequestBuilder paymentMethodsBuilder = 
+            PreferencePaymentMethodsRequest.builder()
+            .installments(1); // Single payment only
+
+        // Build preference request
+        PreferenceRequest.PreferenceRequestBuilder preferenceBuilder = PreferenceRequest.builder()
+            .items(items)
+            .backUrls(backUrls)
+            .autoReturn("approved")
+            .externalReference(booking.getId().toString())
+            .notificationUrl(request.getReturnUrl()) // Webhook URL
+            .paymentMethods(paymentMethodsBuilder.build());
+
+        if (payerRequest != null) {
+            preferenceBuilder.payer(payerRequest);
+        }
+
+        // Create preference with MercadoPago
+        PreferenceClient preferenceClient = new PreferenceClient();
+        Preference preference = preferenceClient.create(preferenceBuilder.build());
+
+        log.info("Checkout Pro preference created: {}", preference.getId());
+
+        // Create payment record (status PENDING until user completes payment)
+        com.northernchile.api.payment.model.Payment payment = new com.northernchile.api.payment.model.Payment();
+        payment.setBooking(booking);
+        payment.setProvider(request.getProvider());
+        payment.setPaymentMethod(request.getPaymentMethod());
+        payment.setAmount(trustedAmount);
+        payment.setCurrency(request.getCurrency() != null ? request.getCurrency() : "USD");
+        payment.setExternalPaymentId(preference.getId()); // Store preference ID
+        payment.setStatus(PaymentStatus.PENDING);
+        payment.setTest(isTestMode());
+        
+        // Set the payment URL for redirect
+        String paymentUrl = isTestMode() ? preference.getSandboxInitPoint() : preference.getInitPoint();
+        payment.setPaymentUrl(paymentUrl);
+
+        // Store provider response
+        Map<String, Object> providerResponse = new HashMap<>();
+        providerResponse.put("preference_id", preference.getId());
+        providerResponse.put("init_point", preference.getInitPoint());
+        providerResponse.put("sandbox_init_point", preference.getSandboxInitPoint());
+        providerResponse.put("checkout_type", "CHECKOUT_PRO");
+        
+        // Store additional booking IDs for multi-item cart checkout
+        if (request.getAdditionalBookingIds() != null && !request.getAdditionalBookingIds().isEmpty()) {
+            providerResponse.put("additionalBookingIds", request.getAdditionalBookingIds());
+            log.info("Payment includes {} additional bookings", request.getAdditionalBookingIds().size());
+        }
+
+        payment.setProviderResponse(providerResponse);
+        payment = paymentRepository.save(payment);
+
+        log.info("Checkout Pro payment record created: {} with preference: {}", payment.getId(), preference.getId());
+
+        // Build response
+        PaymentInitRes response = new PaymentInitRes();
+        response.setPaymentId(payment.getId());
+        response.setStatus(PaymentStatus.PENDING);
+        response.setPaymentUrl(paymentUrl);
+        response.setTest(payment.isTest());
+        response.setMessage("Redirect to MercadoPago to complete your payment");
+
+        return response;
+    }
+
+    /**
+     * Create a direct payment (PIX, etc.) using Payment API.
+     * Used for methods that display inline (QR code for PIX).
+     */
+    private PaymentInitRes createDirectPayment(PaymentInitReq request, Booking booking, BigDecimal trustedAmount)
+            throws MPException, MPApiException {
+        
+        // Create payment request for PIX
+        PaymentCreateRequest paymentRequest = buildPaymentRequest(request, booking, trustedAmount);
+
+        // Create payment with Mercado Pago
+        PaymentClient client = new PaymentClient();
+        Payment mpPayment = client.create(paymentRequest);
+
+        // Create payment record
+        com.northernchile.api.payment.model.Payment payment = new com.northernchile.api.payment.model.Payment();
+        payment.setBooking(booking);
+        payment.setProvider(request.getProvider());
+        payment.setPaymentMethod(request.getPaymentMethod());
+        payment.setAmount(trustedAmount);
+        payment.setCurrency(request.getCurrency() != null ? request.getCurrency() : "BRL");
+        payment.setExternalPaymentId(mpPayment.getId().toString());
+        payment.setStatus(mapMercadoPagoStatus(mpPayment.getStatus()));
+        payment.setTest(isTestMode());
+
+        // Set payment details based on payment method
+        if (request.getPaymentMethod() == PaymentMethod.PIX) {
+            // For PIX, store QR code and payment code
+            if (mpPayment.getPointOfInteraction() != null &&
+                mpPayment.getPointOfInteraction().getTransactionData() != null) {
+                String qrCodeBase64 = mpPayment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
+                String qrCode = mpPayment.getPointOfInteraction().getTransactionData().getQrCode();
+
+                // Convert base64 to data URI for frontend display
+                String qrCodeDataUri = "data:image/png;base64," + qrCodeBase64;
+                payment.setQrCode(qrCodeDataUri);
+                payment.setPixCode(qrCode);
+            }
+
+            // Set expiration time (default 30 minutes for PIX)
+            int expirationMinutes = request.getExpirationMinutes() != null ?
+                request.getExpirationMinutes() : 30;
+            payment.setExpiresAt(Instant.now().plus(expirationMinutes, ChronoUnit.MINUTES));
+        }
+
+        // Set payment URL (ticket URL for PIX or 3DS redirect)
+        if (mpPayment.getPointOfInteraction() != null) {
+            String ticketUrl = null;
+            try {
+                if (mpPayment.getTransactionDetails() != null &&
+                    mpPayment.getTransactionDetails().getExternalResourceUrl() != null) {
+                    ticketUrl = mpPayment.getTransactionDetails().getExternalResourceUrl();
+                }
+            } catch (Exception e) {
+                log.debug("Could not retrieve ticket URL: {}", e.getMessage());
+            }
+            if (ticketUrl != null) {
+                payment.setPaymentUrl(ticketUrl);
+            }
+        }
+
+        // Store provider response
+        Map<String, Object> providerResponse = new HashMap<>();
+        providerResponse.put("id", mpPayment.getId());
+        providerResponse.put("status", mpPayment.getStatus());
+        providerResponse.put("status_detail", mpPayment.getStatusDetail());
+        providerResponse.put("payment_type_id", mpPayment.getPaymentTypeId());
+
+        // Store additional booking IDs for multi-item cart checkout
+        if (request.getAdditionalBookingIds() != null && !request.getAdditionalBookingIds().isEmpty()) {
+            providerResponse.put("additionalBookingIds", request.getAdditionalBookingIds());
+            log.info("Payment includes {} additional bookings", request.getAdditionalBookingIds().size());
+        }
+
+        payment.setProviderResponse(providerResponse);
+        payment = paymentRepository.save(payment);
+
+        log.info("Mercado Pago PIX payment created: {} with external ID: {}", payment.getId(), mpPayment.getId());
+
+        // Build response
+        PaymentInitRes response = new PaymentInitRes();
+        response.setPaymentId(payment.getId());
+        response.setStatus(payment.getStatus());
+        response.setPaymentUrl(payment.getPaymentUrl());
+        response.setQrCode(payment.getQrCode());
+        response.setPixCode(payment.getPixCode());
+        response.setExpiresAt(payment.getExpiresAt());
+        response.setTest(payment.isTest());
+        response.setMessage(getPaymentInstructions(request.getPaymentMethod(), payment));
+
+        return response;
     }
 
     @Override
@@ -509,17 +634,17 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
     }
 
     /**
-     * Build Mercado Pago payment request from our internal request.
+     * Build Mercado Pago payment request for PIX payments.
      */
     private PaymentCreateRequest buildPaymentRequest(PaymentInitReq request, Booking booking, BigDecimal trustedAmount) {
         PaymentCreateRequest.PaymentCreateRequestBuilder builder = PaymentCreateRequest.builder()
-            .transactionAmount(trustedAmount) // Use validated amount, not request.getAmount()
+            .transactionAmount(trustedAmount)
             .description(request.getDescription() != null ?
                 request.getDescription() :
                 "Tour booking #" + booking.getId())
             .installments(1);
 
-        // Set payment method ID based on our payment method enum
+        // Set payment method ID based on our enum (PIX for direct payments)
         String paymentMethodId = mapToMercadoPagoMethod(request.getPaymentMethod());
         builder.paymentMethodId(paymentMethodId);
 

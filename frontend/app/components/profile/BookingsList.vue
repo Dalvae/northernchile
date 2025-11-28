@@ -8,11 +8,13 @@ const toast = useToast()
 const localePath = useLocalePath()
 const { getCountryLabel, getCountryFlag } = useCountries()
 const { formatPrice } = useCurrency()
+const { generateBookingPdf } = useBookingPdf()
 
 // Load bookings from backend
 const bookings = ref<BookingRes[]>([])
 const loading = ref(true)
 const editingBooking = ref<BookingRes | null>(null)
+const downloadingPdf = ref<string | null>(null)
 
 async function fetchBookings() {
   if (!authStore.isAuthenticated) {
@@ -81,12 +83,25 @@ function getStatusLabel(status: string) {
   return t(`booking.status.${status}`)
 }
 
-function downloadBooking(_booking: BookingRes) {
-  toast.add({
-    color: 'info',
-    title: t('profile.download_coming_soon'),
-    description: t('profile.download_coming_soon_description')
-  })
+function downloadBooking(booking: BookingRes) {
+  downloadingPdf.value = booking.id
+  try {
+    generateBookingPdf(booking)
+    toast.add({
+      color: 'success',
+      title: t('profile.pdf_download_success'),
+      description: t('profile.pdf_download_success_description')
+    })
+  } catch (error) {
+    console.error('Error generating PDF:', error)
+    toast.add({
+      color: 'error',
+      title: t('profile.pdf_download_error'),
+      description: t('profile.pdf_download_error_description')
+    })
+  } finally {
+    downloadingPdf.value = null
+  }
 }
 
 async function cancelBooking(bookingId: string) {
@@ -96,7 +111,7 @@ async function cancelBooking(bookingId: string) {
 
   loading.value = true
   try {
-    await $fetch<void>(`${config.public.apiBase}/api/bookings/${bookingId}`, {
+    await $fetch(`${config.public.apiBase}/api/bookings/${bookingId}`, {
       method: 'DELETE',
       credentials: 'include'
     })
@@ -326,7 +341,8 @@ async function handleBookingSaved() {
                 color="neutral"
                 variant="outline"
                 size="sm"
-                icon="i-lucide-download"
+                :icon="downloadingPdf === booking.id ? 'i-lucide-loader-2' : 'i-lucide-download'"
+                :loading="downloadingPdf === booking.id"
                 @click="downloadBooking(booking)"
               >
                 {{ t('profile.download') }}
