@@ -9,6 +9,7 @@ const props = defineProps<{
 const emit = defineEmits(['update'])
 
 const toast = useToast()
+const { invalidateCache: invalidateToursCache } = useTours()
 const {
   fetchTourGallery,
   fetchScheduleGallery,
@@ -25,6 +26,11 @@ const gallery = ref<MediaRes[]>([])
 const loading = ref(false)
 const selectorModalOpen = ref(false)
 const uploadModalOpen = ref(false)
+
+// Invalidate public cache after updates
+async function invalidatePublicCache() {
+  await invalidateToursCache()
+}
 
 // Fetch gallery
 async function fetchGallery() {
@@ -73,6 +79,7 @@ async function setHero(mediaId: string) {
     }))
 
     toast.add({ color: 'success', title: 'Imagen destacada actualizada' })
+    await invalidatePublicCache()
     emit('update')
   } catch (error) {
     console.error('Error setting hero:', error)
@@ -94,6 +101,7 @@ async function toggleFeatured(mediaId: string) {
     }))
 
     toast.add({ color: 'success', title: 'Estado de imagen destacada actualizado' })
+    await invalidatePublicCache()
     emit('update')
   } catch (error) {
     console.error('Error toggling featured:', error)
@@ -155,6 +163,7 @@ async function saveOrder() {
       await reorderScheduleGallery(props.scheduleId!, orders)
     }
 
+    await invalidatePublicCache()
     emit('update')
   } catch (error) {
     console.error('Error saving order:', error)
@@ -178,6 +187,7 @@ async function handleMediaSelected(selectedMediaIds: string[]) {
     })
 
     await fetchGallery()
+    await invalidatePublicCache()
     emit('update')
   } catch (error) {
     console.error('Error assigning media:', error)
