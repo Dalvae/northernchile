@@ -163,7 +163,7 @@ public class AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         PasswordResetToken token = tokenService.createPasswordResetToken(user);
-        String resetUrl = frontendBaseUrl + "/reset-password?token=" + token.getToken();
+        String resetUrl = frontendBaseUrl + "/auth?token=" + token.getToken();
 
         emailService.sendPasswordResetEmail(user.getEmail(), user.getFullName(),
                 resetUrl, languageCode != null ? languageCode : "es-CL");
