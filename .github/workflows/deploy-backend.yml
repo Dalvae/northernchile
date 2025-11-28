@@ -67,7 +67,7 @@ jobs:
           # Data Seeding (false in production)
           SEED_DATA=false
 
-          # AWS S3
+          # AWS S3 and SES
           AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION=${{ secrets.AWS_REGION }}
@@ -78,12 +78,8 @@ jobs:
           GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
 
-          # Email Configuration
+          # Email Configuration (uses AWS credentials above for SES)
           MAIL_ENABLED=${{ secrets.MAIL_ENABLED }}
-          MAIL_HOST=${{ secrets.MAIL_HOST }}
-          MAIL_PORT=${{ secrets.MAIL_PORT }}
-          MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
           MAIL_FROM_EMAIL=${{ secrets.MAIL_FROM_EMAIL }}
           MAIL_FROM_NAME=${{ secrets.MAIL_FROM_NAME }}
 

@@ -1,6 +1,6 @@
-# Email Configuration with Google Workspace
+# Email Configuration with Amazon SES
 
-This guide explains how to configure the email system for Northern Chile Tours using Google Workspace (Gmail).
+This guide explains how to configure the email system for Northern Chile Tours using Amazon SES (Simple Email Service).
 
 ## Overview
 
@@ -13,44 +13,69 @@ The application uses Spring Boot Mail with JavaMailSender and Thymeleaf template
 
 ## Prerequisites
 
-- Google Workspace account (or regular Gmail account)
-- Domain configured with Google Workspace (e.g., northernchile.cl)
-- Email address for sending (e.g., noreply@northernchile.cl)
+- AWS account with Amazon SES enabled
+- Verified domain (northernchile.com) or verified email addresses in SES
+- SMTP credentials generated in SES console
 
-## Step 1: Create App Password in Google
+## Step 1: Set Up Amazon SES
 
-Since the application uses SMTP authentication, you need to create an **App-Specific Password** (not your regular password):
+### 1.1 Verify Your Domain
 
-1. Go to [Google Account Settings](https://myaccount.google.com/)
-2. Navigate to **Security** → **2-Step Verification** (enable if not already enabled)
-3. Scroll down to **App passwords**
-4. Click **Select app** → Choose **Mail**
-5. Click **Select device** → Choose **Other** and name it "Northern Chile Backend"
-6. Click **Generate**
-7. Copy the 16-character password (format: `xxxx xxxx xxxx xxxx`)
+1. Go to [AWS Console](https://console.aws.amazon.com/) → **Amazon SES**
+2. Navigate to **Verified identities** → **Create identity**
+3. Choose **Domain** and enter `northernchile.com`
+4. Follow the DNS verification steps (add CNAME records to your domain)
+5. Wait for verification (usually 24-72 hours)
+
+### 1.2 Create SMTP Credentials
+
+1. In SES Console → **SMTP Settings**
+2. Click **Create SMTP credentials**
+3. Enter a name (e.g., "northernchile-backend")
+4. Click **Create user**
+5. **Save the credentials immediately** - the password is only shown once!
+
+### 1.3 Request Production Access (Important!)
+
+SES starts in **Sandbox Mode** where you can only send to verified emails. For production:
+
+1. Go to SES Console → **Account dashboard**
+2. Click **Request production access**
+3. Fill in the form explaining your use case
+4. Wait for AWS approval (usually 24 hours)
 
 ## Step 2: Configure Environment Variables
 
 Add the following variables to your `.env` file:
 
 ```bash
-# Email Configuration (Google Workspace / Gmail SMTP)
-MAIL_HOST=smtp.gmail.com
+# Email Configuration (Amazon SES SMTP)
+MAIL_HOST=email-smtp.us-east-1.amazonaws.com
 MAIL_PORT=587
-MAIL_USERNAME=noreply@northernchile.cl
-MAIL_PASSWORD=your_app_specific_password_here
-MAIL_FROM_EMAIL=noreply@northernchile.cl
+MAIL_USERNAME=YOUR_AWS_SMTP_USERNAME
+MAIL_PASSWORD=YOUR_AWS_SMTP_PASSWORD
+MAIL_FROM_EMAIL=noreply@northernchile.com
 MAIL_FROM_NAME=Northern Chile Tours
 MAIL_ENABLED=true
 
 # Frontend URL for email links
-NUXT_PUBLIC_BASE_URL=https://www.northernchile.cl
+NUXT_PUBLIC_BASE_URL=https://www.northernchile.com
 ```
+
+### SES SMTP Endpoints by Region
+
+| Region | SMTP Endpoint |
+|--------|---------------|
+| US East (N. Virginia) | `email-smtp.us-east-1.amazonaws.com` |
+| US West (Oregon) | `email-smtp.us-west-2.amazonaws.com` |
+| Europe (Ireland) | `email-smtp.eu-west-1.amazonaws.com` |
+| South America (São Paulo) | `email-smtp.sa-east-1.amazonaws.com` |
 
 ### Important Notes:
 
-- **`MAIL_USERNAME`**: Full email address (e.g., noreply@northernchile.cl)
-- **`MAIL_PASSWORD`**: Use the 16-character app password (without spaces)
+- **`MAIL_HOST`**: Use the SES SMTP endpoint for your region
+- **`MAIL_USERNAME`**: The SMTP username from Step 1.2 (NOT your AWS Access Key)
+- **`MAIL_PASSWORD`**: The SMTP password from Step 1.2 (NOT your AWS Secret Key)
 - **`MAIL_ENABLED`**: Set to `true` to enable email sending, `false` to disable (emails will be logged only)
 - **`NUXT_PUBLIC_BASE_URL`**: Your frontend URL for verification and reset links
 
@@ -80,22 +105,29 @@ Set `MAIL_ENABLED=true` and register a new user or request password reset. Check
 
 ### Security Checklist
 
-- ✅ Use App-Specific Password (never your main Google password)
+- ✅ Use dedicated SMTP credentials (not root AWS credentials)
 - ✅ Store credentials in environment variables (never in code)
 - ✅ Use HTTPS for frontend URLs in production
 - ✅ Configure SPF, DKIM, and DMARC records for your domain
-- ✅ Monitor email sending limits (Gmail: 500 emails/day, Google Workspace: 2000/day)
+- ✅ Request production access to exit SES sandbox mode
 
 ### Email Sending Limits
 
-- **Gmail Free**: 500 emails per day
-- **Google Workspace**: 2000 emails per day
-- **Rate Limit**: ~100-150 emails per hour recommended
+Amazon SES limits depend on your account status:
 
-If you exceed limits, consider:
-- Using a dedicated email service (SendGrid, AWS SES, Mailgun)
-- Implementing email queue with retry logic
-- Adding rate limiting
+- **Sandbox Mode**: 200 emails/day, only to verified addresses
+- **Production Mode**: Starts at 50,000 emails/day (can request increase)
+
+### DNS Records for Best Deliverability
+
+1. **SPF Record** - SES configures this automatically when you verify your domain
+
+2. **DKIM** - Enable in SES Console → Verified identities → Your domain → DKIM
+
+3. **DMARC** - Add this TXT record to your domain:
+   ```
+   _dmarc.northernchile.com  TXT  "v=DMARC1; p=quarantine; rua=mailto:admin@northernchile.com"
+   ```
 
 ## Email Templates
 
@@ -139,42 +171,30 @@ mail.reminder.hours-before-tour=48  # Send 48 hours before
 ### Emails Not Sending
 
 1. **Check logs** for error messages
-2. **Verify credentials** - Test login at https://mail.google.com/
-3. **Check port 587** is not blocked by firewall
-4. **Verify STARTTLS** is enabled (required by Gmail)
+2. **Verify SMTP credentials** - Ensure you're using SES SMTP credentials (not AWS access keys)
+3. **Check region** - Make sure MAIL_HOST matches the region where you set up SES
+4. **Verify identity** - Domain or sender email must be verified in SES
 
 ### Emails Going to Spam
 
-1. **Configure SPF record** for your domain:
-   ```
-   v=spf1 include:_spf.google.com ~all
-   ```
-
-2. **Enable DKIM** in Google Workspace Admin Console
-
-3. **Set DMARC policy**:
-   ```
-   v=DMARC1; p=quarantine; rua=mailto:admin@northernchile.cl
-   ```
-
+1. **Verify DKIM is enabled** in SES Console
+2. **Check SPF record** is correctly configured
+3. **Set up DMARC** policy for your domain
 4. **Warm up the sender** - Start with small volumes and gradually increase
 
-### Rate Limiting Errors
+### Sandbox Mode Limitations
 
-If you see "Daily sending quota exceeded":
-
-1. Wait 24 hours for quota reset
-2. Reduce email volume
-3. Consider upgrading to Google Workspace or using dedicated email service
+If you see "Email address not verified" errors:
+1. You're still in sandbox mode
+2. Request production access in SES Console
+3. While waiting, verify recipient addresses in SES for testing
 
 ### Authentication Errors
 
 If authentication fails:
-
-1. Ensure 2-Step Verification is enabled
-2. Regenerate App Password
-3. Remove spaces from password in `.env` file
-4. Check username is full email address
+1. Regenerate SMTP credentials in SES Console
+2. Ensure you're using the SMTP username/password (not IAM credentials)
+3. Check the SMTP endpoint matches your SES region
 
 ## API Endpoints
 
@@ -225,7 +245,7 @@ Monitor email delivery in production:
 
 ## Alternative Providers
 
-If Gmail/Google Workspace doesn't meet your needs, the system supports any SMTP provider. Update configuration:
+If Amazon SES doesn't meet your needs, the system supports any SMTP provider. Update configuration:
 
 ```properties
 # Example: SendGrid
@@ -234,11 +254,11 @@ spring.mail.port=587
 spring.mail.username=apikey
 spring.mail.password=YOUR_SENDGRID_API_KEY
 
-# Example: AWS SES
-spring.mail.host=email-smtp.us-east-1.amazonaws.com
+# Example: Google Workspace / Gmail
+spring.mail.host=smtp.gmail.com
 spring.mail.port=587
-spring.mail.username=YOUR_AWS_SMTP_USERNAME
-spring.mail.password=YOUR_AWS_SMTP_PASSWORD
+spring.mail.username=noreply@yourdomain.com
+spring.mail.password=YOUR_APP_SPECIFIC_PASSWORD
 ```
 
 ---
@@ -246,6 +266,7 @@ spring.mail.password=YOUR_AWS_SMTP_PASSWORD
 ## Support
 
 For issues or questions:
-- Check application logs: `docker logs northernchile-backend`
+- Check application logs: `docker logs northernchile-backend-1`
 - Review Spring Boot Mail documentation: https://docs.spring.io/spring-boot/docs/current/reference/html/io.html#io.email
-- Contact: dev@northernchile.cl
+- AWS SES documentation: https://docs.aws.amazon.com/ses/latest/dg/send-email-smtp.html
+- Contact: dev@northernchile.com

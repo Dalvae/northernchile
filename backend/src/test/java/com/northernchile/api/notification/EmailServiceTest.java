@@ -7,18 +7,14 @@ import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.User;
 import com.northernchile.api.tour.ManifestService;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -31,7 +27,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -42,7 +37,7 @@ import static org.mockito.Mockito.*;
 class EmailServiceTest {
 
     @Mock
-    private JavaMailSender mailSender;
+    private SesEmailSender sesEmailSender;
 
     @Mock
     private TemplateEngine templateEngine;
@@ -50,16 +45,11 @@ class EmailServiceTest {
     @Mock
     private MessageSource messageSource;
 
-    @Mock
-    private MimeMessage mimeMessage;
-
     private EmailService emailService;
 
     @BeforeEach
     void setUp() {
-        emailService = new EmailService(mailSender, templateEngine, messageSource);
-        ReflectionTestUtils.setField(emailService, "fromEmail", "noreply@northernchile.com");
-        ReflectionTestUtils.setField(emailService, "fromName", "Northern Chile");
+        emailService = new EmailService(sesEmailSender, templateEngine, messageSource);
         ReflectionTestUtils.setField(emailService, "mailEnabled", true);
     }
 
@@ -69,9 +59,8 @@ class EmailServiceTest {
 
         @Test
         @DisplayName("Should send verification email with correct parameters")
-        void shouldSendVerificationEmail() throws Exception {
+        void shouldSendVerificationEmail() {
             // Given
-            when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
             when(messageSource.getMessage(eq("email.verification.title"), any(), any(Locale.class)))
                     .thenReturn("Verificar tu correo");
             when(templateEngine.process(eq("email/verification"), any(Context.class)))
@@ -87,7 +76,7 @@ class EmailServiceTest {
 
             // Then
             verify(templateEngine).process(eq("email/verification"), any(Context.class));
-            verify(mailSender).send(mimeMessage);
+            verify(sesEmailSender).sendHtmlEmail(eq("user@example.com"), eq("Verificar tu correo"), anyString());
         }
 
         @Test
@@ -105,7 +94,7 @@ class EmailServiceTest {
             );
 
             // Then
-            verify(mailSender, never()).send(any(MimeMessage.class));
+            verify(sesEmailSender, never()).sendHtmlEmail(anyString(), anyString(), anyString());
         }
     }
 
@@ -115,9 +104,8 @@ class EmailServiceTest {
 
         @Test
         @DisplayName("Should send password reset email")
-        void shouldSendPasswordResetEmail() throws Exception {
+        void shouldSendPasswordResetEmail() {
             // Given
-            when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
             when(messageSource.getMessage(eq("email.password.reset.title"), any(), any(Locale.class)))
                     .thenReturn("Restablecer contraseña");
             when(templateEngine.process(eq("email/password-reset"), any(Context.class)))
@@ -133,7 +121,7 @@ class EmailServiceTest {
 
             // Then
             verify(templateEngine).process(eq("email/password-reset"), any(Context.class));
-            verify(mailSender).send(mimeMessage);
+            verify(sesEmailSender).sendHtmlEmail(eq("user@example.com"), eq("Restablecer contraseña"), anyString());
         }
     }
 
@@ -143,9 +131,8 @@ class EmailServiceTest {
 
         @Test
         @DisplayName("Should send booking confirmation email with all details")
-        void shouldSendBookingConfirmationEmail() throws Exception {
+        void shouldSendBookingConfirmationEmail() {
             // Given
-            when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
             when(messageSource.getMessage(eq("email.booking.confirmation.title"), any(), any(Locale.class)))
                     .thenReturn("Confirmación de Reserva");
             when(templateEngine.process(eq("email/booking-confirmation"), any(Context.class)))
@@ -166,7 +153,7 @@ class EmailServiceTest {
 
             // Then
             verify(templateEngine).process(eq("email/booking-confirmation"), any(Context.class));
-            verify(mailSender).send(mimeMessage);
+            verify(sesEmailSender).sendHtmlEmail(eq("customer@example.com"), eq("Confirmación de Reserva"), anyString());
         }
     }
 
@@ -176,9 +163,8 @@ class EmailServiceTest {
 
         @Test
         @DisplayName("Should send tour reminder email")
-        void shouldSendTourReminderEmail() throws Exception {
+        void shouldSendTourReminderEmail() {
             // Given
-            when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
             when(messageSource.getMessage(eq("email.reminder.title"), any(), any(Locale.class)))
                     .thenReturn("Recordatorio de Tour");
             when(templateEngine.process(eq("email/tour-reminder"), any(Context.class)))
@@ -196,7 +182,7 @@ class EmailServiceTest {
 
             // Then
             verify(templateEngine).process(eq("email/tour-reminder"), any(Context.class));
-            verify(mailSender).send(mimeMessage);
+            verify(sesEmailSender).sendHtmlEmail(eq("customer@example.com"), eq("Recordatorio de Tour"), anyString());
         }
     }
 
@@ -206,11 +192,10 @@ class EmailServiceTest {
 
         @Test
         @DisplayName("Should send new booking notification to admin")
-        void shouldSendNewBookingNotificationToAdmin() throws Exception {
+        void shouldSendNewBookingNotificationToAdmin() {
             // Given
             Booking booking = createTestBooking();
             
-            when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
             when(templateEngine.process(eq("email/admin-new-booking"), any(Context.class)))
                     .thenReturn("<html>Admin notification</html>");
 
@@ -219,12 +204,12 @@ class EmailServiceTest {
 
             // Then
             verify(templateEngine).process(eq("email/admin-new-booking"), any(Context.class));
-            verify(mailSender).send(mimeMessage);
+            verify(sesEmailSender).sendHtmlEmail(eq("admin@northernchile.com"), eq("Nueva Reserva - Northern Chile"), anyString());
         }
 
         @Test
         @DisplayName("Should send private tour request notification to admin")
-        void shouldSendPrivateTourRequestNotificationToAdmin() throws Exception {
+        void shouldSendPrivateTourRequestNotificationToAdmin() {
             // Given
             PrivateTourRequest request = new PrivateTourRequest();
             request.setId(UUID.randomUUID());
@@ -236,7 +221,6 @@ class EmailServiceTest {
             request.setCustomerPhone("+56912345678");
             request.setCreatedAt(Instant.now());
 
-            when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
             when(templateEngine.process(eq("email/admin-private-request"), any(Context.class)))
                     .thenReturn("<html>Private request</html>");
 
@@ -245,12 +229,12 @@ class EmailServiceTest {
 
             // Then
             verify(templateEngine).process(eq("email/admin-private-request"), any(Context.class));
-            verify(mailSender).send(mimeMessage);
+            verify(sesEmailSender).sendHtmlEmail(eq("admin@northernchile.com"), eq("Nueva Solicitud de Tour Privado - Northern Chile"), anyString());
         }
 
         @Test
         @DisplayName("Should send contact notification to admin")
-        void shouldSendContactNotificationToAdmin() throws Exception {
+        void shouldSendContactNotificationToAdmin() {
             // Given
             ContactMessage contactMessage = new ContactMessage();
             contactMessage.setId(UUID.randomUUID());
@@ -260,7 +244,6 @@ class EmailServiceTest {
             contactMessage.setMessage("I'm interested in your tours");
             contactMessage.setCreatedAt(Instant.now());
 
-            when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
             when(templateEngine.process(eq("email/admin-contact"), any(Context.class)))
                     .thenReturn("<html>Contact message</html>");
 
@@ -269,7 +252,7 @@ class EmailServiceTest {
 
             // Then
             verify(templateEngine).process(eq("email/admin-contact"), any(Context.class));
-            verify(mailSender).send(mimeMessage);
+            verify(sesEmailSender).sendHtmlEmail(eq("admin@northernchile.com"), eq("Nuevo Mensaje de Contacto - Northern Chile"), anyString());
         }
     }
 
@@ -279,14 +262,13 @@ class EmailServiceTest {
 
         @Test
         @DisplayName("Should send manifest email to operator")
-        void shouldSendManifestEmailToOperator() throws Exception {
+        void shouldSendManifestEmailToOperator() {
             // Given
             List<ManifestService.ManifestParticipant> participants = List.of(
                     createManifestParticipant("John Doe", "US", "john@example.com"),
                     createManifestParticipant("Jane Doe", "CL", "jane@example.com")
             );
 
-            when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
             when(templateEngine.process(eq("email/manifest"), any(Context.class)))
                     .thenReturn("<html>Manifest</html>");
 
@@ -303,7 +285,7 @@ class EmailServiceTest {
 
             // Then
             verify(templateEngine).process(eq("email/manifest"), any(Context.class));
-            verify(mailSender).send(mimeMessage);
+            verify(sesEmailSender).sendHtmlEmail(eq("operator@northernchile.com"), eq("Manifiesto: Tour Astronómico Premium - 2025-01-20 21:00"), anyString());
         }
     }
 
@@ -313,9 +295,8 @@ class EmailServiceTest {
 
         @Test
         @DisplayName("Should send pickup reminder to participant")
-        void shouldSendPickupReminderToParticipant() throws Exception {
+        void shouldSendPickupReminderToParticipant() {
             // Given
-            when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
             when(messageSource.getMessage(eq("pickup.subject"), any(), any(Locale.class)))
                     .thenReturn("Recordatorio de recogida");
             when(templateEngine.process(eq("email/pickup-reminder"), any(Context.class)))
@@ -335,7 +316,7 @@ class EmailServiceTest {
 
             // Then
             verify(templateEngine).process(eq("email/pickup-reminder"), any(Context.class));
-            verify(mailSender).send(mimeMessage);
+            verify(sesEmailSender).sendHtmlEmail(eq("participant@example.com"), eq("Recordatorio de recogida"), anyString());
         }
     }
 
@@ -345,9 +326,8 @@ class EmailServiceTest {
 
         @Test
         @DisplayName("Should send booking cancelled email")
-        void shouldSendBookingCancelledEmail() throws Exception {
+        void shouldSendBookingCancelledEmail() {
             // Given
-            when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
             when(messageSource.getMessage(eq("email.cancelled.title"), any(), any(Locale.class)))
                     .thenReturn("Reserva Cancelada");
             when(templateEngine.process(eq("email/booking-cancelled"), any(Context.class)))
@@ -368,14 +348,13 @@ class EmailServiceTest {
 
             // Then
             verify(templateEngine).process(eq("email/booking-cancelled"), any(Context.class));
-            verify(mailSender).send(mimeMessage);
+            verify(sesEmailSender).sendHtmlEmail(eq("customer@example.com"), eq("Reserva Cancelada"), anyString());
         }
 
         @Test
         @DisplayName("Should send refund confirmation email")
-        void shouldSendRefundConfirmationEmail() throws Exception {
+        void shouldSendRefundConfirmationEmail() {
             // Given
-            when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
             when(messageSource.getMessage(eq("email.refund.title"), any(), any(Locale.class)))
                     .thenReturn("Confirmación de Reembolso");
             when(templateEngine.process(eq("email/refund-confirmation"), any(Context.class)))
@@ -394,7 +373,7 @@ class EmailServiceTest {
 
             // Then
             verify(templateEngine).process(eq("email/refund-confirmation"), any(Context.class));
-            verify(mailSender).send(mimeMessage);
+            verify(sesEmailSender).sendHtmlEmail(eq("customer@example.com"), eq("Confirmación de Reembolso"), anyString());
         }
     }
 
@@ -404,9 +383,8 @@ class EmailServiceTest {
 
         @Test
         @DisplayName("Should send private tour quote email")
-        void shouldSendPrivateTourQuoteEmail() throws Exception {
+        void shouldSendPrivateTourQuoteEmail() {
             // Given
-            when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
             when(messageSource.getMessage(eq("email.private.quote.title"), any(), any(Locale.class)))
                     .thenReturn("Cotización Tour Privado");
             when(templateEngine.process(eq("email/private-tour-quote"), any(Context.class)))
@@ -427,7 +405,7 @@ class EmailServiceTest {
 
             // Then
             verify(templateEngine).process(eq("email/private-tour-quote"), any(Context.class));
-            verify(mailSender).send(mimeMessage);
+            verify(sesEmailSender).sendHtmlEmail(eq("vip@example.com"), eq("Cotización Tour Privado"), anyString());
         }
     }
 
@@ -436,13 +414,12 @@ class EmailServiceTest {
     class ErrorHandlingTests {
 
         @Test
-        @DisplayName("Should handle messaging exception gracefully")
-        void shouldHandleMessagingExceptionGracefully() throws Exception {
+        @DisplayName("Should handle SES exception gracefully")
+        void shouldHandleSesExceptionGracefully() {
             // Given
-            when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
             when(messageSource.getMessage(any(), any(), any(Locale.class))).thenReturn("Subject");
             when(templateEngine.process(anyString(), any(Context.class))).thenReturn("<html></html>");
-            doThrow(new RuntimeException("SMTP error")).when(mailSender).send(any(MimeMessage.class));
+            doThrow(new RuntimeException("SES error")).when(sesEmailSender).sendHtmlEmail(anyString(), anyString(), anyString());
 
             // When - Should not throw
             emailService.sendVerificationEmail(
@@ -453,7 +430,7 @@ class EmailServiceTest {
             );
 
             // Then - Graceful degradation, no exception thrown
-            verify(mailSender).send(any(MimeMessage.class));
+            verify(sesEmailSender).sendHtmlEmail(anyString(), anyString(), anyString());
         }
     }
 

@@ -1,14 +1,10 @@
 package com.northernchile.api.notification;
 
 import com.northernchile.api.util.DateTimeUtils;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
@@ -22,21 +18,15 @@ public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
-    private final JavaMailSender mailSender;
+    private final SesEmailSender sesEmailSender;
     private final TemplateEngine templateEngine;
     private final MessageSource messageSource;
-
-    @Value("${mail.from.email}")
-    private String fromEmail;
-
-    @Value("${mail.from.name}")
-    private String fromName;
 
     @Value("${mail.enabled:false}")
     private boolean mailEnabled;
 
-    public EmailService(JavaMailSender mailSender, TemplateEngine templateEngine, MessageSource messageSource) {
-        this.mailSender = mailSender;
+    public EmailService(SesEmailSender sesEmailSender, TemplateEngine templateEngine, MessageSource messageSource) {
+        this.sesEmailSender = sesEmailSender;
         this.templateEngine = templateEngine;
         this.messageSource = messageSource;
     }
@@ -364,7 +354,7 @@ public class EmailService {
     }
 
     /**
-     * Generic method to send HTML emails using Thymeleaf templates
+     * Generic method to send HTML emails using Thymeleaf templates via Amazon SES
      */
     private void sendHtmlEmail(String toEmail, String subject, String templateName, Context context, Locale locale) {
         if (!mailEnabled) {
@@ -373,21 +363,8 @@ public class EmailService {
         }
 
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setFrom(fromEmail, fromName);
-            helper.setTo(toEmail);
-            helper.setSubject(subject);
-
             String htmlContent = templateEngine.process(templateName, context);
-            helper.setText(htmlContent, true);
-
-            mailSender.send(message);
-            log.info("Email sent successfully to: {} with subject: {}", toEmail, subject);
-        } catch (MessagingException e) {
-            log.error("Failed to send email to: {} with subject: {}", toEmail, subject, e);
-            // Don't throw exception - graceful degradation
+            sesEmailSender.sendHtmlEmail(toEmail, subject, htmlContent);
         } catch (Exception e) {
             log.error("Unexpected error while sending email to: {}", toEmail, e);
         }
