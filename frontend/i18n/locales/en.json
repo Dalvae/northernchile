@@ -783,6 +783,7 @@
     "persons": "people",
     "subtotal": "Subtotal",
     "tax_label": "VAT (19%)",
+    "tax_included": "VAT included",
     "total": "Total",
     "validation": {
       "incomplete_info": "Incomplete Information",
@@ -813,7 +814,18 @@
     "conflict": "Conflict - resource already exists",
     "validation_failed": "Validation error",
     "server_error": "Internal server error",
-    "service_unavailable": "Service unavailable"
+    "service_unavailable": "Service unavailable",
+    "payment_required": "Payment required",
+    "gone": "Resource is no longer available",
+    "bad_gateway": "External service error",
+    "business": {
+      "schedule_full": "Not enough spots available. Only {availableSlots} spots left.",
+      "tour_not_active": "This tour is not currently available",
+      "booking_cutoff_passed": "Bookings for this tour are closed. You must book at least {hoursRequired} hours in advance.",
+      "invalid_booking_state": "This action cannot be performed. Current status: {currentStatus}",
+      "cart_expired": "Your cart has expired. Please add the tours again.",
+      "duplicate_booking": "You already have a booking for this tour"
+    }
   },
   "cookie_banner": {
     "message": "We use cookies to improve your experience and analyze site traffic. Only essential and analytics cookies.",

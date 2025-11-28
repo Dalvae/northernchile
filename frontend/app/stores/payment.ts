@@ -39,6 +39,7 @@ export const usePaymentStore = defineStore('payment', {
       this.error = null
 
       const config = useRuntimeConfig()
+      const { extractErrorMessage, showErrorToast } = useApiError()
 
       try {
         const response = await $fetch<PaymentInitRes>(
@@ -55,9 +56,10 @@ export const usePaymentStore = defineStore('payment', {
 
         this.currentPayment = response
         return response
-      } catch (error: any) {
-        const errorMessage = error.data?.error || error.message || 'Error initializing payment'
+      } catch (error) {
+        const errorMessage = extractErrorMessage(error)
         this.error = errorMessage
+        showErrorToast(error)
         throw new Error(errorMessage)
       } finally {
         this.isProcessing = false
@@ -69,6 +71,7 @@ export const usePaymentStore = defineStore('payment', {
      */
     async getPaymentStatus(paymentId: string): Promise<PaymentStatusRes> {
       const config = useRuntimeConfig()
+      const { extractErrorMessage } = useApiError()
 
       try {
         const response = await $fetch<PaymentStatusRes>(
@@ -88,8 +91,8 @@ export const usePaymentStore = defineStore('payment', {
         }
 
         return response
-      } catch (error: any) {
-        const errorMessage = error.data?.error || error.message || 'Error getting payment status'
+      } catch (error) {
+        const errorMessage = extractErrorMessage(error)
         this.error = errorMessage
         throw new Error(errorMessage)
       }
@@ -131,6 +134,7 @@ export const usePaymentStore = defineStore('payment', {
      */
     async confirmPayment(token: string): Promise<PaymentStatusRes> {
       const config = useRuntimeConfig()
+      const { extractErrorMessage, showErrorToast } = useApiError()
 
       try {
         const response = await $fetch<PaymentStatusRes>(
@@ -142,9 +146,10 @@ export const usePaymentStore = defineStore('payment', {
         )
 
         return response
-      } catch (error: any) {
-        const errorMessage = error.data?.error || error.message || 'Error confirming payment'
+      } catch (error) {
+        const errorMessage = extractErrorMessage(error)
         this.error = errorMessage
+        showErrorToast(error)
         throw new Error(errorMessage)
       }
     },

@@ -5,13 +5,16 @@ import com.northernchile.api.booking.dto.BookingClientUpdateReq;
 import com.northernchile.api.booking.dto.BookingCreateReq;
 import com.northernchile.api.booking.dto.BookingRes;
 import com.northernchile.api.booking.dto.ParticipantRes;
+import com.northernchile.api.exception.BookingCutoffException;
+import com.northernchile.api.exception.InvalidBookingStateException;
+import com.northernchile.api.exception.ResourceNotFoundException;
+import com.northernchile.api.exception.ScheduleFullException;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.Participant;
 import com.northernchile.api.model.User;
 import com.northernchile.api.notification.EmailService;
+import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,9 +44,7 @@ public class BookingService {
     private final AuditLogService auditLogService;
     private final BookingMapper bookingMapper;
     private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
-
-    @Value("${tax.rate}")
-    private BigDecimal taxRate;
+    private final PricingService pricingService;
 
     @Value("${notification.admin.email}")
     private String adminEmail;
@@ -57,27 +58,30 @@ public class BookingService {
             EmailService emailService,
             AuditLogService auditLogService,
             BookingMapper bookingMapper,
-            com.northernchile.api.availability.AvailabilityValidator availabilityValidator) {
+            com.northernchile.api.availability.AvailabilityValidator availabilityValidator,
+            PricingService pricingService) {
         this.bookingRepository = bookingRepository;
         this.tourScheduleRepository = tourScheduleRepository;
         this.emailService = emailService;
         this.auditLogService = auditLogService;
         this.bookingMapper = bookingMapper;
         this.availabilityValidator = availabilityValidator;
+        this.pricingService = pricingService;
     }
 
     @Transactional
     public BookingRes createBooking(BookingCreateReq req, User currentUser) {
         // Use pessimistic locking to prevent race conditions instead of SERIALIZABLE isolation
         var schedule = tourScheduleRepository.findByIdWithLock(req.getScheduleId())
-                .orElseThrow(() -> new EntityNotFoundException("TourSchedule not found with id: " + req.getScheduleId()));
+                .orElseThrow(() -> new ResourceNotFoundException("TourSchedule", req.getScheduleId()));
 
         // Validate booking is not too close to tour start time
         validateBookingCutoffTime(schedule);
 
         validateAvailability(schedule, req.getParticipants().size());
 
-        BookingPricing pricing = calculateBookingPricing(schedule.getTour().getPrice(), req.getParticipants().size());
+        // Use centralized pricing service for consistent calculations
+        var pricing = pricingService.calculateLineItem(schedule.getTour().getPrice(), req.getParticipants().size());
 
         Booking booking = createBookingEntity(req, currentUser, schedule, pricing);
         List<Participant> participants = createParticipantEntities(req, booking);
@@ -92,7 +96,7 @@ public class BookingService {
     private void validateAvailability(com.northernchile.api.model.TourSchedule schedule, int requestedSlots) {
         var availabilityResult = availabilityValidator.validateAvailability(schedule, requestedSlots);
         if (!availabilityResult.isAvailable()) {
-            throw new IllegalStateException(availabilityResult.getErrorMessage());
+            throw new ScheduleFullException(availabilityResult.getErrorMessage());
         }
     }
 
@@ -101,31 +105,21 @@ public class BookingService {
         Instant cutoffTime = schedule.getStartDatetime().minus(minHoursBeforeTour, ChronoUnit.HOURS);
 
         if (now.isAfter(cutoffTime)) {
-            throw new IllegalStateException(
-                "Bookings for this tour are closed. Reservations must be made at least " +
-                minHoursBeforeTour + " hours in advance."
-            );
+            throw new BookingCutoffException(schedule.getId(), cutoffTime, minHoursBeforeTour);
         }
-    }
-
-    private BookingPricing calculateBookingPricing(BigDecimal pricePerParticipant, int participantCount) {
-        BigDecimal totalAmount = pricePerParticipant.multiply(BigDecimal.valueOf(participantCount));
-        BigDecimal subtotal = totalAmount.divide(BigDecimal.ONE.add(taxRate), 2, RoundingMode.HALF_UP);
-        BigDecimal taxAmount = totalAmount.subtract(subtotal);
-        return new BookingPricing(subtotal, taxAmount, totalAmount);
     }
 
     private Booking createBookingEntity(BookingCreateReq req, User currentUser,
                                         com.northernchile.api.model.TourSchedule schedule,
-                                        BookingPricing pricing) {
+                                        PricingService.PricingResult pricing) {
         Booking booking = new Booking();
         booking.setUser(currentUser);
         booking.setSchedule(schedule);
         booking.setTourDate(LocalDate.ofInstant(schedule.getStartDatetime(), java.time.ZoneId.of("America/Santiago")));
         booking.setStatus("PENDING");
-        booking.setSubtotal(pricing.subtotal);
-        booking.setTaxAmount(pricing.taxAmount);
-        booking.setTotalAmount(pricing.totalAmount);
+        booking.setSubtotal(pricing.subtotal());
+        booking.setTaxAmount(pricing.taxAmount());
+        booking.setTotalAmount(pricing.totalAmount());
         booking.setLanguageCode(req.getLanguageCode());
         booking.setSpecialRequests(req.getSpecialRequests());
         return booking;
@@ -253,7 +247,7 @@ public class BookingService {
     @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId) or @bookingSecurityService.isBookingUser(authentication, #bookingId)")
     public Optional<BookingRes> getBookingById(UUID bookingId, User currentUser) {
         Booking booking = bookingRepository.findByIdWithDetails(bookingId)
-                .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", bookingId));
 
         return Optional.of(bookingMapper.toBookingRes(booking));
     }
@@ -268,11 +262,12 @@ public class BookingService {
      * - CANCELLED -> (no transitions allowed)
      * - COMPLETED -> (no transitions allowed)
      *
+     * @param bookingId The booking ID (for error context)
      * @param currentStatus The current booking status
      * @param newStatus The desired new status
-     * @throws IllegalStateException if the transition is not allowed
+     * @throws InvalidBookingStateException if the transition is not allowed
      */
-    private void validateStatusTransition(String currentStatus, String newStatus) {
+    private void validateStatusTransition(UUID bookingId, String currentStatus, String newStatus) {
         // Same status is always allowed (no-op)
         if (currentStatus.equals(newStatus)) {
             return;
@@ -289,10 +284,7 @@ public class BookingService {
         List<String> allowed = allowedTransitions.getOrDefault(currentStatus, List.of());
 
         if (!allowed.contains(newStatus)) {
-            throw new IllegalStateException(
-                String.format("Invalid status transition from %s to %s. Allowed transitions: %s",
-                    currentStatus, newStatus, allowed.isEmpty() ? "none" : String.join(", ", allowed))
-            );
+            throw new InvalidBookingStateException(bookingId, currentStatus, newStatus, allowed);
         }
     }
 
@@ -300,12 +292,12 @@ public class BookingService {
     @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId)")
     public BookingRes updateBookingStatus(UUID bookingId, String newStatus, User currentUser) {
         Booking booking = bookingRepository.findByIdWithDetails(bookingId)
-                .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", bookingId));
 
         String oldStatus = booking.getStatus();
 
         // Validate status transition
-        validateStatusTransition(oldStatus, newStatus);
+        validateStatusTransition(bookingId, oldStatus, newStatus);
 
         booking.setStatus(newStatus);
         Booking updatedBooking = bookingRepository.save(booking);
@@ -323,12 +315,12 @@ public class BookingService {
     @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId)")
     public void cancelBooking(UUID bookingId, User currentUser) {
         Booking booking = bookingRepository.findByIdWithDetails(bookingId)
-                .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", bookingId));
 
         String oldStatus = booking.getStatus();
 
         // Validate status transition
-        validateStatusTransition(oldStatus, "CANCELLED");
+        validateStatusTransition(bookingId, oldStatus, "CANCELLED");
 
         booking.setStatus("CANCELLED");
         bookingRepository.save(booking);
@@ -351,10 +343,11 @@ public class BookingService {
     @PreAuthorize("@bookingSecurityService.isBookingUser(authentication, #bookingId)")
     public BookingRes confirmBookingAfterMockPayment(UUID bookingId, User currentUser) {
         Booking booking = bookingRepository.findByIdWithDetails(bookingId)
-                .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", bookingId));
 
         if (!"PENDING".equals(booking.getStatus())) {
-            throw new IllegalStateException("Only PENDING bookings can be confirmed. Current status: " + booking.getStatus());
+            throw new InvalidBookingStateException(
+                "Only PENDING bookings can be confirmed. Current status: " + booking.getStatus());
         }
 
         String oldStatus = booking.getStatus();
@@ -373,7 +366,7 @@ public class BookingService {
     @Transactional
     public BookingRes updateBookingDetails(UUID bookingId, BookingClientUpdateReq req, User currentUser) {
         Booking booking = bookingRepository.findByIdWithDetails(bookingId)
-                .orElseThrow(() -> new EntityNotFoundException("Booking not found with id: " + bookingId));
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", bookingId));
 
         // Verify ownership
         if (!booking.getUser().getId().equals(currentUser.getId())) {
@@ -382,7 +375,8 @@ public class BookingService {
 
         // Only allow updates for PENDING or CONFIRMED bookings
         if (!"PENDING".equals(booking.getStatus()) && !"CONFIRMED".equals(booking.getStatus())) {
-            throw new IllegalStateException("Cannot update booking with status: " + booking.getStatus());
+            throw new InvalidBookingStateException(
+                "Cannot update booking with status: " + booking.getStatus());
         }
 
         // Update special requests at booking level
@@ -393,7 +387,7 @@ public class BookingService {
             Participant participant = booking.getParticipants().stream()
                     .filter(p -> p.getId().equals(participantReq.getId()))
                     .findFirst()
-                    .orElseThrow(() -> new EntityNotFoundException("Participant not found with id: " + participantReq.getId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Participant", participantReq.getId()));
 
             participant.setPickupAddress(participantReq.getPickupAddress());
             participant.setSpecialRequirements(participantReq.getSpecialRequirements());

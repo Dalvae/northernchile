@@ -402,9 +402,7 @@ function handlePIXExpired() {
   })
 }
 
-// Calculate totals - use values from backend cart API
-const subtotal = computed(() => cartStore.cart.subtotal)
-const tax = computed(() => cartStore.cart.taxAmount)
+// Calculate total - use value from backend cart API (tax-inclusive)
 const total = computed(() => cartStore.cart.cartTotal)
 </script>
 
@@ -774,27 +772,17 @@ const total = computed(() => cartStore.cart.cartTotal)
                   </p>
                 </div>
 
-                <!-- Totals -->
+                <!-- Total -->
                 <div class="space-y-2 pt-2">
-                  <div
-                    class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
-                  >
-                    <span>{{ t('checkout.subtotal') }}</span>
-                    <span>{{ formatPrice(subtotal) }}</span>
-                  </div>
-                  <div
-                    class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
-                  >
-                    <span>{{ t('checkout.tax_label') }}</span>
-                    <span>{{ formatPrice(tax) }}</span>
-                  </div>
-                  <UDivider />
                   <div
                     class="flex justify-between text-lg font-bold text-neutral-900 dark:text-white"
                   >
                     <span>{{ t('checkout.total') }}</span>
                     <span>{{ formatPrice(total) }}</span>
                   </div>
+                  <p class="text-xs text-neutral-500 dark:text-neutral-400 text-right">
+                    {{ t('checkout.tax_included') }}
+                  </p>
                 </div>
               </div>
             </UCard>

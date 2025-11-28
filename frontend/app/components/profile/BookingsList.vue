@@ -305,23 +305,14 @@ async function handleBookingSaved() {
           <UDivider />
           <div class="space-y-2">
             <div
-              class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
-            >
-              <span>{{ t('common.subtotal') }}</span>
-              <span>{{ formatPrice(booking.subtotal) }}</span>
-            </div>
-            <div
-              class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
-            >
-              <span>{{ t('common.tax') }} (19%)</span>
-              <span>{{ formatPrice(booking.taxAmount) }}</span>
-            </div>
-            <div
-              class="flex justify-between text-lg font-bold text-neutral-900 dark:text-white pt-2 border-t border-neutral-200 dark:border-neutral-700"
+              class="flex justify-between text-lg font-bold text-neutral-900 dark:text-white"
             >
               <span>{{ t('common.total') }}</span>
               <span>{{ formatPrice(booking.totalAmount) }}</span>
             </div>
+            <p class="text-xs text-neutral-500 dark:text-neutral-400 text-right">
+              {{ t('checkout.tax_included') }}
+            </p>
           </div>
         </div>
 

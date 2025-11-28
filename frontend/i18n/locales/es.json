@@ -783,6 +783,7 @@
     "persons": "personas",
     "subtotal": "Subtotal",
     "tax_label": "IVA (19%)",
+    "tax_included": "IVA incluido",
     "total": "Total",
     "validation": {
       "incomplete_info": "Información incompleta",
@@ -813,7 +814,18 @@
     "conflict": "Conflicto - el recurso ya existe",
     "validation_failed": "Error de validación",
     "server_error": "Error interno del servidor",
-    "service_unavailable": "Servicio no disponible"
+    "service_unavailable": "Servicio no disponible",
+    "payment_required": "Pago requerido",
+    "gone": "El recurso ya no está disponible",
+    "bad_gateway": "Error de servicio externo",
+    "business": {
+      "schedule_full": "No hay suficientes cupos disponibles. Solo quedan {availableSlots} lugares.",
+      "tour_not_active": "Este tour no está disponible actualmente",
+      "booking_cutoff_passed": "Las reservas para este tour están cerradas. Debes reservar con al menos {hoursRequired} horas de anticipación.",
+      "invalid_booking_state": "No se puede realizar esta acción. Estado actual: {currentStatus}",
+      "cart_expired": "Tu carrito ha expirado. Por favor, vuelve a agregar los tours.",
+      "duplicate_booking": "Ya tienes una reserva para este tour"
+    }
   },
   "cookie_banner": {
     "message": "Usamos cookies para mejorar tu experiencia y analizar el tráfico del sitio. Solo cookies esenciales y de análisis.",

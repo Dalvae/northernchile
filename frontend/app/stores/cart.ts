@@ -32,6 +32,9 @@ declare global {
 }
 
 export const useCartStore = defineStore('cart', () => {
+  const { showErrorToast, showSuccessToast, isScheduleFullError, parseError } = useApiError()
+  const { t } = useI18n()
+
   const defaultCart: Cart = {
     cartId: null,
     items: [],
@@ -44,7 +47,6 @@ export const useCartStore = defineStore('cart', () => {
   const cart = ref<Cart>(defaultCart)
 
   const isLoading = ref(false)
-  const toast = useToast()
 
   const totalItems = computed(() => {
     if (!cart.value || !cart.value.items) return 0
@@ -122,20 +124,20 @@ export const useCartStore = defineStore('cart', () => {
         }
       }
 
-      toast.add({ title: 'Agregado al carrito', color: 'success' })
+      showSuccessToast(t('cart.added_to_cart', 'Agregado al carrito'))
       return true
     } catch (error) {
       console.error('Error adding item to cart:', error)
       // Revert to previous state
       cart.value = previousCart
-      const errorMessage = error && typeof error === 'object' && 'data' in error
-        ? (error.data as { message?: string })?.message
-        : undefined
-      toast.add({
-        title: 'Error',
-        description: errorMessage || 'Failed to add item to cart',
-        color: 'error'
-      })
+
+      // Use useApiError to show appropriate message based on error code
+      if (isScheduleFullError(error)) {
+        const apiError = parseError(error)
+        showErrorToast(error, t('errors.business.schedule_full', { availableSlots: apiError.availableSlots ?? 0 }))
+      } else {
+        showErrorToast(error, t('cart.error_adding', 'Error al agregar al carrito'))
+      }
       return false
     } finally {
       isLoading.value = false
@@ -160,25 +162,17 @@ export const useCartStore = defineStore('cart', () => {
       })
       cart.value = response
 
-      toast.add({
-        title: 'Eliminado',
-        description: 'Item eliminado del carrito',
-        color: 'success'
-      })
+      showSuccessToast(
+        t('cart.removed', 'Eliminado'),
+        t('cart.item_removed', 'Item eliminado del carrito')
+      )
 
       return true
     } catch (error) {
       console.error('Error removing item from cart:', error)
       // Revert to previous state
       cart.value = previousCart
-      const errorMessage = error && typeof error === 'object' && 'data' in error
-        ? (error.data as { message?: string })?.message
-        : undefined
-      toast.add({
-        title: 'Error',
-        description: errorMessage || 'No se pudo eliminar el item',
-        color: 'error'
-      })
+      showErrorToast(error, t('cart.error_removing', 'Error al eliminar del carrito'))
       return false
     } finally {
       isLoading.value = false

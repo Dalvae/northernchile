@@ -1,32 +1,25 @@
 package com.northernchile.api.cart;
 
-import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.cart.dto.CartItemReq;
 import com.northernchile.api.cart.dto.CartItemRes;
 import com.northernchile.api.cart.dto.CartRes;
+import com.northernchile.api.exception.ResourceNotFoundException;
+import com.northernchile.api.exception.ScheduleFullException;
 import com.northernchile.api.model.Cart;
 import com.northernchile.api.model.CartItem;
 import com.northernchile.api.model.User;
+import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -35,23 +28,20 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final TourScheduleRepository tourScheduleRepository;
-    private final BookingRepository bookingRepository;
     private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
-
-    @Value("${tax.rate:0.19}")
-    private BigDecimal taxRate;
+    private final PricingService pricingService;
 
     public CartService(
             CartRepository cartRepository,
             CartItemRepository cartItemRepository,
             TourScheduleRepository tourScheduleRepository,
-            BookingRepository bookingRepository,
-            com.northernchile.api.availability.AvailabilityValidator availabilityValidator) {
+            com.northernchile.api.availability.AvailabilityValidator availabilityValidator,
+            PricingService pricingService) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.tourScheduleRepository = tourScheduleRepository;
-        this.bookingRepository = bookingRepository;
         this.availabilityValidator = availabilityValidator;
+        this.pricingService = pricingService;
     }
 
     @Transactional
@@ -81,7 +71,7 @@ public class CartService {
     @Transactional
     public Cart addItemToCart(Cart cart, CartItemReq itemReq) {
         var schedule = tourScheduleRepository.findById(itemReq.getScheduleId())
-                .orElseThrow(() -> new EntityNotFoundException("TourSchedule not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("TourSchedule", itemReq.getScheduleId()));
 
         // Count participants already in THIS cart for the same schedule
         int participantsInCart = cart.getItems() != null
@@ -97,7 +87,7 @@ public class CartService {
                 schedule, totalRequestedSlots, cart.getId(), null);
 
         if (!availabilityResult.isAvailable()) {
-            throw new IllegalStateException(availabilityResult.getErrorMessage());
+            throw new ScheduleFullException(availabilityResult.getErrorMessage());
         }
 
         CartItem newItem = new CartItem();
@@ -164,38 +154,38 @@ public class CartService {
         CartRes res = new CartRes();
         res.setCartId(cart.getId());
 
-        List<CartItemRes> itemResponses = cart.getItems() == null ? new ArrayList<>() : cart.getItems().stream().map(item -> {
-            CartItemRes itemRes = new CartItemRes();
-            itemRes.setItemId(item.getId());
-            itemRes.setScheduleId(item.getSchedule().getId());
-            itemRes.setTourId(item.getSchedule().getTour().getId());
-            itemRes.setTourName(item.getSchedule().getTour().getNameTranslations().get("es"));
-            itemRes.setNumParticipants(item.getNumParticipants());
+        // Build line items and collect pricing data
+        List<CartItemRes> itemResponses = new ArrayList<>();
+        List<PricingService.LineItem> pricingItems = new ArrayList<>();
 
-            BigDecimal pricePerParticipant = item.getSchedule().getTour().getPrice();
-            itemRes.setPricePerParticipant(pricePerParticipant);
+        if (cart.getItems() != null) {
+            for (var item : cart.getItems()) {
+                CartItemRes itemRes = new CartItemRes();
+                itemRes.setItemId(item.getId());
+                itemRes.setScheduleId(item.getSchedule().getId());
+                itemRes.setTourId(item.getSchedule().getTour().getId());
+                itemRes.setTourName(item.getSchedule().getTour().getNameTranslations().get("es"));
+                itemRes.setNumParticipants(item.getNumParticipants());
 
-            BigDecimal itemTotal = pricePerParticipant.multiply(BigDecimal.valueOf(item.getNumParticipants()));
-            itemRes.setItemTotal(itemTotal);
-            return itemRes;
-        }).collect(Collectors.toList());
+                BigDecimal pricePerParticipant = item.getSchedule().getTour().getPrice();
+                itemRes.setPricePerParticipant(pricePerParticipant);
+
+                BigDecimal itemTotal = pricePerParticipant.multiply(BigDecimal.valueOf(item.getNumParticipants()));
+                itemRes.setItemTotal(itemTotal);
+                itemResponses.add(itemRes);
+
+                pricingItems.add(new PricingService.LineItem(pricePerParticipant, item.getNumParticipants()));
+            }
+        }
 
         res.setItems(itemResponses);
 
-        // Calculate subtotal (sum of all item totals)
-        BigDecimal subtotal = itemResponses.stream()
-                .map(CartItemRes::getItemTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        res.setSubtotal(subtotal);
-
-        // Calculate tax amount based on configured tax rate
-        BigDecimal taxAmount = subtotal.multiply(taxRate).setScale(0, RoundingMode.HALF_UP);
-        res.setTaxAmount(taxAmount);
-        res.setTaxRate(taxRate);
-
-        // Cart total includes tax
-        BigDecimal cartTotal = subtotal.add(taxAmount);
-        res.setCartTotal(cartTotal);
+        // Use centralized pricing service for consistent tax calculations
+        var pricing = pricingService.calculateMultipleItems(pricingItems);
+        res.setSubtotal(pricing.subtotal());
+        res.setTaxAmount(pricing.taxAmount());
+        res.setTaxRate(pricing.taxRate());
+        res.setCartTotal(pricing.totalAmount());
 
         return res;
     }

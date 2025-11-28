@@ -33,20 +33,22 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(credentials: { email: string, password: string }) {
       this.loading = true
-      const toast = useToast()
+      const { showErrorToast, showSuccessToast, isAuthError } = useApiError()
+      const { t } = useI18n()
+
       try {
         const config = useRuntimeConfig()
         const apiBase = config.public.apiBase
 
         // Call backend - token will be set in HttpOnly cookie automatically
-        const response = await $fetch<any>(`${apiBase}/api/auth/login`, {
+        const response = await $fetch<{ user: User }>(`${apiBase}/api/auth/login`, {
           method: 'POST',
           body: credentials,
-          credentials: 'include' // Important: include cookies in request
+          credentials: 'include'
         })
 
         // Backend now returns user object (token is in cookie, not in response)
-        if (response && response.user) {
+        if (response?.user) {
           this.user = {
             id: response.user.id,
             email: response.user.email,
@@ -57,22 +59,17 @@ export const useAuthStore = defineStore('auth', {
             dateOfBirth: response.user.dateOfBirth
           }
 
-          toast.add({
-            title: '¡Bienvenido!',
-            description: 'Has iniciado sesión correctamente.',
-            color: 'success'
-          })
+          showSuccessToast(
+            t('auth.welcome', '¡Bienvenido!'),
+            t('auth.login_success', 'Has iniciado sesión correctamente.')
+          )
         }
-      } catch (error: any) {
-        let errorMessage = error.data?.message || 'Error en el login'
-        if (error.statusCode === 403 || error.statusCode === 401) {
-          errorMessage = 'Credenciales inválidas.'
+      } catch (error) {
+        if (isAuthError(error)) {
+          showErrorToast(error, t('auth.invalid_credentials', 'Credenciales inválidas'))
+        } else {
+          showErrorToast(error, t('auth.login_error', 'Error de autenticación'))
         }
-        toast.add({
-          title: 'Error de Autenticación',
-          description: errorMessage,
-          color: 'error'
-        })
         throw error
       } finally {
         this.loading = false
@@ -87,7 +84,9 @@ export const useAuthStore = defineStore('auth', {
       nationality?: string | null
     }) {
       this.loading = true
-      const toast = useToast()
+      const { showErrorToast, showSuccessToast, isStatusCode } = useApiError()
+      const { t } = useI18n()
+
       try {
         const config = useRuntimeConfig()
         const apiBase = config.public.apiBase
@@ -99,21 +98,16 @@ export const useAuthStore = defineStore('auth', {
           }
         })
 
-        toast.add({
-          title: 'Registro Exitoso',
-          description: 'Tu cuenta ha sido creada. Ahora puedes iniciar sesión.',
-          color: 'success'
-        })
-      } catch (error: any) {
-        let errorMessage = error.data?.message || 'Error en el registro'
-        if (error.statusCode === 409) {
-          errorMessage = 'El correo electrónico ya está en uso.'
+        showSuccessToast(
+          t('auth.register_success', 'Registro Exitoso'),
+          t('auth.register_success_description', 'Tu cuenta ha sido creada. Ahora puedes iniciar sesión.')
+        )
+      } catch (error) {
+        if (isStatusCode(error, 409)) {
+          showErrorToast(error, t('auth.email_in_use', 'El correo electrónico ya está en uso'))
+        } else {
+          showErrorToast(error, t('auth.register_error', 'Error de registro'))
         }
-        toast.add({
-          title: 'Error de Registro',
-          description: errorMessage,
-          color: 'error'
-        })
         throw error
       } finally {
         this.loading = false
@@ -152,9 +146,9 @@ export const useAuthStore = defineStore('auth', {
         const config = useRuntimeConfig()
         const apiBase = config.public.apiBase
 
-        const response = await $fetch<any>(`${apiBase}/api/profile/me`, {
+        const response = await $fetch<User>(`${apiBase}/api/profile/me`, {
           method: 'GET',
-          credentials: 'include' // Cookie will be sent automatically
+          credentials: 'include'
         })
 
         if (response) {

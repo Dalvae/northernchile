@@ -4,7 +4,6 @@ import com.northernchile.api.i18n.LocalizedMessageProvider;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -151,6 +150,138 @@ public class GlobalExceptionHandler {
                 request.getDescription(false).replace("uri=", "")
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+
+    /**
+     * Handles ScheduleFullException - when tour schedule has no availability
+     * Returns HTTP 409 Conflict
+     */
+    @ExceptionHandler(ScheduleFullException.class)
+    public ResponseEntity<BusinessErrorResponse> handleScheduleFull(
+            ScheduleFullException ex,
+            WebRequest request) {
+        log.info("Schedule full: {} - Requested: {}, Available: {}",
+            ex.getScheduleId(), ex.getRequestedSlots(), ex.getAvailableSlots());
+
+        BusinessErrorResponse errorResponse = new BusinessErrorResponse(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                "Schedule Full",
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", ""),
+                ex.getErrorCode()
+        );
+        errorResponse.setAvailableSlots(ex.getAvailableSlots());
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * Handles TourNotActiveException - when tour is not active or published
+     * Returns HTTP 409 Conflict
+     */
+    @ExceptionHandler(TourNotActiveException.class)
+    public ResponseEntity<BusinessErrorResponse> handleTourNotActive(
+            TourNotActiveException ex,
+            WebRequest request) {
+        log.info("Tour not active: {}", ex.getTourId());
+
+        BusinessErrorResponse errorResponse = new BusinessErrorResponse(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                "Tour Not Available",
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", ""),
+                ex.getErrorCode()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * Handles BookingCutoffException - when booking window has closed
+     * Returns HTTP 409 Conflict
+     */
+    @ExceptionHandler(BookingCutoffException.class)
+    public ResponseEntity<BusinessErrorResponse> handleBookingCutoff(
+            BookingCutoffException ex,
+            WebRequest request) {
+        log.info("Booking cutoff passed for schedule: {}", ex.getScheduleId());
+
+        BusinessErrorResponse errorResponse = new BusinessErrorResponse(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                "Booking Window Closed",
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", ""),
+                ex.getErrorCode()
+        );
+        errorResponse.setHoursRequired(ex.getHoursRequired());
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * Handles InvalidBookingStateException - when booking state transition is invalid
+     * Returns HTTP 409 Conflict
+     */
+    @ExceptionHandler(InvalidBookingStateException.class)
+    public ResponseEntity<BusinessErrorResponse> handleInvalidBookingState(
+            InvalidBookingStateException ex,
+            WebRequest request) {
+        log.info("Invalid booking state transition: {} -> {}",
+            ex.getCurrentStatus(), ex.getRequestedStatus());
+
+        BusinessErrorResponse errorResponse = new BusinessErrorResponse(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                "Invalid Booking State",
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", ""),
+                ex.getErrorCode()
+        );
+        errorResponse.setCurrentStatus(ex.getCurrentStatus());
+        errorResponse.setAllowedTransitions(ex.getAllowedTransitions());
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * Handles CartExpiredException - when cart has expired
+     * Returns HTTP 410 Gone
+     */
+    @ExceptionHandler(CartExpiredException.class)
+    public ResponseEntity<BusinessErrorResponse> handleCartExpired(
+            CartExpiredException ex,
+            WebRequest request) {
+        log.info("Cart expired: {}", ex.getCartId());
+
+        BusinessErrorResponse errorResponse = new BusinessErrorResponse(
+                Instant.now(),
+                HttpStatus.GONE.value(),
+                "Cart Expired",
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", ""),
+                ex.getErrorCode()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.GONE);
+    }
+
+    /**
+     * Handles DuplicateBookingException - when user already has a booking for the schedule
+     * Returns HTTP 409 Conflict
+     */
+    @ExceptionHandler(DuplicateBookingException.class)
+    public ResponseEntity<BusinessErrorResponse> handleDuplicateBooking(
+            DuplicateBookingException ex,
+            WebRequest request) {
+        log.info("Duplicate booking attempt for schedule: {}", ex.getScheduleId());
+
+        BusinessErrorResponse errorResponse = new BusinessErrorResponse(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                "Duplicate Booking",
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", ""),
+                ex.getErrorCode()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     /**
@@ -445,5 +576,36 @@ public class GlobalExceptionHandler {
 
         public Map<String, String> getErrors() { return errors; }
         public void setErrors(Map<String, String> errors) { this.errors = errors; }
+    }
+
+    /**
+     * Business error response structure with error code for frontend i18n
+     */
+    public static class BusinessErrorResponse extends ErrorResponse {
+        private String errorCode;
+        private Integer availableSlots;
+        private Integer hoursRequired;
+        private String currentStatus;
+        private java.util.List<String> allowedTransitions;
+
+        public BusinessErrorResponse(Instant timestamp, int status, String error, String message, String path, String errorCode) {
+            super(timestamp, status, error, message, path);
+            this.errorCode = errorCode;
+        }
+
+        public String getErrorCode() { return errorCode; }
+        public void setErrorCode(String errorCode) { this.errorCode = errorCode; }
+
+        public Integer getAvailableSlots() { return availableSlots; }
+        public void setAvailableSlots(Integer availableSlots) { this.availableSlots = availableSlots; }
+
+        public Integer getHoursRequired() { return hoursRequired; }
+        public void setHoursRequired(Integer hoursRequired) { this.hoursRequired = hoursRequired; }
+
+        public String getCurrentStatus() { return currentStatus; }
+        public void setCurrentStatus(String currentStatus) { this.currentStatus = currentStatus; }
+
+        public java.util.List<String> getAllowedTransitions() { return allowedTransitions; }
+        public void setAllowedTransitions(java.util.List<String> allowedTransitions) { this.allowedTransitions = allowedTransitions; }
     }
 }

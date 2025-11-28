@@ -40,9 +40,11 @@ export const useCurrency = () => {
     }
 
     // Currency-specific formatting rules
+    // Always show currency code (CLP) for clarity with international tourists
     const formatOptions: Intl.NumberFormatOptions = {
       style: 'currency',
       currency,
+      currencyDisplay: 'code',
       // CLP doesn't use decimal places, but other currencies might
       minimumFractionDigits: currency === 'CLP' ? 0 : 2,
       maximumFractionDigits: currency === 'CLP' ? 0 : 2

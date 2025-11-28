@@ -15,9 +15,7 @@ useSeoMeta({
 
 const isEmpty = computed(() => cartStore.cart.items.length === 0)
 
-// Totals from backend cart API (tax is calculated server-side)
-const subtotal = computed(() => cartStore.cart.subtotal)
-const tax = computed(() => cartStore.cart.taxAmount)
+// Total from backend cart API (tax-inclusive price)
 const total = computed(() => cartStore.cart.cartTotal)
 
 // Actions
@@ -178,26 +176,14 @@ function proceedToCheckout() {
 
             <div class="space-y-4 mb-6">
               <div
-                class="flex justify-between text-neutral-600 dark:text-neutral-300"
-              >
-                <span>{{ t('common.subtotal') }}</span>
-                <span class="font-semibold">{{
-                  formatPrice(subtotal)
-                }}</span>
-              </div>
-              <div
-                class="flex justify-between text-neutral-600 dark:text-neutral-300"
-              >
-                <span>{{ t('common.tax') }} (19%)</span>
-                <span class="font-semibold">{{ formatPrice(tax) }}</span>
-              </div>
-              <UDivider />
-              <div
                 class="flex justify-between text-lg font-bold text-neutral-900 dark:text-white"
               >
                 <span>{{ t('common.total') }}</span>
                 <span>{{ formatPrice(total) }}</span>
               </div>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400">
+                {{ t('checkout.tax_included') }}
+              </p>
             </div>
 
             <UButton
