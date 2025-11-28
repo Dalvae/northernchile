@@ -1,8 +1,10 @@
 # AGENTS.md - Guidelines for agentic coding agents
 
 ## Build/Lint/Test Commands
-- Backend: `cd backend; mvn clean package; mvn test`
-- Backend single test: `mvn -Dtest=ClassNameTest#methodName test` (run from backend/)
+- Backend build: `docker compose exec backend mvn clean package -DskipTests`
+- Backend test: `docker compose exec backend mvn test`
+- Backend single test: `docker compose exec backend mvn -Dtest=ClassNameTest#methodName test`
+- Backend compile check: `docker compose exec backend mvn compile test-compile`
 - Frontend dev: `cd frontend; pnpm dev`
 - Frontend build: `cd frontend; pnpm build`
 - Frontend typecheck: `cd frontend; pnpm typecheck` (only when asked)
