@@ -78,6 +78,9 @@ jobs:
           GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
 
+          # Frontend URL (for email links)
+          NUXT_PUBLIC_BASE_URL=https://www.northernchile.com
+
           # Email Configuration (uses AWS credentials above for SES)
           MAIL_ENABLED=${{ secrets.MAIL_ENABLED }}
           MAIL_FROM_EMAIL=${{ secrets.MAIL_FROM_EMAIL }}
