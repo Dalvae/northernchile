@@ -366,10 +366,13 @@ watch(() => scheduleForm.value.tourId, (newTourId) => {
 
   const selectedTour = toursMap.value.get(newTourId)
   if (selectedTour?.defaultStartTime) {
-    // defaultStartTime viene como "HH:mm:ss", tomamos solo HH:mm
-    const timeObj = selectedTour.defaultStartTime
-    if (timeObj.hour !== undefined && timeObj.minute !== undefined) {
-      scheduleForm.value.time = `${String(timeObj.hour).padStart(2, '0')}:${String(timeObj.minute).padStart(2, '0')}`
+    const timeVal = selectedTour.defaultStartTime
+    // Puede venir como string "HH:mm:ss" o como objeto LocalTime {hour, minute}
+    if (typeof timeVal === 'string') {
+      // Tomar solo HH:mm de "HH:mm:ss"
+      scheduleForm.value.time = timeVal.slice(0, 5)
+    } else if (timeVal.hour !== undefined && timeVal.minute !== undefined) {
+      scheduleForm.value.time = `${String(timeVal.hour).padStart(2, '0')}:${String(timeVal.minute).padStart(2, '0')}`
     }
   }
 })
@@ -625,10 +628,8 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
     events: Array.isArray(schedules)
       ? schedules.map((schedule: TourScheduleRes) => {
           const start = new Date(schedule.startDatetime || '')
-          const end = new Date(start)
-          end.setHours(start.getHours() + (schedule.tourDurationHours || 2))
 
-          // Color según status (PRIORIDAD: cancelado > cerrado > alertas > activo)
+          // Color único para todos los tours activos
           let backgroundColor = 'var(--color-atacama-dorado-500)'
 
           // Verificar si tiene alertas críticas
@@ -638,7 +639,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
           )
 
           if (hasCriticalAlert) {
-            backgroundColor = 'var(--color-atacama-dorado-500)'
+            backgroundColor = 'var(--color-warning-500)'
           }
 
           // El estado CLOSED y CANCELLED tiene prioridad sobre alertas
@@ -650,14 +651,20 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
             backgroundColor = 'var(--ui-error)'
           }
 
+          // Formatear hora local (HH:mm)
+          const timeStr = start.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false })
+          // Nombre truncado del tour + hora
+          const tourName = schedule.tourNameTranslations?.[locale.value]
+            || schedule.tourNameTranslations?.es
+            || schedule.tourName
+            || ''
+          const truncatedName = tourName.length > 25 ? tourName.slice(0, 25) + '...' : tourName
+
           return {
             id: schedule.id,
-            title:
-              schedule.tourNameTranslations?.[locale.value]
-              || schedule.tourNameTranslations?.es
-              || schedule.tourName,
-            start: start.toISOString(),
-            end: end.toISOString(),
+            title: `${timeStr} - ${truncatedName}`,
+            start: start,
+            allDay: false,
             backgroundColor,
             borderColor: backgroundColor,
             extendedProps: {
@@ -815,10 +822,20 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
   cursor: pointer;
   padding: 2px 4px;
   margin: 1px 0;
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fc-event:hover {
   opacity: 0.8;
+}
+
+.fc-event-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Estilos para el contenido personalizado de cada día */
