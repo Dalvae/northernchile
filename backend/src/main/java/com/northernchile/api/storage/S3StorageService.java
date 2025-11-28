@@ -80,12 +80,27 @@ public class S3StorageService {
     }
 
     /**
-     * Generate a public URL for an S3 object
+     * Generate a static public URL for an S3 object (no signing, bucket must be public)
      *
      * @param key The S3 object key
-     * @return The public URL (valid for 7 days)
+     * @return The static public URL
      */
     public String getPublicUrl(String key) {
+        if (key == null || key.isEmpty()) {
+            return null;
+        }
+        // Static URL - fast and cacheable, requires public bucket
+        return String.format("https://%s.s3.sa-east-1.amazonaws.com/%s", bucketName, key);
+    }
+
+    /**
+     * Generate a presigned URL for an S3 object (for private/authenticated access)
+     *
+     * @param key The S3 object key
+     * @param duration How long the URL should be valid
+     * @return The presigned URL
+     */
+    public String getPresignedUrl(String key, Duration duration) {
         if (key == null || key.isEmpty()) {
             return null;
         }
@@ -96,7 +111,7 @@ public class S3StorageService {
                 .build();
 
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofDays(7))
+                .signatureDuration(duration)
                 .getObjectRequest(getObjectRequest)
                 .build();
 

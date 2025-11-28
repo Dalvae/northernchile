@@ -3,26 +3,39 @@ package com.northernchile.api.media.mapper;
 import com.northernchile.api.media.dto.MediaCreateReq;
 import com.northernchile.api.media.dto.MediaRes;
 import com.northernchile.api.media.model.Media;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.Mappings;
+import com.northernchile.api.storage.S3StorageService;
+import org.mapstruct.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * MapStruct mapper for Media entity.
  */
 @Mapper(componentModel = "spring", unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE)
-public interface MediaMapper {
+public abstract class MediaMapper {
+
+    @Autowired
+    protected S3StorageService s3StorageService;
 
     @Mappings({
             @Mapping(target = "ownerId", source = "owner.id"),
             @Mapping(target = "tourId", source = "tour.id"),
             @Mapping(target = "scheduleId", source = "schedule.id"),
             @Mapping(target = "type", expression = "java(media.getType())"),
+            @Mapping(target = "url", expression = "java(generateFreshUrl(media))"),
             @Mapping(target = "displayOrder", ignore = true),  // Will be set from join table
             @Mapping(target = "isHero", ignore = true)  // Will be set from join table
     })
-    MediaRes toMediaRes(Media media);
+    public abstract MediaRes toMediaRes(Media media);
+
+    /**
+     * Generate a fresh presigned URL from S3 key
+     */
+    protected String generateFreshUrl(Media media) {
+        if (media == null || media.getS3Key() == null) {
+            return null;
+        }
+        return s3StorageService.getPublicUrl(media.getS3Key());
+    }
 
     @Mappings({
             @Mapping(target = "id", ignore = true),
@@ -33,7 +46,7 @@ public interface MediaMapper {
             @Mapping(target = "tourMediaAssignments", ignore = true),
             @Mapping(target = "scheduleMediaAssignments", ignore = true)
     })
-    Media toMedia(MediaCreateReq req);
+    public abstract Media toMedia(MediaCreateReq req);
 
     /**
      * Update media metadata from request.
@@ -55,5 +68,5 @@ public interface MediaMapper {
             @Mapping(target = "tourMediaAssignments", ignore = true),
             @Mapping(target = "scheduleMediaAssignments", ignore = true)
     })
-    void updateMediaFromReq(com.northernchile.api.media.dto.MediaUpdateReq req, @MappingTarget Media media);
+    public abstract void updateMediaFromReq(com.northernchile.api.media.dto.MediaUpdateReq req, @MappingTarget Media media);
 }
