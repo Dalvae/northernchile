@@ -52,16 +52,48 @@ jobs:
       - name: Create deployment files
         run: |
           cat > .env << 'EOF'
+          # Database
           SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }}
           SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }}
           SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+
+          # Security
           JWT_SECRET=${{ secrets.JWT_SECRET }}
+          SPRING_REMOTE_SECRET=${{ secrets.SPRING_REMOTE_SECRET }}
+
+          # Admin
           ADMIN_USERS_CONFIG=${{ secrets.ADMIN_USERS_CONFIG }}
+
+          # Data Seeding (false in production)
+          SEED_DATA=false
+
+          # AWS S3
           AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION=${{ secrets.AWS_REGION }}
           AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}
+
+          # External APIs
           WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY }}
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+
+          # Email Configuration
+          MAIL_ENABLED=${{ secrets.MAIL_ENABLED }}
+          MAIL_HOST=${{ secrets.MAIL_HOST }}
+          MAIL_PORT=${{ secrets.MAIL_PORT }}
+          MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          MAIL_FROM_EMAIL=${{ secrets.MAIL_FROM_EMAIL }}
+          MAIL_FROM_NAME=${{ secrets.MAIL_FROM_NAME }}
+
+          # Payment Providers
+          PAYMENT_TEST_MODE=${{ secrets.PAYMENT_TEST_MODE }}
+          TRANSBANK_COMMERCE_CODE=${{ secrets.TRANSBANK_COMMERCE_CODE }}
+          TRANSBANK_API_KEY=${{ secrets.TRANSBANK_API_KEY }}
+          TRANSBANK_ENVIRONMENT=${{ secrets.TRANSBANK_ENVIRONMENT }}
+          MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
+          MERCADOPAGO_PUBLIC_KEY=${{ secrets.MERCADOPAGO_PUBLIC_KEY }}
           EOF
 
           cat > docker-compose.prod.yml << 'EOF'
