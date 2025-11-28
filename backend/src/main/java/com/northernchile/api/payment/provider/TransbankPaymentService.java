@@ -95,13 +95,32 @@ public class TransbankPaymentService implements PaymentProviderService {
             Booking booking = bookingRepository.findById(request.getBookingId())
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found: " + request.getBookingId()));
 
+            // SECURITY: Always use the amount from the booking, never trust client-provided amount
+            // This prevents price manipulation attacks where a malicious user could modify the HTTP request
+            java.math.BigDecimal trustedAmount = booking.getTotalAmount();
+            
+            // If there are additional bookings, sum their amounts too
+            if (request.getAdditionalBookingIds() != null && !request.getAdditionalBookingIds().isEmpty()) {
+                for (UUID additionalId : request.getAdditionalBookingIds()) {
+                    Booking additionalBooking = bookingRepository.findById(additionalId)
+                        .orElseThrow(() -> new IllegalArgumentException("Additional booking not found: " + additionalId));
+                    trustedAmount = trustedAmount.add(additionalBooking.getTotalAmount());
+                }
+            }
+            
+            // Log if client amount differs (potential attack or frontend bug)
+            if (request.getAmount() != null && request.getAmount().compareTo(trustedAmount) != 0) {
+                log.warn("SECURITY: Client-provided amount ({}) differs from booking total ({}). Using booking total.",
+                    request.getAmount(), trustedAmount);
+            }
+
             // Get Transaction instance
             WebpayPlus.Transaction transaction = getTransactionInstance();
 
             // Create transaction with Transbank
             String buyOrder = "ORDER-" + request.getBookingId().toString().substring(0, 8);
             String sessionId = "SESSION-" + System.currentTimeMillis();
-            double amountInPesos = request.getAmount().doubleValue();
+            double amountInPesos = trustedAmount.doubleValue();
 
             WebpayPlusTransactionCreateResponse transbankResponse = transaction.create(
                 buyOrder,
@@ -115,8 +134,8 @@ public class TransbankPaymentService implements PaymentProviderService {
             payment.setBooking(booking);
             payment.setProvider(request.getProvider());
             payment.setPaymentMethod(request.getPaymentMethod());
-            payment.setAmount(request.getAmount());
-            payment.setCurrency(request.getCurrency());
+            payment.setAmount(trustedAmount); // Use validated amount from booking(s)
+            payment.setCurrency(request.getCurrency() != null ? request.getCurrency() : "CLP");
             payment.setStatus(PaymentStatus.PENDING);
             payment.setToken(transbankResponse.getToken());
             payment.setPaymentUrl(transbankResponse.getUrl());

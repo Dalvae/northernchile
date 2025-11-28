@@ -276,6 +276,41 @@
                   class="w-full"
                 />
               </UFormField>
+
+              <!-- Terms Checkbox -->
+              <UFormField
+                name="acceptTerms"
+                required
+              >
+                <div class="flex items-start gap-2">
+                  <UCheckbox
+                    v-model="state.acceptTerms"
+                    name="acceptTerms"
+                    class="mt-0.5"
+                  />
+                  <label
+                    for="acceptTerms"
+                    class="text-sm text-neutral-600 dark:text-neutral-300 cursor-pointer"
+                  >
+                    {{ t('auth.accept_terms') }}
+                    <NuxtLink
+                      :to="localePath('/terms')"
+                      class="text-primary font-medium hover:underline"
+                      target="_blank"
+                    >
+                      {{ t('auth.terms_of_service') }}
+                    </NuxtLink>
+                    {{ t('common.and') }}
+                    <NuxtLink
+                      :to="localePath('/privacy')"
+                      class="text-primary font-medium hover:underline"
+                      target="_blank"
+                    >
+                      {{ t('auth.privacy_policy') }}
+                    </NuxtLink>
+                  </label>
+                </div>
+              </UFormField>
             </template>
 
             <!-- Submit Button -->
@@ -404,7 +439,8 @@ const state = reactive({
   fullName: '',
   nationality: '',
   phoneNumber: '',
-  dateOfBirth: ''
+  dateOfBirth: '',
+  acceptTerms: false
 })
 
 // State para recuperar contraseña
@@ -447,7 +483,10 @@ const schema = computed(() => {
         phoneNumber: z.string().optional(),
         dateOfBirth: z.string().optional(),
         password: z.string().min(8, t('auth.password_min')),
-        confirmPassword: z.string()
+        confirmPassword: z.string(),
+        acceptTerms: z.literal(true, {
+          errorMap: () => ({ message: t('auth.accept_terms_required') })
+        })
       })
       .refine(data => data.password === data.confirmPassword, {
         message: t('auth.passwords_dont_match'),
@@ -478,9 +517,14 @@ const resetPasswordSchema = computed(() => {
 function toggleForm() {
   currentView.value = currentView.value === 'login' ? 'register' : 'login'
   // Reset form
-  Object.keys(state).forEach((key) => {
-    state[key as keyof typeof state] = ''
-  })
+  state.email = ''
+  state.password = ''
+  state.confirmPassword = ''
+  state.fullName = ''
+  state.nationality = ''
+  state.phoneNumber = ''
+  state.dateOfBirth = ''
+  state.acceptTerms = false
   dateOfBirthValue.value = undefined
 }
 

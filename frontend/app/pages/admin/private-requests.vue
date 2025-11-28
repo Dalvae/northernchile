@@ -36,12 +36,7 @@ const {
           createdAt: string
         }>
       >(`${config.public.apiBase}/api/admin/private-tours/requests`, {
-        headers:
-          import.meta.client && localStorage.getItem('auth_token')
-            ? {
-                Authorization: `Bearer ${localStorage.getItem('auth_token')}`
-              }
-            : {}
+        credentials: 'include' // Auth is handled via HttpOnly cookie
       })
       return response
     } catch (err) {

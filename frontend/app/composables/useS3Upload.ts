@@ -81,23 +81,7 @@ export const useS3Upload = () => {
         {
           method: 'POST',
           body: formData,
-          onRequest({ options }) {
-            // Add auth token from localStorage
-            const token = import.meta.client ? localStorage.getItem('auth_token') : null
-            if (token) {
-              const existingHeaders = options.headers as any || {}
-              options.headers = {
-                ...(typeof existingHeaders === 'object' ? existingHeaders : {}),
-                Authorization: `Bearer ${token}`
-              } as any
-            }
-          }
-          // Note: $fetch doesn't support onUploadProgress
-          // onUploadProgress(event: any) {
-          //   if (event.total) {
-          //     uploadProgress.value = Math.round((event.loaded / event.total) * 100)
-          //   }
-          // }
+          credentials: 'include' // Auth is handled via HttpOnly cookie
         }
       )
 
@@ -137,17 +121,12 @@ export const useS3Upload = () => {
     folder: string = 'general'
   ): Promise<string | null> => {
     try {
-      const token = import.meta.client ? localStorage.getItem('auth_token') : null
       const response = await $fetch<PresignedUploadResponse>(
         `${config.public.apiBase}/api/storage/presigned-upload-url`,
         {
           method: 'GET',
           query: { filename, folder },
-          headers: token
-            ? {
-                Authorization: `Bearer ${token}`
-              }
-            : {}
+          credentials: 'include' // Auth is handled via HttpOnly cookie
         }
       )
 
@@ -217,16 +196,11 @@ export const useS3Upload = () => {
    */
   const deleteFile = async (key: string): Promise<boolean> => {
     try {
-      const token = import.meta.client ? localStorage.getItem('auth_token') : null
       const [folder, filename] = key.split('/')
 
       await $fetch(`${config.public.apiBase}/api/storage/${folder}/${filename}`, {
         method: 'DELETE',
-        headers: token
-          ? {
-              Authorization: `Bearer ${token}`
-            }
-          : {}
+        credentials: 'include' // Auth is handled via HttpOnly cookie
       })
 
       toast.add({

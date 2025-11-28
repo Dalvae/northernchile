@@ -86,11 +86,30 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
             Booking booking = bookingRepository.findById(request.getBookingId())
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found: " + request.getBookingId()));
 
+            // SECURITY: Always use the amount from the booking, never trust client-provided amount
+            // This prevents price manipulation attacks where a malicious user could modify the HTTP request
+            BigDecimal trustedAmount = booking.getTotalAmount();
+            
+            // If there are additional bookings, sum their amounts too
+            if (request.getAdditionalBookingIds() != null && !request.getAdditionalBookingIds().isEmpty()) {
+                for (java.util.UUID additionalId : request.getAdditionalBookingIds()) {
+                    Booking additionalBooking = bookingRepository.findById(additionalId)
+                        .orElseThrow(() -> new IllegalArgumentException("Additional booking not found: " + additionalId));
+                    trustedAmount = trustedAmount.add(additionalBooking.getTotalAmount());
+                }
+            }
+            
+            // Log if client amount differs (potential attack or frontend bug)
+            if (request.getAmount() != null && request.getAmount().compareTo(trustedAmount) != 0) {
+                log.warn("SECURITY: Client-provided amount ({}) differs from booking total ({}). Using booking total.",
+                    request.getAmount(), trustedAmount);
+            }
+
             // Configure Mercado Pago SDK
             configureMercadoPago();
 
-            // Create payment request
-            PaymentCreateRequest paymentRequest = buildPaymentRequest(request, booking);
+            // Create payment request using trusted amount
+            PaymentCreateRequest paymentRequest = buildPaymentRequest(request, booking, trustedAmount);
 
             // Create payment with Mercado Pago
             PaymentClient client = new PaymentClient();
@@ -101,8 +120,8 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
             payment.setBooking(booking);
             payment.setProvider(request.getProvider());
             payment.setPaymentMethod(request.getPaymentMethod());
-            payment.setAmount(request.getAmount());
-            payment.setCurrency(request.getCurrency());
+            payment.setAmount(trustedAmount); // Use validated amount from booking(s)
+            payment.setCurrency(request.getCurrency() != null ? request.getCurrency() : "BRL");
             payment.setExternalPaymentId(mpPayment.getId().toString());
             payment.setStatus(mapMercadoPagoStatus(mpPayment.getStatus()));
             payment.setTest(isTestMode()); // Mark as test if using TEST- credentials
@@ -492,9 +511,9 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
     /**
      * Build Mercado Pago payment request from our internal request.
      */
-    private PaymentCreateRequest buildPaymentRequest(PaymentInitReq request, Booking booking) {
+    private PaymentCreateRequest buildPaymentRequest(PaymentInitReq request, Booking booking, BigDecimal trustedAmount) {
         PaymentCreateRequest.PaymentCreateRequestBuilder builder = PaymentCreateRequest.builder()
-            .transactionAmount(request.getAmount())
+            .transactionAmount(trustedAmount) // Use validated amount, not request.getAmount()
             .description(request.getDescription() != null ?
                 request.getDescription() :
                 "Tour booking #" + booking.getId())

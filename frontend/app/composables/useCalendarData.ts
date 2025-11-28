@@ -68,22 +68,6 @@ export const useCalendarData = () => {
   const config = useRuntimeConfig()
 
   /**
-   * Helper to get auth token from store or localStorage
-   */
-  const getAuthToken = (): string | null => {
-    if (import.meta.client) {
-      // Try to get from localStorage and parse it (it's stored as JSON)
-      try {
-        const storedToken = localStorage.getItem('auth_token')
-        return storedToken ? JSON.parse(storedToken) : null
-      } catch {
-        return null
-      }
-    }
-    return null
-  }
-
-  /**
    * Obtiene fase lunar para un rango de fechas
    */
   const fetchMoonPhases = async (startDate: string, endDate: string): Promise<MoonPhase[]> => {
@@ -147,16 +131,11 @@ export const useCalendarData = () => {
    */
   const fetchSchedules = async (startDate: string, endDate: string): Promise<TourSchedule[]> => {
     try {
-      const token = getAuthToken()
       const response = await $fetch<TourSchedule[]>(
         `${config.public.apiBase}/api/admin/schedules`,
         {
           params: { start: startDate, end: endDate },
-          headers: token
-            ? {
-                Authorization: `Bearer ${token}`
-              }
-            : {}
+          credentials: 'include' // Auth is handled via HttpOnly cookie
         }
       )
       return response
@@ -171,13 +150,8 @@ export const useCalendarData = () => {
    */
   const fetchAlerts = async (): Promise<WeatherAlert[]> => {
     try {
-      const token = getAuthToken()
       const response = await $fetch<WeatherAlert[]>(`${config.public.apiBase}/api/admin/alerts`, {
-        headers: token
-          ? {
-              Authorization: `Bearer ${token}`
-            }
-          : {}
+        credentials: 'include' // Auth is handled via HttpOnly cookie
       })
       return response
     } catch (error) {
@@ -192,9 +166,6 @@ export const useCalendarData = () => {
    */
   const fetchCalendarData = async (startDate: string, endDate: string) => {
     try {
-      // Obtener token si existe
-      const token = getAuthToken()
-
       interface CalendarDataResponse {
         moonPhases?: MoonPhase[]
         weather?: WeatherForecastResponse
@@ -203,11 +174,7 @@ export const useCalendarData = () => {
       // Llamada combinada al backend: fases lunares + pronóstico meteorológico
       const calendarResponse = await $fetch<CalendarDataResponse>(`${config.public.apiBase}/api/calendar/data`, {
         params: { startDate, endDate },
-        headers: token
-          ? {
-              Authorization: `Bearer ${token}`
-            }
-          : {}
+        credentials: 'include' // Auth is handled via HttpOnly cookie
       })
 
       // Obtener schedules y alertas (datos que cambian frecuentemente)

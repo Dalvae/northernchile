@@ -104,8 +104,8 @@ function nextStep() {
   if (currentStep.value === 1 && !step1Valid.value) {
     toast.add({
       color: 'warning',
-      title: 'Información incompleta',
-      description: 'Por favor completa todos los campos requeridos'
+      title: t('checkout.validation.incomplete_info'),
+      description: t('checkout.validation.complete_required_fields')
     })
     return
   }
@@ -117,9 +117,8 @@ function nextStep() {
   if (currentStep.value === 2 && !step2Valid.value) {
     toast.add({
       color: 'warning',
-      title: 'Información incompleta',
-      description:
-        'Por favor completa la información de todos los participantes'
+      title: t('checkout.validation.incomplete_info'),
+      description: t('checkout.validation.complete_all_participants')
     })
     return
   }
@@ -209,7 +208,7 @@ async function submitBooking() {
           toast.add({
             color: 'warning',
             title: t('common.error'),
-            description: 'Ya tienes una cuenta. Por favor inicia sesión.'
+            description: t('checkout.toast.account_exists')
           })
           router.push(localePath('/auth'))
           return
@@ -223,8 +222,8 @@ async function submitBooking() {
     // Step 2: Create bookings for ALL cart items
     toast.add({
       color: 'info',
-      title: 'Procesando reserva...',
-      description: 'Estamos creando tu reserva. Este proceso puede tomar unos segundos.',
+      title: t('checkout.toast.processing_booking'),
+      description: t('checkout.toast.creating_booking'),
       icon: 'i-lucide-loader-2'
     })
 
@@ -280,8 +279,8 @@ async function submitBooking() {
     // Step 3: Initialize payment for all bookings (using first booking as reference)
     toast.add({
       color: 'success',
-      title: '✅ Reserva creada exitosamente',
-      description: 'Preparando pasarela de pago segura...',
+      title: t('checkout.toast.booking_created'),
+      description: t('checkout.toast.preparing_payment'),
       icon: 'i-lucide-check-circle'
     })
 
@@ -309,8 +308,8 @@ async function submitBooking() {
       if (paymentResult.paymentUrl) {
         toast.add({
           color: 'success',
-          title: '🔒 Redirigiendo a entorno seguro...',
-          description: 'Te estamos llevando a la pasarela de pago de Transbank. No cierres esta ventana.'
+          title: t('checkout.toast.redirecting_payment'),
+          description: t('checkout.toast.redirecting_transbank')
         })
 
         // Redirect to Transbank with a slight delay for better UX
@@ -342,7 +341,7 @@ async function submitBooking() {
       createdBookingIds.value = []
     }
 
-    let errorMessage = 'Hubo un error procesando tu reserva.'
+    let errorMessage = t('checkout.errors.processing_error')
 
     // Handle specific errors
     const errorData = error && typeof error === 'object' && 'data' in error
@@ -351,9 +350,9 @@ async function submitBooking() {
 
     if (errorData?.message) {
       if (errorData.message.includes('Not enough available slots')) {
-        errorMessage = 'No hay suficientes cupos disponibles para esta fecha.'
+        errorMessage = t('checkout.errors.no_slots_available')
       } else if (errorData.message.includes('not found')) {
-        errorMessage = 'El tour seleccionado ya no está disponible.'
+        errorMessage = t('checkout.errors.tour_not_available')
       } else {
         errorMessage = errorData.message
       }
@@ -410,10 +409,10 @@ const total = computed(() => cartStore.cart.cartTotal)
       <!-- Header -->
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">
-          Finalizar Compra
+          {{ t('checkout.title') }}
         </h1>
         <p class="text-neutral-600 dark:text-neutral-300">
-          Completa tu reserva en {{ totalSteps }} simples pasos
+          {{ t('checkout.steps_description', { steps: totalSteps }) }}
         </p>
       </div>
 
@@ -458,7 +457,7 @@ const total = computed(() => cartStore.cart.cartTotal)
                     : 'text-neutral-500 dark:text-neutral-300'
                 "
               >
-                Contacto
+                {{ t('checkout.step_contact') }}
               </span>
               <span
                 :class="
@@ -467,7 +466,7 @@ const total = computed(() => cartStore.cart.cartTotal)
                     : 'text-neutral-500 dark:text-neutral-300'
                 "
               >
-                Participantes
+                {{ t('checkout.step_participants') }}
               </span>
               <span
                 :class="
@@ -476,7 +475,7 @@ const total = computed(() => cartStore.cart.cartTotal)
                     : 'text-neutral-500 dark:text-neutral-300'
                 "
               >
-                Pago
+                {{ t('checkout.step_payment') }}
               </span>
             </div>
           </div>
@@ -487,10 +486,10 @@ const total = computed(() => cartStore.cart.cartTotal)
               <h2
                 class="text-xl font-semibold text-neutral-900 dark:text-white"
               >
-                Información de Contacto
+                {{ t('checkout.contact_info_title') }}
               </h2>
               <p class="text-sm text-neutral-500 dark:text-neutral-300 mt-1">
-                Usaremos esta información para enviarte la confirmación
+                {{ t('checkout.contact_info_description') }}
               </p>
             </template>
 
@@ -499,12 +498,12 @@ const total = computed(() => cartStore.cart.cartTotal)
                 <label
                   class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
                 >
-                  Nombre Completo *
+                  {{ t('checkout.full_name') }} *
                 </label>
                 <input
                   v-model="contactForm.fullName"
                   type="text"
-                  placeholder="Juan Pérez"
+                  :placeholder="t('checkout.full_name_placeholder')"
                   class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                   required
                 >
@@ -514,7 +513,7 @@ const total = computed(() => cartStore.cart.cartTotal)
                 <label
                   class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
                 >
-                  Email *
+                  {{ t('checkout.email') }} *
                 </label>
                 <input
                   v-model="contactForm.email"
@@ -529,7 +528,7 @@ const total = computed(() => cartStore.cart.cartTotal)
                 <label
                   class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
                 >
-                  Teléfono *
+                  {{ t('checkout.phone') }} *
                 </label>
                 <div class="flex gap-2">
                   <select
@@ -564,17 +563,17 @@ const total = computed(() => cartStore.cart.cartTotal)
                 class="space-y-4 mt-4"
               >
                 <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                  Crea una cuenta para gestionar tus reservas fácilmente. Si ya tienes una, <NuxtLink
+                  {{ t('checkout.create_account_prompt') }} <NuxtLink
                     :to="{ path: localePath('/auth'), query: { redirect: localePath('/checkout') } }"
                     class="text-primary font-medium hover:underline"
-                  >inicia sesión aquí</NuxtLink>.
+                  >{{ t('checkout.login_here') }}</NuxtLink>.
                 </p>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label
                       class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
                     >
-                      Contraseña *
+                      {{ t('checkout.password') }} *
                     </label>
                     <input
                       v-model="contactForm.password"
@@ -588,7 +587,7 @@ const total = computed(() => cartStore.cart.cartTotal)
                     <label
                       class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
                     >
-                      Confirmar Contraseña *
+                      {{ t('checkout.confirm_password') }} *
                     </label>
                     <input
                       v-model="contactForm.confirmPassword"
@@ -610,7 +609,7 @@ const total = computed(() => cartStore.cart.cartTotal)
                   variant="ghost"
                   icon="i-lucide-arrow-left"
                 >
-                  Volver al Carrito
+                  {{ t('checkout.back_to_cart') }}
                 </UButton>
                 <UButton
                   color="primary"
@@ -619,7 +618,7 @@ const total = computed(() => cartStore.cart.cartTotal)
                   :disabled="!step1Valid"
                   @click="nextStep"
                 >
-                  Continuar
+                  {{ t('checkout.continue') }}
                 </UButton>
               </div>
             </template>
@@ -631,11 +630,11 @@ const total = computed(() => cartStore.cart.cartTotal)
               <h2
                 class="text-xl font-semibold text-neutral-900 dark:text-white"
               >
-                Datos de Participantes
+                {{ t('checkout.participants_title') }}
               </h2>
               <p class="text-sm text-neutral-500 dark:text-neutral-300 mt-1">
                 {{ totalParticipants }}
-                {{ totalParticipants === 1 ? "persona" : "personas" }} en total
+                {{ totalParticipants === 1 ? t('checkout.person') : t('checkout.persons') }} {{ t('common.total').toLowerCase() }}
               </p>
             </template>
 
@@ -653,12 +652,12 @@ const total = computed(() => cartStore.cart.cartTotal)
                   <template #header>
                     <div class="flex items-center justify-between">
                       <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
-                        Participante {{ index + 1 }}
+                        {{ t('checkout.participant_number', { number: index + 1 }) }}
                         <span
                           v-if="index === 0"
                           class="text-sm text-neutral-500 dark:text-neutral-300 font-normal ml-2"
                         >
-                          (Contacto principal)
+                          {{ t('checkout.primary_contact') }}
                         </span>
                       </h3>
                     </div>
@@ -675,7 +674,7 @@ const total = computed(() => cartStore.cart.cartTotal)
                   icon="i-lucide-arrow-left"
                   @click="prevStep"
                 >
-                  Atrás
+                  {{ t('checkout.back') }}
                 </UButton>
                 <UButton
                   color="primary"
@@ -684,7 +683,7 @@ const total = computed(() => cartStore.cart.cartTotal)
                   :disabled="!step2Valid"
                   @click="nextStep"
                 >
-                  Continuar
+                  {{ t('checkout.continue') }}
                 </UButton>
               </div>
             </template>
@@ -741,7 +740,7 @@ const total = computed(() => cartStore.cart.cartTotal)
                 <h3
                   class="text-lg font-semibold text-neutral-900 dark:text-white"
                 >
-                  Resumen de Compra
+                  {{ t('checkout.order_summary') }}
                 </h3>
               </template>
 
@@ -761,7 +760,7 @@ const total = computed(() => cartStore.cart.cartTotal)
                     class="text-xs text-neutral-500 dark:text-neutral-300 mt-1"
                   >
                     {{ item.numParticipants }}
-                    {{ item.numParticipants === 1 ? "persona" : "personas" }}
+                    {{ item.numParticipants === 1 ? t('checkout.person') : t('checkout.persons') }}
                   </p>
                   <p
                     class="text-sm font-semibold text-neutral-900 dark:text-white mt-2"
@@ -775,20 +774,20 @@ const total = computed(() => cartStore.cart.cartTotal)
                   <div
                     class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
                   >
-                    <span>Subtotal</span>
+                    <span>{{ t('checkout.subtotal') }}</span>
                     <span>{{ formatPrice(subtotal) }}</span>
                   </div>
                   <div
                     class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
                   >
-                    <span>IVA (19%)</span>
+                    <span>{{ t('checkout.tax_label') }}</span>
                     <span>{{ formatPrice(tax) }}</span>
                   </div>
                   <UDivider />
                   <div
                     class="flex justify-between text-lg font-bold text-neutral-900 dark:text-white"
                   >
-                    <span>Total</span>
+                    <span>{{ t('checkout.total') }}</span>
                     <span>{{ formatPrice(total) }}</span>
                   </div>
                 </div>

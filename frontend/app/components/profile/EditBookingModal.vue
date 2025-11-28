@@ -9,6 +9,7 @@ const emit = defineEmits<{
   saved: []
 }>()
 
+const { t } = useI18n()
 const config = useRuntimeConfig()
 const toast = useToast()
 
@@ -56,8 +57,8 @@ async function saveChanges() {
 
     toast.add({
       color: 'success',
-      title: 'Reserva Actualizada',
-      description: 'Los cambios se han guardado exitosamente.'
+      title: t('common.success'),
+      description: t('profile.edit_booking.saved_success')
     })
 
     isOpen.value = false
@@ -67,9 +68,9 @@ async function saveChanges() {
     const apiError = error as { data?: { message?: string } }
     toast.add({
       color: 'error',
-      title: 'Error',
+      title: t('common.error'),
       description:
-        apiError.data?.message || 'No se pudieron guardar los cambios. Por favor, inténtalo de nuevo.'
+        apiError.data?.message || t('profile.edit_booking.save_error')
     })
   } finally {
     saving.value = false
@@ -78,7 +79,7 @@ async function saveChanges() {
 </script>
 
 <template>
-  <UButton label="Editar Reserva" @click="isOpen = true" />
+  <UButton :label="t('profile.edit_booking.title')" @click="isOpen = true" />
 
   <UModal v-model:open="isOpen">
     <template #content>
@@ -86,7 +87,7 @@ async function saveChanges() {
       <div class="flex justify-between items-center pb-4 px-6 border-b border-neutral-200 dark:border-neutral-700">
         <div>
           <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">
-            Editar Reserva
+            {{ t('profile.edit_booking.title') }}
           </h3>
           <p class="text-sm text-neutral-500 dark:text-neutral-300 mt-1">
             #{{ booking.id.substring(0, 8) }} - {{ booking.tourName }}
@@ -108,11 +109,11 @@ async function saveChanges() {
             <label
               class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-4"
             >
-              Solicitudes Especiales
+              {{ t('booking.special_requests') }}
             </label>
             <UTextarea
               v-model="state.specialRequests"
-              placeholder="Agregar cualquier solicitud especial para el tour..."
+              :placeholder="t('booking.special_requirements_placeholder')"
               :rows="3"
               size="lg"
               class="w-full"
@@ -124,7 +125,7 @@ async function saveChanges() {
           <!-- Participants -->
           <div>
             <h4 class="text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-4">
-              Información de Participantes
+              {{ t('profile.edit_booking.participants_info') }}
             </h4>
             <div class="space-y-4">
               <div
@@ -146,11 +147,11 @@ async function saveChanges() {
                   <label
                     class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                   >
-                    Dirección de Recogida
+                    {{ t('profile.edit_booking.pickup_address') }}
                   </label>
                   <UInput
                     v-model="participant.pickupAddress"
-                    placeholder="Ej: Hotel San Pedro, Calle Caracoles 123"
+                    :placeholder="t('booking.pickup_address_placeholder')"
                     size="lg"
                     class="w-full"
                   />
@@ -160,11 +161,11 @@ async function saveChanges() {
                   <label
                     class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                   >
-                    Requisitos Especiales
+                    {{ t('booking.special_requirements') }}
                   </label>
                   <UTextarea
                     v-model="participant.specialRequirements"
-                    placeholder="Ej: Restricciones alimentarias, necesidades de movilidad, etc."
+                    :placeholder="t('booking.special_requirements_placeholder')"
                     :rows="2"
                     size="lg"
                     class="w-full"
@@ -176,36 +177,30 @@ async function saveChanges() {
                     <label
                       class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                     >
-                      Teléfono
+                      {{ t('profile.phone') }}
                     </label>
                     <UInput
                       v-model="participant.phoneNumber"
                       type="tel"
-                      placeholder="+56 9 1234 5678"
+                      :placeholder="t('booking.phone_placeholder')"
                       size="lg"
                       class="w-full"
                     />
-                    <p class="text-xs text-neutral-500 dark:text-neutral-300 mt-1">
-                      Para contactarte y enviarte fotos
-                    </p>
                   </div>
 
                   <div>
                     <label
                       class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                     >
-                      Email
+                      {{ t('booking.email') }}
                     </label>
                     <UInput
                       v-model="participant.email"
                       type="email"
-                      placeholder="tu@email.com"
+                      placeholder="email@example.com"
                       size="lg"
                       class="w-full"
                     />
-                    <p class="text-xs text-neutral-500 dark:text-neutral-300 mt-1">
-                      Para enviarte fotos del tour
-                    </p>
                   </div>
                 </div>
               </div>
@@ -219,13 +214,13 @@ async function saveChanges() {
         <UButton
           color="neutral"
           variant="outline"
-          label="Cancelar"
+          :label="t('common.cancel')"
           :disabled="saving"
           @click="isOpen = false"
         />
         <UButton
           color="primary"
-          label="Guardar Cambios"
+          :label="t('common.save')"
           icon="i-lucide-save"
           :loading="saving"
           @click="saveChanges"

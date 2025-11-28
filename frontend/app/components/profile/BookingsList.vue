@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BookingRes } from '~/lib/api-client/api'
 
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 const authStore = useAuthStore()
 const config = useRuntimeConfig()
 const toast = useToast()
@@ -29,8 +29,8 @@ async function fetchBookings() {
     console.error('Error fetching bookings:', error)
     toast.add({
       color: 'error',
-      title: 'Error',
-      description: 'No se pudieron cargar las reservas'
+      title: t('common.error'),
+      description: t('profile.booking_load_error')
     })
   } finally {
     loading.value = false
@@ -78,25 +78,19 @@ function getStatusColor(status: string): BadgeColor {
 
 // Status labels
 function getStatusLabel(status: string) {
-  const labels: Record<string, string> = {
-    CONFIRMED: 'Confirmada',
-    PENDING: 'Pendiente',
-    CANCELLED: 'Cancelada',
-    COMPLETED: 'Completada'
-  }
-  return labels[status] || status
+  return t(`booking.status.${status}`)
 }
 
 function downloadBooking(_booking: BookingRes) {
   toast.add({
     color: 'info',
-    title: 'En desarrollo',
-    description: 'La descarga de la reserva en PDF estará disponible próximamente.'
+    title: t('profile.download_coming_soon'),
+    description: t('profile.download_coming_soon_description')
   })
 }
 
 async function cancelBooking(bookingId: string) {
-  if (!confirm('¿Estás seguro de que quieres cancelar esta reserva?')) {
+  if (!confirm(t('profile.cancel_booking_confirm'))) {
     return
   }
 
@@ -112,15 +106,15 @@ async function cancelBooking(bookingId: string) {
 
     toast.add({
       color: 'success',
-      title: 'Reserva Cancelada',
-      description: 'La reserva ha sido cancelada exitosamente.'
+      title: t('profile.cancel_booking'),
+      description: t('profile.booking_cancelled_success')
     })
   } catch (error: unknown) {
     console.error('Error cancelling booking:', error)
     toast.add({
       color: 'error',
-      title: 'Error',
-      description: 'No se pudo cancelar la reserva. Por favor, inténtalo de nuevo.'
+      title: t('common.error'),
+      description: t('profile.booking_cancel_error')
     })
   } finally {
     loading.value = false
@@ -165,11 +159,10 @@ async function handleBookingSaved() {
           />
         </div>
         <h3 class="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-          No tienes reservas
+          {{ t('profile.no_bookings') }}
         </h3>
         <p class="text-neutral-600 dark:text-neutral-300 mb-6">
-          Aún no has realizado ninguna reserva. Explora nuestros tours y
-          comienza tu aventura.
+          {{ t('profile.no_bookings_description') }}
         </p>
         <UButton
           color="primary"
@@ -177,7 +170,7 @@ async function handleBookingSaved() {
           icon="i-lucide-telescope"
           :to="localePath('/tours')"
         >
-          Explorar Tours
+          {{ t('profile.browse_tours') }}
         </UButton>
       </div>
     </UCard>
@@ -195,7 +188,7 @@ async function handleBookingSaved() {
           <div class="flex justify-between items-start">
             <div>
               <p class="text-sm text-neutral-500 dark:text-neutral-300">
-                Reserva #{{ booking.id.substring(0, 8) }}
+                {{ t('profile.booking_reference') }} #{{ booking.id.substring(0, 8) }}
               </p>
               <p
                 class="text-lg font-semibold text-neutral-900 dark:text-white mt-1"
@@ -229,7 +222,7 @@ async function handleBookingSaved() {
                   class="w-4 h-4"
                 />
                 {{ booking.participants?.length || 0 }}
-                {{ booking.participants?.length === 1 ? "participante" : "participantes" }}
+                {{ booking.participants?.length === 1 ? t('profile.participant') : t('profile.participants') }}
               </p>
             </div>
           </div>
@@ -239,7 +232,7 @@ async function handleBookingSaved() {
             <h4
               class="text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
             >
-              Participantes
+              {{ t('booking.participant_details') }}
             </h4>
             <div class="space-y-3">
               <div
@@ -299,19 +292,19 @@ async function handleBookingSaved() {
             <div
               class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
             >
-              <span>Subtotal</span>
+              <span>{{ t('common.subtotal') }}</span>
               <span>{{ formatPrice(booking.subtotal) }}</span>
             </div>
             <div
               class="flex justify-between text-sm text-neutral-600 dark:text-neutral-300"
             >
-              <span>IVA (19%)</span>
+              <span>{{ t('common.tax') }} (19%)</span>
               <span>{{ formatPrice(booking.taxAmount) }}</span>
             </div>
             <div
               class="flex justify-between text-lg font-bold text-neutral-900 dark:text-white pt-2 border-t border-neutral-200 dark:border-neutral-700"
             >
-              <span>Total</span>
+              <span>{{ t('common.total') }}</span>
               <span>{{ formatPrice(booking.totalAmount) }}</span>
             </div>
           </div>
@@ -326,7 +319,7 @@ async function handleBookingSaved() {
                 name="i-lucide-info"
                 class="w-4 h-4"
               />
-              <span>Cancelación gratuita hasta 24h antes</span>
+              <span>{{ t('profile.free_cancellation') }}</span>
             </div>
             <div class="flex gap-2">
               <UButton
@@ -336,7 +329,7 @@ async function handleBookingSaved() {
                 icon="i-lucide-download"
                 @click="downloadBooking(booking)"
               >
-                Descargar
+                {{ t('profile.download') }}
               </UButton>
               <UButton
                 v-if="booking.status === 'CONFIRMED' || booking.status === 'PENDING'"
@@ -346,7 +339,7 @@ async function handleBookingSaved() {
                 icon="i-lucide-pencil"
                 @click="openEditModal(booking)"
               >
-                Editar
+                {{ t('profile.edit') }}
               </UButton>
               <UButton
                 v-if="booking.status === 'CONFIRMED' || booking.status === 'PENDING'"
@@ -356,7 +349,7 @@ async function handleBookingSaved() {
                 icon="i-lucide-x"
                 @click="cancelBooking(booking.id)"
               >
-                Cancelar
+                {{ t('common.cancel') }}
               </UButton>
             </div>
           </div>
