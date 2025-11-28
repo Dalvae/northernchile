@@ -65,6 +65,9 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
+    // Nuxt internal paths - never proxy these
+    '/_nuxt/**': { proxy: false },
+    '/_nuxt_icon/**': { proxy: false },
     '/__og_image__/**': { headers: { 'cache-control': 'public, max-age=3600, stale-while-revalidate=60' } },
     '/': { isr: 3600 },
     '/tours': { isr: 3600 },
