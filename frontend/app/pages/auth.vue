@@ -584,7 +584,7 @@ async function handleForgotPassword(_event: FormSubmitEvent<z.infer<typeof forgo
   try {
     const apiBase = config.public.apiBase
 
-    await $fetch(`${apiBase}/api/password-reset/request`, {
+    await $fetch(`${apiBase}/api/auth/password-reset/request`, {
       method: 'POST',
       body: { email: forgotPasswordState.email }
     })
@@ -623,7 +623,7 @@ async function handleResetPassword(_event: FormSubmitEvent<z.infer<typeof resetP
   try {
     const apiBase = config.public.apiBase
 
-    await $fetch(`${apiBase}/api/password-reset/confirm`, {
+    await $fetch(`${apiBase}/api/auth/password-reset/confirm`, {
       method: 'POST',
       body: {
         token: resetPasswordState.token,
