@@ -274,8 +274,8 @@ public class PaymentSessionService {
             TourSchedule schedule = scheduleRepository.findById(item.getScheduleId())
                 .orElseThrow(() -> new IllegalArgumentException("Schedule not found: " + item.getScheduleId()));
 
-            // Check if schedule is bookable
-            if (!"ACTIVE".equals(schedule.getStatus())) {
+            // Check if schedule is bookable (must be OPEN)
+            if (!"OPEN".equals(schedule.getStatus())) {
                 throw new IllegalStateException("Schedule is not available for booking: " + item.getScheduleId());
             }
 
