@@ -62,5 +62,11 @@
     "vite-tsconfig-paths": "^5.1.4",
     "vue-tsc": "^3.1.1"
   },
-  "packageManager": "pnpm@10.18.3"
+  "packageManager": "pnpm@10.18.3",
+  "pnpm": {
+    "overrides": {
+      "vue-i18n": "^11.2.1",
+      "@intlify/core-base": "^11.2.1"
+    }
+  }
 }
