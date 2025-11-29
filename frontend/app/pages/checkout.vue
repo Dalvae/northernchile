@@ -187,12 +187,21 @@ const createdBookingIds = ref<string[]>([])
 const lastSubmitTime = ref(0)
 
 async function submitBooking() {
-  // Prevent double submit with debounce
+  // Prevent double submit - strict check
+  if (isSubmitting.value) {
+    console.warn('Submit already in progress, ignoring')
+    return
+  }
+  
+  // Prevent rapid double-click
   const now = Date.now()
-  if (now - lastSubmitTime.value < 2000) return
+  if (now - lastSubmitTime.value < 3000) {
+    console.warn('Submit too fast, ignoring')
+    return
+  }
   lastSubmitTime.value = now
   
-  if (isSubmitting.value || !selectedPaymentMethod.value) return
+  if (!selectedPaymentMethod.value) return
   isSubmitting.value = true
 
   const config = useRuntimeConfig()
@@ -221,6 +230,11 @@ async function submitBooking() {
           email: contactForm.value.email,
           password: contactForm.value.password
         })
+        
+        // Verify login was successful before continuing
+        if (!authStore.isAuthenticated) {
+          throw new Error('Login failed after registration')
+        }
       } catch (error: unknown) {
         const statusCode = error && typeof error === 'object' && 'statusCode' in error
           ? (error as { statusCode?: number }).statusCode
@@ -242,6 +256,12 @@ async function submitBooking() {
     const token = authStore.user ? 'authenticated' : null
 
     // Step 2: Create bookings for ALL cart items
+    // Check if we already created bookings (prevent duplicates)
+    if (createdBookingIds.value.length > 0) {
+      console.warn('Bookings already created, skipping creation')
+      return
+    }
+    
     toast.add({
       color: 'info',
       title: t('checkout.toast.processing_booking'),
