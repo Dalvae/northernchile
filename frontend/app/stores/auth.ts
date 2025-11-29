@@ -36,11 +36,8 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
 
       try {
-        const config = useRuntimeConfig()
-        const apiBase = config.public.apiBase
-
-        // Call backend - token will be set in HttpOnly cookie automatically
-        const response = await $fetch<{ user: User }>(`${apiBase}/api/auth/login`, {
+        // Call through Nuxt server API to properly forward cookies
+        const response = await $fetch<{ user: User }>('/api/auth/login', {
           method: 'POST',
           body: credentials,
           credentials: 'include'
@@ -75,14 +72,10 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
 
       try {
-        const config = useRuntimeConfig()
-        const apiBase = config.public.apiBase
-        await $fetch(`${apiBase}/api/auth/register`, {
+        // Call through Nuxt server API
+        await $fetch('/api/auth/register', {
           method: 'POST',
-          body: userData,
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          body: userData
         })
       } catch (error) {
         throw error
@@ -93,11 +86,8 @@ export const useAuthStore = defineStore('auth', {
 
     async logout() {
       try {
-        const config = useRuntimeConfig()
-        const apiBase = config.public.apiBase
-
-        // Call backend logout to clear cookie
-        await $fetch(`${apiBase}/api/auth/logout`, {
+        // Call through Nuxt server API to properly clear cookies
+        await $fetch('/api/auth/logout', {
           method: 'POST',
           credentials: 'include'
         })
@@ -120,10 +110,8 @@ export const useAuthStore = defineStore('auth', {
     // Cargar datos completos del usuario desde el backend
     async fetchUser() {
       try {
-        const config = useRuntimeConfig()
-        const apiBase = config.public.apiBase
-
-        const response = await $fetch<User>(`${apiBase}/api/profile/me`, {
+        // Call through Nuxt server API
+        const response = await $fetch<User>('/api/profile/me', {
           method: 'GET',
           credentials: 'include'
         })

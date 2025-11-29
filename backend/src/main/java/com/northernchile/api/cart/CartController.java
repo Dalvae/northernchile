@@ -5,14 +5,16 @@ import com.northernchile.api.cart.dto.CartRes;
 import com.northernchile.api.model.Cart;
 import com.northernchile.api.model.User;
 import com.northernchile.api.user.UserRepository;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,6 +24,12 @@ public class CartController {
 
     private final CartService cartService;
     private final UserRepository userRepository;
+
+    @Value("${cookie.insecure:false}")
+    private boolean cookieInsecure;
+
+    @Value("${cookie.domain:}")
+    private String cookieDomain;
 
     public CartController(CartService cartService, UserRepository userRepository) {
         this.cartService = cartService;
@@ -72,12 +80,18 @@ public class CartController {
     }
 
     private void setCartIdCookie(HttpServletResponse response, UUID cartId) {
-        Cookie cookie = new Cookie("cartId", cartId.toString());
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true); // HTTPS only
-        cookie.setPath("/");
-        cookie.setMaxAge(60 * 60 * 24 * 30); // 30 days
-        cookie.setAttribute("SameSite", "Lax"); // CSRF protection
-        response.addCookie(cookie);
+        ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("cartId", cartId.toString())
+                .httpOnly(true)
+                .secure(!cookieInsecure)
+                .path("/")
+                .maxAge(Duration.ofDays(30))
+                .sameSite("Lax");
+
+        // Set domain for cross-subdomain cookie sharing
+        if (cookieDomain != null && !cookieDomain.isEmpty()) {
+            cookieBuilder.domain(cookieDomain);
+        }
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookieBuilder.build().toString());
     }
 }

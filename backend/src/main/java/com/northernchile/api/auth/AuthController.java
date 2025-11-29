@@ -25,6 +25,9 @@ public class AuthController {
     @Value("${cookie.insecure:false}")
     private boolean cookieInsecure;
 
+    @Value("${cookie.domain:}")
+    private String cookieDomain;
+
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
@@ -38,13 +41,19 @@ public class AuthController {
 
         // Create HttpOnly cookie with JWT token using ResponseCookie
         // secure=true by default (production), set cookie.insecure=true only for local dev
-        ResponseCookie jwtCookie = ResponseCookie.from("auth_token", token)
+        ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("auth_token", token)
                 .httpOnly(true)
                 .secure(!cookieInsecure) // true in production, false only if cookie.insecure=true
                 .path("/")
                 .maxAge(Duration.ofDays(7)) // 7 days
-                .sameSite("Lax") // CSRF protection
-                .build();
+                .sameSite("Lax"); // CSRF protection
+
+        // Set domain for cross-subdomain cookie sharing (e.g., .northernchile.com)
+        if (cookieDomain != null && !cookieDomain.isEmpty()) {
+            cookieBuilder.domain(cookieDomain);
+        }
+
+        ResponseCookie jwtCookie = cookieBuilder.build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
 
@@ -137,13 +146,19 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
         // Clear the auth_token cookie by setting MaxAge to 0
-        ResponseCookie jwtCookie = ResponseCookie.from("auth_token", "")
+        ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("auth_token", "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(!cookieInsecure)
                 .path("/")
                 .maxAge(Duration.ZERO) // Delete cookie
-                .sameSite("Lax")
-                .build();
+                .sameSite("Lax");
+
+        // Set domain for cross-subdomain cookie sharing
+        if (cookieDomain != null && !cookieDomain.isEmpty()) {
+            cookieBuilder.domain(cookieDomain);
+        }
+
+        ResponseCookie jwtCookie = cookieBuilder.build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
 
