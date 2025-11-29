@@ -47,21 +47,34 @@ public class CartService {
     @Transactional
     public Cart getOrCreateCart(Optional<User> currentUser, Optional<UUID> cartId) {
         if (currentUser.isPresent()) {
+            User user = currentUser.get();
             // User is logged in, try to find their cart
-            Cart userCart = cartRepository.findByUserId(currentUser.get().getId()).orElse(null);
+            Cart userCart = cartRepository.findByUserId(user.getId()).orElse(null);
+            
             if (userCart != null) {
-                // If user has a cart, potentially merge with guest cart
+                // User already has a cart, merge guest cart if present
                 if (cartId.isPresent()) {
                     mergeCarts(cartId.get(), userCart);
                 }
-                // Reload with details to avoid lazy loading issues
                 return cartRepository.findByIdWithDetails(userCart.getId()).orElse(userCart);
             }
-            // User doesn't have a cart - create one associated with the user
-            return createNewCart(currentUser.get());
+            
+            // User doesn't have a cart yet
+            if (cartId.isPresent()) {
+                // Adopt the guest cart (associate it with the user)
+                Cart guestCart = cartRepository.findByIdWithDetails(cartId.get()).orElse(null);
+                if (guestCart != null && guestCart.getUser() == null) {
+                    guestCart.setUser(user);
+                    guestCart.setExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS));
+                    return cartRepository.save(guestCart);
+                }
+            }
+            
+            // No guest cart to adopt, create a new one for the user
+            return createNewCart(user);
         }
 
-        // Guest user
+        // Guest user (not logged in)
         if (cartId.isPresent()) {
             return cartRepository.findByIdWithDetails(cartId.get())
                     .orElseGet(() -> createNewCart(null));
