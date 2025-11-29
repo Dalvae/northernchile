@@ -165,7 +165,7 @@ public class EmailService {
             context.setVariable("status", request.getStatus());
             context.setVariable("tourType", request.getRequestedTourType());
             context.setVariable("requestedDate", (request.getRequestedDatetime() != null)
-                ? DateTimeUtils.formatForDisplay(request.getRequestedDatetime(), "dd/MM/yyyy HH:mm")
+                ? request.getRequestedDatetime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
                 : "No especificada");
             context.setVariable("participantCount", request.getNumParticipants());
             context.setVariable("customerName", request.getCustomerName());

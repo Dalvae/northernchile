@@ -92,7 +92,7 @@ async function submitRequest() {
           customerEmail: state.email,
           customerPhone: state.phone,
           numParticipants: state.numberOfPeople,
-          requestedDatetime: state.preferredDate ? `${state.preferredDate}T00:00:00Z` : null,
+          requestedDatetime: state.preferredDate || null,
           requestedTourType: state.tourType,
           specialRequests: state.specialRequests,
         },

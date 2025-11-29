@@ -5,6 +5,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -33,7 +34,7 @@ public class PrivateTourRequest {
     private String requestedTourType;
 
     @Column(name = "requested_start_datetime")
-    private Instant requestedDatetime;
+    private LocalDate requestedDatetime;
 
     @Column(name = "num_participants", nullable = false)
     private int numParticipants;
@@ -51,7 +52,7 @@ public class PrivateTourRequest {
     public PrivateTourRequest() {
     }
 
-    public PrivateTourRequest(UUID id, User user, String customerName, String customerEmail, String customerPhone, String requestedTourType, Instant requestedDatetime, int numParticipants, String specialRequests, String status, BigDecimal quotedPrice, String paymentLinkId, Instant createdAt) {
+    public PrivateTourRequest(UUID id, User user, String customerName, String customerEmail, String customerPhone, String requestedTourType, LocalDate requestedDatetime, int numParticipants, String specialRequests, String status, BigDecimal quotedPrice, String paymentLinkId, Instant createdAt) {
         this.id = id;
         this.user = user;
         this.customerName = customerName;
@@ -115,11 +116,11 @@ public class PrivateTourRequest {
         this.requestedTourType = requestedTourType;
     }
 
-    public Instant getRequestedDatetime() {
+    public LocalDate getRequestedDatetime() {
         return requestedDatetime;
     }
 
-    public void setRequestedDatetime(Instant requestedDatetime) {
+    public void setRequestedDatetime(LocalDate requestedDatetime) {
         this.requestedDatetime = requestedDatetime;
     }
 
