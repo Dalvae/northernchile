@@ -256,8 +256,8 @@
                 :label="t('booking.date_of_birth')"
                 name="dateOfBirth"
               >
-                <UInputDate
-                  v-model="dateOfBirthValue"
+                <DateInput
+                  v-model="state.dateOfBirth"
                   size="lg"
                   class="w-full"
                 />
@@ -473,17 +473,7 @@ const resetPasswordState = reactive({
   confirmPassword: ''
 })
 
-// Date picker state
-const dateOfBirthValue = ref<{ year: number, month: number, day: number } | undefined>(undefined)
-
-// Sync between CalendarDate and string
-watch(dateOfBirthValue, (newDate) => {
-  if (newDate) {
-    state.dateOfBirth = `${newDate.year}-${String(newDate.month).padStart(2, '0')}-${String(newDate.day).padStart(2, '0')}`
-  } else {
-    state.dateOfBirth = ''
-  }
-})
+// Date of birth is now handled directly by DateInput component as ISO string
 
 // Schema de validación principal
 const schema = computed(() => {
@@ -544,7 +534,6 @@ function toggleForm() {
   state.phoneNumber = ''
   state.dateOfBirth = ''
   state.acceptTerms = false
-  dateOfBirthValue.value = undefined
 }
 
 // Auto-update phone country code when nationality changes
@@ -593,7 +582,6 @@ async function handleSubmit(_event: FormSubmitEvent<z.infer<typeof schema.value>
       Object.keys(state).forEach((key) => {
         state[key as keyof typeof state] = ''
       })
-      dateOfBirthValue.value = undefined
     }
   } catch (error: unknown) {
     console.error('Error en auth:', error)

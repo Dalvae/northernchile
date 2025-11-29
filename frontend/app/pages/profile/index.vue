@@ -170,18 +170,18 @@
                 <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
                   Fecha de Nacimiento
                 </label>
-                <UInput
+                <DateInput
                   v-if="isEditing"
                   v-model="profileForm.dateOfBirth"
-                  type="date"
                   size="lg"
+                  :max="new Date().toISOString().split('T')[0]"
                   class="w-full"
                 />
                 <div
                   v-else
                   class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700"
                 >
-                  <span class="text-neutral-900 dark:text-white">{{ profileForm.dateOfBirth || '-' }}</span>
+                  <span class="text-neutral-900 dark:text-white">{{ formatDate(profileForm.dateOfBirth) }}</span>
                 </div>
               </div>
 
@@ -293,10 +293,25 @@
 </template>
 
 <script setup lang="ts">
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const authStore = useAuthStore()
 const toast = useToast()
 const { getCountryLabel, getCountryFlag } = useCountries()
+
+// Format date for display based on locale
+function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return '-'
+  try {
+    const date = new Date(dateStr + 'T00:00:00')
+    return date.toLocaleDateString(locale.value, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  } catch {
+    return dateStr || '-'
+  }
+}
 
 definePageMeta({
   layout: 'default'
