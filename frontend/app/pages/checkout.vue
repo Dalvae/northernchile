@@ -464,9 +464,6 @@ async function submitBooking() {
           document.body.appendChild(form)
           form.submit()
           document.body.removeChild(form)
-
-          // Redirect current page to a waiting page or home
-          router.push(localePath('/'))
         }, 1500)
       } else {
         throw new Error('No payment URL or token received from Transbank')
