@@ -62,10 +62,13 @@ public class Booking {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
+    @Column(name = "reminder_sent_at")
+    private Instant reminderSentAt;
+
     public Booking() {
     }
 
-    public Booking(UUID id, User user, TourSchedule schedule, List<Participant> participants, LocalDate tourDate, String status, BigDecimal subtotal, BigDecimal taxAmount, BigDecimal totalAmount, String languageCode, String specialRequests, Instant createdAt, Instant updatedAt, Instant deletedAt) {
+    public Booking(UUID id, User user, TourSchedule schedule, List<Participant> participants, LocalDate tourDate, String status, BigDecimal subtotal, BigDecimal taxAmount, BigDecimal totalAmount, String languageCode, String specialRequests, Instant createdAt, Instant updatedAt, Instant deletedAt, Instant reminderSentAt) {
         this.id = id;
         this.user = user;
         this.schedule = schedule;
@@ -80,6 +83,7 @@ public class Booking {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.deletedAt = deletedAt;
+        this.reminderSentAt = reminderSentAt;
     }
 
     public UUID getId() {
@@ -194,6 +198,14 @@ public class Booking {
         this.deletedAt = deletedAt;
     }
 
+    public Instant getReminderSentAt() {
+        return reminderSentAt;
+    }
+
+    public void setReminderSentAt(Instant reminderSentAt) {
+        this.reminderSentAt = reminderSentAt;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -212,12 +224,13 @@ public class Booking {
             Objects.equals(specialRequests, booking.specialRequests) &&
             Objects.equals(createdAt, booking.createdAt) &&
             Objects.equals(updatedAt, booking.updatedAt) &&
-            Objects.equals(deletedAt, booking.deletedAt);
+            Objects.equals(deletedAt, booking.deletedAt) &&
+            Objects.equals(reminderSentAt, booking.reminderSentAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, user, schedule, participants, tourDate, status, subtotal, taxAmount, totalAmount, languageCode, specialRequests, createdAt, updatedAt, deletedAt);
+        return Objects.hash(id, user, schedule, participants, tourDate, status, subtotal, taxAmount, totalAmount, languageCode, specialRequests, createdAt, updatedAt, deletedAt, reminderSentAt);
     }
 
     @Override
@@ -237,6 +250,7 @@ public class Booking {
             ", createdAt=" + createdAt +
             ", updatedAt=" + updatedAt +
             ", deletedAt=" + deletedAt +
+            ", reminderSentAt=" + reminderSentAt +
             '}';
     }
 }
