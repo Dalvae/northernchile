@@ -1,15 +1,23 @@
 /**
- * POST endpoint to receive Transbank callback
- * Transbank sends token_ws via POST body
+ * Endpoint to receive Transbank callback
+ * Transbank may send token_ws via POST body OR GET query params
  * We confirm the payment here and redirect to callback page with result
  */
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
-  const body = await readBody(event)
+  const method = event.method
   
-  // Transbank sends token_ws in POST body
-  const tokenWs = body?.token_ws
+  // Get token_ws from body (POST) or query (GET)
+  let tokenWs: string | undefined
+  
+  if (method === 'POST') {
+    const body = await readBody(event)
+    tokenWs = body?.token_ws
+  } else {
+    const query = getQuery(event)
+    tokenWs = query.token_ws as string
+  }
   
   if (!tokenWs) {
     return sendRedirect(event, '/payment/callback?status=error&message=No token received', 302)
