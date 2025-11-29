@@ -425,6 +425,11 @@ async function submitBooking() {
     // Collect additional booking IDs (all except the first one)
     const additionalBookingIds = bookingResponses.slice(1).map(b => b.id)
 
+    console.log('[Checkout] About to call initializePayment')
+    console.log('[Checkout] primaryBooking:', primaryBooking)
+    console.log('[Checkout] selectedPaymentMethod:', selectedPaymentMethod.value)
+    console.log('[Checkout] total:', total.value)
+
     const paymentResult = await paymentStore.initializePayment({
       bookingId: primaryBooking.id,
       provider: selectedPaymentMethod.value.provider,

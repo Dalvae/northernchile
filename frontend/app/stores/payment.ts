@@ -40,7 +40,10 @@ export const usePaymentStore = defineStore('payment', {
 
       const { extractErrorMessage, showErrorToast } = useApiError()
 
+      console.log('[PaymentStore] initializePayment called with:', request)
+
       try {
+        console.log('[PaymentStore] Calling /api/payments/init...')
         const response = await $fetch<PaymentInitRes>(
           '/api/payments/init',
           {
@@ -53,9 +56,11 @@ export const usePaymentStore = defineStore('payment', {
           }
         )
 
+        console.log('[PaymentStore] Response:', response)
         this.currentPayment = response
         return response
       } catch (error) {
+        console.error('[PaymentStore] Error:', error)
         const errorMessage = extractErrorMessage(error)
         this.error = errorMessage
         showErrorToast(error)
