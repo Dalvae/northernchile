@@ -73,8 +73,8 @@ public class ReportsService {
         BigDecimal totalRevenue = calculateTotalRevenue(bookings);
         long totalParticipants = countTotalParticipants(bookings);
 
-        BigDecimal averageBookingValue = totalBookings > 0
-                ? totalRevenue.divide(BigDecimal.valueOf(totalBookings), 2, RoundingMode.HALF_UP)
+        BigDecimal averageBookingValue = confirmedBookings > 0
+                ? totalRevenue.divide(BigDecimal.valueOf(confirmedBookings), 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
         double conversionRate = totalBookings > 0
@@ -104,7 +104,9 @@ public class ReportsService {
     public List<BookingsByDayReport> getBookingsByDay(Instant start, Instant end) {
         List<Booking> bookings = bookingRepository.findByCreatedAtBetween(start, end);
 
+        // Only count confirmed/completed bookings
         Map<LocalDate, List<Booking>> bookingsByDay = bookings.stream()
+                .filter(this::isConfirmedOrCompleted)
                 .collect(Collectors.groupingBy(b ->
                         b.getCreatedAt().atZone(ZONE_ID).toLocalDate()
                 ));
@@ -124,7 +126,9 @@ public class ReportsService {
     public List<TopTourReport> getTopTours(Instant start, Instant end, int limit) {
         List<Booking> bookings = bookingRepository.findByCreatedAtBetween(start, end);
 
+        // Only count confirmed/completed bookings for top tours
         Map<String, List<Booking>> bookingsByTour = bookings.stream()
+                .filter(this::isConfirmedOrCompleted)
                 .filter(b -> b.getSchedule() != null && b.getSchedule().getTour() != null)
                 .collect(Collectors.groupingBy(b -> {
                     String tourName = b.getSchedule().getTour().getNameTranslations().get("es");
