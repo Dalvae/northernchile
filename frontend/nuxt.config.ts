@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import viteTsconfigPaths from 'vite-tsconfig-paths'
+import vue from '@vitejs/plugin-vue'
 
 const apiBaseUrl
   = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
@@ -140,6 +141,9 @@ export default defineNuxtConfig({
         target: 'http://localhost:8080/api',
         changeOrigin: true
       }
+    },
+    rollupConfig: {
+      plugins: [vue()]
     }
   },
 
