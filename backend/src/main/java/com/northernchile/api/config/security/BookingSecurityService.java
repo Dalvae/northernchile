@@ -7,10 +7,12 @@ import com.northernchile.api.user.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 @Service("bookingSecurityService")
+@Transactional(readOnly = true)
 public class BookingSecurityService {
 
     private final BookingRepository bookingRepository;
@@ -35,7 +37,8 @@ public class BookingSecurityService {
             return false;
         }
 
-        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        // Use findByIdWithDetails to eagerly fetch schedule, tour, and owner
+        Booking booking = bookingRepository.findByIdWithDetails(bookingId).orElse(null);
         if (booking == null || booking.getSchedule() == null ||
             booking.getSchedule().getTour() == null ||
             booking.getSchedule().getTour().getOwner() == null) {
@@ -58,7 +61,8 @@ public class BookingSecurityService {
             return false;
         }
 
-        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        // Use findByIdWithDetails to eagerly fetch user
+        Booking booking = bookingRepository.findByIdWithDetails(bookingId).orElse(null);
         if (booking == null || booking.getUser() == null) {
             return false;
         }
