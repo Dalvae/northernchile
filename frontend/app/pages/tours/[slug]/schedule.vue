@@ -124,7 +124,7 @@ useSeoMeta({
   description: translatedDescription,
   ogTitle: () => `${translatedName.value} - ${t('schedule.title')}`,
   ogDescription: translatedDescription,
-  ogImage: tour.value?.images?.[0]?.imageUrl || 'https://www.northernchile.cl/og-image-tours.jpg',
+  ogImage: tour.value?.images?.[0]?.imageUrl || 'https://www.northernchile.com/og-image-tours.jpg',
   twitterCard: 'summary_large_image'
 })
 </script>

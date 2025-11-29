@@ -94,6 +94,9 @@ jobs:
           TRANSBANK_ENVIRONMENT=${{ secrets.TRANSBANK_ENVIRONMENT }}
           MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
           MERCADOPAGO_PUBLIC_KEY=${{ secrets.MERCADOPAGO_PUBLIC_KEY }}
+
+          # Security - Allowed redirect domains for payment callbacks
+          ALLOWED_REDIRECT_DOMAINS=https://www.northernchile.com,https://northernchile.com
           EOF
 
           cat > docker-compose.prod.yml << 'EOF'

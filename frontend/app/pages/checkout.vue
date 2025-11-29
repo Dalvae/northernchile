@@ -28,6 +28,19 @@ if (cartStore.cart.items.length === 0) {
 const currentStep = ref(1)
 const totalSteps = 3
 
+// Participant type for reuse
+interface Participant {
+  fullName: string
+  documentId: string
+  nationality: string
+  dateOfBirth: string | null
+  pickupAddress: string
+  specialRequirements: string
+  phoneCountryCode: string
+  phoneNumber: string
+  email: string
+}
+
 // Step 1: Contact Information
 const contactForm = ref({
   email: authStore.user?.email || '',
@@ -39,24 +52,99 @@ const contactForm = ref({
 })
 
 // Step 2: Participants
-const participants = ref<
-  Array<{
-    fullName: string
-    documentId: string
-    nationality: string
-    dateOfBirth: string | null
-    pickupAddress: string
-    specialRequirements: string
-    phoneCountryCode: string
-    phoneNumber: string
-    email: string
-  }>
->([])
+const participants = ref<Participant[]>([])
+
+// LocalStorage keys for checkout persistence
+const CHECKOUT_CONTACT_KEY = 'checkout_contact'
+const CHECKOUT_PARTICIPANTS_KEY = 'checkout_participants'
+const CHECKOUT_STEP_KEY = 'checkout_step'
+
+// Load saved checkout data on mount
+onMounted(() => {
+  try {
+    // Load contact form (except passwords)
+    const savedContact = localStorage.getItem(CHECKOUT_CONTACT_KEY)
+    if (savedContact) {
+      const parsed = JSON.parse(savedContact)
+      contactForm.value = {
+        ...contactForm.value,
+        email: parsed.email || contactForm.value.email,
+        fullName: parsed.fullName || contactForm.value.fullName,
+        phone: parsed.phone || '',
+        countryCode: parsed.countryCode || '+56',
+        password: '',
+        confirmPassword: ''
+      }
+    }
+
+    // Load participants
+    const savedParticipants = localStorage.getItem(CHECKOUT_PARTICIPANTS_KEY)
+    if (savedParticipants) {
+      const parsed = JSON.parse(savedParticipants) as Participant[]
+      // Only restore if participant count matches current cart
+      if (parsed.length === cartStore.totalItems) {
+        participants.value = parsed
+      }
+    }
+
+    // Load step
+    const savedStep = localStorage.getItem(CHECKOUT_STEP_KEY)
+    if (savedStep) {
+      const step = parseInt(savedStep, 10)
+      if (step >= 1 && step <= totalSteps) {
+        currentStep.value = step
+      }
+    }
+  } catch (e) {
+    console.error('Error loading checkout data from localStorage:', e)
+  }
+})
+
+// Save contact form when it changes (debounced via watch)
+watch(contactForm, (newVal) => {
+  if (import.meta.client) {
+    // Don't save passwords
+    const toSave = {
+      email: newVal.email,
+      fullName: newVal.fullName,
+      phone: newVal.phone,
+      countryCode: newVal.countryCode
+    }
+    localStorage.setItem(CHECKOUT_CONTACT_KEY, JSON.stringify(toSave))
+  }
+}, { deep: true })
+
+// Save participants when they change
+watch(participants, (newVal) => {
+  if (import.meta.client && newVal.length > 0) {
+    localStorage.setItem(CHECKOUT_PARTICIPANTS_KEY, JSON.stringify(newVal))
+  }
+}, { deep: true })
+
+// Save current step
+watch(currentStep, (newVal) => {
+  if (import.meta.client) {
+    localStorage.setItem(CHECKOUT_STEP_KEY, String(newVal))
+  }
+})
+
+// Clear checkout data from localStorage (call after successful payment)
+function clearCheckoutData() {
+  if (import.meta.client) {
+    localStorage.removeItem(CHECKOUT_CONTACT_KEY)
+    localStorage.removeItem(CHECKOUT_PARTICIPANTS_KEY)
+    localStorage.removeItem(CHECKOUT_STEP_KEY)
+  }
+}
 
 // Initialize participants based on total count
 const totalParticipants = computed(() => cartStore.totalItems)
 
 function initializeParticipants() {
+  // Only initialize if participants are empty or count changed
+  if (participants.value.length === totalParticipants.value) {
+    return
+  }
   participants.value = Array.from(
     { length: totalParticipants.value },
     (_, i) => ({
@@ -364,6 +452,9 @@ async function submitBooking() {
           description: t('checkout.toast.redirecting_provider', { provider: providerName })
         })
 
+        // Clear checkout data before redirecting (payment initiated successfully)
+        clearCheckoutData()
+
         // Redirect to payment provider with a slight delay for better UX
         setTimeout(() => {
           window.location.href = paymentResult.paymentUrl!
@@ -382,7 +473,7 @@ async function submitBooking() {
     if (createdBookingIds.value.length > 0) {
       for (const bookingId of createdBookingIds.value) {
         try {
-          await $fetch(`${config.public.apiBase}/api/admin/bookings/${bookingId}`, {
+          await $fetch(`${config.public.apiBase}/api/bookings/${bookingId}`, {
             method: 'DELETE',
             credentials: 'include'
           })
@@ -423,6 +514,7 @@ async function submitBooking() {
 // Handle PIX payment success
 function handlePIXSuccess() {
   showPIXModal.value = false
+  clearCheckoutData()
   // Note: PIXDisplay component handles redirect to callback page
   // Cart will be cleared on the callback page after payment confirmation
 }

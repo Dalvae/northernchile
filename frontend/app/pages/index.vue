@@ -11,7 +11,7 @@ useSeoMeta({
   description: () => t('home.meta.description'),
   ogTitle: () => t('home.meta.og_title'),
   ogDescription: () => t('home.meta.og_description'),
-  ogImage: 'https://www.northernchile.cl/og-image-homepage.jpg',
+  ogImage: 'https://www.northernchile.com/og-image-homepage.jpg',
   twitterCard: 'summary_large_image'
 })
 

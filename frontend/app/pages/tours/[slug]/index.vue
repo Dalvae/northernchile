@@ -166,7 +166,7 @@ useHead({
             'price': tour.value?.price,
             'priceCurrency': 'CLP',
             'availability': 'https://schema.org/InStock',
-            'url': `https://www.northernchile.cl/tours/${tourSlug}`,
+            'url': `https://www.northernchile.com/tours/${tourSlug}`,
             'priceValidUntil': new Date(new Date().getFullYear() + 1, 11, 31)
               .toISOString()
               .split('T')[0],
@@ -194,7 +194,7 @@ useHead({
             }
           },
           'duration': `PT${tour.value?.durationHours || 0}H`,
-          'tourBookingPage': `https://www.northernchile.cl/tours/${tourSlug}/schedule`
+          'tourBookingPage': `https://www.northernchile.com/tours/${tourSlug}/schedule`
         })
       )
     }

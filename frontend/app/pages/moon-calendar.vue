@@ -238,7 +238,7 @@ useSeoMeta({
   description: t('moon.seo.description'),
   ogTitle: t('moon.seo.og_title'),
   ogDescription: t('moon.seo.og_description'),
-  ogImage: 'https://www.northernchile.cl/og-image-moon-calendar.jpg',
+  ogImage: 'https://www.northernchile.com/og-image-moon-calendar.jpg',
   twitterCard: 'summary_large_image'
 })
 

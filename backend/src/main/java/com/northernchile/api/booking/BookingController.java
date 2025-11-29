@@ -72,6 +72,14 @@ public class BookingController {
         return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 
+    @DeleteMapping("/bookings/{bookingId}")
+    @PreAuthorize("@bookingSecurityService.isBookingUser(authentication, #bookingId)")
+    public ResponseEntity<Void> cancelUserBooking(@PathVariable UUID bookingId,
+                                                  @CurrentUser User currentUser) {
+        bookingService.cancelBooking(bookingId, currentUser);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
     @GetMapping("/admin/bookings")
     @PreAuthorize("@bookingSecurityService.canViewTourBookings(authentication)")
     public ResponseEntity<List<BookingRes>> getAdminBookings(@CurrentUser User currentUser) {

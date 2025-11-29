@@ -15,7 +15,7 @@ import java.util.List;
 @Component
 public class ReturnUrlValidator implements ConstraintValidator<ValidReturnUrl, String> {
 
-    @Value("${app.security.allowed-redirect-domains:http://localhost:3000,https://www.northernchile.cl}")
+    @Value("${app.security.allowed-redirect-domains:http://localhost:3000,https://www.northernchile.com,https://northernchile.com}")
     private String allowedDomainsConfig;
 
     private boolean nullable;

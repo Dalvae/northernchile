@@ -33,6 +33,15 @@ const mpPaymentId = route.query.payment_id as string
 const mpExternalReference = route.query.external_reference as string
 const mpPreferenceId = route.query.preference_id as string
 
+// Clear checkout data from localStorage (same keys as checkout.vue)
+function clearCheckoutData() {
+  if (import.meta.client) {
+    localStorage.removeItem('checkout_contact')
+    localStorage.removeItem('checkout_participants')
+    localStorage.removeItem('checkout_step')
+  }
+}
+
 // Process payment callback on mount
 onMounted(async () => {
   try {
@@ -87,6 +96,7 @@ async function handleTransbankCallback(token: string) {
 
       // Clear cart after successful payment
       cartStore.clearCart()
+      clearCheckoutData()
 
       toast.add({
         color: 'success',
@@ -142,6 +152,7 @@ async function handleMercadoPagoCallback() {
 
       // Clear cart after successful payment
       cartStore.clearCart()
+      clearCheckoutData()
 
       toast.add({
         color: 'success',
@@ -195,6 +206,7 @@ function handleDirectCallback() {
 
     // Clear cart after successful payment
     cartStore.clearCart()
+    clearCheckoutData()
   } else if (queryStatus === 'error' || queryStatus === 'failed') {
     paymentStatus.value = PaymentStatus.FAILED
     errorMessage.value = route.query.message as string || t('payment.error.generic')
