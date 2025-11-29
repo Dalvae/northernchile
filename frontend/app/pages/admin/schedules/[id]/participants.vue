@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const route = useRoute()
-const config = useRuntimeConfig()
 const toast = useToast()
 const { getCountryLabel, getCountryFlag } = useCountries()
 
@@ -34,10 +33,7 @@ const {
         pickupAddress: string
       }>
     }>(
-      `${config.public.apiBase}/api/admin/schedules/${scheduleId}/participants`,
-      {
-        credentials: 'include'
-      }
+      `/api/admin/schedules/${scheduleId}/participants`
     )
     return response
   } catch (err) {

@@ -9,7 +9,6 @@ useHead({
   title: 'Reportes - Admin - Northern Chile'
 })
 
-const config = useRuntimeConfig()
 const toast = useToast()
 const { formatPrice } = useCurrency()
 const { formatDate } = useDateTime()
@@ -68,12 +67,11 @@ const { data: overview, pending: overviewPending, refresh: refreshOverview, erro
         totalUsers: number
         totalTours: number
         totalSchedules: number
-      }>(`${config.public.apiBase}/api/admin/reports/overview`, {
+      }>('/api/admin/reports/overview', {
         params: {
           startDate: startDate.value,
           endDate: endDate.value
-        },
-        credentials: 'include'
+        }
       })
       return response
     } catch (err: any) {
@@ -101,12 +99,11 @@ const { data: bookingsByDay, pending: bookingsByDayPending, refresh: refreshBook
         date: string
         count: number
         revenue: number
-      }>>(`${config.public.apiBase}/api/admin/reports/bookings-by-day`, {
+      }>>('/api/admin/reports/bookings-by-day', {
         params: {
           startDate: startDate.value,
           endDate: endDate.value
-        },
-        credentials: 'include'
+        }
       })
       return response
     } catch (err) {
@@ -130,13 +127,12 @@ const { data: topTours, pending: topToursPending, refresh: refreshTopTours } = u
         bookingsCount: number
         revenue: number
         participants: number
-      }>>(`${config.public.apiBase}/api/admin/reports/top-tours`, {
+      }>>('/api/admin/reports/top-tours', {
         params: {
           startDate: startDate.value,
           endDate: endDate.value,
           limit: 10
-        },
-        credentials: 'include'
+        }
       })
       return response
     } catch (err) {

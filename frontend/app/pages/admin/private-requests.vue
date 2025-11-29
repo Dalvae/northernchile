@@ -7,7 +7,6 @@ useHead({
   title: 'Tours Privados - Admin - Northern Chile'
 })
 
-const config = useRuntimeConfig()
 const toast = useToast()
 
 // Fetch private tour requests
@@ -35,9 +34,7 @@ const {
           quotedPrice: number
           createdAt: string
         }>
-      >(`${config.public.apiBase}/api/admin/private-tours/requests`, {
-        credentials: 'include' // Auth is handled via HttpOnly cookie
-      })
+      >('/api/admin/private-tours/requests')
       return response
     } catch (err) {
       console.error('Error fetching private tour requests:', err)
@@ -145,7 +142,7 @@ const updateRequestStatus = async () => {
     updatingStatus.value = true
 
     await $fetch(
-      `${config.public.apiBase}/api/admin/private-tours/requests/${selectedRequest.value.id}`,
+      `/api/admin/private-tours/requests/${selectedRequest.value.id}`,
       {
         method: 'PUT',
         body: {
@@ -153,8 +150,7 @@ const updateRequestStatus = async () => {
           quotedPrice: statusForm.value.quotedPrice
             ? parseFloat(statusForm.value.quotedPrice)
             : null
-        },
-        credentials: 'include'
+        }
       }
     )
 

@@ -372,7 +372,6 @@ useHead({
   title: 'Auditoría - Admin - Northern Chile'
 })
 
-const config = useRuntimeConfig()
 const { formatDate, formatTime } = useDateTime()
 
 // State
@@ -433,10 +432,7 @@ const fetchAuditLogs = async () => {
       params.append('userEmail', filters.value.userEmail)
 
     const response = await $fetch<AuditLogsResponse>(
-      `${config.public.apiBase}/api/admin/audit-logs?${params.toString()}`,
-      {
-        credentials: 'include'
-      }
+      `/api/admin/audit-logs?${params.toString()}`
     )
 
     auditLogs.value = response.data
@@ -454,10 +450,7 @@ const fetchAuditLogs = async () => {
 const fetchStats = async () => {
   try {
     const response = await $fetch<AuditStatsResponse>(
-      `${config.public.apiBase}/api/admin/audit-logs/stats`,
-      {
-        credentials: 'include'
-      }
+      '/api/admin/audit-logs/stats'
     )
     stats.value = response
   } catch (error) {

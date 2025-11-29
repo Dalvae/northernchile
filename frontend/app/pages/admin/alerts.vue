@@ -446,7 +446,6 @@ useHead({
   title: 'Alertas Climáticas - Admin - Northern Chile'
 })
 
-const config = useRuntimeConfig()
 const toast = useToast()
 const { formatDateTime: formatDate } = useDateTime()
 
@@ -477,10 +476,7 @@ const { data: alertsData, refresh: refreshAlerts } = await useAsyncData(
   'admin-alerts',
   async () => {
     const response = await $fetch<AlertHistoryResponse>(
-      `${config.public.apiBase}/api/admin/alerts/history`,
-      {
-        credentials: 'include'
-      }
+      '/api/admin/alerts/history'
     )
     return response
   },
@@ -578,10 +574,9 @@ const checkAlertsManually = async () => {
   checking.value = true
   try {
     const response = await $fetch<{ pendingAlerts: number }>(
-      `${config.public.apiBase}/api/admin/alerts/check`,
+      '/api/admin/alerts/check',
       {
-        method: 'post',
-        credentials: 'include'
+        method: 'post'
       }
     )
 
@@ -628,13 +623,12 @@ const resolveAlert = async () => {
   resolving.value = true
   try {
     await $fetch(
-      `${config.public.apiBase}/api/admin/alerts/${selectedAlert.value.id}/resolve`,
+      `/api/admin/alerts/${selectedAlert.value.id}/resolve`,
       {
         method: 'POST',
         body: {
           resolution: resolveForm.value.resolution
-        },
-        credentials: 'include'
+        }
       }
     )
 

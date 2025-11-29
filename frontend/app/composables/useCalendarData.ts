@@ -65,7 +65,6 @@ export interface WeatherAlert {
 }
 
 export const useCalendarData = () => {
-  const config = useRuntimeConfig()
 
   /**
    * Obtiene fase lunar para un rango de fechas
@@ -132,10 +131,9 @@ export const useCalendarData = () => {
   const fetchSchedules = async (startDate: string, endDate: string): Promise<TourSchedule[]> => {
     try {
       const response = await $fetch<TourSchedule[]>(
-        `${config.public.apiBase}/api/admin/schedules`,
+        '/api/admin/schedules',
         {
-          params: { start: startDate, end: endDate },
-          credentials: 'include' // Auth is handled via HttpOnly cookie
+          params: { start: startDate, end: endDate }
         }
       )
       return response
@@ -150,9 +148,7 @@ export const useCalendarData = () => {
    */
   const fetchAlerts = async (): Promise<WeatherAlert[]> => {
     try {
-      const response = await $fetch<WeatherAlert[]>(`${config.public.apiBase}/api/admin/alerts`, {
-        credentials: 'include' // Auth is handled via HttpOnly cookie
-      })
+      const response = await $fetch<WeatherAlert[]>('/api/admin/alerts')
       return response
     } catch (error) {
       console.error('Error fetching alerts:', error)

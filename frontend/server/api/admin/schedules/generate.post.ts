@@ -1,20 +1,21 @@
-import type { WeatherAlert } from 'api-client'
+import { ofetch } from 'ofetch'
 
-export default defineEventHandler(async (event): Promise<WeatherAlert[]> => {
+export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
   const cookie = getHeader(event, 'cookie') || ''
 
   try {
-    const alerts = await $fetch<WeatherAlert[]>(`${backendUrl}/api/admin/alerts`, {
+    const result = await ofetch(`${backendUrl}/api/admin/schedules/generate`, {
+      method: 'POST',
       headers: { 'Cookie': cookie }
     })
-    return alerts
+    return result
   } catch (error: unknown) {
     const err = error as { statusCode?: number, data?: { message?: string, error?: string }, message?: string }
     throw createError({
       statusCode: err.statusCode || 500,
-      statusMessage: err.data?.message || err.data?.error || err.message || 'Error al obtener alertas'
+      statusMessage: err.data?.message || err.data?.error || err.message || 'Failed to generate schedules'
     })
   }
 })

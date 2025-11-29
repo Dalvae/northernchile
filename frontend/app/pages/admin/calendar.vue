@@ -279,7 +279,6 @@ useHead({
   title: 'Calendario - Admin - Northern Chile'
 })
 
-const config = useRuntimeConfig()
 const { locale } = useI18n()
 const toast = useToast()
 
@@ -412,28 +411,12 @@ const loadCalendarData = async () => {
   }
 }
 
-// Helper para obtener headers con autenticación
-const getAuthHeaders = () => {
-  return {
-    'Content-Type': 'application/json'
-  }
-}
-
-// Helper to add credentials to fetch options
-const getAuthOptions = () => {
-  return {
-    credentials: 'include' as const,
-    headers: getAuthHeaders()
-  }
-}
-
 // Generar schedules
 const generateSchedules = async () => {
   try {
     generating.value = true
-    await $fetch<void>(`${config.public.apiBase}/api/admin/schedules/generate`, {
-      method: 'POST',
-      ...getAuthOptions()
+    await $fetch<void>('/api/admin/schedules/generate', {
+      method: 'POST'
     })
 
     toast.add({
@@ -556,10 +539,9 @@ const saveSchedule = async () => {
 
       // Update existing schedule
       await $fetch(
-        `${config.public.apiBase}/api/admin/schedules/${selectedSchedule.value?.id}`,
+        `/api/admin/schedules/${selectedSchedule.value?.id}`,
         {
           method: 'PATCH',
-          ...getAuthOptions(),
           body: payload
         }
       )
@@ -571,9 +553,8 @@ const saveSchedule = async () => {
       })
     } else {
       // Create new schedule
-      await $fetch(`${config.public.apiBase}/api/admin/schedules`, {
+      await $fetch('/api/admin/schedules', {
         method: 'POST',
-        ...getAuthOptions(),
         body: payload
       })
 
