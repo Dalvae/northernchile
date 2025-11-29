@@ -2,10 +2,12 @@ export default defineEventHandler(async (event): Promise<unknown> => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
   const id = getRouterParam(event, 'id')
+  const query = getQuery(event)
 
   try {
     const response = await $fetch(`${backendUrl}/api/tours/${id}/schedules`, {
-      method: 'GET'
+      method: 'GET',
+      params: query
     })
     return response
   } catch (error: unknown) {

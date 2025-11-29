@@ -1,14 +1,14 @@
 import type { TourRes } from 'api-client'
 
 export default defineEventHandler(async (event): Promise<TourRes[]> => {
-  // Obtenemos la URL secreta del backend desde la configuración
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
+  const query = getQuery(event)
 
   try {
-    // El servidor de Nuxt hace la llamada al servidor de Spring Boot
-    // Usamos $fetch, que es la utilidad de Nuxt para hacer peticiones http
-    const tours = await $fetch(`${backendUrl}/api/tours`)
+    const tours = await $fetch(`${backendUrl}/api/tours`, {
+      params: query
+    })
     return tours
   } catch (error) {
     // Si la API de Spring Boot devuelve un error, lo reenviamos al frontend

@@ -2,10 +2,12 @@ export default defineEventHandler(async (event): Promise<unknown> => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
   const cookie = getHeader(event, 'cookie') || ''
+  const query = getQuery(event)
 
   try {
     const result: unknown = await $fetch(`${backendUrl}/api/admin/private-tours/requests`, {
-      headers: { 'Cookie': cookie }
+      headers: { 'Cookie': cookie },
+      params: query
     })
     return result
   } catch (error: unknown) {
