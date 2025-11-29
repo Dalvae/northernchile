@@ -36,6 +36,7 @@ watch(() => consentGiven.value, (hasConsent) => {
 
 <template>
   <div>
+    <DevWarningBanner />
     <LayoutTheHeader />
 
     <UMain as="main">
@@ -46,6 +47,7 @@ watch(() => consentGiven.value, (hasConsent) => {
 
     <ClientOnly>
       <CookieBanner />
+      <DevWarningModal />
     </ClientOnly>
   </div>
 </template>

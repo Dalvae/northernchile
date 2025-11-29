@@ -1,4 +1,15 @@
 {
+  "dev_warning": {
+    "title": "Development Site",
+    "description": "This site is in integration and testing phase:",
+    "schedules_fake": "Tour schedules shown are fictitious",
+    "payments_test": "Payments are in test mode",
+    "no_charges": "No real charges will be made to your card",
+    "bookings_invalid": "Bookings made are not valid",
+    "contact_us": "If you want to book a real tour, please contact us directly.",
+    "accept": "I understand, continue",
+    "banner": "DEVELOPMENT SITE - Tours and payments are for testing only"
+  },
   "nav": {
     "home": "Home",
     "tours": "Tours",

@@ -1,4 +1,15 @@
 {
+  "dev_warning": {
+    "title": "Site em Desenvolvimento",
+    "description": "Este site está em fase de integração e testes:",
+    "schedules_fake": "Os horários dos tours mostrados são fictícios",
+    "payments_test": "Os pagamentos estão em modo de teste",
+    "no_charges": "Nenhuma cobrança real será feita no seu cartão",
+    "bookings_invalid": "As reservas realizadas não são válidas",
+    "contact_us": "Se você deseja reservar um tour real, entre em contato conosco diretamente.",
+    "accept": "Entendi, continuar",
+    "banner": "SITE EM DESENVOLVIMENTO - Tours e pagamentos são apenas para testes"
+  },
   "nav": {
     "home": "Início",
     "tours": "Tours",
