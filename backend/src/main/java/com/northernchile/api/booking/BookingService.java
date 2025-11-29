@@ -101,7 +101,9 @@ public class BookingService {
                 .ifPresent(cartRepository::delete);
         }
         
-        sendBookingNotifications(savedBooking);
+        // Note: Confirmation emails are sent when booking status changes to CONFIRMED
+        // (after successful payment), not when the booking is first created as PENDING.
+        // Admin notification is also sent after payment confirmation.
 
         return bookingMapper.toBookingRes(savedBooking);
     }
@@ -164,7 +166,11 @@ public class BookingService {
         return participants;
     }
 
-    private void sendBookingNotifications(Booking booking) {
+    /**
+     * Send booking confirmation emails to customer and admin.
+     * Should only be called after payment is confirmed (status = CONFIRMED).
+     */
+    public void sendBookingConfirmationNotifications(Booking booking) {
         var schedule = booking.getSchedule();
         var tour = schedule.getTour();
 

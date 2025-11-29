@@ -17,6 +17,7 @@ import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.payment.PaymentRefund;
 import com.mercadopago.resources.preference.Preference;
 import com.northernchile.api.booking.BookingRepository;
+import com.northernchile.api.booking.BookingService;
 import com.northernchile.api.exception.PaymentDeclinedException;
 import com.northernchile.api.exception.PaymentProviderException;
 import com.northernchile.api.exception.RefundException;
@@ -30,6 +31,7 @@ import com.northernchile.api.payment.repository.PaymentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +54,7 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
 
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
+    private final BookingService bookingService;
 
     @Value("${mercadopago.access-token:TEST-ACCESS-TOKEN}")
     private String accessToken;
@@ -62,9 +65,13 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
     @Value("${payment.test-mode:false}")
     private boolean testMode;
 
-    public MercadoPagoPaymentService(PaymentRepository paymentRepository, BookingRepository bookingRepository) {
+    public MercadoPagoPaymentService(
+            PaymentRepository paymentRepository,
+            BookingRepository bookingRepository,
+            @Lazy BookingService bookingService) {
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
+        this.bookingService = bookingService;
     }
 
     /**
@@ -361,6 +368,148 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
         throw new UnsupportedOperationException("Mercado Pago uses webhooks for payment confirmation");
     }
 
+    /**
+     * Confirm a Checkout Pro payment after redirect.
+     * Called when user returns from MercadoPago with preference_id and payment_id.
+     *
+     * @param preferenceId The preference ID we created (stored in externalPaymentId)
+     * @param mpPaymentId The actual MercadoPago payment ID (from redirect URL)
+     * @return Payment status
+     */
+    @Transactional
+    public PaymentStatusRes confirmCheckoutProPayment(String preferenceId, String mpPaymentId) {
+        log.info("Confirming Checkout Pro payment - preference_id: {}, mp_payment_id: {}", preferenceId, mpPaymentId);
+
+        // Find our payment record by preference_id
+        com.northernchile.api.payment.model.Payment payment = paymentRepository
+            .findByExternalPaymentId(preferenceId)
+            .orElseThrow(() -> new IllegalArgumentException("Payment not found for preference_id: " + preferenceId));
+
+        // If already completed, just return current status
+        if (payment.getStatus() == PaymentStatus.COMPLETED) {
+            log.info("Payment {} already completed", payment.getId());
+            return buildStatusResponse(payment);
+        }
+
+        // If we have a payment_id from MercadoPago, fetch the real status
+        if (mpPaymentId != null && !mpPaymentId.isBlank()) {
+            try {
+                configureMercadoPago();
+                PaymentClient client = new PaymentClient();
+                Payment mpPayment = client.get(Long.parseLong(mpPaymentId));
+
+                PaymentStatus newStatus = mapMercadoPagoStatus(mpPayment.getStatus());
+                payment.setStatus(newStatus);
+
+                // Store the actual payment ID from MercadoPago
+                Map<String, Object> providerResponse = payment.getProviderResponse();
+                if (providerResponse == null) {
+                    providerResponse = new HashMap<>();
+                }
+                providerResponse.put("mp_payment_id", mpPaymentId);
+                providerResponse.put("status", mpPayment.getStatus());
+                providerResponse.put("status_detail", mpPayment.getStatusDetail());
+                providerResponse.put("last_updated", mpPayment.getDateLastUpdated());
+
+                // Extract fee details for financial reconciliation
+                if (mpPayment.getFeeDetails() != null && !mpPayment.getFeeDetails().isEmpty()) {
+                    var feeDetail = mpPayment.getFeeDetails().get(0);
+                    providerResponse.put("gateway_fee", feeDetail.getAmount());
+                    providerResponse.put("fee_type", feeDetail.getType());
+                }
+
+                // Extract net received amount
+                if (mpPayment.getTransactionDetails() != null) {
+                    providerResponse.put("net_received_amount", mpPayment.getTransactionDetails().getNetReceivedAmount());
+                    providerResponse.put("total_paid_amount", mpPayment.getTransactionDetails().getTotalPaidAmount());
+                }
+
+                payment.setProviderResponse(providerResponse);
+                payment = paymentRepository.save(payment);
+
+                // Update booking status if payment completed
+                if (newStatus == PaymentStatus.COMPLETED) {
+                    confirmBookingsAndSendEmails(payment);
+                }
+
+                log.info("Checkout Pro payment confirmed: {} with status: {}", payment.getId(), newStatus);
+                return buildStatusResponse(payment);
+
+            } catch (MPApiException e) {
+                log.error("Mercado Pago API error confirming payment: {} - {}",
+                    e.getApiResponse().getStatusCode(), e.getApiResponse().getContent(), e);
+                // Fall through to return current status
+            } catch (MPException e) {
+                log.error("Mercado Pago error confirming payment", e);
+                // Fall through to return current status
+            } catch (NumberFormatException e) {
+                log.error("Invalid MercadoPago payment ID format: {}", mpPaymentId);
+                // Fall through to return current status
+            }
+        }
+
+        // Return current status if we couldn't get update from MercadoPago
+        return buildStatusResponse(payment);
+    }
+
+    /**
+     * Confirm bookings and send notification emails after successful payment.
+     */
+    private void confirmBookingsAndSendEmails(com.northernchile.api.payment.model.Payment payment) {
+        // Confirm primary booking
+        Booking booking = payment.getBooking();
+        booking.setStatus("CONFIRMED");
+        bookingRepository.save(booking);
+        log.info("Booking {} confirmed after successful payment", booking.getId());
+
+        // Send confirmation emails
+        try {
+            bookingService.sendBookingConfirmationNotifications(booking);
+        } catch (Exception e) {
+            log.error("Failed to send booking confirmation emails for booking {}", booking.getId(), e);
+        }
+
+        // Confirm additional bookings from multi-item cart (if any)
+        Map<String, Object> storedResponse = payment.getProviderResponse();
+        if (storedResponse != null && storedResponse.containsKey("additionalBookingIds")) {
+            @SuppressWarnings("unchecked")
+            java.util.List<String> additionalIds = (java.util.List<String>) storedResponse.get("additionalBookingIds");
+            for (String idStr : additionalIds) {
+                try {
+                    java.util.UUID additionalBookingId = java.util.UUID.fromString(idStr);
+                    bookingRepository.findById(additionalBookingId).ifPresent(additionalBooking -> {
+                        additionalBooking.setStatus("CONFIRMED");
+                        bookingRepository.save(additionalBooking);
+                        log.info("Additional booking {} confirmed after successful payment", additionalBookingId);
+
+                        // Send confirmation emails for additional bookings
+                        try {
+                            bookingService.sendBookingConfirmationNotifications(additionalBooking);
+                        } catch (Exception ex) {
+                            log.error("Failed to send confirmation emails for additional booking {}", additionalBookingId, ex);
+                        }
+                    });
+                } catch (IllegalArgumentException e) {
+                    log.error("Invalid additional booking ID: {}", idStr, e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Build a PaymentStatusRes from a payment entity.
+     */
+    private PaymentStatusRes buildStatusResponse(com.northernchile.api.payment.model.Payment payment) {
+        PaymentStatusRes response = new PaymentStatusRes();
+        response.setPaymentId(payment.getId());
+        response.setExternalPaymentId(payment.getExternalPaymentId());
+        response.setStatus(payment.getStatus());
+        response.setAmount(payment.getAmount());
+        response.setCurrency(payment.getCurrency());
+        response.setUpdatedAt(payment.getUpdatedAt());
+        return response;
+    }
+
     @Override
     public PaymentStatusRes getPaymentStatus(String externalPaymentId) {
         log.info("Getting Mercado Pago payment status: {}", externalPaymentId);
@@ -408,47 +557,14 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
 
             payment = paymentRepository.save(payment);
 
-            // Update booking status if payment completed
+            // Update booking status and send emails if payment completed
             if (newStatus == PaymentStatus.COMPLETED) {
-                // Confirm primary booking
-                Booking booking = payment.getBooking();
-                booking.setStatus("CONFIRMED");
-                bookingRepository.save(booking);
-                log.info("Booking {} confirmed after successful payment", booking.getId());
-
-                // Confirm additional bookings from multi-item cart (if any)
-                Map<String, Object> storedResponse = payment.getProviderResponse();
-                if (storedResponse != null && storedResponse.containsKey("additionalBookingIds")) {
-                    @SuppressWarnings("unchecked")
-                    java.util.List<String> additionalIds = (java.util.List<String>) storedResponse.get("additionalBookingIds");
-                    for (String idStr : additionalIds) {
-                        try {
-                            java.util.UUID additionalBookingId = java.util.UUID.fromString(idStr);
-                            bookingRepository.findById(additionalBookingId).ifPresent(additionalBooking -> {
-                                additionalBooking.setStatus("CONFIRMED");
-                                bookingRepository.save(additionalBooking);
-                                log.info("Additional booking {} confirmed after successful payment", additionalBookingId);
-                            });
-                        } catch (IllegalArgumentException e) {
-                            log.error("Invalid additional booking ID: {}", idStr, e);
-                        }
-                    }
-                }
+                confirmBookingsAndSendEmails(payment);
             }
 
             log.info("Mercado Pago payment status updated: {} - {}", payment.getId(), newStatus);
 
-            // Build response
-            PaymentStatusRes response = new PaymentStatusRes();
-            response.setPaymentId(payment.getId());
-            response.setExternalPaymentId(externalPaymentId);
-            response.setStatus(newStatus);
-            response.setAmount(payment.getAmount());
-            response.setCurrency(payment.getCurrency());
-            response.setMessage(getStatusMessage(mpPayment.getStatus(), mpPayment.getStatusDetail()));
-            response.setUpdatedAt(payment.getUpdatedAt());
-
-            return response;
+            return buildStatusResponse(payment);
 
         } catch (MPApiException e) {
             log.error("Mercado Pago API error getting payment status: {} - {}",

@@ -127,6 +127,50 @@ public class PaymentService {
     }
 
     /**
+     * Confirm a MercadoPago Checkout Pro payment.
+     * Used when user returns from MercadoPago redirect.
+     * MercadoPago stores preference_id in our externalPaymentId field.
+     *
+     * @param preferenceId MercadoPago preference ID (our externalPaymentId)
+     * @param mpPaymentId MercadoPago payment ID (if available)
+     * @return Payment status
+     */
+    @Transactional
+    public PaymentStatusRes confirmMercadoPagoPayment(String preferenceId, String mpPaymentId) {
+        log.info("Confirming MercadoPago payment - preference_id: {}, payment_id: {}", preferenceId, mpPaymentId);
+
+        // Find payment by preference_id (stored as externalPaymentId for Checkout Pro)
+        Payment payment = null;
+        
+        if (preferenceId != null) {
+            payment = paymentRepository.findByExternalPaymentId(preferenceId).orElse(null);
+        }
+        
+        if (payment == null) {
+            throw new IllegalArgumentException("Payment not found for preference_id: " + preferenceId);
+        }
+
+        // Get the MercadoPago provider
+        PaymentProviderService provider = providerFactory.getProvider(payment.getProvider());
+        
+        // Use the specific Checkout Pro confirmation method
+        if (provider instanceof com.northernchile.api.payment.provider.MercadoPagoPaymentService mpProvider) {
+            return mpProvider.confirmCheckoutProPayment(preferenceId, mpPaymentId);
+        }
+        
+        // Fallback: Return current payment status
+        PaymentStatusRes response = new PaymentStatusRes();
+        response.setPaymentId(payment.getId());
+        response.setExternalPaymentId(payment.getExternalPaymentId());
+        response.setStatus(payment.getStatus());
+        response.setAmount(payment.getAmount());
+        response.setCurrency(payment.getCurrency());
+        response.setUpdatedAt(payment.getUpdatedAt());
+
+        return response;
+    }
+
+    /**
      * Get payment status by payment ID.
      *
      * @param paymentId Internal payment ID

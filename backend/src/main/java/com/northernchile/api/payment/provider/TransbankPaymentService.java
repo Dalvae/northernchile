@@ -7,6 +7,7 @@ import cl.transbank.webpay.webpayplus.WebpayPlus;
 import cl.transbank.webpay.webpayplus.responses.WebpayPlusTransactionCommitResponse;
 import cl.transbank.webpay.webpayplus.responses.WebpayPlusTransactionCreateResponse;
 import cl.transbank.webpay.webpayplus.responses.WebpayPlusTransactionStatusResponse;
+import com.northernchile.api.booking.BookingService;
 import com.northernchile.api.exception.PaymentDeclinedException;
 import com.northernchile.api.exception.PaymentExpiredException;
 import com.northernchile.api.exception.PaymentProviderException;
@@ -22,6 +23,7 @@ import com.northernchile.api.booking.BookingRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +43,7 @@ public class TransbankPaymentService implements PaymentProviderService {
 
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
+    private final BookingService bookingService;
 
     @Value("${transbank.commerce-code:597055555532}")
     private String commerceCode;
@@ -54,9 +57,13 @@ public class TransbankPaymentService implements PaymentProviderService {
     @Value("${payment.test-mode:false}")
     private boolean testMode;
 
-    public TransbankPaymentService(PaymentRepository paymentRepository, BookingRepository bookingRepository) {
+    public TransbankPaymentService(
+            PaymentRepository paymentRepository,
+            BookingRepository bookingRepository,
+            @Lazy BookingService bookingService) {
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
+        this.bookingService = bookingService;
     }
 
     /**
@@ -237,6 +244,13 @@ public class TransbankPaymentService implements PaymentProviderService {
                 booking.setStatus("CONFIRMED");
                 bookingRepository.save(booking);
                 log.info("Booking {} confirmed after successful payment", booking.getId());
+                
+                // Send confirmation emails
+                try {
+                    bookingService.sendBookingConfirmationNotifications(booking);
+                } catch (Exception e) {
+                    log.error("Failed to send booking confirmation emails for booking {}", booking.getId(), e);
+                }
 
                 // Confirm additional bookings from multi-item cart (if any)
                 Map<String, Object> storedResponse = payment.getProviderResponse();
@@ -250,6 +264,13 @@ public class TransbankPaymentService implements PaymentProviderService {
                                 additionalBooking.setStatus("CONFIRMED");
                                 bookingRepository.save(additionalBooking);
                                 log.info("Additional booking {} confirmed after successful payment", additionalBookingId);
+                                
+                                // Send confirmation emails for additional bookings
+                                try {
+                                    bookingService.sendBookingConfirmationNotifications(additionalBooking);
+                                } catch (Exception e) {
+                                    log.error("Failed to send confirmation emails for additional booking {}", additionalBookingId, e);
+                                }
                             });
                         } catch (IllegalArgumentException e) {
                             log.error("Invalid additional booking ID: {}", idStr, e);

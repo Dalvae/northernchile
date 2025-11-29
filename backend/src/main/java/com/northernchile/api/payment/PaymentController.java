@@ -89,6 +89,30 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/confirm/mercadopago")
+    @Operation(summary = "Confirm MercadoPago payment", description = "Confirm a MercadoPago Checkout Pro payment after redirect")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Payment confirmed successfully"),
+        @ApiResponse(responseCode = "400", description = "Missing preference_id"),
+        @ApiResponse(responseCode = "404", description = "Payment not found")
+    })
+    public ResponseEntity<PaymentStatusRes> confirmMercadoPagoPayment(
+        @RequestParam(value = "preference_id", required = false) String preferenceId,
+        @RequestParam(value = "payment_id", required = false) String mpPaymentId,
+        @RequestParam(value = "collection_status", required = false) String collectionStatus) {
+
+        log.info("MercadoPago confirmation request - preference_id: {}, payment_id: {}, status: {}",
+            preferenceId, mpPaymentId, collectionStatus);
+
+        if (preferenceId == null && mpPaymentId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        // Use preference_id to find our payment record (stored as externalPaymentId)
+        PaymentStatusRes response = paymentService.confirmMercadoPagoPayment(preferenceId, mpPaymentId);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/{id}/refund")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'PARTNER_ADMIN')")
     @Operation(summary = "Refund payment", description = "Refund a payment (full or partial)")

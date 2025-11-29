@@ -125,7 +125,71 @@ async function handleTransbankCallback(token: string) {
 
 async function handleMercadoPagoCallback() {
   try {
-    // Map MercadoPago status to our PaymentStatus
+    // Call backend to confirm the MercadoPago payment
+    // This will update booking status and send confirmation emails
+    const config = useRuntimeConfig()
+    
+    const queryParams = new URLSearchParams()
+    if (mpPreferenceId) queryParams.append('preference_id', mpPreferenceId)
+    if (mpPaymentId) queryParams.append('payment_id', mpPaymentId)
+    if (mpCollectionStatus) queryParams.append('collection_status', mpCollectionStatus)
+    
+    const result = await $fetch<{ paymentId: string; status: PaymentStatus; amount?: number; currency?: string }>(
+      `${config.public.apiBase}/api/payments/confirm/mercadopago?${queryParams.toString()}`,
+      {
+        method: 'GET',
+        credentials: 'include'
+      }
+    )
+
+    paymentId.value = result.paymentId
+    paymentStatus.value = result.status
+    bookingId.value = mpExternalReference || route.query.bookingId as string || null
+
+    if (result.status === PaymentStatus.COMPLETED) {
+      // Google Analytics: Track purchase event
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'purchase', {
+          transaction_id: result.paymentId || 'unknown',
+          value: result.amount || 0,
+          currency: result.currency || 'USD'
+        })
+      }
+
+      // Clear cart after successful payment
+      cartStore.clearCart()
+      clearCheckoutData()
+
+      toast.add({
+        color: 'success',
+        title: t('payment.success.title'),
+        description: t('payment.success.description')
+      })
+    } else if (result.status === PaymentStatus.FAILED) {
+      errorMessage.value = t('payment.error.transaction_failed')
+      toast.add({
+        color: 'error',
+        title: t('payment.error.title'),
+        description: errorMessage.value
+      })
+    } else if (result.status === PaymentStatus.CANCELLED) {
+      errorMessage.value = t('payment.error.cancelled_by_user')
+      toast.add({
+        color: 'warning',
+        title: t('payment.error.cancelled'),
+        description: errorMessage.value
+      })
+    } else if (result.status === PaymentStatus.PENDING) {
+      toast.add({
+        color: 'info',
+        title: t('payment.callback.pending_title'),
+        description: t('payment.callback.pending_description')
+      })
+    }
+  } catch (error: any) {
+    console.error('Error handling MercadoPago callback:', error)
+    
+    // Fallback: Map collection_status if backend call fails
     const statusMap: Record<string, PaymentStatus> = {
       approved: PaymentStatus.COMPLETED,
       pending: PaymentStatus.PENDING,
@@ -139,50 +203,6 @@ async function handleMercadoPagoCallback() {
     paymentStatus.value = statusMap[mpCollectionStatus] || PaymentStatus.PENDING
     paymentId.value = mpPaymentId || mpPreferenceId || null
     bookingId.value = mpExternalReference || route.query.bookingId as string || null
-
-    if (paymentStatus.value === PaymentStatus.COMPLETED) {
-      // Google Analytics: Track purchase event
-      if (typeof window !== 'undefined' && window.gtag) {
-        window.gtag('event', 'purchase', {
-          transaction_id: paymentId.value || 'unknown',
-          value: 0,
-          currency: 'USD'
-        })
-      }
-
-      // Clear cart after successful payment
-      cartStore.clearCart()
-      clearCheckoutData()
-
-      toast.add({
-        color: 'success',
-        title: t('payment.success.title'),
-        description: t('payment.success.description')
-      })
-    } else if (paymentStatus.value === PaymentStatus.FAILED) {
-      errorMessage.value = t('payment.error.transaction_failed')
-      toast.add({
-        color: 'error',
-        title: t('payment.error.title'),
-        description: errorMessage.value
-      })
-    } else if (paymentStatus.value === PaymentStatus.CANCELLED) {
-      errorMessage.value = t('payment.error.cancelled_by_user')
-      toast.add({
-        color: 'warning',
-        title: t('payment.error.cancelled'),
-        description: errorMessage.value
-      })
-    } else if (paymentStatus.value === PaymentStatus.PENDING) {
-      toast.add({
-        color: 'info',
-        title: t('payment.callback.pending_title'),
-        description: t('payment.callback.pending_description')
-      })
-    }
-  } catch (error: any) {
-    console.error('Error handling MercadoPago callback:', error)
-    paymentStatus.value = PaymentStatus.FAILED
     errorMessage.value = error.message || t('payment.error.confirmation_failed')
   }
 }
