@@ -39,20 +39,20 @@ const paymentOptions: PaymentOption[] = [
   },
   {
     provider: PaymentProvider.MERCADOPAGO,
-    method: PaymentMethod.PIX,
-    name: 'PIX',
-    description: t('payment.methods.pix.description'),
-    icon: 'i-lucide-qr-code',
-    country: 'Brasil',
+    method: PaymentMethod.CREDIT_CARD,
+    name: 'MercadoPago',
+    description: t('payment.methods.mercadopago.description'),
+    icon: 'i-lucide-wallet',
+    country: t('payment.methods.mercadopago.countries'),
     available: true
   },
   {
     provider: PaymentProvider.MERCADOPAGO,
-    method: PaymentMethod.CREDIT_CARD,
-    name: t('payment.methods.credit_card.name'),
-    description: t('payment.methods.credit_card.description'),
-    icon: 'i-lucide-credit-card',
-    country: t('payment.methods.credit_card.countries'),
+    method: PaymentMethod.PIX,
+    name: 'PIX (MercadoPago)',
+    description: t('payment.methods.pix.description'),
+    icon: 'i-lucide-qr-code',
+    country: 'Brasil',
     available: true
   }
 ]
@@ -210,7 +210,7 @@ function isSelected(option: PaymentOption) {
           </div>
         </div>
 
-        <!-- Additional Info for Credit Card -->
+        <!-- Additional Info for Credit Card (MercadoPago) -->
         <div
           v-if="option.method === PaymentMethod.CREDIT_CARD && isSelected(option)"
           class="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700"
@@ -221,7 +221,7 @@ function isSelected(option: PaymentOption) {
               class="w-4 h-4 flex-shrink-0 mt-0.5 text-primary"
             />
             <p>
-              {{ t('payment.methods.credit_card.info') }}
+              {{ t('payment.methods.mercadopago.info') }}
             </p>
           </div>
         </div>

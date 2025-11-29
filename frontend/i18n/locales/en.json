@@ -575,8 +575,13 @@
         "description": "Pay with Chilean cards using Webpay Plus",
         "info": "We accept debit and credit cards from all Chilean banks. You will be redirected to Transbank's secure gateway."
       },
+      "mercadopago": {
+        "description": "International cards and MercadoPago balance",
+        "countries": "International",
+        "info": "You will be redirected to MercadoPago to choose your preferred payment method."
+      },
       "pix": {
-        "description": "Instant payment with PIX (Brazil)",
+        "description": "Instant transfer via MercadoPago",
         "info": "The PIX code expires in 30 minutes. Your booking will be confirmed automatically after payment."
       },
       "credit_card": {
