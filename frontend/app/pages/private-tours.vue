@@ -23,17 +23,8 @@ const state = reactive({
   loading: false,
 });
 
-// Date picker state
-const preferredDateValue = ref<any>(undefined)
-
-// Sync between CalendarDate and string
-watch(preferredDateValue, (newDate) => {
-  if (newDate) {
-    state.preferredDate = `${newDate.year}-${String(newDate.month).padStart(2, '0')}-${String(newDate.day).padStart(2, '0')}`
-  } else {
-    state.preferredDate = ''
-  }
-})
+// Minimum date for the date picker (today)
+const minDate = computed(() => new Date().toISOString().split('T')[0])
 
 const tourTypeOptions = [
   {
@@ -120,7 +111,6 @@ async function submitRequest() {
     state.phone = "";
     state.numberOfPeople = 2;
     state.preferredDate = "";
-    preferredDateValue.value = undefined;
     state.preferredTime = "evening";
     state.tourType = "ASTRONOMICAL";
     state.specialRequests = "";
@@ -353,9 +343,12 @@ async function submitRequest() {
                     {{ t("privateTours.form.preferred_date_label") }}
                     <span class="text-primary-500">*</span>
                   </label>
-                  <UInputDate
-                    v-model="preferredDateValue"
+                  <UInput
+                    v-model="state.preferredDate"
+                    type="date"
                     size="xl"
+                    icon="i-lucide-calendar"
+                    :min="minDate"
                     class="w-full bg-neutral-950 text-white"
                     required
                   />
