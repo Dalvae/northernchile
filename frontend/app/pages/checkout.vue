@@ -362,7 +362,10 @@ async function submitBooking() {
       icon: 'i-lucide-loader-2'
     })
 
-    const cartItems = cartStore.cart.items
+    // Make a copy of cart items at the start (before any async operations that might clear the cart)
+    const cartItems = JSON.parse(JSON.stringify(cartStore.cart.items)) as typeof cartStore.cart.items
+    const cartTotal = cartStore.cart.cartTotal
+    
     if (!cartItems || cartItems.length === 0) {
       throw new Error('No items in cart')
     }
@@ -428,13 +431,13 @@ async function submitBooking() {
     console.log('[Checkout] About to call initializePayment')
     console.log('[Checkout] primaryBooking:', primaryBooking)
     console.log('[Checkout] selectedPaymentMethod:', selectedPaymentMethod.value)
-    console.log('[Checkout] total:', total.value)
+    console.log('[Checkout] cartTotal:', cartTotal)
 
     const paymentResult = await paymentStore.initializePayment({
       bookingId: primaryBooking.id,
       provider: selectedPaymentMethod.value.provider,
       paymentMethod: selectedPaymentMethod.value.method,
-      amount: total.value,
+      amount: cartTotal,
       currency: 'CLP',
       returnUrl: `${config.public.baseUrl}/payment/callback?bookingId=${primaryBooking.id}`,
       cancelUrl: `${config.public.baseUrl}/checkout`,
