@@ -18,6 +18,7 @@ import com.mercadopago.resources.payment.PaymentRefund;
 import com.mercadopago.resources.preference.Preference;
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.booking.BookingService;
+import com.northernchile.api.cart.CartRepository;
 import com.northernchile.api.exception.PaymentDeclinedException;
 import com.northernchile.api.exception.PaymentProviderException;
 import com.northernchile.api.exception.RefundException;
@@ -55,6 +56,7 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
     private final BookingService bookingService;
+    private final CartRepository cartRepository;
 
     @Value("${mercadopago.access-token:TEST-ACCESS-TOKEN}")
     private String accessToken;
@@ -68,10 +70,12 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
     public MercadoPagoPaymentService(
             PaymentRepository paymentRepository,
             BookingRepository bookingRepository,
-            @Lazy BookingService bookingService) {
+            @Lazy BookingService bookingService,
+            CartRepository cartRepository) {
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
         this.bookingService = bookingService;
+        this.cartRepository = cartRepository;
     }
 
     /**
@@ -461,6 +465,15 @@ public class MercadoPagoPaymentService implements PaymentProviderService {
         booking.setStatus("CONFIRMED");
         bookingRepository.save(booking);
         log.info("Booking {} confirmed after successful payment", booking.getId());
+
+        // Clear user's cart after successful payment confirmation
+        if (booking.getUser() != null) {
+            cartRepository.findByUserId(booking.getUser().getId())
+                .ifPresent(cart -> {
+                    cartRepository.delete(cart);
+                    log.info("Cart cleared for user {} after successful payment", booking.getUser().getId());
+                });
+        }
 
         // Send confirmation emails
         try {

@@ -8,6 +8,7 @@ import cl.transbank.webpay.webpayplus.responses.WebpayPlusTransactionCommitRespo
 import cl.transbank.webpay.webpayplus.responses.WebpayPlusTransactionCreateResponse;
 import cl.transbank.webpay.webpayplus.responses.WebpayPlusTransactionStatusResponse;
 import com.northernchile.api.booking.BookingService;
+import com.northernchile.api.cart.CartRepository;
 import com.northernchile.api.exception.PaymentDeclinedException;
 import com.northernchile.api.exception.PaymentExpiredException;
 import com.northernchile.api.exception.PaymentProviderException;
@@ -44,6 +45,7 @@ public class TransbankPaymentService implements PaymentProviderService {
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
     private final BookingService bookingService;
+    private final CartRepository cartRepository;
 
     @Value("${transbank.commerce-code:597055555532}")
     private String commerceCode;
@@ -60,10 +62,12 @@ public class TransbankPaymentService implements PaymentProviderService {
     public TransbankPaymentService(
             PaymentRepository paymentRepository,
             BookingRepository bookingRepository,
-            @Lazy BookingService bookingService) {
+            @Lazy BookingService bookingService,
+            CartRepository cartRepository) {
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
         this.bookingService = bookingService;
+        this.cartRepository = cartRepository;
     }
 
     /**
@@ -244,6 +248,15 @@ public class TransbankPaymentService implements PaymentProviderService {
                 booking.setStatus("CONFIRMED");
                 bookingRepository.save(booking);
                 log.info("Booking {} confirmed after successful payment", booking.getId());
+                
+                // Clear user's cart after successful payment confirmation
+                if (booking.getUser() != null) {
+                    cartRepository.findByUserId(booking.getUser().getId())
+                        .ifPresent(cart -> {
+                            cartRepository.delete(cart);
+                            log.info("Cart cleared for user {} after successful payment", booking.getUser().getId());
+                        });
+                }
                 
                 // Send confirmation emails
                 try {

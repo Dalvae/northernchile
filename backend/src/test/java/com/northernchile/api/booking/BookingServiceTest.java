@@ -12,6 +12,7 @@ import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.User;
 import com.northernchile.api.notification.EmailService;
+import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +62,9 @@ class BookingServiceTest {
 
     @Mock
     private AvailabilityValidator availabilityValidator;
+
+    @Mock
+    private PricingService pricingService;
 
     @InjectMocks
     private BookingService bookingService;
@@ -112,9 +116,17 @@ class BookingServiceTest {
         validBookingRequest.setParticipants(List.of(participant));
 
         // Set required properties via reflection
-        ReflectionTestUtils.setField(bookingService, "taxRate", new BigDecimal("0.19"));
         ReflectionTestUtils.setField(bookingService, "adminEmail", "admin@northernchile.com");
         ReflectionTestUtils.setField(bookingService, "minHoursBeforeTour", 2);
+        
+        // Set up pricing service mock (lenient as not all tests use it)
+        PricingService.PricingResult pricingResult = new PricingService.PricingResult(
+            new BigDecimal("50000"),   // subtotal
+            new BigDecimal("9500"),    // taxAmount
+            new BigDecimal("59500"),   // totalAmount
+            new BigDecimal("0.19")     // taxRate
+        );
+        lenient().when(pricingService.calculateLineItem(any(BigDecimal.class), anyInt())).thenReturn(pricingResult);
     }
 
     @Nested
