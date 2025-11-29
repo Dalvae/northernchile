@@ -6,7 +6,7 @@ interface AddCartItemRequest {
 }
 
 interface CartItem {
-  id?: string
+  itemId?: string
   scheduleId: string
   numParticipants: number
   tourName?: string
@@ -152,7 +152,7 @@ export const useCartStore = defineStore('cart', () => {
     const previousCart = JSON.parse(JSON.stringify(cart.value)) as Cart
 
     // Optimistic update: remove item immediately
-    cart.value.items = cart.value.items.filter(item => item.id !== itemId && item.scheduleId !== itemId)
+    cart.value.items = cart.value.items.filter(item => item.itemId !== itemId && item.scheduleId !== itemId)
 
     isLoading.value = true
     try {

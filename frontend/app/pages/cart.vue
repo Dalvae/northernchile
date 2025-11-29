@@ -1,8 +1,7 @@
 <script setup lang="ts">
 const cartStore = useCartStore()
-const authStore = useAuthStore()
 const router = useRouter()
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const localePath = useLocalePath()
 const { formatPrice } = useCurrency()
 const { formatDateTime } = useDateTime()
@@ -11,6 +10,11 @@ useSeoMeta({
   title: () => `${t('cart.title')} - Northern Chile`,
   description: () => t('cart.description'),
   robots: 'noindex, nofollow'
+})
+
+// Fetch cart from backend on mount
+onMounted(() => {
+  cartStore.fetchCart()
 })
 
 const isEmpty = computed(() => cartStore.cart.items.length === 0)
@@ -96,7 +100,7 @@ function proceedToCheckout() {
         <div class="lg:col-span-2 space-y-4">
           <UCard
             v-for="item in cartStore.cart.items"
-            :key="item.id || item.scheduleId"
+            :key="item.itemId || item.scheduleId"
           >
             <div class="flex gap-6">
               <!-- Tour Info -->
@@ -156,7 +160,7 @@ function proceedToCheckout() {
                   color="error"
                   variant="soft"
                   size="sm"
-                  @click="removeItem(item.id || item.scheduleId)"
+                  @click="removeItem(item.itemId || item.scheduleId)"
                 >
                   {{ t('cart.remove') }}
                 </UButton>
