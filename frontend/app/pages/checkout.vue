@@ -165,6 +165,22 @@ function updateParticipant(index: number, data: Partial<{
   }
 }
 
+// Copy first participant's common data to another participant
+function copyFromFirstParticipant(index: number) {
+  const first = participants.value[0]
+  if (!first || index === 0) return
+  
+  const current = participants.value[index]
+  if (!current) return
+  
+  // Copy pickup address and special requirements (common for all participants)
+  participants.value[index] = {
+    ...current,
+    pickupAddress: first.pickupAddress,
+    specialRequirements: first.specialRequirements
+  }
+}
+
 // Submit booking
 const isSubmitting = ref(false)
 const createdBookingIds = ref<string[]>([])
@@ -663,6 +679,16 @@ const total = computed(() => cartStore.cart.cartTotal)
                           {{ t('checkout.primary_contact') }}
                         </span>
                       </h3>
+                      <UButton
+                        v-if="index > 0"
+                        size="xs"
+                        color="neutral"
+                        variant="soft"
+                        icon="i-lucide-copy"
+                        @click="copyFromFirstParticipant(index)"
+                      >
+                        {{ t('checkout.copy_from_first') }}
+                      </UButton>
                     </div>
                   </template>
                 </BookingParticipantForm>

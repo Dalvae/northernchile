@@ -780,6 +780,7 @@
     "participants_count": "{count} persona en total | {count} personas en total",
     "participant_number": "Participante {number}",
     "primary_contact": "(Contacto principal)",
+    "copy_from_first": "Copiar datos comunes",
     "back_to_cart": "Volver al Carrito",
     "continue": "Continuar",
     "back": "Atrás",

@@ -780,6 +780,7 @@
     "participants_count": "{count} person in total | {count} people in total",
     "participant_number": "Participant {number}",
     "primary_contact": "(Primary contact)",
+    "copy_from_first": "Copy common data",
     "back_to_cart": "Back to Cart",
     "continue": "Continue",
     "back": "Back",
