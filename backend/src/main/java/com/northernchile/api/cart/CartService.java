@@ -57,15 +57,17 @@ public class CartService {
                 // Reload with details to avoid lazy loading issues
                 return cartRepository.findByIdWithDetails(userCart.getId()).orElse(userCart);
             }
+            // User doesn't have a cart - create one associated with the user
+            return createNewCart(currentUser.get());
         }
 
-        // Guest user or logged-in user without a cart
+        // Guest user
         if (cartId.isPresent()) {
             return cartRepository.findByIdWithDetails(cartId.get())
-                    .orElseGet(this::createNewCart);
+                    .orElseGet(() -> createNewCart(null));
         }
 
-        return createNewCart();
+        return createNewCart(null);
     }
 
     @Transactional
@@ -117,8 +119,9 @@ public class CartService {
         return cartRepository.findByIdWithDetails(cart.getId()).orElseThrow();
     }
 
-    private Cart createNewCart() {
+    private Cart createNewCart(User user) {
         Cart cart = new Cart();
+        cart.setUser(user);
         cart.setStatus("ACTIVE");
         cart.setExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS)); // Cart expires in 1 hour
         return cartRepository.save(cart);

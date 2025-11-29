@@ -5,6 +5,7 @@ import com.northernchile.api.booking.dto.BookingClientUpdateReq;
 import com.northernchile.api.booking.dto.BookingCreateReq;
 import com.northernchile.api.booking.dto.BookingRes;
 import com.northernchile.api.booking.dto.ParticipantRes;
+import com.northernchile.api.cart.CartRepository;
 import com.northernchile.api.exception.BookingCutoffException;
 import com.northernchile.api.exception.InvalidBookingStateException;
 import com.northernchile.api.exception.ResourceNotFoundException;
@@ -40,6 +41,7 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final TourScheduleRepository tourScheduleRepository;
+    private final CartRepository cartRepository;
     private final EmailService emailService;
     private final AuditLogService auditLogService;
     private final BookingMapper bookingMapper;
@@ -55,6 +57,7 @@ public class BookingService {
     public BookingService(
             BookingRepository bookingRepository,
             TourScheduleRepository tourScheduleRepository,
+            CartRepository cartRepository,
             EmailService emailService,
             AuditLogService auditLogService,
             BookingMapper bookingMapper,
@@ -62,6 +65,7 @@ public class BookingService {
             PricingService pricingService) {
         this.bookingRepository = bookingRepository;
         this.tourScheduleRepository = tourScheduleRepository;
+        this.cartRepository = cartRepository;
         this.emailService = emailService;
         this.auditLogService = auditLogService;
         this.bookingMapper = bookingMapper;
@@ -90,6 +94,13 @@ public class BookingService {
         booking.setParticipants(participants);
 
         Booking savedBooking = bookingRepository.save(booking);
+        
+        // Clear user's cart after successful booking creation
+        if (currentUser != null) {
+            cartRepository.findByUserId(currentUser.getId())
+                .ifPresent(cartRepository::delete);
+        }
+        
         sendBookingNotifications(savedBooking);
 
         return bookingMapper.toBookingRes(savedBooking);
