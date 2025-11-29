@@ -184,8 +184,14 @@ function copyFromFirstParticipant(index: number) {
 // Submit booking
 const isSubmitting = ref(false)
 const createdBookingIds = ref<string[]>([])
+const lastSubmitTime = ref(0)
 
 async function submitBooking() {
+  // Prevent double submit with debounce
+  const now = Date.now()
+  if (now - lastSubmitTime.value < 2000) return
+  lastSubmitTime.value = now
+  
   if (isSubmitting.value || !selectedPaymentMethod.value) return
   isSubmitting.value = true
 
