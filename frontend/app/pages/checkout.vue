@@ -443,7 +443,7 @@ async function submitBooking() {
 
     // Step 4: Handle payment flow based on method
     if (selectedPaymentMethod.value.method === PaymentMethod.WEBPAY) {
-      // Transbank Webpay - requires POST redirect with token_ws in new tab
+      // Transbank Webpay - POST redirect to Transbank
       if (paymentSessionRes.paymentUrl && paymentSessionRes.token) {
         toast.add({
           color: 'success',
@@ -451,15 +451,11 @@ async function submitBooking() {
           description: t('checkout.toast.redirecting_provider', { provider: 'Transbank' })
         })
 
-        // Clear checkout data before redirecting (payment initiated successfully)
-        clearCheckoutData()
-
-        // Transbank requires POST with token_ws parameter - open in new tab
+        // Transbank requires POST with token_ws parameter
         setTimeout(() => {
           const form = document.createElement('form')
           form.method = 'POST'
           form.action = paymentSessionRes.paymentUrl!
-          form.target = '_blank' // Open in new tab
 
           const tokenInput = document.createElement('input')
           tokenInput.type = 'hidden'
@@ -469,22 +465,18 @@ async function submitBooking() {
           form.appendChild(tokenInput)
           document.body.appendChild(form)
           form.submit()
-          document.body.removeChild(form)
         }, 1500)
       } else {
         throw new Error('No payment URL or token received from Transbank')
       }
     } else if (selectedPaymentMethod.value.method === PaymentMethod.CREDIT_CARD) {
-      // MercadoPago Checkout Pro - uses GET redirect in new tab
+      // MercadoPago Checkout Pro - GET redirect
       if (paymentSessionRes.paymentUrl) {
         toast.add({
           color: 'success',
           title: t('checkout.toast.redirecting_payment'),
           description: t('checkout.toast.redirecting_provider', { provider: 'MercadoPago' })
         })
-
-        // Clear checkout data before redirecting (payment initiated successfully)
-        clearCheckoutData()
 
         // MercadoPago uses simple redirect
         setTimeout(() => {
