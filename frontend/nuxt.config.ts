@@ -30,6 +30,21 @@ export default defineNuxtConfig({
     }
   },
 
+  site: {
+    url: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.com',
+    name: 'Northern Chile Tours',
+    description: 'Tours astronómicos y expediciones en San Pedro de Atacama.',
+    defaultLocale: 'es'
+  },
+
+  colorMode: {
+    preference: 'dark',
+    fallback: 'dark',
+    dataValue: 'dark',
+    storageKey: 'nuxt-color-mode',
+    classSuffix: ''
+  },
+
   ui: {
     theme: {
       colors: [
@@ -45,18 +60,10 @@ export default defineNuxtConfig({
     }
   },
 
-  colorMode: {
-    preference: 'dark',
-    fallback: 'dark',
-    dataValue: 'dark',
-    storageKey: 'nuxt-color-mode',
-    classSuffix: ''
-  },
-
   runtimeConfig: {
     public: {
       apiBase: apiBaseUrl,
-      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.cl',
+      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.com',
       fbAppId: process.env.NUXT_PUBLIC_FB_APP_ID || ''
     }
   },
@@ -289,41 +296,6 @@ export default defineNuxtConfig({
     }
   },
 
-  site: {
-    url: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.cl',
-    name: 'Northern Chile Tours',
-    description: 'Tours astronómicos y expediciones en San Pedro de Atacama.',
-    defaultLocale: 'es',
-  },
-
-  robots: {
-    disallow: [
-      '/admin',
-      '/profile',
-      '/bookings',
-      '/cart',
-      '/checkout',
-      '/auth',
-      '/payment'
-    ],
-  },
-
-  sitemap: {
-    sources: [
-      '/api/__sitemap__/urls'
-    ],
-    exclude: ['/admin/**', '/profile/**']
-  },
-
-  schemaOrg: {
-    identity: {
-      type: 'Organization',
-      name: 'Northern Chile Tours',
-      url: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.cl',
-      logo: '/images/logo.png'
-    }
-  },
-
   ogImage: {
     defaults: {
       renderer: 'satori',
@@ -337,6 +309,34 @@ export default defineNuxtConfig({
     runtimeCacheStorage: {
       driver: 'memory'
     }
+  },
+
+  robots: {
+    disallow: [
+      '/admin',
+      '/profile',
+      '/bookings',
+      '/cart',
+      '/checkout',
+      '/auth',
+      '/payment'
+    ]
+  },
+
+  schemaOrg: {
+    identity: {
+      type: 'Organization',
+      name: 'Northern Chile Tours',
+      url: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.com',
+      logo: '/images/logo.png'
+    }
+  },
+
+  sitemap: {
+    sources: [
+      '/api/__sitemap__/urls'
+    ],
+    exclude: ['/admin/**', '/profile/**']
   },
 
   vitalizer: {

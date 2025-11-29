@@ -17,17 +17,17 @@ export default defineEventHandler(async (event): Promise<unknown> => {
     })
     return response
   } catch (error: unknown) {
-    const err = error as { 
-      statusCode?: number, 
-      statusMessage?: string, 
-      data?: { message?: string, error?: string, status?: number, path?: string }, 
-      message?: string,
+    const err = error as {
+      statusCode?: number
+      statusMessage?: string
+      data?: { message?: string, error?: string, status?: number, path?: string }
+      message?: string
       response?: { status?: number, _data?: unknown, headers?: Headers }
     }
-    
+
     const statusCode = err.statusCode || err.response?.status || err.data?.status || 500
     const errorMessage = err.data?.message || err.data?.error || err.statusMessage || err.message || 'Failed to initialize payment'
-    
+
     throw createError({
       statusCode,
       statusMessage: errorMessage,

@@ -330,7 +330,7 @@ The application uses a hybrid SSR approach for optimal performance and SEO:
 The app uses `@nuxtjs/i18n` with SEO-optimized configuration:
 - `useLocaleHead` is implemented in `layouts/default.vue` for automatic `lang`, `hreflang`, and canonical tags
 - Locales use ISO codes: `es-CL`, `en-US`, `pt-BR`
-- Base URL configured for production: `https://www.northernchile.cl`
+- Base URL configured for production: `https://www.northernchile.com`
 - URL Strategy: `prefix_except_default` (ES default, /en/*, /pt/* for translations)
 - Browser language detection with cookie persistence
 
@@ -348,7 +348,7 @@ JWT_SECRET=your-256-bit-secret-key
 SPRING_REMOTE_SECRET=change-me-in-dev
 
 # Admin initialization (Legacy - single admin)
-ADMIN_EMAIL=admin@northernchile.cl
+ADMIN_EMAIL=admin@northernchile.com
 ADMIN_FULL_NAME=Administrador Principal
 ADMIN_PASSWORD=Admin123!secure
 
@@ -363,9 +363,9 @@ SEED_DATA=false
 # Email Configuration (Google Workspace / Gmail SMTP)
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
-MAIL_USERNAME=noreply@northernchile.cl
+MAIL_USERNAME=noreply@northernchile.com
 MAIL_PASSWORD=your_app_specific_password_here
-MAIL_FROM_EMAIL=noreply@northernchile.cl
+MAIL_FROM_EMAIL=noreply@northernchile.com
 MAIL_FROM_NAME=Northern Chile Tours
 MAIL_ENABLED=true
 

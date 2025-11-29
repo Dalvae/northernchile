@@ -10,7 +10,7 @@ export default defineEventHandler(async (event): Promise<PageMediaRes> => {
     const response = await $fetch<PageMediaRes>(`${backendUrl}/api/admin/media`, {
       method: 'GET',
       params: query,
-      headers: { 'Cookie': cookie }
+      headers: { Cookie: cookie }
     })
     return response
   } catch (error: unknown) {

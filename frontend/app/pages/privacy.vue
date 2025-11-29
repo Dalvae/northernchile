@@ -18,7 +18,10 @@ const sections = computed(() => {
     <UContainer class="max-w-4xl">
       <div class="mb-8 text-center">
         <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <UIcon name="i-lucide-shield-check" class="w-8 h-8 text-primary" />
+          <UIcon
+            name="i-lucide-shield-check"
+            class="w-8 h-8 text-primary"
+          />
         </div>
         <h1 class="text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white mb-4">
           {{ t('legal.privacy.title') }}
@@ -31,7 +34,10 @@ const sections = computed(() => {
         </p>
 
         <div class="space-y-8">
-          <div v-for="index in sections" :key="index">
+          <div
+            v-for="index in sections"
+            :key="index"
+          >
             <h3 class="text-xl font-semibold text-neutral-900 dark:text-white mb-3">
               {{ t(`legal.privacy.sections.${index - 1}.title`) }}
             </h3>

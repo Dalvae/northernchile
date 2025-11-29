@@ -8,7 +8,7 @@ export default defineEventHandler(async (event): Promise<unknown> => {
   try {
     const result = await $fetch(`${backendUrl}/api/admin/media/tour/${tourId}/featured/${mediaId}`, {
       method: 'PUT',
-      headers: { 'Cookie': cookie }
+      headers: { Cookie: cookie }
     })
     return result
   } catch (error: unknown) {

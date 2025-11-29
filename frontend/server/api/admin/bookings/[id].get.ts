@@ -8,7 +8,7 @@ export default defineEventHandler(async (event): Promise<BookingRes> => {
 
   try {
     const booking = await $fetch<BookingRes>(`${backendUrl}/api/admin/bookings/${bookingId}`, {
-      headers: { 'Cookie': cookie }
+      headers: { Cookie: cookie }
     })
     return booking
   } catch (error: unknown) {

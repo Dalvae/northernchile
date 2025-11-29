@@ -5,7 +5,7 @@ export default defineEventHandler(async (event): Promise<unknown> => {
 
   try {
     const result: unknown = await $fetch(`${backendUrl}/api/admin/audit-logs/stats`, {
-      headers: { 'Cookie': cookie }
+      headers: { Cookie: cookie }
     })
     return result
   } catch (error: unknown) {

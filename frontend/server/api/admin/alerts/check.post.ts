@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   try {
     const result = await ofetch(`${backendUrl}/api/admin/alerts/check`, {
       method: 'POST',
-      headers: { 'Cookie': cookie }
+      headers: { Cookie: cookie }
     })
     return result
   } catch (error: unknown) {

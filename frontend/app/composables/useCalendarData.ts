@@ -65,7 +65,6 @@ export interface WeatherAlert {
 }
 
 export const useCalendarData = () => {
-
   /**
    * Obtiene fase lunar para un rango de fechas
    */

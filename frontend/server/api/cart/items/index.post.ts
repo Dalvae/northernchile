@@ -6,7 +6,7 @@ export default defineEventHandler(async (event): Promise<unknown> => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      cookie: getHeader(event, 'cookie') || ''
+      'cookie': getHeader(event, 'cookie') || ''
     },
     body
   })

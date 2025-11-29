@@ -290,8 +290,8 @@ const { fetchAdminTours } = useAdminData()
 // Calendar data interface
 interface CalendarDataResponse {
   schedules: TourScheduleRes[]
-  moonPhases: Map<string, { icon: string; illumination: number }>
-  weather: Map<string, { temp: { max: number; min: number }; weather: Array<{ main: string }> }>
+  moonPhases: Map<string, { icon: string, illumination: number }>
+  weather: Map<string, { temp: { max: number, min: number }, weather: Array<{ main: string }> }>
   alerts: Map<string, WeatherAlert[]>
   allAlerts?: WeatherAlert[]
 }

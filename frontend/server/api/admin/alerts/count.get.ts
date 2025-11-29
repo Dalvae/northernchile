@@ -5,7 +5,7 @@ export default defineEventHandler(async (event): Promise<{ pending: number }> =>
 
   try {
     const count = await $fetch<{ pending: number }>(`${backendUrl}/api/admin/alerts/count`, {
-      headers: { 'Cookie': cookie }
+      headers: { Cookie: cookie }
     })
     return count
   } catch (error: unknown) {

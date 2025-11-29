@@ -705,8 +705,8 @@
       },
       "email": {
         "title": "Email",
-        "info": "info{'@'}northernchile.cl",
-        "reservations": "reservas{'@'}northernchile.cl"
+        "info": "info{'@'}northernchile.com",
+        "reservations": "reservas{'@'}northernchile.com"
       }
     },
     "social": {
@@ -899,7 +899,7 @@
         },
         {
           "title": "3. Derechos ARCOP (Sus Derechos)",
-          "content": "Usted tiene derecho a: Acceso (saber qué datos tenemos), Rectificación (corregir errores), Cancelación (borrar sus datos), Oposición (negarse a cierto uso) y Portabilidad (llevarse sus datos). Para ejercerlos, escriba a nuestro Delegado de Protección de Datos en contacto{'@'}northernchile.cl. Responderemos en los plazos legales."
+          "content": "Usted tiene derecho a: Acceso (saber qué datos tenemos), Rectificación (corregir errores), Cancelación (borrar sus datos), Oposición (negarse a cierto uso) y Portabilidad (llevarse sus datos). Para ejercerlos, escriba a nuestro Delegado de Protección de Datos en contacto{'@'}northernchile.com. Responderemos en los plazos legales."
         },
         {
           "title": "4. Seguridad y Notificación de Incidentes",

@@ -155,7 +155,7 @@ Para asegurar el funcionamiento continuo y profesional de la plataforma, se debe
   - **Costo Estimado:** A partir de **$12 a $18 USD mensuales**. Este costo inicial cubre un servidor adecuado para el lanzamiento y puede escalar en el futuro si el tráfico de la web aumenta significativamente.
 
 - **Servicio de Correo Profesional (Mailing):**
-  - **Propósito:** Para que los correos automáticos (confirmaciones, recordatorios, etc.) se envíen desde una dirección profesional (ej: `reservas@northernchile.cl`) y no terminen en la carpeta de spam, es indispensable usar un servicio de correo electrónico empresarial.
+  - **Propósito:** Para que los correos automáticos (confirmaciones, recordatorios, etc.) se envíen desde una dirección profesional (ej: `reservas@northernchile.com`) y no terminen en la carpeta de spam, es indispensable usar un servicio de correo electrónico empresarial.
   - **Costo Estimado:** Los costos para este tipo de servicio profesional suelen comenzar desde los **$6 USD mensuales por cada cuenta de correo** (por usuario). Para empezar, se necesitaría al menos una cuenta para gestionar todas las comunicaciones.
 
 ### **Visión Evolutiva (Post-Lanzamiento)**

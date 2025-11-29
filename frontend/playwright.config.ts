@@ -10,17 +10,17 @@ export default defineConfig({
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
+    screenshot: 'only-on-failure'
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { ...devices['Desktop Chrome'] }
     },
     {
       name: 'mobile',
-      use: { ...devices['iPhone 13'] },
-    },
+      use: { ...devices['iPhone 13'] }
+    }
   ],
   webServer: process.env.CI
     ? undefined
@@ -28,6 +28,6 @@ export default defineConfig({
         command: 'pnpm dev',
         url: 'http://localhost:3000',
         reuseExistingServer: !process.env.CI,
-        timeout: 120000,
-      },
+        timeout: 120000
+      }
 })

@@ -94,7 +94,7 @@ _Objetivo: Verificar que el staff puede gestionar el negocio._
 
 ### A. Dashboard y Métricas
 
-- [ ] Login como `admin@northernchile.cl`.
+- [ ] Login como `admin@northernchile.com`.
 - [ ] **Dashboard:** Verificar que el contador de "Reservas Totales" subió tras las pruebas anteriores.
 - [ ] Verificar gráfico de ingresos.
 

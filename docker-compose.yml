@@ -46,7 +46,7 @@ services:
       - MAIL_PORT=${MAIL_PORT:-587}
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
-      - MAIL_FROM_EMAIL=${MAIL_FROM_EMAIL:-noreply@northernchile.cl}
+      - MAIL_FROM_EMAIL=${MAIL_FROM_EMAIL:-noreply@northernchile.com}
       - MAIL_FROM_NAME=${MAIL_FROM_NAME:-Northern Chile Tours}
       - MAIL_ENABLED=${MAIL_ENABLED:-false}
 

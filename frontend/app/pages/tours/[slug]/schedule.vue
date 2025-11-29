@@ -52,7 +52,7 @@ const translatedDescription = computed(() => {
   const blocks = tour.value?.descriptionBlocksTranslations?.[locale.value]
     || tour.value?.descriptionBlocksTranslations?.['es']
     || []
-  const firstParagraph = blocks.find((b) => b.type === 'paragraph')
+  const firstParagraph = blocks.find(b => b.type === 'paragraph')
   return firstParagraph?.content || ''
 })
 

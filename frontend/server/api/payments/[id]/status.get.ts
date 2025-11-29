@@ -9,7 +9,7 @@ export default defineEventHandler(async (event): Promise<unknown> => {
     const response = await $fetch(`${backendUrl}/api/payments/${id}/status`, {
       method: 'GET',
       headers: {
-        'Cookie': cookie
+        Cookie: cookie
       }
     })
     return response

@@ -31,7 +31,7 @@ export default defineEventHandler(async (event): Promise<MediaRes> => {
     const response = await $fetch<MediaRes>(`${backendUrl}/api/admin/media`, {
       method: 'POST',
       body: backendFormData,
-      headers: { 'Cookie': cookie }
+      headers: { Cookie: cookie }
     })
     return response
   } catch (error: unknown) {
