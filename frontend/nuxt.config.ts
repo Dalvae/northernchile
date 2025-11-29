@@ -98,7 +98,7 @@ export default defineNuxtConfig({
               `connect-src 'self' ${apiBaseUrl} ws://localhost:* http://localhost:* https://api.openweathermap.org https://api.iconify.design https://www.google-analytics.com https://analytics.google.com`,
               'frame-ancestors \'self\'',
               'base-uri \'self\'',
-              'form-action \'self\'',
+              'form-action \'self\' https://webpay3gint.transbank.cl https://webpay3g.transbank.cl https://www.mercadopago.cl https://www.mercadopago.com.br',
               'object-src \'none\''
             ].join('; ')
           : [
@@ -110,7 +110,7 @@ export default defineNuxtConfig({
               `connect-src 'self' ${apiBaseUrl} https://api.openweathermap.org https://api.iconify.design https://www.google-analytics.com https://analytics.google.com`,
               'frame-ancestors \'self\'',
               'base-uri \'self\'',
-              'form-action \'self\'',
+              'form-action \'self\' https://webpay3gint.transbank.cl https://webpay3g.transbank.cl https://www.mercadopago.cl https://www.mercadopago.com.br',
               'object-src \'none\''
             ].join('; ')
       }

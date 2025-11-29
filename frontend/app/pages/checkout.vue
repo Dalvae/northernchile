@@ -261,6 +261,18 @@ function copyFromFirstParticipant(index: number) {
   }
 }
 
+// Auto-copy pickup address from first participant to all others when first participant changes
+watch(() => participants.value[0]?.pickupAddress, (newPickupAddress) => {
+  if (!newPickupAddress || participants.value.length <= 1) return
+
+  // Copy to all other participants that have empty pickup address
+  for (let i = 1; i < participants.value.length; i++) {
+    if (!participants.value[i].pickupAddress) {
+      participants.value[i].pickupAddress = newPickupAddress
+    }
+  }
+}, { immediate: false })
+
 // Submit payment - creates PaymentSession, then redirects to payment provider
 const isSubmitting = ref(false)
 const lastSubmitTime = ref(0)
@@ -425,7 +437,7 @@ async function submitBooking() {
 
     // Step 4: Handle payment flow based on method
     if (selectedPaymentMethod.value.method === PaymentMethod.WEBPAY) {
-      // Transbank Webpay - requires POST redirect with token_ws
+      // Transbank Webpay - requires POST redirect with token_ws in new tab
       if (paymentSessionRes.paymentUrl && paymentSessionRes.token) {
         toast.add({
           color: 'success',
@@ -436,11 +448,12 @@ async function submitBooking() {
         // Clear checkout data before redirecting (payment initiated successfully)
         clearCheckoutData()
 
-        // Transbank requires POST with token_ws parameter
+        // Transbank requires POST with token_ws parameter - open in new tab
         setTimeout(() => {
           const form = document.createElement('form')
           form.method = 'POST'
           form.action = paymentSessionRes.paymentUrl!
+          form.target = '_blank' // Open in new tab
 
           const tokenInput = document.createElement('input')
           tokenInput.type = 'hidden'
@@ -450,12 +463,16 @@ async function submitBooking() {
           form.appendChild(tokenInput)
           document.body.appendChild(form)
           form.submit()
+          document.body.removeChild(form)
+
+          // Redirect current page to a waiting page or home
+          router.push(localePath('/'))
         }, 1500)
       } else {
         throw new Error('No payment URL or token received from Transbank')
       }
     } else if (selectedPaymentMethod.value.method === PaymentMethod.CREDIT_CARD) {
-      // MercadoPago Checkout Pro - uses GET redirect
+      // MercadoPago Checkout Pro - uses GET redirect in new tab
       if (paymentSessionRes.paymentUrl) {
         toast.add({
           color: 'success',
