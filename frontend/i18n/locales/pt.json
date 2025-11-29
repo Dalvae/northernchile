@@ -802,6 +802,7 @@
       "creating_booking": "Estamos criando sua reserva. Este processo pode levar alguns segundos.",
       "booking_created": "Reserva criada com sucesso",
       "preparing_payment": "Preparando gateway de pagamento seguro...",
+      "retrying_payment": "Tentando pagamento novamente...",
       "redirecting_payment": "Redirecionando para ambiente seguro...",
       "redirecting_transbank": "Estamos levando você ao gateway de pagamento do Transbank. Não feche esta janela.",
       "redirecting_provider": "Estamos levando você ao gateway de pagamento do {provider}. Não feche esta janela.",

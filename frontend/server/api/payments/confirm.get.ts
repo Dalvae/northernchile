@@ -5,7 +5,8 @@ export default defineEventHandler(async (event): Promise<unknown> => {
   const query = getQuery(event)
 
   try {
-    const response = await $fetch(`${backendUrl}/api/payments/confirm`, {
+    // Use new payment-sessions endpoint for confirmation
+    const response = await $fetch(`${backendUrl}/api/payment-sessions/confirm`, {
       method: 'GET',
       query: query
     })

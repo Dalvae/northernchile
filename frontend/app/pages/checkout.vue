@@ -224,19 +224,6 @@ function prevStep() {
   }
 }
 
-// Clone contact info to first participant
-function cloneContactToParticipant() {
-  if (participants.value.length === 0) {
-    initializeParticipants()
-  }
-  if (participants.value[0]) {
-    participants.value[0].fullName = contactForm.value.fullName
-    participants.value[0].email = contactForm.value.email
-    participants.value[0].phoneCountryCode = contactForm.value.countryCode
-    participants.value[0].phoneNumber = contactForm.value.phone
-  }
-}
-
 // Update participant data
 function updateParticipant(index: number, data: Partial<{
   fullName: string
@@ -274,10 +261,22 @@ function copyFromFirstParticipant(index: number) {
   }
 }
 
-// Submit booking
+// Submit payment - creates PaymentSession, then redirects to payment provider
 const isSubmitting = ref(false)
-const createdBookingIds = ref<string[]>([])
 const lastSubmitTime = ref(0)
+
+// PaymentSession response type
+interface PaymentSessionRes {
+  sessionId: string
+  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'EXPIRED' | 'CANCELLED'
+  paymentUrl?: string
+  token?: string
+  qrCode?: string
+  pixCode?: string
+  expiresAt?: string
+  isTest?: boolean
+  bookingIds?: string[]
+}
 
 async function submitBooking() {
   // Prevent double submit - strict check
@@ -346,111 +345,89 @@ async function submitBooking() {
       }
     }
 
-    const token = authStore.user ? 'authenticated' : null
-
-    // Step 2: Create bookings for ALL cart items
-    // Check if we already created bookings (prevent duplicates)
-    if (createdBookingIds.value.length > 0) {
-      console.warn('Bookings already created, skipping creation')
-      return
-    }
-
-    toast.add({
-      color: 'info',
-      title: t('checkout.toast.processing_booking'),
-      description: t('checkout.toast.creating_booking'),
-      icon: 'i-lucide-loader-2'
-    })
-
     // Make a copy of cart items at the start (before any async operations that might clear the cart)
     const cartItems = JSON.parse(JSON.stringify(cartStore.cart.items)) as typeof cartStore.cart.items
     const cartTotal = cartStore.cart.cartTotal
-    
+
     if (!cartItems || cartItems.length === 0) {
       throw new Error('No items in cart')
     }
 
-    // Create bookings for each cart item
-    let participantOffset = 0
-    const bookingResponses = []
+    // Step 2: Build PaymentSession items with participants
+    toast.add({
+      color: 'info',
+      title: t('checkout.toast.processing_booking'),
+      description: t('checkout.toast.preparing_payment'),
+      icon: 'i-lucide-loader-2'
+    })
 
-    for (const item of cartItems) {
-      const bookingParticipants = participants.value.slice(
+    let participantOffset = 0
+    const sessionItems = cartItems.map((item) => {
+      const itemParticipants = participants.value.slice(
         participantOffset,
         participantOffset + item.numParticipants
       )
-
-      // Map to backend format
-      const participantReqs = bookingParticipants.map(p => ({
-        fullName: p.fullName,
-        documentId: p.documentId,
-        nationality: p.nationality,
-        dateOfBirth: p.dateOfBirth || null,
-        pickupAddress: p.pickupAddress || null,
-        specialRequirements: p.specialRequirements || null,
-        phoneNumber: p.phoneNumber ? `${p.phoneCountryCode}${p.phoneNumber}` : null,
-        email: p.email || null
-      }))
-
-      // Create booking (will be PENDING)
-      const bookingReq = {
-        scheduleId: item.scheduleId,
-        participants: participantReqs,
-        languageCode: locale.value,
-        specialRequests: null
-      }
-
-      const bookingRes = await $fetch<any>('/api/bookings', {
-        method: 'POST',
-        body: bookingReq,
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-
-      bookingResponses.push(bookingRes)
-      createdBookingIds.value.push(bookingRes.id)
       participantOffset += item.numParticipants
-    }
 
-    // Step 3: Initialize payment for all bookings (using first booking as reference)
-    toast.add({
-      color: 'success',
-      title: t('checkout.toast.booking_created'),
-      description: t('checkout.toast.preparing_payment'),
-      icon: 'i-lucide-check-circle'
+      return {
+        scheduleId: String(item.scheduleId),
+        tourName: item.tourName,
+        numParticipants: item.numParticipants,
+        pricePerPerson: item.pricePerParticipant,
+        itemTotal: item.itemTotal ?? 0,
+        specialRequests: null,
+        participants: itemParticipants.map(p => ({
+          fullName: p.fullName,
+          documentId: p.documentId,
+          nationality: p.nationality || null,
+          dateOfBirth: p.dateOfBirth || null,
+          pickupAddress: p.pickupAddress || null,
+          specialRequirements: p.specialRequirements || null,
+          phoneNumber: p.phoneNumber ? `${p.phoneCountryCode}${p.phoneNumber}` : null,
+          email: p.email || null
+        }))
+      }
     })
 
-    const primaryBooking = bookingResponses[0]
     const tourNames = cartItems.map(item => item.tourName).join(', ')
 
-    // Collect additional booking IDs (all except the first one)
-    const additionalBookingIds = bookingResponses.slice(1).map(b => b.id)
-
-    console.log('[Checkout] About to call initializePayment')
-    console.log('[Checkout] primaryBooking:', primaryBooking)
-    console.log('[Checkout] selectedPaymentMethod:', selectedPaymentMethod.value)
-    console.log('[Checkout] cartTotal:', cartTotal)
-
-    const paymentResult = await paymentStore.initializePayment({
-      bookingId: primaryBooking.id,
-      provider: selectedPaymentMethod.value.provider,
-      paymentMethod: selectedPaymentMethod.value.method,
-      amount: cartTotal,
-      currency: 'CLP',
-      returnUrl: `${config.public.baseUrl}/payment/callback?bookingId=${primaryBooking.id}`,
-      cancelUrl: `${config.public.baseUrl}/checkout`,
-      userEmail: contactForm.value.email,
-      description: `Reserva para ${tourNames}`,
-      additionalBookingIds: additionalBookingIds.length > 0 ? additionalBookingIds : undefined
+    // Step 3: Create PaymentSession (no bookings created yet!)
+    const paymentSessionRes = await $fetch<PaymentSessionRes>('/api/payment-sessions', {
+      method: 'POST',
+      body: {
+        provider: selectedPaymentMethod.value.provider,
+        paymentMethod: selectedPaymentMethod.value.method,
+        totalAmount: cartTotal,
+        currency: 'CLP',
+        items: sessionItems,
+        returnUrl: `${config.public.baseUrl}/payment/callback`,
+        cancelUrl: `${config.public.baseUrl}/checkout`,
+        userEmail: contactForm.value.email,
+        description: `Reserva para ${tourNames}`,
+        languageCode: locale.value
+      },
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
 
+    // Store session ID for PIX polling
+    if (paymentSessionRes.sessionId) {
+      paymentStore.setCurrentPayment({
+        paymentId: paymentSessionRes.sessionId,
+        status: paymentSessionRes.status as any,
+        qrCode: paymentSessionRes.qrCode,
+        pixCode: paymentSessionRes.pixCode,
+        expiresAt: paymentSessionRes.expiresAt
+      })
+    }
+
     // Step 4: Handle payment flow based on method
-    if (selectedPaymentMethod.value.method === PaymentMethod.WEBPAY ||
-        selectedPaymentMethod.value.method === PaymentMethod.CREDIT_CARD) {
+    if (selectedPaymentMethod.value.method === PaymentMethod.WEBPAY
+      || selectedPaymentMethod.value.method === PaymentMethod.CREDIT_CARD) {
       // Redirect-based payments: Transbank Webpay or MercadoPago Checkout Pro
-      if (paymentResult.paymentUrl) {
+      if (paymentSessionRes.paymentUrl) {
         const providerName = selectedPaymentMethod.value.method === PaymentMethod.WEBPAY
           ? 'Transbank'
           : 'MercadoPago'
@@ -466,7 +443,7 @@ async function submitBooking() {
 
         // Redirect to payment provider with a slight delay for better UX
         setTimeout(() => {
-          window.location.href = paymentResult.paymentUrl!
+          window.location.href = paymentSessionRes.paymentUrl!
         }, 1500)
       } else {
         throw new Error('No payment URL received from payment provider')
@@ -477,21 +454,6 @@ async function submitBooking() {
     }
   } catch (error: unknown) {
     console.error('Error in checkout process:', error)
-
-    // Rollback: Cancel ALL bookings if they were created
-    if (createdBookingIds.value.length > 0) {
-      for (const bookingId of createdBookingIds.value) {
-        try {
-          await $fetch(`/api/bookings/${bookingId}`, {
-            method: 'DELETE',
-            credentials: 'include'
-          })
-        } catch (e) {
-          console.error(`Error rolling back booking ${bookingId}:`, e)
-        }
-      }
-      createdBookingIds.value = []
-    }
 
     let errorMessage = t('checkout.errors.processing_error')
 

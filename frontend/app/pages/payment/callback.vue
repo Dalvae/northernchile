@@ -5,7 +5,6 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
-const paymentStore = usePaymentStore()
 const cartStore = useCartStore()
 const { formatDateTime } = useDateTime()
 
@@ -16,11 +15,22 @@ useHead({
   ]
 })
 
+// Response types for PaymentSession confirmation
+interface PaymentSessionConfirmRes {
+  sessionId: string
+  status: PaymentStatus
+  bookingIds?: string[]
+  amount?: number
+  currency?: string
+  message?: string
+  paymentId?: string
+}
+
 // Page state
 const isLoading = ref(true)
 const paymentStatus = ref<PaymentStatus | null>(null)
 const paymentId = ref<string | null>(null)
-const bookingId = ref<string | null>(null)
+const bookingIds = ref<string[]>([])
 const errorMessage = ref<string | undefined>(undefined)
 
 // Check query params for different providers
@@ -77,18 +87,27 @@ onMounted(async () => {
 
 async function handleTransbankCallback(token: string) {
   try {
-    // Confirm payment with backend
-    const result = await paymentStore.confirmPayment(token)
+    // Confirm payment with backend - this now confirms the PaymentSession
+    // and creates bookings if successful
+    const result = await $fetch<PaymentSessionConfirmRes>(
+      '/api/payments/confirm',
+      {
+        query: { token_ws: token },
+        credentials: 'include'
+      }
+    )
 
-    paymentId.value = result.paymentId
+    paymentId.value = result.paymentId || result.sessionId
     paymentStatus.value = result.status
-    bookingId.value = route.query.bookingId as string || null
+    if (result.bookingIds) {
+      bookingIds.value = result.bookingIds
+    }
 
     if (result.status === PaymentStatus.COMPLETED) {
       // Google Analytics: Track purchase event
       if (typeof window !== 'undefined' && window.gtag && result.amount) {
         window.gtag('event', 'purchase', {
-          transaction_id: result.paymentId,
+          transaction_id: result.paymentId || result.sessionId,
           value: result.amount,
           currency: result.currency || 'CLP'
         })
@@ -126,30 +145,31 @@ async function handleTransbankCallback(token: string) {
 async function handleMercadoPagoCallback() {
   try {
     // Call backend to confirm the MercadoPago payment
-    // This will update booking status and send confirmation emails
-    const config = useRuntimeConfig()
-    
+    // This will create bookings and send confirmation emails
     const queryParams = new URLSearchParams()
     if (mpPreferenceId) queryParams.append('preference_id', mpPreferenceId)
     if (mpPaymentId) queryParams.append('payment_id', mpPaymentId)
     if (mpCollectionStatus) queryParams.append('collection_status', mpCollectionStatus)
+    if (mpExternalReference) queryParams.append('external_reference', mpExternalReference)
     
-    const result = await $fetch<{ paymentId: string; status: PaymentStatus; amount?: number; currency?: string }>(
+    const result = await $fetch<PaymentSessionConfirmRes>(
       `/api/payments/confirm/mercadopago?${queryParams.toString()}`,
       {
         credentials: 'include'
       }
     )
 
-    paymentId.value = result.paymentId
+    paymentId.value = result.paymentId || result.sessionId
     paymentStatus.value = result.status
-    bookingId.value = mpExternalReference || route.query.bookingId as string || null
+    if (result.bookingIds) {
+      bookingIds.value = result.bookingIds
+    }
 
     if (result.status === PaymentStatus.COMPLETED) {
       // Google Analytics: Track purchase event
       if (typeof window !== 'undefined' && window.gtag) {
         window.gtag('event', 'purchase', {
-          transaction_id: result.paymentId || 'unknown',
+          transaction_id: result.paymentId || result.sessionId || 'unknown',
           value: result.amount || 0,
           currency: result.currency || 'USD'
         })
@@ -201,14 +221,18 @@ async function handleMercadoPagoCallback() {
 
     paymentStatus.value = statusMap[mpCollectionStatus] || PaymentStatus.PENDING
     paymentId.value = mpPaymentId || mpPreferenceId || null
-    bookingId.value = mpExternalReference || route.query.bookingId as string || null
     errorMessage.value = error.message || t('payment.error.confirmation_failed')
   }
 }
 
 function handleDirectCallback() {
-  paymentId.value = route.query.paymentId as string || null
-  bookingId.value = route.query.bookingId as string || null
+  paymentId.value = route.query.paymentId as string || route.query.sessionId as string || null
+  
+  // Handle bookingIds from query (comma-separated)
+  const bookingIdsParam = route.query.bookingIds as string
+  if (bookingIdsParam) {
+    bookingIds.value = bookingIdsParam.split(',')
+  }
 
   if (queryStatus === 'success') {
     paymentStatus.value = PaymentStatus.COMPLETED

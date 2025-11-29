@@ -31,8 +31,12 @@ public class Payment {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booking_id", nullable = false)
+    @JoinColumn(name = "booking_id", nullable = true)
     private Booking booking;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "payment_session_id", nullable = true)
+    private PaymentSession paymentSession;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -171,6 +175,14 @@ public class Payment {
 
     public void setBooking(Booking booking) {
         this.booking = booking;
+    }
+
+    public PaymentSession getPaymentSession() {
+        return paymentSession;
+    }
+
+    public void setPaymentSession(PaymentSession paymentSession) {
+        this.paymentSession = paymentSession;
     }
 
     public PaymentProvider getProvider() {

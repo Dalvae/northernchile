@@ -40,12 +40,7 @@ export const usePaymentStore = defineStore('payment', {
 
       const { extractErrorMessage, showErrorToast } = useApiError()
 
-      console.log('[PaymentStore] initializePayment called with:', request)
-
       try {
-        console.log('[PaymentStore] Calling /api/payments/init...')
-        console.log('[PaymentStore] Request body:', JSON.stringify(request))
-        
         const response = await $fetch<PaymentInitRes>(
           '/api/payments/init',
           {
@@ -58,23 +53,9 @@ export const usePaymentStore = defineStore('payment', {
           }
         )
 
-        console.log('[PaymentStore] Response:', response)
         this.currentPayment = response
         return response
       } catch (error) {
-        console.error('[PaymentStore] Error initiating payment:', error)
-        console.error('[PaymentStore] Error type:', typeof error)
-        console.error('[PaymentStore] Error name:', (error as Error)?.name)
-        console.error('[PaymentStore] Error message:', (error as Error)?.message)
-        console.error('[PaymentStore] Error stack:', (error as Error)?.stack)
-        
-        // Log more details if available
-        const fetchError = error as { statusCode?: number; statusMessage?: string; data?: unknown; response?: unknown }
-        if (fetchError.statusCode) console.error('[PaymentStore] Status code:', fetchError.statusCode)
-        if (fetchError.statusMessage) console.error('[PaymentStore] Status message:', fetchError.statusMessage)
-        if (fetchError.data) console.error('[PaymentStore] Error data:', fetchError.data)
-        if (fetchError.response) console.error('[PaymentStore] Response:', fetchError.response)
-        
         const errorMessage = extractErrorMessage(error)
         this.error = errorMessage
         showErrorToast(error)
@@ -166,6 +147,13 @@ export const usePaymentStore = defineStore('payment', {
         showErrorToast(error)
         throw new Error(errorMessage)
       }
+    },
+
+    /**
+     * Set current payment state (for PaymentSession flow)
+     */
+    setCurrentPayment(payment: Partial<PaymentInitRes>) {
+      this.currentPayment = payment as PaymentInitRes
     },
 
     /**
