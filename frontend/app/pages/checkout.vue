@@ -412,7 +412,7 @@ async function submitBooking() {
         totalAmount: cartTotal,
         currency: 'CLP',
         items: sessionItems,
-        returnUrl: `${config.public.baseUrl}/payment/callback`,
+        returnUrl: `${config.public.baseUrl}/api/payments/callback`,
         cancelUrl: `${config.public.baseUrl}/checkout`,
         userEmail: contactForm.value.email,
         description: `Reserva para ${tourNames}`,

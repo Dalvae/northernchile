@@ -157,7 +157,7 @@ async function continuePayment(booking: BookingRes) {
       bookingId: booking.id,
       provider: 'TRANSBANK',
       method: 'WEBPAY_PLUS',
-      returnUrl: `${window.location.origin}${localePath('/payment/callback')}`
+      returnUrl: `${window.location.origin}/api/payments/callback`
     })
 
     // Redirect to payment URL

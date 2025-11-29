@@ -99,6 +99,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/webhooks/**").permitAll()
                         // Permitir acceso público al carrito (guest carts)
                         .requestMatchers("/api/cart/**").permitAll()
+                        // Permitir confirmación de pagos (callbacks de Transbank/MercadoPago)
+                        .requestMatchers(HttpMethod.GET, "/api/payment-sessions/confirm/**").permitAll()
                         // Proteger todas las rutas de administración
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_PARTNER_ADMIN")
                         .anyRequest().authenticated()
