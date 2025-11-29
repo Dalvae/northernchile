@@ -3,23 +3,24 @@ import type { TourRes } from 'api-client'
 export default defineEventHandler(async (event): Promise<TourRes> => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
-  const authToken = getHeader(event, 'Authorization')
+  const cookie = getHeader(event, 'cookie') || ''
   const body = await readBody(event)
 
   try {
-    const newTour = await $fetch<TourRes>(`${backendUrl}/api/tours`, {
-      method: 'POST' as any,
+    const newTour = await $fetch<TourRes>(`${backendUrl}/api/admin/tours`, {
+      method: 'POST',
       headers: {
-        'Authorization': authToken || '',
+        'Cookie': cookie,
         'Content-Type': 'application/json'
       },
-      body: body
+      body
     })
     return newTour
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { statusCode?: number, data?: { message?: string, error?: string }, message?: string }
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Error al crear tour'
+      statusCode: err.statusCode || 500,
+      statusMessage: err.data?.message || err.data?.error || err.message || 'Failed to create tour'
     })
   }
 })

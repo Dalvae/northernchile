@@ -1,17 +1,18 @@
 export default defineEventHandler(async (event): Promise<Record<string, unknown>> => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
-  const authToken = getHeader(event, 'Authorization')
+  const cookie = getHeader(event, 'cookie') || ''
 
   try {
     const settings = await $fetch<Record<string, unknown>>(`${backendUrl}/api/admin/settings`, {
-      headers: { Authorization: authToken || '' }
+      headers: { 'Cookie': cookie }
     })
     return settings
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { statusCode?: number, data?: { message?: string, error?: string }, message?: string }
     throw createError({
-      statusCode: error.response?.status || 500,
-      message: error.message || 'Error al obtener configuración'
+      statusCode: err.statusCode || 500,
+      statusMessage: err.data?.message || err.data?.error || err.message || 'Failed to fetch settings'
     })
   }
 })

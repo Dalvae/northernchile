@@ -1,21 +1,22 @@
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<unknown> => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
-  const authToken = getHeader(event, 'Authorization')
+  const cookie = getHeader(event, 'cookie') || ''
   const userId = getRouterParam(event, 'id')
   const body = await readBody(event)
 
   try {
-    const updatedUser = await $fetch(`${backendUrl}/api/users/${userId}`, {
+    const updatedUser = await $fetch(`${backendUrl}/api/admin/users/${userId}`, {
       method: 'PUT',
-      headers: { 'Authorization': authToken || '', 'Content-Type': 'application/json' },
-      body: body
+      headers: { 'Cookie': cookie, 'Content-Type': 'application/json' },
+      body
     })
     return updatedUser
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { statusCode?: number, data?: { message?: string, error?: string }, message?: string }
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Error al actualizar usuario'
+      statusCode: err.statusCode || 500,
+      statusMessage: err.data?.message || err.data?.error || err.message || 'Failed to update user'
     })
   }
 })

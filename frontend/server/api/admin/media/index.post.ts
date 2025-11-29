@@ -1,8 +1,9 @@
 import type { MediaRes } from 'api-client'
 
 export default defineEventHandler(async (event): Promise<MediaRes> => {
-  const config = useRuntimeConfig()
-  const backendUrl = config.public.apiBase || 'http://localhost:8080'
+  const config = useRuntimeConfig(event)
+  const backendUrl = config.public.apiBase
+  const cookie = getHeader(event, 'cookie') || ''
 
   // Get the multipart form data
   const formData = await readMultipartFormData(event)
@@ -10,7 +11,7 @@ export default defineEventHandler(async (event): Promise<MediaRes> => {
   if (!formData) {
     throw createError({
       statusCode: 400,
-      message: 'No file uploaded'
+      statusMessage: 'No file uploaded'
     })
   }
 
@@ -19,34 +20,25 @@ export default defineEventHandler(async (event): Promise<MediaRes> => {
 
   for (const part of formData) {
     if (part.name === 'file' && part.data) {
-      // Create a Blob from the buffer for the file
       const blob = new Blob([new Uint8Array(part.data)], { type: part.type || 'application/octet-stream' })
       backendFormData.append('file', blob, part.filename || 'file')
     } else if (part.data) {
-      // For other fields, convert buffer to string
       backendFormData.append(part.name || '', part.data.toString())
     }
-  }
-
-  // Forward to backend with auth header
-  const authHeader = getHeader(event, 'authorization')
-  const headers: Record<string, string> = {}
-  if (authHeader) {
-    headers['Authorization'] = authHeader
   }
 
   try {
     const response = await $fetch<MediaRes>(`${backendUrl}/api/admin/media`, {
       method: 'POST',
       body: backendFormData,
-      headers
+      headers: { 'Cookie': cookie }
     })
-
     return response
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { statusCode?: number, data?: { message?: string, error?: string }, message?: string }
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to upload media'
+      statusCode: err.statusCode || 500,
+      statusMessage: err.data?.message || err.data?.error || err.message || 'Failed to upload media'
     })
   }
 })
