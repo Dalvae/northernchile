@@ -207,13 +207,30 @@ public class PaymentSessionService {
 
     /**
      * Confirm a MercadoPago payment session.
+     * @param lookupId Can be either preference_id (stored in externalPaymentId) or session UUID (external_reference)
+     * @param mpPaymentId The MercadoPago payment ID
      */
     @Transactional
-    public PaymentSessionRes confirmMercadoPagoSession(String preferenceId, String mpPaymentId) {
-        log.info("Confirming MercadoPago payment session - preference: {}, payment: {}", preferenceId, mpPaymentId);
+    public PaymentSessionRes confirmMercadoPagoSession(String lookupId, String mpPaymentId) {
+        log.info("Confirming MercadoPago payment session - lookupId: {}, payment: {}", lookupId, mpPaymentId);
 
-        PaymentSession session = sessionRepository.findByExternalPaymentId(preferenceId)
-            .orElseThrow(() -> new IllegalArgumentException("Payment session not found for preference: " + preferenceId));
+        // Try to find by externalPaymentId (preference_id) first
+        PaymentSession session = sessionRepository.findByExternalPaymentId(lookupId)
+            .orElse(null);
+        
+        // If not found, try to find by session UUID (external_reference)
+        if (session == null) {
+            try {
+                UUID sessionId = UUID.fromString(lookupId);
+                session = sessionRepository.findById(sessionId).orElse(null);
+            } catch (IllegalArgumentException e) {
+                // Not a valid UUID, ignore
+            }
+        }
+        
+        if (session == null) {
+            throw new IllegalArgumentException("Payment session not found for: " + lookupId);
+        }
 
         if (session.getStatus() == PaymentSessionStatus.COMPLETED) {
             log.info("Session {} already completed", session.getId());
@@ -221,7 +238,7 @@ public class PaymentSessionService {
         }
 
         // Confirm with MercadoPago
-        PaymentSessionRes providerResult = paymentAdapter.confirmMercadoPagoPayment(session, preferenceId, mpPaymentId);
+        PaymentSessionRes providerResult = paymentAdapter.confirmMercadoPagoPayment(session, lookupId, mpPaymentId);
 
         if (providerResult.getStatus() != PaymentSessionStatus.COMPLETED) {
             session.setStatus(PaymentSessionStatus.FAILED);

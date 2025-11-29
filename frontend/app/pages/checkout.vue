@@ -404,6 +404,12 @@ async function submitBooking() {
     const tourNames = cartItems.map(item => item.tourName).join(', ')
 
     // Step 3: Create PaymentSession (no bookings created yet!)
+    // Transbank uses POST callback, MercadoPago uses GET redirect
+    const isTransbank = selectedPaymentMethod.value.provider === 'TRANSBANK'
+    const returnUrl = isTransbank
+      ? `${config.public.baseUrl}/api/payments/callback`
+      : `${config.public.baseUrl}/payment/callback`
+
     const paymentSessionRes = await $fetch<PaymentSessionRes>('/api/payment-sessions', {
       method: 'POST',
       body: {
@@ -412,7 +418,7 @@ async function submitBooking() {
         totalAmount: cartTotal,
         currency: 'CLP',
         items: sessionItems,
-        returnUrl: `${config.public.baseUrl}/api/payments/callback`,
+        returnUrl,
         cancelUrl: `${config.public.baseUrl}/checkout`,
         userEmail: contactForm.value.email,
         description: `Reserva para ${tourNames}`,
