@@ -35,9 +35,8 @@ const errorMessage = ref<string | undefined>(undefined)
 
 // Check query params for different providers
 const queryStatus = route.query.status as string
-const tokenWs = route.query.token_ws as string
 
-// MercadoPago specific params
+// MercadoPago specific params (MP redirects directly to this page)
 const mpCollectionStatus = route.query.collection_status as string
 const mpPaymentId = route.query.payment_id as string
 const mpExternalReference = route.query.external_reference as string
@@ -55,19 +54,17 @@ function clearCheckoutData() {
 // Process payment callback on mount
 onMounted(async () => {
   try {
-    // Case 1: Transbank redirect with token_ws
-    if (tokenWs) {
-      await handleTransbankCallback(tokenWs)
-    }
-    // Case 2: MercadoPago Checkout Pro redirect
-    else if (mpCollectionStatus || mpPaymentId) {
+    // Case 1: MercadoPago Checkout Pro redirect (MP redirects here with its params)
+    if (mpCollectionStatus || mpPaymentId) {
       await handleMercadoPagoCallback()
     }
-    // Case 3: Direct success/error from query (PIX polling success)
+    // Case 2: Direct success/error/cancelled from query
+    // This is used by Transbank (via /api/payments/callback server endpoint)
+    // and can also be used by other providers
     else if (queryStatus) {
       handleDirectCallback()
     }
-    // Case 4: No valid params, redirect to home
+    // Case 3: No valid params, redirect to home
     else {
       toast.add({
         color: 'warning',
@@ -76,71 +73,15 @@ onMounted(async () => {
       })
       setTimeout(() => router.push('/'), 2000)
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error processing payment callback:', error)
-    errorMessage.value = error.message || t('payment.callback.error_processing')
+    const err = error as { message?: string }
+    errorMessage.value = err.message || t('payment.callback.error_processing')
     paymentStatus.value = PaymentStatus.FAILED
   } finally {
     isLoading.value = false
   }
 })
-
-async function handleTransbankCallback(token: string) {
-  try {
-    // Confirm payment with backend - this now confirms the PaymentSession
-    // and creates bookings if successful
-    const result = await $fetch<PaymentSessionConfirmRes>(
-      '/api/payments/confirm',
-      {
-        query: { token_ws: token },
-        credentials: 'include'
-      }
-    )
-
-    paymentId.value = result.paymentId || result.sessionId
-    paymentStatus.value = result.status
-    if (result.bookingIds) {
-      bookingIds.value = result.bookingIds
-    }
-
-    if (result.status === PaymentStatus.COMPLETED) {
-      // Google Analytics: Track purchase event
-      if (typeof window !== 'undefined' && window.gtag && result.amount) {
-        window.gtag('event', 'purchase', {
-          transaction_id: result.paymentId || result.sessionId,
-          value: result.amount,
-          currency: result.currency || 'CLP'
-        })
-      }
-
-      // Clear cart after successful payment
-      cartStore.clearCart()
-      clearCheckoutData()
-
-      toast.add({
-        color: 'success',
-        title: t('payment.success.title'),
-        description: t('payment.success.description')
-      })
-    } else if (result.status === PaymentStatus.FAILED) {
-      errorMessage.value = result.message || t('payment.error.transaction_failed')
-      toast.add({
-        color: 'error',
-        title: t('payment.error.title'),
-        description: errorMessage.value
-      })
-    }
-  } catch (error: any) {
-    console.error('Error confirming Transbank payment:', error)
-    paymentStatus.value = PaymentStatus.FAILED
-    errorMessage.value = error.message || t('payment.error.confirmation_failed')
-    toast.add({
-      color: 'error',
-      title: t('payment.error.title'),
-      description: errorMessage.value
-    })
-  }
-}
 
 async function handleMercadoPagoCallback() {
   try {
@@ -152,8 +93,9 @@ async function handleMercadoPagoCallback() {
     if (mpCollectionStatus) queryParams.append('collection_status', mpCollectionStatus)
     if (mpExternalReference) queryParams.append('external_reference', mpExternalReference)
     
+    // Use the correct backend endpoint for PaymentSession confirmation
     const result = await $fetch<PaymentSessionConfirmRes>(
-      `/api/payments/confirm/mercadopago?${queryParams.toString()}`,
+      `/api/payment-sessions/confirm/mercadopago?${queryParams.toString()}`,
       {
         credentials: 'include'
       }

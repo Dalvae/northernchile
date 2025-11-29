@@ -169,6 +169,20 @@ public class PaymentSessionService {
         // Confirm with payment provider
         PaymentSessionRes providerResult = paymentAdapter.confirmPayment(session);
 
+        if (providerResult.getStatus() == PaymentSessionStatus.CANCELLED) {
+            // User cancelled the payment
+            session.setStatus(PaymentSessionStatus.CANCELLED);
+            session.setErrorMessage("Payment cancelled by user");
+            sessionRepository.save(session);
+            
+            log.info("Payment session {} cancelled by user", session.getId());
+            
+            PaymentSessionRes response = new PaymentSessionRes();
+            response.setSessionId(session.getId());
+            response.setStatus(PaymentSessionStatus.CANCELLED);
+            return response;
+        }
+
         if (providerResult.getStatus() != PaymentSessionStatus.COMPLETED) {
             session.setStatus(PaymentSessionStatus.FAILED);
             session.setErrorMessage("Payment not completed by provider");

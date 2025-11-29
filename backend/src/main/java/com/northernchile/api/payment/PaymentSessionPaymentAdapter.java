@@ -116,14 +116,31 @@ public class PaymentSessionPaymentAdapter {
             // Response code 0 = approved
             if (response.getResponseCode() == 0) {
                 result.setStatus(PaymentSessionStatus.COMPLETED);
+                log.info("Transbank payment approved for session: {}", session.getId());
             } else {
                 result.setStatus(PaymentSessionStatus.FAILED);
+                log.warn("Transbank payment rejected for session: {} - response code: {}", 
+                    session.getId(), response.getResponseCode());
             }
 
             return result;
 
-        } catch (TransactionCommitException | java.io.IOException e) {
+        } catch (TransactionCommitException e) {
+            // Check if transaction was aborted (user cancelled)
+            String errorMessage = e.getMessage() != null ? e.getMessage() : "";
+            if (errorMessage.contains("aborted")) {
+                log.info("Transbank transaction aborted (user cancelled) for session: {}", session.getId());
+                PaymentSessionRes result = new PaymentSessionRes();
+                result.setStatus(PaymentSessionStatus.CANCELLED);
+                return result;
+            }
+            
             log.error("Error confirming Transbank transaction for session: {}", session.getId(), e);
+            PaymentSessionRes result = new PaymentSessionRes();
+            result.setStatus(PaymentSessionStatus.FAILED);
+            return result;
+        } catch (java.io.IOException e) {
+            log.error("IO Error confirming Transbank transaction for session: {}", session.getId(), e);
             PaymentSessionRes result = new PaymentSessionRes();
             result.setStatus(PaymentSessionStatus.FAILED);
             return result;

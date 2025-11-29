@@ -1,30 +1,47 @@
 /**
  * Endpoint to receive Transbank callback
- * Transbank may send token_ws via POST body OR GET query params
- * We confirm the payment here and redirect to callback page with result
+ * 
+ * Transbank sends different parameters depending on the result:
+ * - token_ws: Payment completed (success or failure) - needs to be confirmed with commit()
+ * - TBK_TOKEN + TBK_ORDEN_COMPRA + TBK_ID_SESION: User cancelled or timeout
+ * - No token: User closed the browser during payment
  */
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
   const method = event.method
   
-  // Get token_ws from body (POST) or query (GET)
+  // Get parameters from body (POST) or query (GET)
   let tokenWs: string | undefined
+  let tbkToken: string | undefined
+  let tbkOrdenCompra: string | undefined
   
   if (method === 'POST') {
     const body = await readBody(event)
     tokenWs = body?.token_ws
+    tbkToken = body?.TBK_TOKEN
+    tbkOrdenCompra = body?.TBK_ORDEN_COMPRA
   } else {
     const query = getQuery(event)
     tokenWs = query.token_ws as string
+    tbkToken = query.TBK_TOKEN as string
+    tbkOrdenCompra = query.TBK_ORDEN_COMPRA as string
   }
   
+  // Case 1: User cancelled or timeout - TBK_TOKEN is sent
+  if (tbkToken) {
+    console.log('Transbank payment cancelled by user - TBK_TOKEN:', tbkToken, 'Order:', tbkOrdenCompra)
+    return sendRedirect(event, '/payment/callback?status=cancelled&message=Pago cancelado por el usuario', 302)
+  }
+  
+  // Case 2: No token at all - user closed the browser
   if (!tokenWs) {
-    return sendRedirect(event, '/payment/callback?status=error&message=No token received', 302)
+    console.log('Transbank callback received without any token')
+    return sendRedirect(event, '/payment/callback?status=error&message=No se recibió información del pago', 302)
   }
   
+  // Case 3: Normal flow - token_ws received, confirm with backend
   try {
-    // Confirm payment with backend
     const result = await $fetch<{
       sessionId: string
       status: string
@@ -48,7 +65,14 @@ export default defineEventHandler(async (event) => {
   } catch (error: unknown) {
     console.error('Error confirming Transbank payment:', error)
     const err = error as { data?: { message?: string }, message?: string }
-    const message = err.data?.message || err.message || 'Payment confirmation failed'
+    
+    // Check if it's an aborted transaction
+    const errorMessage = err.data?.message || err.message || ''
+    if (errorMessage.includes('aborted')) {
+      return sendRedirect(event, '/payment/callback?status=cancelled&message=El pago fue cancelado o expiró', 302)
+    }
+    
+    const message = errorMessage || 'Error al confirmar el pago'
     return sendRedirect(event, `/payment/callback?status=error&message=${encodeURIComponent(message)}`, 302)
   }
 })
