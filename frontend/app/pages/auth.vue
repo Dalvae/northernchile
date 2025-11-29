@@ -213,28 +213,44 @@
                 />
               </UFormField>
 
-              <div class="grid grid-cols-2 gap-4">
-                <CountrySelect
-                  v-model="state.nationality"
-                  :label="t('booking.nationality')"
-                  :placeholder="t('booking.nationality_placeholder')"
-                  size="lg"
-                />
+              <CountrySelect
+                :model-value="state.nationality"
+                :label="t('booking.nationality')"
+                :placeholder="t('booking.nationality_placeholder')"
+                size="lg"
+                @update:model-value="handleNationalityChange($event)"
+              />
 
-                <UFormField
-                  :label="t('booking.phone')"
-                  name="phoneNumber"
-                >
+              <UFormField
+                :label="t('booking.phone')"
+                name="phoneNumber"
+              >
+                <div class="flex gap-2">
+                  <select
+                    v-model="state.phoneCountryCode"
+                    class="w-28 px-2 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                    aria-label="Código de país"
+                  >
+                    <option
+                      v-for="pc in phoneCodes"
+                      :key="pc.code + pc.country"
+                      :value="pc.code"
+                    >
+                      {{ getCountryFlag(pc.country) }} {{ pc.code }}
+                    </option>
+                  </select>
                   <UInput
                     v-model="state.phoneNumber"
                     type="tel"
-                    :placeholder="t('booking.phone_placeholder')"
+                    placeholder="912345678"
                     size="lg"
                     icon="i-lucide-phone"
-                    class="w-full"
+                    class="flex-1"
+                    minlength="6"
+                    maxlength="15"
                   />
-                </UFormField>
-              </div>
+                </div>
+              </UFormField>
 
               <UFormField
                 :label="t('booking.date_of_birth')"
@@ -384,6 +400,7 @@ const route = useRoute()
 const localePath = useLocalePath()
 const toast = useToast()
 const config = useRuntimeConfig()
+const { phoneCodes, getPhoneCodeByCountry, getCountryFlag } = useCountries()
 
 type AuthView = 'login' | 'register' | 'forgot-password' | 'reset-password'
 
@@ -438,6 +455,7 @@ const state = reactive({
   confirmPassword: '',
   fullName: '',
   nationality: '',
+  phoneCountryCode: '+56',
   phoneNumber: '',
   dateOfBirth: '',
   acceptTerms: false
@@ -522,10 +540,19 @@ function toggleForm() {
   state.confirmPassword = ''
   state.fullName = ''
   state.nationality = ''
+  state.phoneCountryCode = '+56'
   state.phoneNumber = ''
   state.dateOfBirth = ''
   state.acceptTerms = false
   dateOfBirthValue.value = undefined
+}
+
+// Auto-update phone country code when nationality changes
+function handleNationalityChange(nationality: string) {
+  state.nationality = nationality
+  if (nationality && !state.phoneNumber) {
+    state.phoneCountryCode = getPhoneCodeByCountry(nationality)
+  }
 }
 
 // Submit principal (login/register)
@@ -552,7 +579,7 @@ async function handleSubmit(_event: FormSubmitEvent<z.infer<typeof schema.value>
         password: state.password,
         fullName: state.fullName,
         nationality: state.nationality || undefined,
-        phoneNumber: state.phoneNumber || undefined
+        phoneNumber: state.phoneNumber ? `${state.phoneCountryCode}${state.phoneNumber}` : undefined
       })
 
       toast.add({

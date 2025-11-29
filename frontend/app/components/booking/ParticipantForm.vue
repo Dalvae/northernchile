@@ -53,7 +53,7 @@
           :label="t('booking.nationality')"
           :placeholder="t('booking.nationality_placeholder')"
           size="lg"
-          @update:model-value="emit('update', { nationality: $event || undefined })"
+          @update:model-value="handleNationalityChange($event)"
         />
       </div>
 
@@ -119,19 +119,34 @@
           name="phoneNumber"
           help="Opcional. Para contactarte y enviarte fotos del tour"
         >
-          <UInput
-            :model-value="participant.phoneNumber"
-            type="tel"
-            placeholder="+56 9 1234 5678"
-            size="lg"
-            icon="i-lucide-phone"
-            class="w-full"
-            pattern="^\+?[0-9\s\-()]{7,20}$"
-            minlength="7"
-            maxlength="20"
-            aria-label="Número de teléfono"
-            @update:model-value="emit('update', { phoneNumber: $event })"
-          />
+          <div class="flex gap-2">
+            <select
+              :value="participant.phoneCountryCode"
+              class="w-28 px-2 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+              aria-label="Código de país"
+              @change="emit('update', { phoneCountryCode: ($event.target as HTMLSelectElement).value })"
+            >
+              <option
+                v-for="pc in phoneCodes"
+                :key="pc.code + pc.country"
+                :value="pc.code"
+              >
+                {{ getCountryFlag(pc.country) }} {{ pc.code }}
+              </option>
+            </select>
+            <UInput
+              :model-value="participant.phoneNumber"
+              type="tel"
+              placeholder="912345678"
+              size="lg"
+              icon="i-lucide-phone"
+              class="flex-1"
+              minlength="6"
+              maxlength="15"
+              aria-label="Número de teléfono"
+              @update:model-value="emit('update', { phoneNumber: $event })"
+            />
+          </div>
         </UFormField>
 
         <UFormField
@@ -158,8 +173,9 @@
 
 <script setup lang="ts">
 const { t } = useI18n()
+const { phoneCodes, getPhoneCodeByCountry, getCountryFlag } = useCountries()
 
-defineProps<{
+const props = defineProps<{
   participant: {
     fullName: string
     documentId: string
@@ -167,6 +183,7 @@ defineProps<{
     dateOfBirth?: string | null
     pickupAddress: string
     specialRequirements: string
+    phoneCountryCode: string
     phoneNumber: string
     email: string
   }
@@ -182,8 +199,30 @@ const emit = defineEmits<{
     dateOfBirth?: string | null
     pickupAddress: string
     specialRequirements: string
+    phoneCountryCode: string
     phoneNumber: string
     email: string
   }>]
 }>()
+
+// When nationality changes, auto-update phone country code
+function handleNationalityChange(nationality: string | undefined) {
+  if (!nationality) {
+    emit('update', { nationality: undefined })
+    return
+  }
+
+  const phoneCode = getPhoneCodeByCountry(nationality)
+
+  // Only auto-update phone code if user hasn't entered a phone number yet
+  // or if the current code matches the previous nationality
+  if (!props.participant.phoneNumber) {
+    emit('update', {
+      nationality,
+      phoneCountryCode: phoneCode
+    })
+  } else {
+    emit('update', { nationality })
+  }
+}
 </script>

@@ -9,7 +9,7 @@ const router = useRouter()
 const toast = useToast()
 const { locale, t } = useI18n()
 const localePath = useLocalePath()
-const { countries } = useCountries()
+const { phoneCodes, getCountryFlag } = useCountries()
 const { formatPrice } = useCurrency()
 
 // SEO: Prevent indexing of checkout page
@@ -47,6 +47,7 @@ const participants = ref<
     dateOfBirth: string | null
     pickupAddress: string
     specialRequirements: string
+    phoneCountryCode: string
     phoneNumber: string
     email: string
   }>
@@ -65,6 +66,7 @@ function initializeParticipants() {
       dateOfBirth: null,
       pickupAddress: '',
       specialRequirements: '',
+      phoneCountryCode: contactForm.value.countryCode,
       phoneNumber: i === 0 ? contactForm.value.phone : '',
       email: i === 0 ? contactForm.value.email : ''
     })
@@ -80,7 +82,7 @@ const step1Valid = computed(() => {
   const baseValidation
     = contactForm.value.email
       && contactForm.value.fullName
-      && contactForm.value.phone.length >= 8
+      && contactForm.value.phone.length >= 6
 
   if (authStore.isAuthenticated) {
     return baseValidation
@@ -142,6 +144,7 @@ function cloneContactToParticipant() {
   if (participants.value[0]) {
     participants.value[0].fullName = contactForm.value.fullName
     participants.value[0].email = contactForm.value.email
+    participants.value[0].phoneCountryCode = contactForm.value.countryCode
     participants.value[0].phoneNumber = contactForm.value.phone
   }
 }
@@ -154,6 +157,7 @@ function updateParticipant(index: number, data: Partial<{
   dateOfBirth: string | null
   pickupAddress: string
   specialRequirements: string
+  phoneCountryCode: string
   phoneNumber: string
   email: string
 }>) {
@@ -169,15 +173,16 @@ function updateParticipant(index: number, data: Partial<{
 function copyFromFirstParticipant(index: number) {
   const first = participants.value[0]
   if (!first || index === 0) return
-  
+
   const current = participants.value[index]
   if (!current) return
-  
-  // Copy pickup address and special requirements (common for all participants)
+
+  // Copy pickup address, special requirements, and phone country code (common for all participants)
   participants.value[index] = {
     ...current,
     pickupAddress: first.pickupAddress,
-    specialRequirements: first.specialRequirements
+    specialRequirements: first.specialRequirements,
+    phoneCountryCode: first.phoneCountryCode
   }
 }
 
@@ -192,7 +197,7 @@ async function submitBooking() {
     console.warn('Submit already in progress, ignoring')
     return
   }
-  
+
   // Prevent rapid double-click
   const now = Date.now()
   if (now - lastSubmitTime.value < 3000) {
@@ -200,7 +205,7 @@ async function submitBooking() {
     return
   }
   lastSubmitTime.value = now
-  
+
   if (!selectedPaymentMethod.value) return
   isSubmitting.value = true
 
@@ -230,7 +235,7 @@ async function submitBooking() {
           email: contactForm.value.email,
           password: contactForm.value.password
         })
-        
+
         // Verify login was successful before continuing
         if (!authStore.isAuthenticated) {
           throw new Error('Login failed after registration')
@@ -261,7 +266,7 @@ async function submitBooking() {
       console.warn('Bookings already created, skipping creation')
       return
     }
-    
+
     toast.add({
       color: 'info',
       title: t('checkout.toast.processing_booking'),
@@ -292,7 +297,7 @@ async function submitBooking() {
         dateOfBirth: p.dateOfBirth || null,
         pickupAddress: p.pickupAddress || null,
         specialRequirements: p.specialRequirements || null,
-        phoneNumber: p.phoneNumber || null,
+        phoneNumber: p.phoneNumber ? `${p.phoneCountryCode}${p.phoneNumber}` : null,
         email: p.email || null
       }))
 
@@ -578,19 +583,14 @@ const total = computed(() => cartStore.cart.cartTotal)
                 <div class="flex gap-2">
                   <select
                     v-model="contactForm.countryCode"
-                    class="w-24 px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                    class="w-28 px-2 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                   >
-                    <option value="+56">
-                      +56
-                    </option>
-                    <option value="+55">
-                      +55
-                    </option>
-                    <option value="+1">
-                      +1
-                    </option>
-                    <option value="+44">
-                      +44
+                    <option
+                      v-for="pc in phoneCodes"
+                      :key="pc.code + pc.country"
+                      :value="pc.code"
+                    >
+                      {{ getCountryFlag(pc.country) }} {{ pc.code }}
                     </option>
                   </select>
                   <input
