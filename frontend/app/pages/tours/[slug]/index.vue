@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import type { TourRes, ContentBlock, TourImageRes } from 'api-client'
 import { useCalendarData } from '~/composables/useCalendarData'
 import { useCurrency } from '~/composables/useCurrency'
+import { getTodayString, getLocalDateString } from '~/utils/dateUtils'
 
 const route = useRoute()
 const { locale, t } = useI18n()
@@ -167,9 +168,7 @@ useHead({
             'priceCurrency': 'CLP',
             'availability': 'https://schema.org/InStock',
             'url': `https://www.northernchile.com/tours/${tourSlug}`,
-            'priceValidUntil': new Date(new Date().getFullYear() + 1, 11, 31)
-              .toISOString()
-              .split('T')[0],
+'priceValidUntil': getLocalDateString(new Date(new Date().getFullYear() + 1, 11, 31)),
             'seller': {
               '@type': 'Organization',
               'name': 'Northern Chile Tours'
@@ -218,7 +217,7 @@ onMounted(async () => {
     window.removeEventListener('scroll', handleScroll)
   })
 
-  const today = new Date().toISOString().split('T')[0]!
+  const today = getTodayString()
 
   try {
     const moonData = await fetchMoonPhases(today, today)

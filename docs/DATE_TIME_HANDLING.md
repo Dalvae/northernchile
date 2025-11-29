@@ -188,28 +188,73 @@ spring.jpa.properties.hibernate.jdbc.time_zone=UTC
 
 ## Frontend Best Practices
 
+### Centralized Date Utilities
+
+Use the utilities in `frontend/app/utils/dateUtils.ts` for all date handling:
+
+```typescript
+import { 
+  getTodayString,
+  getLocalDateString,
+  parseDateOnly,
+  formatDisplayDate,
+  formatDisplayDateTime,
+  isTodayOrFuture,
+  createInstant
+} from '~/utils/dateUtils'
+
+// Get today's date as YYYY-MM-DD (local timezone)
+const today = getTodayString() // "2025-01-15"
+
+// Convert Date to YYYY-MM-DD (local timezone)
+const dateStr = getLocalDateString(new Date()) // "2025-01-15"
+
+// Parse YYYY-MM-DD as local midnight (NOT UTC!)
+const date = parseDateOnly("2025-01-15") // Jan 15 at 00:00 local time
+
+// Format for display (Chilean format: DD-MM-YYYY)
+formatDisplayDate("2025-01-15") // "15-01-2025"
+formatDisplayDateTime(booking.createdAt) // "15-01-2025 14:30"
+
+// Date comparisons (string-based, timezone-safe)
+isTodayOrFuture("2025-01-15") // true if today is Jan 15 or earlier
+
+// Create Instant for backend from date + time
+createInstant("2025-01-15", "14:30") // "2025-01-15T17:30:00.000Z" (UTC)
+```
+
 ### ✅ DO
 
 ```typescript
-// Parse Instant to Date for display
-const bookingDate = new Date(booking.createdAt);
+// Use getTodayString() instead of new Date().toISOString().split('T')[0]
+const today = getTodayString()
 
-// Send LocalDate as string
-const participant = {
-  dateOfBirth: "1990-05-15" // String, not Date object
-};
+// Use getLocalDateString() to convert Date to YYYY-MM-DD
+const dateStr = getLocalDateString(someDate)
 
-// Use Intl.DateTimeFormat for localized formatting
-const formatter = new Intl.DateTimeFormat('es-CL', {
-  dateStyle: 'medium',
-  timeStyle: 'short'
-});
+// Use parseDateOnly() to parse date strings
+const date = parseDateOnly("2025-01-15") // Local midnight, not UTC
+
+// Use formatDisplayDate() for Chilean format
+const display = formatDisplayDate("2025-01-15") // "15-01-2025"
+
+// Use string comparison for dates
+if (tourDate >= getTodayString()) { /* future or today */ }
+
+// Send LocalDate as string to backend
+const participant = { dateOfBirth: "1990-05-15" }
 ```
 
 ### ❌ DON'T
 
 ```typescript
-// DON'T convert LocalDate to Date object
+// DON'T use toISOString().split('T')[0] - returns UTC date
+const date = new Date().toISOString().split('T')[0] // ❌ Wrong at 11PM Chile
+
+// DON'T use new Date(dateString) for YYYY-MM-DD strings
+const date = new Date("2025-01-15") // ❌ Parsed as UTC midnight
+
+// DON'T convert LocalDate to Date object for backend
 const participant = {
   dateOfBirth: new Date("1990-05-15") // ❌ Introduces timezone issues
 };
@@ -344,17 +389,35 @@ describe('Date handling', () => {
 
 ## Troubleshooting
 
-### Issue: Dates showing wrong day in frontend
+### Issue: Booking appears in wrong tab (past vs upcoming)
 
-**Cause:** Converting LocalDate string to Date object
-**Solution:** Keep LocalDate as string, only convert to Date for display if needed
+**Cause:** Using `toISOString().split('T')[0]` which returns UTC date
+**Solution:** Use `getTodayString()` from dateUtils
 
 ```typescript
-// ❌ Wrong
-const birthDate = new Date("1990-05-15"); // May show May 14 due to timezone
+// ❌ Wrong - returns UTC date (may be tomorrow in Chile at 9PM+)
+const today = new Date().toISOString().split('T')[0]
 
-// ✅ Correct
-const birthDate = "1990-05-15"; // Keep as string
+// ✅ Correct - returns local date
+import { getTodayString } from '~/utils/dateUtils'
+const today = getTodayString()
+```
+
+### Issue: Dates showing wrong day in frontend
+
+**Cause:** Converting LocalDate string to Date object with `new Date(dateString)`
+**Solution:** Use `parseDateOnly()` or keep LocalDate as string
+
+```typescript
+// ❌ Wrong - parsed as UTC midnight, shows previous day in Chile
+const birthDate = new Date("1990-05-15")
+
+// ✅ Correct - parsed as local midnight
+import { parseDateOnly } from '~/utils/dateUtils'
+const birthDate = parseDateOnly("1990-05-15")
+
+// ✅ Or keep as string
+const birthDate = "1990-05-15"
 ```
 
 ### Issue: TourSchedule times off by several hours

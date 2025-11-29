@@ -1,5 +1,6 @@
 import type { TourRes, TourScheduleRes } from 'api-client'
 import type { TreeItem } from '@nuxt/ui'
+import { getLocalDateString } from '~/utils/dateUtils'
 
 export interface MediaHierarchyNode extends TreeItem {
   id: string
@@ -47,8 +48,10 @@ export function useMediaHierarchy() {
 
     loading.value = true
     try {
-      const startDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] ?? ''
-      const endDate = new Date().toISOString().split('T')[0] ?? ''
+      const ninetyDaysAgo = new Date()
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
+      const startDate = getLocalDateString(ninetyDaysAgo)
+      const endDate = getLocalDateString(new Date())
       const schedules = await fetchAdminSchedules({
         tourId,
         mode: 'past', // Only past schedules
@@ -99,10 +102,12 @@ export function useMediaHierarchy() {
       .filter(schedule => schedule.id && schedule.startDatetime)
       .map(schedule => ({
         id: schedule.id!,
+        // startDatetime is an Instant (ISO with Z), so new Date() works correctly
         label: `${new Date(schedule.startDatetime!).toLocaleDateString('es-CL', {
           year: 'numeric',
           month: 'long',
-          day: 'numeric'
+          day: 'numeric',
+          timeZone: 'America/Santiago'
         })}`,
         icon: 'i-lucide-calendar',
         type: 'schedule' as const,

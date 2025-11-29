@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { getTodayString } from '~/utils/dateUtils'
+
 const { t } = useI18n();
 const toast = useToast();
 const config = useRuntimeConfig();
@@ -24,7 +26,7 @@ const state = reactive({
 });
 
 // Minimum date for the date picker (today)
-const minDate = computed(() => new Date().toISOString().split('T')[0])
+const minDate = computed(() => getTodayString())
 
 const tourTypeOptions = [
   {

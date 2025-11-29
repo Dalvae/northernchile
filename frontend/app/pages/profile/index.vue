@@ -174,7 +174,7 @@
                   v-if="isEditing"
                   v-model="profileForm.dateOfBirth"
                   size="lg"
-                  :max="new Date().toISOString().split('T')[0]"
+                  :max="getTodayString()"
                   class="w-full"
                 />
                 <div
@@ -293,6 +293,8 @@
 </template>
 
 <script setup lang="ts">
+import { getTodayString, parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
+
 const { t, locale } = useI18n()
 const authStore = useAuthStore()
 const toast = useToast()
@@ -302,11 +304,13 @@ const { getCountryLabel, getCountryFlag } = useCountries()
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return '-'
   try {
-    const date = new Date(dateStr + 'T00:00:00')
+    // Parse date-only string correctly (avoid UTC interpretation)
+    const date = parseDateOnly(dateStr)
     return date.toLocaleDateString(locale.value, {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: CHILE_TIMEZONE
     })
   } catch {
     return dateStr || '-'

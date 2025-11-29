@@ -8,6 +8,8 @@
  * - Alertas meteorológicas
  */
 
+import { unixToDateString } from '~/utils/dateUtils'
+
 export interface MoonPhase {
   date: string
   phase: number // 0.0-1.0
@@ -105,7 +107,7 @@ export const useCalendarData = () => {
 
       if (response?.daily) {
         for (const day of response.daily) {
-          const date = new Date(day.dt * 1000).toISOString().split('T')[0]!
+          const date = unixToDateString(day.dt)
           weatherMap.set(date, {
             date,
             temp: day.temp,
@@ -189,7 +191,7 @@ export const useCalendarData = () => {
       const weatherMap = new Map<string, DailyWeather>()
       if (calendarResponse.weather?.daily) {
         for (const day of calendarResponse.weather.daily) {
-          const date = new Date(day.dt * 1000).toISOString().split('T')[0]!
+          const date = unixToDateString(day.dt)
           weatherMap.set(date, {
             date,
             temp: day.temp,

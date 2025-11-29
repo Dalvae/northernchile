@@ -270,6 +270,7 @@ import type {
 } from '@fullcalendar/core'
 import esLocale from '@fullcalendar/core/locales/es'
 import type { TourRes, TourScheduleRes, TourScheduleCreateReq, WeatherAlert } from '~/lib/api-client/api'
+import { getLocalDateString, createInstant, CHILE_TIMEZONE } from '~/utils/dateUtils'
 
 definePageMeta({
   layout: 'admin'
@@ -383,12 +384,12 @@ const endDate = ref('')
 // Inicializar fechas
 onMounted(() => {
   const today = new Date()
-  startDate.value = today.toISOString().split('T')[0]!
+  startDate.value = getLocalDateString(today)
 
   // Mostrar próximos 60 días (máximo para tours astronómicos)
   const end = new Date(today)
   end.setDate(end.getDate() + 60)
-  endDate.value = end.toISOString().split('T')[0]!
+  endDate.value = getLocalDateString(end)
 
   loadCalendarData()
 })
@@ -445,11 +446,17 @@ const handleEventClick = (info: EventClickArg) => {
   selectedSchedule.value = schedule
 
   // Fill form with schedule data
+  // startDatetime is an Instant (ISO with Z), parse it correctly
   const scheduleDate = new Date(schedule.startDatetime || '')
   scheduleForm.value = {
     tourId: schedule.tourId || '',
-    date: scheduleDate.toISOString().split('T')[0]!,
-    time: scheduleDate.toTimeString().slice(0, 5),
+    date: getLocalDateString(scheduleDate),
+    time: scheduleDate.toLocaleTimeString('es-CL', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: CHILE_TIMEZONE
+    }),
     maxParticipants: schedule.maxParticipants || 10,
     status: schedule.status || 'OPEN'
   }
@@ -521,11 +528,9 @@ const saveSchedule = async () => {
   savingSchedule.value = true
 
   try {
-    // Combine date and time into ISO datetime
-    const datetime = new Date(
-      `${scheduleForm.value.date}T${scheduleForm.value.time}:00`
-    )
-    const isoDatetime = datetime.toISOString()
+    // Combine date and time into ISO datetime using createInstant
+    // This correctly handles Chile timezone
+    const isoDatetime = createInstant(scheduleForm.value.date, scheduleForm.value.time)
 
     const payload: TourScheduleCreateReq & { status?: string } = {
       tourId: scheduleForm.value.tourId,
@@ -658,7 +663,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
 
     // Contenido de cada día
     dayCellContent: (arg) => {
-      const date = arg.date.toISOString().split('T')[0]!
+      const date = getLocalDateString(arg.date)
       const moonPhase = moonPhases.get(date)
       const dayWeather = weather.get(date)
       const conditions = hasAdverseConditions(date, weather, moonPhases)
