@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
@@ -37,10 +37,10 @@ public interface BookingMapper {
     }
 
     default LocalDate mapInstantToLocalDate(Instant instant) {
-        return instant != null ? LocalDate.ofInstant(instant, ZoneOffset.UTC) : null;
+        return instant != null ? LocalDate.ofInstant(instant, ZoneId.of("America/Santiago")) : null;
     }
 
     default LocalTime mapInstantToLocalTime(Instant instant) {
-        return instant != null ? LocalTime.ofInstant(instant, ZoneOffset.UTC) : null;
+        return instant != null ? LocalTime.ofInstant(instant, ZoneId.of("America/Santiago")) : null;
     }
 }
