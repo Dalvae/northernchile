@@ -29,6 +29,13 @@ h6 {
   @apply font-display;
 }
 
+/* Fix UInputDate day segment width - ensure 2-digit days are fully visible */
+[data-radix-vue-date-field-segment][data-type="day"],
+[data-radix-vue-date-field-segment][data-type="month"] {
+  min-width: 1.5em;
+  text-align: center;
+}
+
 /* 4. Efectos Atacama Nocturna OKLCH */
 @layer utilities {
   .atacama-gradient {
