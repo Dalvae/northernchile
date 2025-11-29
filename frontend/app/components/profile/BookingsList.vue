@@ -10,8 +10,6 @@ const { getCountryLabel, getCountryFlag } = useCountries()
 const { formatPrice } = useCurrency()
 const { generateBookingPdf } = useBookingPdf()
 const paymentStore = usePaymentStore()
-const router = useRouter()
-const localePath = useLocalePath()
 
 // Load bookings from backend
 const bookings = ref<BookingRes[]>([])
