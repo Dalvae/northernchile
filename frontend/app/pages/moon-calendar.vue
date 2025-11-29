@@ -225,6 +225,8 @@
 </template>
 
 <script setup lang="ts">
+import { getLocalDateString, getTodayString, parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
+
 const { t, locale } = useI18n()
 const config = useRuntimeConfig()
 
@@ -286,14 +288,13 @@ const calendarDays = computed(() => {
   const prevMonthLastDay = new Date(year, month, 0).getDate()
 
   const days = []
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const todayStr = getTodayString()
 
   // Previous month days
   for (let i = prevMonthDays - 1; i >= 0; i--) {
     const day = prevMonthLastDay - i
     const date = new Date(year, month - 1, day)
-    const dateStr = date.toISOString().split('T')[0]
+    const dateStr = getLocalDateString(date)
     const moonDay = moonData.value.find(d => d.date === dateStr)
 
     days.push({
@@ -307,9 +308,9 @@ const calendarDays = computed(() => {
   // Current month days
   for (let i = 1; i <= daysInMonth; i++) {
     const date = new Date(year, month, i)
-    const dateStr = date.toISOString().split('T')[0]
+    const dateStr = getLocalDateString(date)
     const moonDay = moonData.value.find(d => d.date === dateStr)
-    const isToday = date.getTime() === today.getTime()
+    const isToday = dateStr === todayStr
 
     days.push({
       dayNumber: i,
@@ -323,7 +324,7 @@ const calendarDays = computed(() => {
   const remainingDays = 42 - days.length // 6 rows * 7 days
   for (let i = 1; i <= remainingDays; i++) {
     const date = new Date(year, month + 1, i)
-    const dateStr = date.toISOString().split('T')[0]
+    const dateStr = getLocalDateString(date)
     const moonDay = moonData.value.find(d => d.date === dateStr)
 
     days.push({
@@ -348,8 +349,8 @@ const fetchMoonData = async () => {
     const prevMonth = new Date(year, month - 1, 1)
     const nextMonth = new Date(year, month + 2, 0)
 
-    const startDate = prevMonth.toISOString().split('T')[0]
-    const endDate = nextMonth.toISOString().split('T')[0]
+    const startDate = getLocalDateString(prevMonth)
+    const endDate = getLocalDateString(nextMonth)
 
     const response = await $fetch<any[]>(
       '/api/lunar/calendar',
@@ -399,11 +400,14 @@ const nextMonth = () => {
 }
 
 const formatFullDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString(locale.value, {
+  // dateString is YYYY-MM-DD from backend, parse as local
+  const date = parseDateOnly(dateString)
+  return date.toLocaleDateString(locale.value, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
+    timeZone: CHILE_TIMEZONE
   })
 }
 

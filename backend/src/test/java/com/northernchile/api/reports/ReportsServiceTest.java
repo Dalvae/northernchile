@@ -121,8 +121,8 @@ class ReportsServiceTest {
         OverviewReport report = reportsService.getOverview(start, end);
 
         // Then
-        // Total revenue = 300, Total bookings = 4, Average = 75
-        assertThat(report.getAverageBookingValue()).isEqualByComparingTo(new BigDecimal("75.00"));
+        // Total revenue = 300 (only confirmed bookings), Confirmed bookings = 2, Average = 150
+        assertThat(report.getAverageBookingValue()).isEqualByComparingTo(new BigDecimal("150.00"));
     }
 
     @Test

@@ -4,13 +4,13 @@ import com.northernchile.api.booking.dto.BookingRes;
 import com.northernchile.api.booking.dto.ParticipantRes;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.Participant;
+import com.northernchile.api.util.ChileDateTimeUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 
@@ -37,10 +37,10 @@ public interface BookingMapper {
     }
 
     default LocalDate mapInstantToLocalDate(Instant instant) {
-        return instant != null ? LocalDate.ofInstant(instant, ZoneOffset.UTC) : null;
+        return ChileDateTimeUtils.toChileDate(instant);
     }
 
     default LocalTime mapInstantToLocalTime(Instant instant) {
-        return instant != null ? LocalTime.ofInstant(instant, ZoneOffset.UTC) : null;
+        return ChileDateTimeUtils.toChileTime(instant);
     }
 }

@@ -71,6 +71,20 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     List<Booking> findByStatusAndTourSchedule_StartDateTimeBetween(String status, Instant start, Instant end);
 
     /**
+     * Find confirmed bookings for upcoming tours that haven't received a reminder yet
+     */
+    @Query("SELECT DISTINCT b FROM Booking b " +
+           "LEFT JOIN FETCH b.schedule s " +
+           "LEFT JOIN FETCH s.tour t " +
+           "LEFT JOIN FETCH b.user u " +
+           "LEFT JOIN FETCH b.participants " +
+           "WHERE b.status = :status AND s.startDatetime BETWEEN :start AND :end AND b.reminderSentAt IS NULL")
+    List<Booking> findByStatusAndStartDateTimeBetweenAndReminderNotSent(
+            @Param("status") String status,
+            @Param("start") Instant start,
+            @Param("end") Instant end);
+
+    /**
      * Find stale pending bookings (older than specified time) for cleanup
      */
     @Query("SELECT b FROM Booking b WHERE b.status = 'PENDING' AND b.createdAt < :cutoff")

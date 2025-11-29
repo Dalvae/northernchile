@@ -57,8 +57,9 @@ const participantRows = computed<ParticipantRow[]>(() => {
   if (!bookings.value || bookings.value.length === 0) return []
 
   const rows: ParticipantRow[] = []
+  // Get today's date as YYYY-MM-DD string for proper comparison
   const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
   for (const booking of bookings.value) {
     // Only show CONFIRMED bookings
@@ -70,12 +71,12 @@ const participantRows = computed<ParticipantRow[]>(() => {
       continue
     }
 
-    // Filter by date based on active tab
-    const tourDate = new Date(booking.tourDate)
-    if (activeTab.value === 'upcoming' && tourDate < today) {
+    // Filter by date based on active tab (compare as strings to avoid timezone issues)
+    const tourDateStr = booking.tourDate
+    if (activeTab.value === 'upcoming' && tourDateStr < todayStr) {
       continue
     }
-    if (activeTab.value === 'past' && tourDate >= today) {
+    if (activeTab.value === 'past' && tourDateStr >= todayStr) {
       continue
     }
 
@@ -265,25 +266,25 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
             </div>
           </template>
 
-          <template #participantName-data="{ row }">
+          <template #participantName-cell="{ row }">
             <span class="font-medium text-default">
               {{ row.getValue("participantName") }}
             </span>
           </template>
 
-          <template #documentId-data="{ row }">
+          <template #documentId-cell="{ row }">
             <span class="text-sm text-default">
               {{ row.getValue("documentId") || "-" }}
             </span>
           </template>
 
-          <template #age-data="{ row }">
+          <template #age-cell="{ row }">
             <span class="text-sm text-default">
               {{ row.getValue("age") || "-" }}
             </span>
           </template>
 
-          <template #pickupAddress-data="{ row }">
+          <template #pickupAddress-cell="{ row }">
             <div class="flex items-start gap-1.5">
               <UIcon
                 v-if="row.getValue('pickupAddress')"
@@ -296,7 +297,7 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
             </div>
           </template>
 
-          <template #contact-data="{ row }">
+          <template #participantPhone-cell="{ row }">
             <div class="flex flex-col gap-1">
               <div
                 v-if="row.original.participantPhone || row.original.bookingUserPhone"

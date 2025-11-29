@@ -158,6 +158,29 @@ tour.setDefaultStartTime(LocalTime.of(14, 30)); // 14:30:00
 
 ## Backend Configuration
 
+### ChileDateTimeUtils
+
+Location: `backend/src/main/java/com/northernchile/api/util/ChileDateTimeUtils.java`
+
+Centralized utility for all Chile timezone conversions:
+
+```java
+import com.northernchile.api.util.ChileDateTimeUtils;
+
+// Convert LocalDate + LocalTime to Instant (for storing)
+Instant instant = ChileDateTimeUtils.toInstant(date, time);
+
+// Convert Instant to LocalDate (for displaying)
+LocalDate date = ChileDateTimeUtils.toChileDate(instant);
+
+// Convert Instant to LocalTime (for displaying)
+LocalTime time = ChileDateTimeUtils.toChileTime(instant);
+
+// Get current date/time in Chile
+LocalDate today = ChileDateTimeUtils.todayInChile();
+LocalTime now = ChileDateTimeUtils.nowInChile();
+```
+
 ### Jackson Configuration
 Location: `backend/src/main/java/com/northernchile/api/config/JacksonConfig.java`
 
@@ -188,28 +211,73 @@ spring.jpa.properties.hibernate.jdbc.time_zone=UTC
 
 ## Frontend Best Practices
 
+### Centralized Date Utilities
+
+Use the utilities in `frontend/app/utils/dateUtils.ts` for all date handling:
+
+```typescript
+import { 
+  getTodayString,
+  getLocalDateString,
+  parseDateOnly,
+  formatDisplayDate,
+  formatDisplayDateTime,
+  isTodayOrFuture,
+  createInstant
+} from '~/utils/dateUtils'
+
+// Get today's date as YYYY-MM-DD (local timezone)
+const today = getTodayString() // "2025-01-15"
+
+// Convert Date to YYYY-MM-DD (local timezone)
+const dateStr = getLocalDateString(new Date()) // "2025-01-15"
+
+// Parse YYYY-MM-DD as local midnight (NOT UTC!)
+const date = parseDateOnly("2025-01-15") // Jan 15 at 00:00 local time
+
+// Format for display (Chilean format: DD-MM-YYYY)
+formatDisplayDate("2025-01-15") // "15-01-2025"
+formatDisplayDateTime(booking.createdAt) // "15-01-2025 14:30"
+
+// Date comparisons (string-based, timezone-safe)
+isTodayOrFuture("2025-01-15") // true if today is Jan 15 or earlier
+
+// Create Instant for backend from date + time
+createInstant("2025-01-15", "14:30") // "2025-01-15T17:30:00.000Z" (UTC)
+```
+
 ### ✅ DO
 
 ```typescript
-// Parse Instant to Date for display
-const bookingDate = new Date(booking.createdAt);
+// Use getTodayString() instead of new Date().toISOString().split('T')[0]
+const today = getTodayString()
 
-// Send LocalDate as string
-const participant = {
-  dateOfBirth: "1990-05-15" // String, not Date object
-};
+// Use getLocalDateString() to convert Date to YYYY-MM-DD
+const dateStr = getLocalDateString(someDate)
 
-// Use Intl.DateTimeFormat for localized formatting
-const formatter = new Intl.DateTimeFormat('es-CL', {
-  dateStyle: 'medium',
-  timeStyle: 'short'
-});
+// Use parseDateOnly() to parse date strings
+const date = parseDateOnly("2025-01-15") // Local midnight, not UTC
+
+// Use formatDisplayDate() for Chilean format
+const display = formatDisplayDate("2025-01-15") // "15-01-2025"
+
+// Use string comparison for dates
+if (tourDate >= getTodayString()) { /* future or today */ }
+
+// Send LocalDate as string to backend
+const participant = { dateOfBirth: "1990-05-15" }
 ```
 
 ### ❌ DON'T
 
 ```typescript
-// DON'T convert LocalDate to Date object
+// DON'T use toISOString().split('T')[0] - returns UTC date
+const date = new Date().toISOString().split('T')[0] // ❌ Wrong at 11PM Chile
+
+// DON'T use new Date(dateString) for YYYY-MM-DD strings
+const date = new Date("2025-01-15") // ❌ Parsed as UTC midnight
+
+// DON'T convert LocalDate to Date object for backend
 const participant = {
   dateOfBirth: new Date("1990-05-15") // ❌ Introduces timezone issues
 };
@@ -227,26 +295,42 @@ const date = new Date(timestamp + 3 * 60 * 60 * 1000); // ❌ Breaks with DST
 
 ### Pattern 1: Creating a TourSchedule from LocalDate + LocalTime
 
-**Backend**
-```java
-// Combine LocalDate + LocalTime → Instant
-LocalDate date = LocalDate.parse("2025-01-15");
-LocalTime time = LocalTime.parse("14:30:00");
-ZoneId zone = ZoneId.of("America/Santiago");
-
-Instant startDatetime = ZonedDateTime.of(date, time, zone).toInstant();
-schedule.setStartDatetime(startDatetime); // Stored as UTC in DB
-```
-
-**Frontend**
+**Frontend** sends date and time as separate strings:
 ```typescript
-// Send separate date and time, let backend combine
 const payload = {
-  tourDate: "2025-01-15",    // LocalDate
-  tourTime: "14:30:00",      // LocalTime
-  tourId: "uuid-here"
+  tourId: "uuid-here",
+  date: "2025-01-15",       // LocalDate string (YYYY-MM-DD)
+  time: "14:30:00",         // LocalTime string (HH:mm:ss)
+  maxParticipants: 10
 };
+
+await $fetch('/api/admin/schedules', {
+  method: 'POST',
+  body: payload
+});
 ```
+
+**Backend** uses `ChileDateTimeUtils` to convert:
+```java
+// In TourScheduleCreateReq.getStartDatetime()
+// Automatically converts date + time to Instant using Chile timezone
+Instant startDatetime = ChileDateTimeUtils.toInstant(req.getDate(), req.getTime());
+
+// Or manually:
+import com.northernchile.api.util.ChileDateTimeUtils;
+
+Instant instant = ChileDateTimeUtils.toInstant(
+    LocalDate.parse("2025-01-15"),
+    LocalTime.parse("14:30:00")
+);
+// Result: 2025-01-15T17:30:00Z (UTC) for summer, 2025-01-15T18:30:00Z for winter
+```
+
+**Why this approach?**
+- Frontend doesn't need to know about timezone offsets
+- Backend always applies Chile timezone correctly
+- Handles DST transitions automatically
+- Works regardless of where frontend code runs (local dev, Vercel UTC server, etc.)
 
 ### Pattern 2: Displaying Instant in User's Timezone
 
@@ -344,17 +428,35 @@ describe('Date handling', () => {
 
 ## Troubleshooting
 
-### Issue: Dates showing wrong day in frontend
+### Issue: Booking appears in wrong tab (past vs upcoming)
 
-**Cause:** Converting LocalDate string to Date object
-**Solution:** Keep LocalDate as string, only convert to Date for display if needed
+**Cause:** Using `toISOString().split('T')[0]` which returns UTC date
+**Solution:** Use `getTodayString()` from dateUtils
 
 ```typescript
-// ❌ Wrong
-const birthDate = new Date("1990-05-15"); // May show May 14 due to timezone
+// ❌ Wrong - returns UTC date (may be tomorrow in Chile at 9PM+)
+const today = new Date().toISOString().split('T')[0]
 
-// ✅ Correct
-const birthDate = "1990-05-15"; // Keep as string
+// ✅ Correct - returns local date
+import { getTodayString } from '~/utils/dateUtils'
+const today = getTodayString()
+```
+
+### Issue: Dates showing wrong day in frontend
+
+**Cause:** Converting LocalDate string to Date object with `new Date(dateString)`
+**Solution:** Use `parseDateOnly()` or keep LocalDate as string
+
+```typescript
+// ❌ Wrong - parsed as UTC midnight, shows previous day in Chile
+const birthDate = new Date("1990-05-15")
+
+// ✅ Correct - parsed as local midnight
+import { parseDateOnly } from '~/utils/dateUtils'
+const birthDate = parseDateOnly("1990-05-15")
+
+// ✅ Or keep as string
+const birthDate = "1990-05-15"
 ```
 
 ### Issue: TourSchedule times off by several hours

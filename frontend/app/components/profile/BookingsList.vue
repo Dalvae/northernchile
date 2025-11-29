@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { BookingRes } from '~/lib/api-client/api'
+import { parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
 
 const { locale, t } = useI18n()
 const authStore = useAuthStore()
@@ -46,13 +47,14 @@ onMounted(() => {
 function formatDateTime(dateString: string, timeString: string) {
   if (!dateString) return '-'
 
-  // Parse date
-  const date = new Date(dateString)
+  // Parse date-only string correctly (avoid UTC interpretation)
+  const date = parseDateOnly(dateString)
   const dateFormatted = new Intl.DateTimeFormat(locale.value, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
+    timeZone: CHILE_TIMEZONE
   }).format(date)
 
   // If we have time, append it

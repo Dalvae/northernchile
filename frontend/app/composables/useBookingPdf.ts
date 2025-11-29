@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf'
+import { parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
 
 interface BookingParticipant {
   id: string
@@ -41,12 +42,16 @@ export const useBookingPdf = () => {
   const formatDateTime = (dateString: string, timeString: string): string => {
     if (!dateString) return '-'
 
-    const date = new Date(dateString)
+    // Parse date-only strings correctly (avoid UTC interpretation)
+    const date = parseDateOnly(dateString)
+    if (Number.isNaN(date.getTime())) return '-'
+
     const dateFormatted = new Intl.DateTimeFormat(getLocaleCode(locale.value), {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: CHILE_TIMEZONE
     }).format(date)
 
     if (timeString) {

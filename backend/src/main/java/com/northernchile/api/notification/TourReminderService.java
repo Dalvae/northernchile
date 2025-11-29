@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -40,6 +41,7 @@ public class TourReminderService {
      * Runs every hour at :00 minutes
      */
     @Scheduled(cron = "0 0 * * * *")
+    @Transactional
     public void sendTourReminders() {
         log.info("Starting tour reminder check...");
 
@@ -47,23 +49,32 @@ public class TourReminderService {
         Instant reminderWindow = now.plus(hoursBeforeTour, ChronoUnit.HOURS);
 
         // Find confirmed bookings for tours happening in the reminder window
-        List<Booking> upcomingBookings = bookingRepository.findByStatusAndTourSchedule_StartDateTimeBetween(
+        // Only select bookings that haven't received a reminder yet
+        List<Booking> upcomingBookings = bookingRepository.findByStatusAndStartDateTimeBetweenAndReminderNotSent(
                 "CONFIRMED",
                 now,
                 reminderWindow.plus(1, ChronoUnit.HOURS) // +1 hour buffer
         );
 
-        log.info("Found {} bookings for tour reminders", upcomingBookings.size());
+        log.info("Found {} bookings for tour reminders (without prior reminder)", upcomingBookings.size());
+
+        int successCount = 0;
+        int failCount = 0;
 
         for (Booking booking : upcomingBookings) {
             try {
                 sendReminderEmail(booking);
+                // Mark reminder as sent to prevent duplicates
+                booking.setReminderSentAt(Instant.now());
+                bookingRepository.save(booking);
+                successCount++;
             } catch (Exception e) {
                 log.error("Failed to send reminder email for booking: {}", booking.getId(), e);
+                failCount++;
             }
         }
 
-        log.info("Tour reminder check completed");
+        log.info("Tour reminder check completed: {} sent, {} failed", successCount, failCount);
     }
 
     private void sendReminderEmail(Booking booking) {

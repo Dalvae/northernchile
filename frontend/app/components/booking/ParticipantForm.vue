@@ -63,14 +63,11 @@
         name="dateOfBirth"
         help="Usada para calcular la edad"
       >
-        <UInput
-          :model-value="participant.dateOfBirth || ''"
-          type="date"
-          placeholder="YYYY-MM-DD"
+        <DateInput
+          :model-value="participant.dateOfBirth || null"
           size="lg"
-          icon="i-lucide-calendar"
-          :max="new Date().toISOString().split('T')[0]"
-          aria-label="Fecha de nacimiento del participante"
+          :max="getTodayString()"
+          class="w-full"
           @update:model-value="emit('update', { dateOfBirth: $event || null })"
         />
       </UFormField>
@@ -172,6 +169,8 @@
 </template>
 
 <script setup lang="ts">
+import { getTodayString } from '~/utils/dateUtils'
+
 const { t } = useI18n()
 const { phoneCodes, getPhoneCodeByCountry, getCountryFlag } = useCountries()
 

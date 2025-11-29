@@ -8,6 +8,7 @@ import esLocale from '@fullcalendar/core/locales/es'
 import ptLocale from '@fullcalendar/core/locales/pt'
 import enLocale from '@fullcalendar/core/locales/en-gb'
 import type { TourRes } from 'api-client'
+import { getLocalDateString, unixToDateString } from '~/utils/dateUtils'
 
 interface TourSchedule {
   id: string
@@ -95,8 +96,6 @@ async function fetchSchedules() {
     const end = new Date()
     end.setDate(end.getDate() + 90)
 
-    const formatDate = (date: Date) => date.toISOString().split('T')[0] || ''
-
     const allSchedules = await Promise.all(
       props.tours.map(async (tour) => {
         try {
@@ -104,8 +103,8 @@ async function fetchSchedules() {
             `/api/tours/${tour.id}/schedules`,
             {
               params: {
-                start: formatDate(start),
-                end: formatDate(end)
+                start: getLocalDateString(start),
+                end: getLocalDateString(end)
               }
             }
           )
@@ -131,14 +130,12 @@ async function fetchLunarData() {
     const end = new Date()
     end.setDate(end.getDate() + 90)
 
-    const formatDate = (date: Date) => date.toISOString().split('T')[0] || ''
-
     const response = await $fetch<LunarPhase[]>(
       '/api/lunar/calendar',
       {
         params: {
-          startDate: formatDate(start),
-          endDate: formatDate(end)
+          startDate: getLocalDateString(start),
+          endDate: getLocalDateString(end)
         }
       }
     )
@@ -181,7 +178,7 @@ async function fetchWeatherData() {
     const weatherArray: WeatherDay[] = []
     if (response?.daily) {
       for (const day of response.daily) {
-        const date = new Date(day.dt * 1000).toISOString().split('T')[0] || ''
+        const date = unixToDateString(day.dt)
         weatherArray.push({
           date,
           maxWindKph: (day.windSpeed || 0) / 0.514444,
@@ -196,7 +193,7 @@ async function fetchWeatherData() {
     weatherMap.value.clear()
     if (response?.daily) {
       response.daily.forEach((day) => {
-        const date = new Date(day.dt * 1000).toISOString().split('T')[0] || ''
+        const date = unixToDateString(day.dt)
         weatherMap.value.set(date, {
           date,
           maxWindKph: (day.windSpeed || 0) / 0.514444,
@@ -384,7 +381,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   listDaySideFormat: false,
 
   dayCellContent: (arg) => {
-    const date = arg.date.toISOString().split('T')[0] || ''
+    const date = getLocalDateString(arg.date)
     const moon = lunarMap.value.get(date)
     const weather = weatherMap.value.get(date)
 
