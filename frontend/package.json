@@ -4,7 +4,6 @@
   "type": "module",
   "scripts": {
     "generate:api": "curl -f ${OPENAPI_URL:-http://localhost:8080/api-docs} -o openapi.json && pnpm openapi-generator-cli generate -i openapi.json -g typescript-axios -o ./lib/api-client --additional-properties=supportsES6=true,typescriptThreePlus=true",
-    "build:emails": "tsx scripts/build-emails.ts",
     "predev": "pnpm generate:api",
     "prebuild": "pnpm generate:api",
     "build": "nuxt build",
@@ -49,10 +48,6 @@
     "@openapitools/openapi-generator-cli": "^2.25.0",
     "@playwright/test": "^1.57.0",
     "@types/node": "^24.10.0",
-    "@vitejs/plugin-vue": "^5.2.4",
-    "@vue-email/compiler": "^0.8.14",
-    "@vue-email/components": "^0.0.21",
-    "@vue-email/render": "^0.0.9",
     "eslint": "^9.38.0",
     "nuxt-gtag": "^4.1.0",
     "nuxt-vitalizer": "^2.0.0",
@@ -62,11 +57,5 @@
     "vite-tsconfig-paths": "^5.1.4",
     "vue-tsc": "^3.1.1"
   },
-  "packageManager": "pnpm@10.18.3",
-  "pnpm": {
-    "overrides": {
-      "vue-i18n": "^11.2.1",
-      "@intlify/core-base": "^11.2.1"
-    }
-  }
+  "packageManager": "pnpm@10.18.3"
 }
