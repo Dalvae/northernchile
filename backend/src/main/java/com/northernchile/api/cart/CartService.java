@@ -100,6 +100,9 @@ public class CartService {
         }
         cart.getItems().add(newItem);
 
+        // Extend cart expiration when items are added
+        cart.setExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS));
+
         Cart savedCart = cartRepository.save(cart);
 
         // Reload cart with all relationships to avoid LazyInitializationException
@@ -117,7 +120,7 @@ public class CartService {
     private Cart createNewCart() {
         Cart cart = new Cart();
         cart.setStatus("ACTIVE");
-        cart.setExpiresAt(Instant.now().plus(30, ChronoUnit.DAYS)); // Cart expires in 30 days
+        cart.setExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS)); // Cart expires in 1 hour
         return cartRepository.save(cart);
     }
 
@@ -192,9 +195,9 @@ public class CartService {
 
     /**
      * Scheduled task to delete expired carts
-     * Runs every hour to cleanup carts that have passed their expiration time
+     * Runs every 5 minutes to cleanup carts that have passed their expiration time
      */
-    @org.springframework.scheduling.annotation.Scheduled(cron = "0 0 * * * *")
+    @org.springframework.scheduling.annotation.Scheduled(cron = "0 */5 * * * *")
     @Transactional
     public void cleanupExpiredCarts() {
         Instant now = Instant.now();

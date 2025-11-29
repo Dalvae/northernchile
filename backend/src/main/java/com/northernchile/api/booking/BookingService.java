@@ -78,7 +78,9 @@ public class BookingService {
         // Validate booking is not too close to tour start time
         validateBookingCutoffTime(schedule);
 
-        validateAvailability(schedule, req.getParticipants().size());
+        // Exclude current user's cart from availability check (they're converting cart to booking)
+        UUID excludeUserId = currentUser != null ? currentUser.getId() : null;
+        validateAvailability(schedule, req.getParticipants().size(), excludeUserId);
 
         // Use centralized pricing service for consistent calculations
         var pricing = pricingService.calculateLineItem(schedule.getTour().getPrice(), req.getParticipants().size());
@@ -93,8 +95,10 @@ public class BookingService {
         return bookingMapper.toBookingRes(savedBooking);
     }
 
-    private void validateAvailability(com.northernchile.api.model.TourSchedule schedule, int requestedSlots) {
-        var availabilityResult = availabilityValidator.validateAvailability(schedule, requestedSlots);
+    private void validateAvailability(com.northernchile.api.model.TourSchedule schedule, int requestedSlots, UUID excludeUserId) {
+        // Exclude the current user's cart items from availability check
+        // since those items are being converted to a booking
+        var availabilityResult = availabilityValidator.validateAvailability(schedule, requestedSlots, null, excludeUserId);
         if (!availabilityResult.isAvailable()) {
             throw new ScheduleFullException(availabilityResult.getErrorMessage());
         }

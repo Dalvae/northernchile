@@ -33,14 +33,16 @@ public interface CartRepository extends JpaRepository<Cart, UUID> {
 
     @Query("SELECT COALESCE(SUM(ci.numParticipants), 0) FROM CartItem ci " +
            "WHERE ci.schedule.id = :scheduleId " +
-           "AND ci.cart.id != :excludeCartId")
+           "AND ci.cart.id != :excludeCartId " +
+           "AND ci.cart.expiresAt > CURRENT_TIMESTAMP")
     Integer countParticipantsByScheduleIdExcludingCart(
             @Param("scheduleId") UUID scheduleId,
             @Param("excludeCartId") UUID excludeCartId);
 
     @Query("SELECT COALESCE(SUM(ci.numParticipants), 0) FROM CartItem ci " +
            "WHERE ci.schedule.id = :scheduleId " +
-           "AND ci.cart.user.id != :excludeUserId")
+           "AND ci.cart.user.id != :excludeUserId " +
+           "AND ci.cart.expiresAt > CURRENT_TIMESTAMP")
     Integer countParticipantsByScheduleIdExcludingUser(
             @Param("scheduleId") UUID scheduleId,
             @Param("excludeUserId") UUID excludeUserId);
