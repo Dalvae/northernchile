@@ -19,7 +19,6 @@ const props = defineProps<{
     provider: PaymentProvider
     method: PaymentMethod
   } | null
-  amount: number
 }>()
 
 const emit = defineEmits<{
@@ -85,21 +84,6 @@ function isSelected(option: PaymentOption) {
     selectedOption.value?.provider === option.provider
     && selectedOption.value?.method === option.method
   )
-}
-
-function formatAmount(amount: number, currency: string) {
-  const currencyMap: Record<string, { locale: string, code: string }> = {
-    CLP: { locale: 'es-CL', code: 'CLP' },
-    BRL: { locale: 'pt-BR', code: 'BRL' },
-    USD: { locale: 'en-US', code: 'USD' }
-  }
-
-  const config = currencyMap[currency] ?? currencyMap.CLP!
-
-  return new Intl.NumberFormat(config.locale, {
-    style: 'currency',
-    currency: config.code
-  }).format(amount)
 }
 </script>
 
@@ -187,12 +171,6 @@ function formatAmount(amount: number, currency: string) {
                   class="w-3 h-3"
                 />
                 {{ option.currency }}
-              </span>
-              <span
-                v-if="option.available"
-                class="font-medium text-primary"
-              >
-                {{ formatAmount(amount, option.currency) }}
               </span>
             </div>
           </div>

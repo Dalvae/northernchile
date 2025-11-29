@@ -707,7 +707,6 @@ const total = computed(() => cartStore.cart.cartTotal)
 
             <PaymentMethodSelector
               v-model="selectedPaymentMethod"
-              :amount="total"
             />
 
             <template #footer>
