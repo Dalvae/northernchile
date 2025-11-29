@@ -105,15 +105,27 @@ public class CartService {
             throw new ScheduleFullException(availabilityResult.getErrorMessage());
         }
 
-        CartItem newItem = new CartItem();
-        newItem.setCart(cart);
-        newItem.setSchedule(schedule);
-        newItem.setNumParticipants(itemReq.getNumParticipants());
-
         if (cart.getItems() == null) {
             cart.setItems(new ArrayList<>());
         }
-        cart.getItems().add(newItem);
+
+        // Check if there's already an item for this schedule - consolidate instead of creating new
+        CartItem existingItem = cart.getItems().stream()
+                .filter(item -> item.getSchedule().getId().equals(itemReq.getScheduleId()))
+                .findFirst()
+                .orElse(null);
+
+        if (existingItem != null) {
+            // Update existing item instead of creating a new one
+            existingItem.setNumParticipants(existingItem.getNumParticipants() + itemReq.getNumParticipants());
+        } else {
+            // Create new item only if no existing item for this schedule
+            CartItem newItem = new CartItem();
+            newItem.setCart(cart);
+            newItem.setSchedule(schedule);
+            newItem.setNumParticipants(itemReq.getNumParticipants());
+            cart.getItems().add(newItem);
+        }
 
         // Extend cart expiration when items are added
         cart.setExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS));
