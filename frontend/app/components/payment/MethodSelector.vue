@@ -9,7 +9,6 @@ interface PaymentOption {
   name: string
   description: string
   icon: string
-  currency: string
   country: string
   available: boolean
 }
@@ -35,7 +34,6 @@ const paymentOptions: PaymentOption[] = [
     name: 'Webpay Plus',
     description: t('payment.methods.transbank.description'),
     icon: 'i-lucide-credit-card',
-    currency: 'CLP',
     country: 'Chile',
     available: true
   },
@@ -45,7 +43,6 @@ const paymentOptions: PaymentOption[] = [
     name: 'PIX',
     description: t('payment.methods.pix.description'),
     icon: 'i-lucide-qr-code',
-    currency: 'BRL',
     country: 'Brasil',
     available: true
   },
@@ -55,7 +52,6 @@ const paymentOptions: PaymentOption[] = [
     name: t('payment.methods.credit_card.name'),
     description: t('payment.methods.credit_card.description'),
     icon: 'i-lucide-credit-card',
-    currency: 'USD',
     country: t('payment.methods.credit_card.countries'),
     available: true
   }
@@ -164,13 +160,6 @@ function isSelected(option: PaymentOption) {
                   class="w-3 h-3"
                 />
                 {{ option.country }}
-              </span>
-              <span class="flex items-center gap-1">
-                <UIcon
-                  name="i-lucide-banknote"
-                  class="w-3 h-3"
-                />
-                {{ option.currency }}
               </span>
             </div>
           </div>
