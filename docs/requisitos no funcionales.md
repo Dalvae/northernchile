@@ -327,7 +327,7 @@ public class EmailService {
             String farewell = messageSource.getMessage("email.confirmation.farewell", null, userLocale);
 
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("reservas@northernchile.cl");
+            message.setFrom("reservas@northernchile.com");
             message.setTo(toEmail);
             message.setSubject(subject);
 
@@ -970,7 +970,7 @@ Se definen dos escenarios de cancelación:
 - **Impacto Técnico:**
   - El `EmailService` se expandirá para incluir métodos como `sendNewBookingNotificationToAdmin` y `sendNewPrivateRequestNotificationToAdmin`.
   - Estos métodos se activarán automáticamente después de que un cliente complete una reserva o envíe una solicitud de tour privado.
-  - La dirección de correo del administrador será un parámetro configurable en `application.properties` (ej: `admin.notification.email=alex@northernchile.cl`).
+  - La dirección de correo del administrador será un parámetro configurable en `application.properties` (ej: `admin.notification.email=alex@northernchile.com`).
 
 #### **4. Flujo de Entrega de Astrofotografías**
 

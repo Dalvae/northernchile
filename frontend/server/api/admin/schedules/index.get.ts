@@ -8,7 +8,7 @@ export default defineEventHandler(async (event): Promise<TourScheduleRes[]> => {
 
   try {
     const schedules = await $fetch<TourScheduleRes[]>(`${backendUrl}/api/admin/schedules`, {
-      headers: { 'Cookie': cookie },
+      headers: { Cookie: cookie },
       query
     })
     return schedules

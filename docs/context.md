@@ -20,7 +20,7 @@
 
 #### **3. Requisitos Funcionales y Técnicos**
 
-- **Dominios Considerados:** `astronorthernchile.cl` y `Northernchile.com`.
+- **Dominios Considerados:** `astronorthernchile.com` y `Northernchile.com`.
 - **Pasarelas de Pago:** Es crucial revisar e integrar **Transbank, PIX** (para el mercado brasileño) y **Mercado Pago**.
 - **Calendario Inteligente:**
   - Debe ser capaz de integrar **condiciones meteorológicas** (se necesita una API gratuita).

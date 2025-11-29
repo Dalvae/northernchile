@@ -17,7 +17,10 @@ const sections = computed(() => {
     <UContainer class="max-w-4xl">
       <div class="mb-12 text-center">
         <div class="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <UIcon name="i-lucide-rotate-ccw" class="w-8 h-8 text-warning" />
+          <UIcon
+            name="i-lucide-rotate-ccw"
+            class="w-8 h-8 text-warning"
+          />
         </div>
         <h1 class="text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white mb-4">
           {{ t('legal.cancellation.title') }}
@@ -31,7 +34,10 @@ const sections = computed(() => {
       <div class="grid md:grid-cols-2 gap-6 mb-8">
         <div class="bg-success/10 border border-success/20 rounded-xl p-6">
           <div class="flex items-start gap-4">
-            <UIcon name="i-lucide-check-circle" class="w-6 h-6 text-success mt-1" />
+            <UIcon
+              name="i-lucide-check-circle"
+              class="w-6 h-6 text-success mt-1"
+            />
             <div>
               <h3 class="font-bold text-neutral-900 dark:text-white mb-1">
                 {{ t('legal.cancellation.summary.more_than_24h.title') }}
@@ -45,7 +51,10 @@ const sections = computed(() => {
 
         <div class="bg-error/10 border border-error/20 rounded-xl p-6">
           <div class="flex items-start gap-4">
-            <UIcon name="i-lucide-alert-circle" class="w-6 h-6 text-error mt-1" />
+            <UIcon
+              name="i-lucide-alert-circle"
+              class="w-6 h-6 text-error mt-1"
+            />
             <div>
               <h3 class="font-bold text-neutral-900 dark:text-white mb-1">
                 {{ t('legal.cancellation.summary.less_than_24h.title') }}
@@ -60,7 +69,10 @@ const sections = computed(() => {
 
       <UCard class="prose dark:prose-invert max-w-none p-6 sm:p-10">
         <div class="space-y-8">
-          <div v-for="index in sections" :key="index">
+          <div
+            v-for="index in sections"
+            :key="index"
+          >
             <h3 class="text-xl font-semibold text-neutral-900 dark:text-white mb-3">
               {{ t(`legal.cancellation.sections.${index - 1}.title`) }}
             </h3>

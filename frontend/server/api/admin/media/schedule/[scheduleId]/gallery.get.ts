@@ -6,7 +6,7 @@ export default defineEventHandler(async (event): Promise<unknown> => {
 
   try {
     const gallery = await $fetch(`${backendUrl}/api/admin/media/schedule/${scheduleId}/gallery`, {
-      headers: { 'Cookie': cookie }
+      headers: { Cookie: cookie }
     })
     return gallery
   } catch (error: unknown) {

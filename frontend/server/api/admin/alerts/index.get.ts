@@ -8,7 +8,7 @@ export default defineEventHandler(async (event): Promise<WeatherAlert[]> => {
 
   try {
     const alerts = await $fetch<WeatherAlert[]>(`${backendUrl}/api/admin/alerts`, {
-      headers: { 'Cookie': cookie },
+      headers: { Cookie: cookie },
       params: query
     })
     return alerts

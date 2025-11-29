@@ -9,7 +9,7 @@ export default defineEventHandler(async (event): Promise<unknown> => {
     const response = await $fetch(`${backendUrl}/api/bookings/${id}`, {
       method: 'DELETE',
       headers: {
-        'Cookie': cookie
+        Cookie: cookie
       }
     })
     return response

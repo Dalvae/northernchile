@@ -78,7 +78,10 @@ async function saveChanges() {
 </script>
 
 <template>
-  <UButton :label="t('profile.edit_booking.title')" @click="isOpen = true" />
+  <UButton
+    :label="t('profile.edit_booking.title')"
+    @click="isOpen = true"
+  />
 
   <UModal v-model:open="isOpen">
     <template #content>

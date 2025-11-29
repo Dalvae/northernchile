@@ -8,7 +8,7 @@ export default defineEventHandler(async (event): Promise<UserRes[]> => {
 
   try {
     const users = await $fetch<UserRes[]>(`${backendUrl}/api/admin/users`, {
-      headers: { 'Cookie': cookie },
+      headers: { Cookie: cookie },
       query
     })
     return users

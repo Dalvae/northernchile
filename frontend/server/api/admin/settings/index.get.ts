@@ -5,7 +5,7 @@ export default defineEventHandler(async (event): Promise<Record<string, unknown>
 
   try {
     const settings = await $fetch<Record<string, unknown>>(`${backendUrl}/api/admin/settings`, {
-      headers: { 'Cookie': cookie }
+      headers: { Cookie: cookie }
     })
     return settings
   } catch (error: unknown) {

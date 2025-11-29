@@ -10,7 +10,7 @@ export default defineEventHandler(async (event): Promise<unknown> => {
   try {
     const result: unknown = await ofetch(`${backendUrl}/api/admin/private-tours/requests/${id}`, {
       method: 'PUT',
-      headers: { 'Cookie': cookie },
+      headers: { Cookie: cookie },
       body
     })
     return result

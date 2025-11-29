@@ -1044,7 +1044,7 @@ AWS_S3_BUCKET_NAME=northern-chile-assets
 
 # Email - Resend
 RESEND_API_KEY=re_xxxxx
-MAIL_FROM=Northern Chile <reservas@northernchile.cl>
+MAIL_FROM=Northern Chile <reservas@northernchile.com>
 
 # OAuth2 Google
 GOOGLE_CLIENT_ID=tu_google_client_id
@@ -1055,8 +1055,8 @@ JWT_SECRET=tu_jwt_secret_muy_largo
 JWT_EXPIRATION=86400000
 
 # Application
-ADMIN_NOTIFICATION_EMAIL=alex@northernchile.cl
-FRONTEND_URL=https://northernchile.cl
+ADMIN_NOTIFICATION_EMAIL=alex@northernchile.com
+FRONTEND_URL=https://northernchile.com
 ```
 
 ### **14.2. Frontend Environment Variables**
@@ -1169,7 +1169,7 @@ Para que `useLocaleHead` funcione correctamente, se configurará el módulo `i18
 // nuxt.config.ts
 export default defineNuxtConfig({
   i18n: {
-    baseUrl: "https://www.northernchile.cl", // URL final de producción
+    baseUrl: "https://www.northernchile.com", // URL final de producción
     locales: [
       {
         code: "es",

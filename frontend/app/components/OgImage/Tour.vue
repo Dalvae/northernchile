@@ -17,7 +17,10 @@ defineProps<{
     >
 
     <!-- Pattern overlay para textura -->
-    <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 24px 24px;" />
+    <div
+      class="absolute inset-0 opacity-5"
+      style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 24px 24px;"
+    />
 
     <!-- Degradado superior -->
     <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90" />
@@ -51,15 +54,26 @@ defineProps<{
       </div>
 
       <!-- Título -->
-      <h1 class="text-7xl font-bold leading-tight text-white mb-12 drop-shadow-2xl" style="font-family: 'Playfair Display', serif; text-shadow: 0 4px 20px rgba(0,0,0,0.8);">
+      <h1
+        class="text-7xl font-bold leading-tight text-white mb-12 drop-shadow-2xl"
+        style="font-family: 'Playfair Display', serif; text-shadow: 0 4px 20px rgba(0,0,0,0.8);"
+      >
         {{ title || 'Northern Chile Tours' }}
       </h1>
 
       <!-- Footer -->
       <div class="flex items-end justify-between pt-8 border-t border-white/10">
         <div class="flex items-center gap-3">
-          <svg class="w-6 h-6 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+          <svg
+            class="w-6 h-6 text-orange-400"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+              clip-rule="evenodd"
+            />
           </svg>
           <span class="text-2xl text-gray-300 font-light">San Pedro de Atacama</span>
         </div>
@@ -68,7 +82,10 @@ defineProps<{
           class="flex flex-col items-end"
         >
           <span class="text-lg text-gray-400 font-light mb-1">Desde</span>
-          <span class="text-5xl font-bold text-orange-400" style="text-shadow: 0 2px 10px rgba(251,146,60,0.3);">{{ price }}</span>
+          <span
+            class="text-5xl font-bold text-orange-400"
+            style="text-shadow: 0 2px 10px rgba(251,146,60,0.3);"
+          >{{ price }}</span>
         </div>
       </div>
     </div>

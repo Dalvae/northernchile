@@ -92,7 +92,7 @@ async function handleMercadoPagoCallback() {
     if (mpPaymentId) queryParams.append('payment_id', mpPaymentId)
     if (mpCollectionStatus) queryParams.append('collection_status', mpCollectionStatus)
     if (mpExternalReference) queryParams.append('external_reference', mpExternalReference)
-    
+
     // Use the correct backend endpoint for PaymentSession confirmation
     const result = await $fetch<PaymentSessionConfirmRes>(
       `/api/payment-sessions/confirm/mercadopago?${queryParams.toString()}`,
@@ -149,7 +149,7 @@ async function handleMercadoPagoCallback() {
     }
   } catch (error: any) {
     console.error('Error handling MercadoPago callback:', error)
-    
+
     // Fallback: Map collection_status if backend call fails
     const statusMap: Record<string, PaymentStatus> = {
       approved: PaymentStatus.COMPLETED,
@@ -169,7 +169,7 @@ async function handleMercadoPagoCallback() {
 
 function handleDirectCallback() {
   paymentId.value = route.query.paymentId as string || route.query.sessionId as string || null
-  
+
   // Handle bookingIds from query (comma-separated)
   const bookingIdsParam = route.query.bookingIds as string
   if (bookingIdsParam) {

@@ -7,7 +7,7 @@ export default defineEventHandler(async (event): Promise<unknown> => {
   try {
     await $fetch(`${backendUrl}/api/admin/bookings/${bookingId}`, {
       method: 'DELETE',
-      headers: { 'Cookie': cookie }
+      headers: { Cookie: cookie }
     })
     return { status: 'success' }
   } catch (error: unknown) {

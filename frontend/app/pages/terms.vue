@@ -32,7 +32,10 @@ const sections = computed(() => {
         </p>
 
         <div class="space-y-8">
-          <div v-for="index in sections" :key="index">
+          <div
+            v-for="index in sections"
+            :key="index"
+          >
             <h3 class="text-xl font-semibold text-neutral-900 dark:text-white mb-3">
               {{ t(`legal.terms.sections.${index - 1}.title`) }}
             </h3>
