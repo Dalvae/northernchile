@@ -3,7 +3,6 @@ import type { BookingRes } from '~/lib/api-client/api'
 
 const { locale, t } = useI18n()
 const authStore = useAuthStore()
-const config = useRuntimeConfig()
 const toast = useToast()
 const localePath = useLocalePath()
 const { getCountryLabel, getCountryFlag } = useCountries()

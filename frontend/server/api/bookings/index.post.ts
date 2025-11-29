@@ -1,11 +1,8 @@
-export default defineEventHandler(async (event): Promise<any> => {
+export default defineEventHandler(async (event): Promise<unknown> => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
 
-  // 1. Leer el token de la petición original del cliente
-  const authToken = getHeader(event, 'Authorization')
-
-  // 2. Leer el cuerpo de la petición (el payload de la reserva)
+  const cookie = getHeader(event, 'cookie') || ''
   const body = await readBody(event)
 
   try {
@@ -13,16 +10,16 @@ export default defineEventHandler(async (event): Promise<any> => {
       method: 'POST',
       body: body,
       headers: {
-        // 3. Reenviar el token de autorización al backend de Spring Boot
-        'Authorization': authToken || '',
+        'Cookie': cookie,
         'Content-Type': 'application/json'
       }
     })
     return createdBooking
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { response?: { status?: number }, data?: { message?: string }, message?: string }
     throw createError({
-      statusCode: error.response?.status || 500,
-      statusMessage: 'Failed to create booking.'
+      statusCode: err.response?.status || 500,
+      statusMessage: err.data?.message || err.message || 'Failed to create booking'
     })
   }
 })

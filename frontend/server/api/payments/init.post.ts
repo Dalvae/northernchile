@@ -5,6 +5,8 @@ export default defineEventHandler(async (event): Promise<unknown> => {
   const cookie = getHeader(event, 'cookie') || ''
   const body = await readBody(event)
 
+  console.log('[payments/init] Forwarding request with cookie:', cookie ? 'present' : 'missing')
+
   try {
     const response = await $fetch(`${backendUrl}/api/payments/init`, {
       method: 'POST',
@@ -16,10 +18,11 @@ export default defineEventHandler(async (event): Promise<unknown> => {
     })
     return response
   } catch (error: unknown) {
-    const err = error as { response?: { status?: number }, data?: { message?: string }, message?: string }
+    console.error('[payments/init] Error:', error)
+    const err = error as { statusCode?: number, statusMessage?: string, data?: { message?: string, error?: string }, message?: string }
     throw createError({
-      statusCode: err.response?.status || 500,
-      statusMessage: err.data?.message || err.message || 'Failed to initialize payment'
+      statusCode: err.statusCode || 500,
+      statusMessage: err.data?.message || err.data?.error || err.statusMessage || err.message || 'Failed to initialize payment'
     })
   }
 })

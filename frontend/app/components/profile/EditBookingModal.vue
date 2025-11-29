@@ -10,7 +10,6 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const config = useRuntimeConfig()
 const toast = useToast()
 
 const isOpen = ref(false)
