@@ -37,7 +37,7 @@ const saving = ref(false)
 async function saveChanges() {
   saving.value = true
   try {
-    await $fetch<void>(`${config.public.apiBase}/api/bookings/${props.booking.id}`, {
+    await $fetch<void>(`/api/bookings/${props.booking.id}`, {
       method: 'PUT',
       credentials: 'include',
       headers: {

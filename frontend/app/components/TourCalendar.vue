@@ -101,7 +101,7 @@ async function fetchSchedules() {
       props.tours.map(async (tour) => {
         try {
           const response = await $fetch<Array<Omit<TourSchedule, 'tour'>>>(
-            `${config.public.apiBase}/api/tours/${tour.id}/schedules`,
+            `/api/tours/${tour.id}/schedules`,
             {
               params: {
                 start: formatDate(start),
@@ -134,7 +134,7 @@ async function fetchLunarData() {
     const formatDate = (date: Date) => date.toISOString().split('T')[0] || ''
 
     const response = await $fetch<LunarPhase[]>(
-      `${config.public.apiBase}/api/lunar/calendar`,
+      '/api/lunar/calendar',
       {
         params: {
           startDate: formatDate(start),
@@ -175,7 +175,7 @@ async function fetchWeatherData() {
     }
 
     const response = await $fetch<WeatherResponse>(
-      `${config.public.apiBase}/api/weather/forecast`
+      '/api/weather/forecast'
     )
 
     const weatherArray: WeatherDay[] = []

@@ -79,9 +79,7 @@ const faqs = computed(() => [
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   try {
-    const config = useRuntimeConfig()
-
-    await $fetch(`${config.public.apiBase}/api/contact`, {
+    await $fetch('/api/contact', {
       method: 'POST',
       body: {
         name: state.name,

@@ -135,9 +135,8 @@ async function handleMercadoPagoCallback() {
     if (mpCollectionStatus) queryParams.append('collection_status', mpCollectionStatus)
     
     const result = await $fetch<{ paymentId: string; status: PaymentStatus; amount?: number; currency?: string }>(
-      `${config.public.apiBase}/api/payments/confirm/mercadopago?${queryParams.toString()}`,
+      `/api/payments/confirm/mercadopago?${queryParams.toString()}`,
       {
-        method: 'GET',
         credentials: 'include'
       }
     )

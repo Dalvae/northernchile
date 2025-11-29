@@ -397,7 +397,7 @@ async function submitBooking() {
         specialRequests: null
       }
 
-      const bookingRes = await $fetch<any>(`${config.public.apiBase}/api/bookings`, {
+      const bookingRes = await $fetch<any>('/api/bookings', {
         method: 'POST',
         body: bookingReq,
         credentials: 'include',
@@ -434,7 +434,8 @@ async function submitBooking() {
       returnUrl: `${config.public.baseUrl}/payment/callback?bookingId=${primaryBooking.id}`,
       cancelUrl: `${config.public.baseUrl}/checkout`,
       userEmail: contactForm.value.email,
-      description: `Reserva para ${tourNames}`
+      description: `Reserva para ${tourNames}`,
+      additionalBookingIds: additionalBookingIds.length > 0 ? additionalBookingIds : undefined
     })
 
     // Step 4: Handle payment flow based on method
@@ -473,7 +474,7 @@ async function submitBooking() {
     if (createdBookingIds.value.length > 0) {
       for (const bookingId of createdBookingIds.value) {
         try {
-          await $fetch(`${config.public.apiBase}/api/bookings/${bookingId}`, {
+          await $fetch(`/api/bookings/${bookingId}`, {
             method: 'DELETE',
             credentials: 'include'
           })

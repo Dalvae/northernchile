@@ -38,12 +38,11 @@ export const usePaymentStore = defineStore('payment', {
       this.isProcessing = true
       this.error = null
 
-      const config = useRuntimeConfig()
       const { extractErrorMessage, showErrorToast } = useApiError()
 
       try {
         const response = await $fetch<PaymentInitRes>(
-          `${config.public.apiBase}/api/payments/init`,
+          '/api/payments/init',
           {
             method: 'POST',
             body: request,
@@ -70,14 +69,12 @@ export const usePaymentStore = defineStore('payment', {
      * Get payment status
      */
     async getPaymentStatus(paymentId: string): Promise<PaymentStatusRes> {
-      const config = useRuntimeConfig()
       const { extractErrorMessage } = useApiError()
 
       try {
         const response = await $fetch<PaymentStatusRes>(
-          `${config.public.apiBase}/api/payments/${paymentId}/status`,
+          `/api/payments/${paymentId}/status`,
           {
-            method: 'GET',
             credentials: 'include'
           }
         )
@@ -133,14 +130,12 @@ export const usePaymentStore = defineStore('payment', {
      * Confirm payment after redirect (for Transbank)
      */
     async confirmPayment(token: string): Promise<PaymentStatusRes> {
-      const config = useRuntimeConfig()
       const { extractErrorMessage, showErrorToast } = useApiError()
 
       try {
         const response = await $fetch<PaymentStatusRes>(
-          `${config.public.apiBase}/api/payments/confirm`,
+          '/api/payments/confirm',
           {
-            method: 'GET',
             query: { token_ws: token }
           }
         )

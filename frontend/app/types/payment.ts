@@ -36,6 +36,7 @@ export interface PaymentInitReq {
   userEmail?: string
   description?: string
   expirationMinutes?: number
+  additionalBookingIds?: string[]
 }
 
 export interface PaymentInitRes {

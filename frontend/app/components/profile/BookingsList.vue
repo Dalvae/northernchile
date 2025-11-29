@@ -25,7 +25,7 @@ async function fetchBookings() {
 
   loading.value = true
   try {
-    const response = await $fetch<BookingRes[]>(`${config.public.apiBase}/api/bookings`, {
+    const response = await $fetch<BookingRes[]>('/api/bookings', {
       credentials: 'include'
     })
     bookings.value = response
@@ -113,7 +113,7 @@ async function cancelBooking(bookingId: string) {
 
   loading.value = true
   try {
-    await $fetch(`${config.public.apiBase}/api/bookings/${bookingId}`, {
+    await $fetch(`/api/bookings/${bookingId}`, {
       method: 'DELETE',
       credentials: 'include'
     })

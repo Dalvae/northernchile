@@ -83,7 +83,7 @@ async function submitRequest() {
   state.loading = true;
   try {
     const response = await $fetch(
-      `${config.public.apiBase}/api/private-tours/requests`,
+      '/api/private-tours/requests',
       {
         method: "POST",
         credentials: "include",

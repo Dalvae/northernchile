@@ -72,7 +72,7 @@ export const useCalendarData = () => {
    */
   const fetchMoonPhases = async (startDate: string, endDate: string): Promise<MoonPhase[]> => {
     try {
-      const response = await $fetch<MoonPhase[]>(`${config.public.apiBase}/api/lunar/calendar`, {
+      const response = await $fetch<MoonPhase[]>('/api/lunar/calendar', {
         params: { startDate, endDate }
       })
       return response
@@ -99,7 +99,7 @@ export const useCalendarData = () => {
 
   const fetchWeatherForecast = async (): Promise<Map<string, DailyWeather>> => {
     try {
-      const response = await $fetch<WeatherForecastResponse>(`${config.public.apiBase}/api/weather/forecast`)
+      const response = await $fetch<WeatherForecastResponse>('/api/weather/forecast')
 
       // Convertir a Map por fecha
       const weatherMap = new Map<string, DailyWeather>()
@@ -172,7 +172,7 @@ export const useCalendarData = () => {
       }
 
       // Llamada combinada al backend: fases lunares + pronóstico meteorológico
-      const calendarResponse = await $fetch<CalendarDataResponse>(`${config.public.apiBase}/api/calendar/data`, {
+      const calendarResponse = await $fetch<CalendarDataResponse>('/api/calendar/data', {
         params: { startDate, endDate },
         credentials: 'include' // Auth is handled via HttpOnly cookie
       })
