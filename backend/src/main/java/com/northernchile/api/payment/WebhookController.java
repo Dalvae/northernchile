@@ -1,6 +1,6 @@
 package com.northernchile.api.payment;
 
-import com.northernchile.api.payment.dto.PaymentStatusRes;
+import com.northernchile.api.payment.dto.PaymentSessionRes;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -16,7 +16,8 @@ import java.util.Map;
 
 /**
  * Webhook controller for payment providers.
- * Handles webhook notifications from Transbank, Mercado Pago, and other payment providers.
+ * Handles webhook notifications from MercadoPago.
+ * Note: Transbank uses redirect-based flow, not webhooks.
  */
 @RestController
 @RequestMapping("/api/webhooks")
@@ -25,11 +26,11 @@ public class WebhookController {
 
     private static final Logger log = LoggerFactory.getLogger(WebhookController.class);
 
-    private final PaymentService paymentService;
+    private final PaymentSessionService paymentSessionService;
     private final WebhookSecurityService webhookSecurityService;
 
-    public WebhookController(PaymentService paymentService, WebhookSecurityService webhookSecurityService) {
-        this.paymentService = paymentService;
+    public WebhookController(PaymentSessionService paymentSessionService, WebhookSecurityService webhookSecurityService) {
+        this.paymentSessionService = paymentSessionService;
         this.webhookSecurityService = webhookSecurityService;
     }
 
@@ -98,9 +99,10 @@ public class WebhookController {
                 }
             }
 
-            // 6. Process webhook
-            PaymentStatusRes response = paymentService.processWebhook("MERCADOPAGO", payload);
-            log.info("Mercado Pago webhook processed successfully: {}", response.getPaymentId());
+            // 6. Process webhook - confirm the payment session
+            String lookupId = dataId; // data.id from MP notification
+            PaymentSessionRes response = paymentSessionService.confirmMercadoPagoSession(lookupId, dataId);
+            log.info("Mercado Pago webhook processed successfully: {}", response.getSessionId());
 
             // 7. Mark request as processed
             if (requestId != null) {
@@ -130,32 +132,6 @@ public class WebhookController {
         return ResponseEntity.ok(Map.of(
             "message", "Transbank uses redirect-based flow, webhooks not required"
         ));
-    }
-
-    @PostMapping("/payment")
-    @Operation(summary = "Generic payment webhook", description = "Handle generic payment notifications")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Webhook processed successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid webhook payload")
-    })
-    public ResponseEntity<Void> handleGenericPaymentWebhook(
-        @RequestParam(value = "provider", required = false) String provider,
-        @RequestBody Map<String, Object> payload) {
-
-        log.info("Received generic payment webhook from provider: {}", provider);
-
-        try {
-            if (provider != null) {
-                PaymentStatusRes response = paymentService.processWebhook(provider, payload);
-                log.info("Generic webhook processed successfully: {}", response.getPaymentId());
-            } else {
-                log.warn("Webhook received without provider parameter");
-            }
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            log.error("Error processing generic payment webhook", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

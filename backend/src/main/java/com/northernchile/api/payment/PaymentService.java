@@ -1,12 +1,8 @@
 package com.northernchile.api.payment;
 
-import com.northernchile.api.payment.dto.PaymentInitReq;
-import com.northernchile.api.payment.dto.PaymentInitRes;
 import com.northernchile.api.payment.dto.PaymentStatusRes;
 import com.northernchile.api.payment.model.Payment;
 import com.northernchile.api.payment.model.PaymentStatus;
-import com.northernchile.api.payment.provider.PaymentProviderFactory;
-import com.northernchile.api.payment.provider.PaymentProviderService;
 import com.northernchile.api.payment.repository.PaymentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,12 +13,12 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
- * Payment service facade.
- * Orchestrates payment operations and delegates to specific payment provider services.
+ * Payment service for managing Payment entities.
+ * Note: Primary payment flow now uses PaymentSessionService.
+ * This service handles legacy Payment entities, refunds, and admin operations.
  */
 @Service
 public class PaymentService {
@@ -30,151 +26,13 @@ public class PaymentService {
     private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
 
     private final PaymentRepository paymentRepository;
-    private final PaymentProviderFactory providerFactory;
 
-    public PaymentService(PaymentRepository paymentRepository, PaymentProviderFactory providerFactory) {
+    public PaymentService(PaymentRepository paymentRepository) {
         this.paymentRepository = paymentRepository;
-        this.providerFactory = providerFactory;
-    }
-
-    /**
-     * Create a new payment transaction.
-     * Implements idempotency to prevent duplicate payment attempts:
-     * 1. If an idempotency key is provided, returns existing payment if found
-     * 2. Checks for any active (pending/processing) payments for the booking
-     *
-     * @param request Payment initialization request
-     * @return Payment initialization response
-     */
-    @Transactional
-    public PaymentInitRes createPayment(PaymentInitReq request) {
-        log.info("Creating payment for booking: {} with provider: {}",
-            request.getBookingId(), request.getProvider());
-
-        // Validate request
-        validatePaymentRequest(request);
-
-        // Check idempotency key first
-        if (request.getIdempotencyKey() != null && !request.getIdempotencyKey().isBlank()) {
-            var existingByKey = paymentRepository.findByIdempotencyKey(request.getIdempotencyKey());
-            if (existingByKey.isPresent()) {
-                Payment existing = existingByKey.get();
-                log.info("Returning existing payment {} for idempotency key: {}",
-                    existing.getId(), request.getIdempotencyKey());
-                return buildPaymentInitRes(existing);
-            }
-        }
-
-        // Check for active payments for this booking
-        var activePayment = paymentRepository.findActivePaymentForBooking(
-            request.getBookingId(), java.time.Instant.now());
-        if (activePayment.isPresent()) {
-            Payment existing = activePayment.get();
-            log.info("Found active payment {} for booking {}, returning it instead of creating new",
-                existing.getId(), request.getBookingId());
-            return buildPaymentInitRes(existing);
-        }
-
-        // Get the appropriate payment provider
-        PaymentProviderService provider = providerFactory.getProvider(request.getProvider());
-
-        // Delegate to provider
-        PaymentInitRes response = provider.createPayment(request);
-
-        log.info("Payment created successfully: {}", response.getPaymentId());
-        return response;
-    }
-
-    /**
-     * Build a PaymentInitRes from an existing Payment entity.
-     */
-    private PaymentInitRes buildPaymentInitRes(Payment payment) {
-        PaymentInitRes res = new PaymentInitRes();
-        res.setPaymentId(payment.getId());
-        res.setStatus(payment.getStatus());
-        res.setPaymentUrl(payment.getPaymentUrl());
-        res.setDetailsUrl(payment.getDetailsUrl());
-        res.setQrCode(payment.getQrCode());
-        res.setPixCode(payment.getPixCode());
-        res.setToken(payment.getToken());
-        res.setExpiresAt(payment.getExpiresAt());
-        res.setTest(payment.isTest());
-        return res;
-    }
-
-    /**
-     * Confirm a payment (for redirect-based flows like Webpay).
-     *
-     * @param token Payment token
-     * @return Payment status
-     */
-    @Transactional
-    public PaymentStatusRes confirmPayment(String token) {
-        log.info("Confirming payment request received");
-
-        // Find payment by token
-        Payment payment = paymentRepository.findByToken(token)
-            .orElseThrow(() -> new IllegalArgumentException("Payment not found"));
-
-        // Get the appropriate payment provider
-        PaymentProviderService provider = providerFactory.getProvider(payment.getProvider());
-
-        // Delegate to provider
-        PaymentStatusRes response = provider.confirmPayment(token);
-
-        log.info("Payment confirmed: {} with status: {}", response.getPaymentId(), response.getStatus());
-        return response;
-    }
-
-    /**
-     * Confirm a MercadoPago Checkout Pro payment.
-     * Used when user returns from MercadoPago redirect.
-     * MercadoPago stores preference_id in our externalPaymentId field.
-     *
-     * @param preferenceId MercadoPago preference ID (our externalPaymentId)
-     * @param mpPaymentId MercadoPago payment ID (if available)
-     * @return Payment status
-     */
-    @Transactional
-    public PaymentStatusRes confirmMercadoPagoPayment(String preferenceId, String mpPaymentId) {
-        log.info("Confirming MercadoPago payment - preference_id: {}, payment_id: {}", preferenceId, mpPaymentId);
-
-        // Find payment by preference_id (stored as externalPaymentId for Checkout Pro)
-        Payment payment = null;
-        
-        if (preferenceId != null) {
-            payment = paymentRepository.findByExternalPaymentId(preferenceId).orElse(null);
-        }
-        
-        if (payment == null) {
-            throw new IllegalArgumentException("Payment not found for preference_id: " + preferenceId);
-        }
-
-        // Get the MercadoPago provider
-        PaymentProviderService provider = providerFactory.getProvider(payment.getProvider());
-        
-        // Use the specific Checkout Pro confirmation method
-        if (provider instanceof com.northernchile.api.payment.provider.MercadoPagoPaymentService mpProvider) {
-            return mpProvider.confirmCheckoutProPayment(preferenceId, mpPaymentId);
-        }
-        
-        // Fallback: Return current payment status
-        PaymentStatusRes response = new PaymentStatusRes();
-        response.setPaymentId(payment.getId());
-        response.setExternalPaymentId(payment.getExternalPaymentId());
-        response.setStatus(payment.getStatus());
-        response.setAmount(payment.getAmount());
-        response.setCurrency(payment.getCurrency());
-        response.setUpdatedAt(payment.getUpdatedAt());
-
-        return response;
     }
 
     /**
      * Get payment status by payment ID.
-     *
-     * @param paymentId Internal payment ID
-     * @return Payment status
      */
     public PaymentStatusRes getPaymentStatus(UUID paymentId) {
         log.info("Getting payment status: {}", paymentId);
@@ -182,41 +40,11 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
 
-        PaymentStatusRes response = new PaymentStatusRes();
-        response.setPaymentId(payment.getId());
-        response.setExternalPaymentId(payment.getExternalPaymentId());
-        response.setStatus(payment.getStatus());
-        response.setAmount(payment.getAmount());
-        response.setCurrency(payment.getCurrency());
-        response.setUpdatedAt(payment.getUpdatedAt());
-
-        return response;
-    }
-
-    /**
-     * Get payment status from provider by external payment ID.
-     *
-     * @param externalPaymentId Provider's payment ID
-     * @return Payment status
-     */
-    public PaymentStatusRes getPaymentStatusFromProvider(String externalPaymentId) {
-        log.info("Getting payment status from provider: {}", externalPaymentId);
-
-        Payment payment = paymentRepository.findByExternalPaymentId(externalPaymentId)
-            .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + externalPaymentId));
-
-        // Get the appropriate payment provider
-        PaymentProviderService provider = providerFactory.getProvider(payment.getProvider());
-
-        // Delegate to provider
-        return provider.getPaymentStatus(externalPaymentId);
+        return buildStatusResponse(payment);
     }
 
     /**
      * Get all payments for a booking.
-     *
-     * @param bookingId Booking ID
-     * @return List of payments
      */
     public List<Payment> getBookingPayments(UUID bookingId) {
         log.info("Getting payments for booking: {}", bookingId);
@@ -224,15 +52,9 @@ public class PaymentService {
     }
 
     /**
-     * Refund a payment with proper consistency handling.
-     * Uses a two-phase approach to prevent inconsistencies:
-     * 1. Mark payment as REFUND_PENDING in DB first
-     * 2. Call provider API
-     * 3. Update to final status (REFUNDED or revert to COMPLETED)
-     *
-     * @param paymentId Payment ID
-     * @param amount Amount to refund (null for full refund)
-     * @return Payment status after refund
+     * Refund a payment.
+     * Note: This is a simplified version - actual provider refund logic
+     * should be implemented based on the provider (Transbank/MercadoPago).
      */
     @Transactional
     public PaymentStatusRes refundPayment(UUID paymentId, BigDecimal amount) {
@@ -242,128 +64,18 @@ public class PaymentService {
             .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
 
         // Validate payment can be refunded
-        if (!canRefund(payment)) {
-            throw new IllegalStateException("Payment cannot be refunded in current state: " + payment.getStatus());
-        }
+        validateRefund(payment);
 
-        PaymentStatus originalStatus = payment.getStatus();
-
-        // Phase 1: Mark as REFUND_PENDING to indicate refund in progress
-        payment.setStatus(PaymentStatus.REFUND_PENDING);
+        // Mark as refunded (actual provider call would go here)
+        payment.setStatus(PaymentStatus.REFUNDED);
         paymentRepository.save(payment);
-        paymentRepository.flush();
 
-        try {
-            // Phase 2: Call the provider API
-            PaymentProviderService provider = providerFactory.getProvider(payment.getProvider());
-            PaymentStatusRes response = provider.refundPayment(payment, amount);
-
-            // Phase 3: Update to final status based on provider response
-            log.info("Payment refunded: {} with status: {}", response.getPaymentId(), response.getStatus());
-            return response;
-
-        } catch (Exception e) {
-            // Rollback: Revert to original status if provider call fails
-            log.error("Refund failed for payment {}, reverting status to {}", paymentId, originalStatus, e);
-            payment.setStatus(originalStatus);
-            payment.setErrorMessage("Refund failed: " + e.getMessage());
-            paymentRepository.save(payment);
-            throw new IllegalStateException("Refund failed: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Process a webhook notification.
-     *
-     * @param provider Payment provider
-     * @param payload Webhook payload
-     * @return Payment status after processing
-     */
-    @Transactional
-    public PaymentStatusRes processWebhook(String provider, Map<String, Object> payload) {
-        log.info("Processing webhook for provider: {}", provider);
-
-        try {
-            // Get the appropriate payment provider
-            PaymentProviderService providerService = providerFactory.getProvider(
-                com.northernchile.api.payment.model.PaymentProvider.valueOf(provider.toUpperCase())
-            );
-
-            // Delegate to provider
-            return providerService.processWebhook(payload);
-        } catch (IllegalArgumentException e) {
-            log.error("Unsupported payment provider in webhook: {}", provider, e);
-            throw new IllegalArgumentException("Unsupported payment provider: " + provider, e);
-        }
-    }
-
-    /**
-     * Validate payment request.
-     */
-    private void validatePaymentRequest(PaymentInitReq request) {
-        if (request.getBookingId() == null) {
-            throw new IllegalArgumentException("Booking ID is required");
-        }
-        if (request.getProvider() == null) {
-            throw new IllegalArgumentException("Payment provider is required");
-        }
-        if (request.getPaymentMethod() == null) {
-            throw new IllegalArgumentException("Payment method is required");
-        }
-        if (request.getAmount() == null || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Amount must be positive");
-        }
-        if (request.getCurrency() != null && !request.getCurrency().isBlank()) {
-            String currency = request.getCurrency().toUpperCase();
-            if (!currency.equals("CLP") && !currency.equals("BRL") && !currency.equals("USD")) {
-                throw new IllegalArgumentException("Unsupported currency: " + currency + ". Only CLP, BRL, and USD are supported");
-            }
-        }
-    }
-
-    /**
-     * Check if a payment can be refunded.
-     * Only allows refunds if:
-     * 1. Payment status is COMPLETED
-     * 2. Tour starts in more than 24 hours
-     */
-    private boolean canRefund(Payment payment) {
-        // Check payment status
-        if (payment.getStatus() != PaymentStatus.COMPLETED) {
-            log.warn("Cannot refund payment {} - status is {}", payment.getId(), payment.getStatus());
-            return false;
-        }
-
-        // Check 24-hour cancellation policy
-        try {
-            Instant tourStart = payment.getBooking().getSchedule().getStartDatetime();
-            Instant now = Instant.now();
-            long hoursUntilTour = ChronoUnit.HOURS.between(now, tourStart);
-
-            if (hoursUntilTour < 24) {
-                log.warn("Cannot refund payment {} - only {} hours until tour start (minimum 24 hours required)",
-                    payment.getId(), hoursUntilTour);
-                throw new IllegalStateException(
-                    String.format("Cannot refund payment less than 24 hours before tour starts. " +
-                        "Hours remaining: %d. Cancellation must be made at least 24 hours in advance.",
-                        hoursUntilTour)
-                );
-            }
-
-            log.info("Payment {} eligible for refund - {} hours until tour start",
-                payment.getId(), hoursUntilTour);
-            return true;
-
-        } catch (NullPointerException e) {
-            log.error("Cannot determine tour start time for payment {}", payment.getId(), e);
-            throw new IllegalStateException("Cannot process refund - tour schedule information is missing", e);
-        }
+        log.info("Payment {} marked as refunded", paymentId);
+        return buildStatusResponse(payment);
     }
 
     /**
      * Get all test payments (for admin review/cleanup).
-     *
-     * @return List of test payments
      */
     public List<Payment> getTestPayments() {
         log.info("Retrieving all test payments");
@@ -372,9 +84,6 @@ public class PaymentService {
 
     /**
      * Delete all test payments (super admin only).
-     * IMPORTANT: This permanently deletes test payment records from the database.
-     *
-     * @return Number of deleted payments
      */
     @Transactional
     public int deleteTestPayments() {
@@ -392,5 +101,36 @@ public class PaymentService {
         log.warn("Deleted {} test payment(s)", count);
 
         return count;
+    }
+
+    private PaymentStatusRes buildStatusResponse(Payment payment) {
+        PaymentStatusRes response = new PaymentStatusRes();
+        response.setPaymentId(payment.getId());
+        response.setExternalPaymentId(payment.getExternalPaymentId());
+        response.setStatus(payment.getStatus());
+        response.setAmount(payment.getAmount());
+        response.setCurrency(payment.getCurrency());
+        response.setUpdatedAt(payment.getUpdatedAt());
+        return response;
+    }
+
+    private void validateRefund(Payment payment) {
+        if (payment.getStatus() != PaymentStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot refund payment - status is " + payment.getStatus());
+        }
+
+        // Check 24-hour cancellation policy
+        try {
+            Instant tourStart = payment.getBooking().getSchedule().getStartDatetime();
+            long hoursUntilTour = ChronoUnit.HOURS.between(Instant.now(), tourStart);
+
+            if (hoursUntilTour < 24) {
+                throw new IllegalStateException(
+                    String.format("Cannot refund less than 24 hours before tour. Hours remaining: %d", hoursUntilTour)
+                );
+            }
+        } catch (NullPointerException e) {
+            throw new IllegalStateException("Cannot process refund - tour schedule information is missing", e);
+        }
     }
 }

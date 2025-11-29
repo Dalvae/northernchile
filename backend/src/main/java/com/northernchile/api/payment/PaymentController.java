@@ -1,14 +1,11 @@
 package com.northernchile.api.payment;
 
-import com.northernchile.api.payment.dto.PaymentInitReq;
-import com.northernchile.api.payment.dto.PaymentInitRes;
 import com.northernchile.api.payment.dto.PaymentStatusRes;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -21,11 +18,12 @@ import java.util.UUID;
 
 /**
  * Payment controller.
- * Handles payment-related operations including initiating payments, checking status, and processing refunds.
+ * Handles payment status, refunds, and admin operations for Payment entities.
+ * Note: Primary payment flow now uses PaymentSessionController.
  */
 @RestController
 @RequestMapping("/api/payments")
-@Tag(name = "Payments", description = "Payment processing operations")
+@Tag(name = "Payments", description = "Payment status and admin operations")
 @SecurityRequirement(name = "bearerAuth")
 public class PaymentController {
 
@@ -35,21 +33,6 @@ public class PaymentController {
 
     public PaymentController(PaymentService paymentService) {
         this.paymentService = paymentService;
-    }
-
-    @PostMapping("/init")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Initialize a payment", description = "Create a new payment transaction for a booking")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Payment initialized successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "404", description = "Booking not found")
-    })
-    public ResponseEntity<PaymentInitRes> initializePayment(@Valid @RequestBody PaymentInitReq request) {
-        log.info("Payment initialization request for booking: {}", request.getBookingId());
-        PaymentInitRes response = paymentService.createPayment(request);
-        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}/status")
@@ -63,53 +46,6 @@ public class PaymentController {
     public ResponseEntity<PaymentStatusRes> getPaymentStatus(@PathVariable("id") UUID paymentId) {
         log.info("Payment status request for: {}", paymentId);
         PaymentStatusRes response = paymentService.getPaymentStatus(paymentId);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/confirm")
-    @Operation(summary = "Confirm payment", description = "Confirm a payment after redirect (for Webpay, etc.)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Payment confirmed successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid token"),
-        @ApiResponse(responseCode = "404", description = "Payment not found")
-    })
-    public ResponseEntity<PaymentStatusRes> confirmPayment(
-        @RequestParam(value = "token_ws", required = false) String webpayToken,
-        @RequestParam(value = "token", required = false) String genericToken) {
-
-        // Support both Webpay's token_ws and generic token parameter
-        String token = webpayToken != null ? webpayToken : genericToken;
-
-        if (token == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        log.info("Payment confirmation request with token");
-        PaymentStatusRes response = paymentService.confirmPayment(token);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/confirm/mercadopago")
-    @Operation(summary = "Confirm MercadoPago payment", description = "Confirm a MercadoPago Checkout Pro payment after redirect")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Payment confirmed successfully"),
-        @ApiResponse(responseCode = "400", description = "Missing preference_id"),
-        @ApiResponse(responseCode = "404", description = "Payment not found")
-    })
-    public ResponseEntity<PaymentStatusRes> confirmMercadoPagoPayment(
-        @RequestParam(value = "preference_id", required = false) String preferenceId,
-        @RequestParam(value = "payment_id", required = false) String mpPaymentId,
-        @RequestParam(value = "collection_status", required = false) String collectionStatus) {
-
-        log.info("MercadoPago confirmation request - preference_id: {}, payment_id: {}, status: {}",
-            preferenceId, mpPaymentId, collectionStatus);
-
-        if (preferenceId == null && mpPaymentId == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        // Use preference_id to find our payment record (stored as externalPaymentId)
-        PaymentStatusRes response = paymentService.confirmMercadoPagoPayment(preferenceId, mpPaymentId);
         return ResponseEntity.ok(response);
     }
 

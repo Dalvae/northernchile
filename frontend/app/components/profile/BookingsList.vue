@@ -8,14 +8,12 @@ const localePath = useLocalePath()
 const { getCountryLabel, getCountryFlag } = useCountries()
 const { formatPrice } = useCurrency()
 const { generateBookingPdf } = useBookingPdf()
-const paymentStore = usePaymentStore()
 
 // Load bookings from backend
 const bookings = ref<BookingRes[]>([])
 const loading = ref(true)
 const editingBooking = ref<BookingRes | null>(null)
 const downloadingPdf = ref<string | null>(null)
-const payingBookingId = ref<string | null>(null)
 
 async function fetchBookings() {
   if (!authStore.isAuthenticated) {
@@ -147,33 +145,6 @@ function closeEditModal() {
 
 async function handleBookingSaved() {
   await fetchBookings()
-}
-
-async function continuePayment(booking: BookingRes) {
-  payingBookingId.value = booking.id
-  try {
-    // Initialize payment for this booking
-    const paymentResponse = await paymentStore.initializePayment({
-      bookingId: booking.id,
-      provider: 'TRANSBANK',
-      method: 'WEBPAY_PLUS',
-      returnUrl: `${window.location.origin}/api/payments/callback`
-    })
-
-    // Redirect to payment URL
-    if (paymentResponse.paymentUrl) {
-      window.location.href = paymentResponse.paymentUrl
-    }
-  } catch (error) {
-    console.error('Error initiating payment:', error)
-    toast.add({
-      color: 'error',
-      title: t('common.error'),
-      description: t('checkout.payment_error')
-    })
-  } finally {
-    payingBookingId.value = null
-  }
 }
 </script>
 
@@ -366,17 +337,6 @@ async function continuePayment(booking: BookingRes) {
               >
                 {{ t('profile.download') }}
               </UButton>
-              <!-- Pay Now button for PENDING bookings -->
-              <UButton
-                v-if="booking.status === 'PENDING'"
-                color="primary"
-                size="sm"
-                icon="i-lucide-credit-card"
-                :loading="payingBookingId === booking.id"
-                @click="continuePayment(booking)"
-              >
-                {{ t('profile.pay_now') }}
-              </UButton>
               <!-- Edit button only for CONFIRMED bookings -->
               <UButton
                 v-if="booking.status === 'CONFIRMED'"
@@ -389,7 +349,7 @@ async function continuePayment(booking: BookingRes) {
                 {{ t('profile.edit') }}
               </UButton>
               <UButton
-                v-if="booking.status === 'CONFIRMED' || booking.status === 'PENDING'"
+                v-if="booking.status === 'CONFIRMED'"
                 color="error"
                 variant="soft"
                 size="sm"

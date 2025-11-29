@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import type {
-  PaymentInitReq,
   PaymentInitRes,
   PaymentStatusRes
 } from '~/types/payment'
@@ -12,6 +11,11 @@ interface PaymentState {
   pollingInterval: ReturnType<typeof setInterval> | null
 }
 
+/**
+ * Payment store for managing payment UI state.
+ * Note: Actual payment initialization uses PaymentSessionService via checkout.vue.
+ * This store manages UI state and polling for PIX payments.
+ */
 export const usePaymentStore = defineStore('payment', {
   state: (): PaymentState => ({
     currentPayment: null,
@@ -31,40 +35,6 @@ export const usePaymentStore = defineStore('payment', {
   },
 
   actions: {
-    /**
-     * Initialize a new payment
-     */
-    async initializePayment(request: PaymentInitReq): Promise<PaymentInitRes> {
-      this.isProcessing = true
-      this.error = null
-
-      const { extractErrorMessage, showErrorToast } = useApiError()
-
-      try {
-        const response = await $fetch<PaymentInitRes>(
-          '/api/payments/init',
-          {
-            method: 'POST',
-            body: request,
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          }
-        )
-
-        this.currentPayment = response
-        return response
-      } catch (error) {
-        const errorMessage = extractErrorMessage(error)
-        this.error = errorMessage
-        showErrorToast(error)
-        throw new Error(errorMessage)
-      } finally {
-        this.isProcessing = false
-      }
-    },
-
     /**
      * Get payment status
      */
@@ -127,33 +97,24 @@ export const usePaymentStore = defineStore('payment', {
     },
 
     /**
-     * Confirm payment after redirect (for Transbank)
-     */
-    async confirmPayment(token: string): Promise<PaymentStatusRes> {
-      const { extractErrorMessage, showErrorToast } = useApiError()
-
-      try {
-        const response = await $fetch<PaymentStatusRes>(
-          '/api/payments/confirm',
-          {
-            query: { token_ws: token }
-          }
-        )
-
-        return response
-      } catch (error) {
-        const errorMessage = extractErrorMessage(error)
-        this.error = errorMessage
-        showErrorToast(error)
-        throw new Error(errorMessage)
-      }
-    },
-
-    /**
      * Set current payment state (for PaymentSession flow)
      */
     setCurrentPayment(payment: Partial<PaymentInitRes>) {
       this.currentPayment = payment as PaymentInitRes
+    },
+
+    /**
+     * Set processing state
+     */
+    setProcessing(value: boolean) {
+      this.isProcessing = value
+    },
+
+    /**
+     * Set error message
+     */
+    setError(error: string | null) {
+      this.error = error
     },
 
     /**
