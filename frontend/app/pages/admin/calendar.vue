@@ -270,7 +270,7 @@ import type {
 } from '@fullcalendar/core'
 import esLocale from '@fullcalendar/core/locales/es'
 import type { TourRes, TourScheduleRes, TourScheduleCreateReq, WeatherAlert } from '~/lib/api-client/api'
-import { getLocalDateString, createInstant, CHILE_TIMEZONE } from '~/utils/dateUtils'
+import { getLocalDateString, CHILE_TIMEZONE } from '~/utils/dateUtils'
 
 definePageMeta({
   layout: 'admin'
@@ -528,13 +528,11 @@ const saveSchedule = async () => {
   savingSchedule.value = true
 
   try {
-    // Combine date and time into ISO datetime using createInstant
-    // This correctly handles Chile timezone
-    const isoDatetime = createInstant(scheduleForm.value.date, scheduleForm.value.time)
-
-    const payload: TourScheduleCreateReq & { status?: string } = {
+    // Send date and time separately - backend handles Chile timezone conversion
+    const payload: TourScheduleCreateReq & { status?: string, date?: string, time?: string } = {
       tourId: scheduleForm.value.tourId,
-      startDatetime: isoDatetime,
+      date: scheduleForm.value.date,
+      time: scheduleForm.value.time.length === 5 ? `${scheduleForm.value.time}:00` : scheduleForm.value.time,
       maxParticipants: scheduleForm.value.maxParticipants
     }
 

@@ -214,20 +214,49 @@ export function getMonthEnd(year: number, month: number): string {
 }
 
 /**
- * Create an Instant (ISO datetime with Z) from a local date and time.
+ * Create an Instant (ISO datetime with Z) from a Chile date and time.
  * Use when sending datetime to backend.
  *
- * @param dateStr - YYYY-MM-DD string
- * @param timeStr - HH:mm or HH:mm:ss string
+ * IMPORTANT: This function explicitly handles Chile timezone (America/Santiago)
+ * regardless of where the code runs (local dev, Vercel UTC server, etc.)
+ *
+ * @param dateStr - YYYY-MM-DD string (Chile date)
+ * @param timeStr - HH:mm or HH:mm:ss string (Chile time)
  */
 export function createInstant(dateStr: string, timeStr: string): string {
   // Ensure time has seconds
   const normalizedTime = timeStr.length === 5 ? `${timeStr}:00` : timeStr
 
-  // Create date in Chile timezone, then convert to ISO
-  const localDatetime = new Date(`${dateStr}T${normalizedTime}`)
+  // Parse the date/time components
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const [hours, minutes, seconds] = normalizedTime.split(':').map(Number)
 
-  return localDatetime.toISOString()
+  // Get Chile's UTC offset for this specific date/time
+  // We create a reference date and use Intl to find the offset
+  const referenceDate = new Date(Date.UTC(year!, month! - 1, day!, 12, 0, 0))
+
+  // Format the reference date in Chile timezone to find the offset
+  const chileFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: CHILE_TIMEZONE,
+    hour: '2-digit',
+    hour12: false
+  })
+  const chileHour = Number(chileFormatter.format(referenceDate))
+
+  // Calculate offset: if UTC 12:00 = Chile 09:00, offset is -3
+  const offsetHours = 12 - chileHour
+
+  // Create the correct UTC time by adding the offset
+  const utcDate = new Date(Date.UTC(
+    year!,
+    month! - 1,
+    day!,
+    hours! + offsetHours,
+    minutes!,
+    seconds!
+  ))
+
+  return utcDate.toISOString()
 }
 
 /**

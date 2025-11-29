@@ -158,6 +158,29 @@ tour.setDefaultStartTime(LocalTime.of(14, 30)); // 14:30:00
 
 ## Backend Configuration
 
+### ChileDateTimeUtils
+
+Location: `backend/src/main/java/com/northernchile/api/util/ChileDateTimeUtils.java`
+
+Centralized utility for all Chile timezone conversions:
+
+```java
+import com.northernchile.api.util.ChileDateTimeUtils;
+
+// Convert LocalDate + LocalTime to Instant (for storing)
+Instant instant = ChileDateTimeUtils.toInstant(date, time);
+
+// Convert Instant to LocalDate (for displaying)
+LocalDate date = ChileDateTimeUtils.toChileDate(instant);
+
+// Convert Instant to LocalTime (for displaying)
+LocalTime time = ChileDateTimeUtils.toChileTime(instant);
+
+// Get current date/time in Chile
+LocalDate today = ChileDateTimeUtils.todayInChile();
+LocalTime now = ChileDateTimeUtils.nowInChile();
+```
+
 ### Jackson Configuration
 Location: `backend/src/main/java/com/northernchile/api/config/JacksonConfig.java`
 
@@ -272,26 +295,42 @@ const date = new Date(timestamp + 3 * 60 * 60 * 1000); // ❌ Breaks with DST
 
 ### Pattern 1: Creating a TourSchedule from LocalDate + LocalTime
 
-**Backend**
-```java
-// Combine LocalDate + LocalTime → Instant
-LocalDate date = LocalDate.parse("2025-01-15");
-LocalTime time = LocalTime.parse("14:30:00");
-ZoneId zone = ZoneId.of("America/Santiago");
-
-Instant startDatetime = ZonedDateTime.of(date, time, zone).toInstant();
-schedule.setStartDatetime(startDatetime); // Stored as UTC in DB
-```
-
-**Frontend**
+**Frontend** sends date and time as separate strings:
 ```typescript
-// Send separate date and time, let backend combine
 const payload = {
-  tourDate: "2025-01-15",    // LocalDate
-  tourTime: "14:30:00",      // LocalTime
-  tourId: "uuid-here"
+  tourId: "uuid-here",
+  date: "2025-01-15",       // LocalDate string (YYYY-MM-DD)
+  time: "14:30:00",         // LocalTime string (HH:mm:ss)
+  maxParticipants: 10
 };
+
+await $fetch('/api/admin/schedules', {
+  method: 'POST',
+  body: payload
+});
 ```
+
+**Backend** uses `ChileDateTimeUtils` to convert:
+```java
+// In TourScheduleCreateReq.getStartDatetime()
+// Automatically converts date + time to Instant using Chile timezone
+Instant startDatetime = ChileDateTimeUtils.toInstant(req.getDate(), req.getTime());
+
+// Or manually:
+import com.northernchile.api.util.ChileDateTimeUtils;
+
+Instant instant = ChileDateTimeUtils.toInstant(
+    LocalDate.parse("2025-01-15"),
+    LocalTime.parse("14:30:00")
+);
+// Result: 2025-01-15T17:30:00Z (UTC) for summer, 2025-01-15T18:30:00Z for winter
+```
+
+**Why this approach?**
+- Frontend doesn't need to know about timezone offsets
+- Backend always applies Chile timezone correctly
+- Handles DST transitions automatically
+- Works regardless of where frontend code runs (local dev, Vercel UTC server, etc.)
 
 ### Pattern 2: Displaying Instant in User's Timezone
 
