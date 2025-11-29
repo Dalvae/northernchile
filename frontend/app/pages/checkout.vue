@@ -424,29 +424,54 @@ async function submitBooking() {
     }
 
     // Step 4: Handle payment flow based on method
-    if (selectedPaymentMethod.value.method === PaymentMethod.WEBPAY
-      || selectedPaymentMethod.value.method === PaymentMethod.CREDIT_CARD) {
-      // Redirect-based payments: Transbank Webpay or MercadoPago Checkout Pro
-      if (paymentSessionRes.paymentUrl) {
-        const providerName = selectedPaymentMethod.value.method === PaymentMethod.WEBPAY
-          ? 'Transbank'
-          : 'MercadoPago'
-
+    if (selectedPaymentMethod.value.method === PaymentMethod.WEBPAY) {
+      // Transbank Webpay - requires POST redirect with token_ws
+      if (paymentSessionRes.paymentUrl && paymentSessionRes.token) {
         toast.add({
           color: 'success',
           title: t('checkout.toast.redirecting_payment'),
-          description: t('checkout.toast.redirecting_provider', { provider: providerName })
+          description: t('checkout.toast.redirecting_provider', { provider: 'Transbank' })
         })
 
         // Clear checkout data before redirecting (payment initiated successfully)
         clearCheckoutData()
 
-        // Redirect to payment provider with a slight delay for better UX
+        // Transbank requires POST with token_ws parameter
+        setTimeout(() => {
+          const form = document.createElement('form')
+          form.method = 'POST'
+          form.action = paymentSessionRes.paymentUrl!
+
+          const tokenInput = document.createElement('input')
+          tokenInput.type = 'hidden'
+          tokenInput.name = 'token_ws'
+          tokenInput.value = paymentSessionRes.token!
+
+          form.appendChild(tokenInput)
+          document.body.appendChild(form)
+          form.submit()
+        }, 1500)
+      } else {
+        throw new Error('No payment URL or token received from Transbank')
+      }
+    } else if (selectedPaymentMethod.value.method === PaymentMethod.CREDIT_CARD) {
+      // MercadoPago Checkout Pro - uses GET redirect
+      if (paymentSessionRes.paymentUrl) {
+        toast.add({
+          color: 'success',
+          title: t('checkout.toast.redirecting_payment'),
+          description: t('checkout.toast.redirecting_provider', { provider: 'MercadoPago' })
+        })
+
+        // Clear checkout data before redirecting (payment initiated successfully)
+        clearCheckoutData()
+
+        // MercadoPago uses simple redirect
         setTimeout(() => {
           window.location.href = paymentSessionRes.paymentUrl!
         }, 1500)
       } else {
-        throw new Error('No payment URL received from payment provider')
+        throw new Error('No payment URL received from MercadoPago')
       }
     } else if (selectedPaymentMethod.value.method === PaymentMethod.PIX) {
       // PIX: Show QR code modal
