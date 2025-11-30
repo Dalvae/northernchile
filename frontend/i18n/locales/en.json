@@ -592,9 +592,9 @@
         "countries": "International",
         "info": "You will be redirected to MercadoPago to choose your preferred payment method."
       },
-      "pix": {
+      "qr": {
         "description": "Instant transfer via MercadoPago",
-        "info": "The PIX code expires in 30 minutes. Your booking will be confirmed automatically after payment."
+        "info": "The QR code expires in 30 minutes. Your booking will be confirmed automatically after payment."
       },
       "credit_card": {
         "name": "International Credit Card",
@@ -603,28 +603,28 @@
         "info": "You will be redirected to MercadoPago to complete the payment securely."
       }
     },
-    "pix": {
+    "qr": {
       "scan_qr_code": "Scan the QR Code",
       "scan_description": "Open your banking app and scan the code to complete payment",
       "expires_in": "Expires in",
       "expired": "Code expired",
-      "expired_description": "The PIX code has expired. Please start a new payment.",
-      "copy_paste_option": "Or copy and paste the PIX code",
+      "expired_description": "The QR code has expired. Please start a new payment.",
+      "copy_paste_option": "Or copy and paste the QR code",
       "code_copied": "Code copied",
-      "code_copied_description": "The PIX code has been copied to clipboard",
+      "code_copied_description": "The QR code has been copied to clipboard",
       "copy_error": "Error copying code",
-      "how_to_pay": "How to pay with PIX?",
+      "how_to_pay": "How to pay with QR?",
       "step_1": "Open your bank app",
-      "step_2": "Select the PIX option",
+      "step_2": "Select the QR option",
       "step_3": "Scan the QR or paste the code",
       "step_4": "Confirm payment in your app",
       "waiting_payment": "Waiting for your payment",
       "automatic_confirmation": "We will confirm your booking automatically upon receiving payment",
-      "supported_banks": "PIX is available in all Brazilian banks",
+      "supported_banks": "QR is available in all Brazilian banks",
       "payment_received": "Payment received!",
       "payment_received_description": "Your payment has been confirmed successfully",
       "payment_failed": "Payment failed",
-      "payment_failed_description": "We could not confirm your PIX payment"
+      "payment_failed_description": "We could not confirm your QR payment"
     },
     "security": {
       "title": "100% Secure Payment",
@@ -880,7 +880,7 @@
       "sections": [
         {
           "title": "1. Reservations, Prices, and Payments",
-          "content": "To confirm a reservation, full payment or the deposit indicated at checkout is required. All prices are in Chilean Pesos (CLP) and include VAT (19%). We accept Webpay Plus, PIX, and international cards. The reservation is only perfected upon receipt of the voucher in your email."
+          "content": "To confirm a reservation, full payment or the deposit indicated at checkout is required. All prices are in Chilean Pesos (CLP) and include VAT (19%). We accept Webpay Plus, QR, and international cards. The reservation is only perfected upon receipt of the voucher in your email."
         },
         {
           "title": "2. Exclusion of the Right of Withdrawal",

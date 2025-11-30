@@ -157,7 +157,19 @@ public class PaymentSessionPaymentAdapter {
     // === MercadoPago ===
 
     private PaymentSessionRes initializeMercadoPagoPayment(PaymentSession session, PaymentSessionReq request) {
-        log.info("Initializing MercadoPago payment for session: {}", session.getId());
+        log.info("Initializing MercadoPago payment for session: {} with method: {}",
+            session.getId(), session.getPaymentMethod());
+
+        // Use PIX API if payment method is PIX, otherwise use Checkout Pro
+        if (session.getPaymentMethod() != null && "PIX".equals(session.getPaymentMethod().name())) {
+            return initializeMercadoPagoPIX(session, request);
+        } else {
+            return initializeMercadoPagoCheckoutPro(session, request);
+        }
+    }
+
+    private PaymentSessionRes initializeMercadoPagoCheckoutPro(PaymentSession session, PaymentSessionReq request) {
+        log.info("Initializing MercadoPago Checkout Pro for session: {}", session.getId());
 
         try {
             MercadoPagoConfig.setAccessToken(mercadoPagoAccessToken);
@@ -202,7 +214,7 @@ public class PaymentSessionPaymentAdapter {
             PaymentSessionRes result = new PaymentSessionRes();
             result.setPaymentUrl(testMode ? preference.getSandboxInitPoint() : preference.getInitPoint());
             result.setToken(preference.getId());
-            
+
             // Store preference ID as external payment ID
             session.setExternalPaymentId(preference.getId());
 
@@ -211,6 +223,68 @@ public class PaymentSessionPaymentAdapter {
         } catch (Exception e) {
             log.error("Error creating MercadoPago preference for session: {}", session.getId(), e);
             throw new RuntimeException("Failed to create MercadoPago payment: " + e.getMessage(), e);
+        }
+    }
+
+    private PaymentSessionRes initializeMercadoPagoPIX(PaymentSession session, PaymentSessionReq request) {
+        log.info("Initializing MercadoPago PIX payment for session: {}", session.getId());
+
+        try {
+            MercadoPagoConfig.setAccessToken(mercadoPagoAccessToken);
+
+            // Use Payment API for PIX
+            com.mercadopago.client.payment.PaymentClient client = new com.mercadopago.client.payment.PaymentClient();
+
+            // Build payment request for PIX
+            com.mercadopago.client.payment.PaymentCreateRequest paymentRequest =
+                com.mercadopago.client.payment.PaymentCreateRequest.builder()
+                    .transactionAmount(session.getTotalAmount())
+                    .description(request.getDescription() != null ? request.getDescription() : "Tour booking")
+                    .paymentMethodId("pix")
+                    .payer(
+                        com.mercadopago.client.payment.PaymentPayerRequest.builder()
+                            .email(session.getUserEmail())
+                            .build()
+                    )
+                    .externalReference(session.getId().toString())
+                    .build();
+
+            com.mercadopago.resources.payment.Payment payment = client.create(paymentRequest);
+
+            PaymentSessionRes result = new PaymentSessionRes();
+
+            // Extract QR code from point_of_interaction
+            if (payment.getPointOfInteraction() != null
+                && payment.getPointOfInteraction().getTransactionData() != null) {
+
+                var transactionData = payment.getPointOfInteraction().getTransactionData();
+
+                // QR code base64 image
+                if (transactionData.getQrCodeBase64() != null) {
+                    result.setQrCode("data:image/png;base64," + transactionData.getQrCodeBase64());
+                }
+
+                // PIX copy-paste code
+                if (transactionData.getQrCode() != null) {
+                    result.setPixCode(transactionData.getQrCode());
+                }
+            }
+
+            // Store MercadoPago payment ID as external payment ID
+            result.setSessionId(session.getId());
+            result.setToken(payment.getId().toString());
+            session.setExternalPaymentId(payment.getId().toString());
+
+            // Payment is pending until PIX is paid
+            result.setStatus(PaymentSessionStatus.PENDING);
+
+            log.info("PIX payment created: {} for session: {}", payment.getId(), session.getId());
+
+            return result;
+
+        } catch (Exception e) {
+            log.error("Error creating MercadoPago PIX payment for session: {}", session.getId(), e);
+            throw new RuntimeException("Failed to create MercadoPago PIX payment: " + e.getMessage(), e);
         }
     }
 

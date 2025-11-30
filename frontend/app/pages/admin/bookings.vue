@@ -170,8 +170,22 @@ const groupingOptions = ref<GroupingOptions>({
 const { formatDateTime } = useDateTime()
 
 function formatTourDateTime(dateString: string, timeString?: string): string {
-  const base = formatDateTime(dateString)
-  return timeString ? `${base} - ${timeString}` : base
+  if (!dateString) return ''
+
+  // Format date as DD-MM-YYYY
+  const dateParts = dateString.split('-')
+  if (dateParts.length !== 3) return dateString
+
+  const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`
+
+  // Add time if provided (remove seconds)
+  if (timeString) {
+    const timeParts = timeString.split(':')
+    const formattedTime = timeParts.length >= 2 ? `${timeParts[0]}:${timeParts[1]}` : timeString
+    return `${formattedDate}, ${formattedTime}`
+  }
+
+  return formattedDate
 }
 </script>
 

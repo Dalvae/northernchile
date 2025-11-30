@@ -60,7 +60,10 @@ const CHECKOUT_PARTICIPANTS_KEY = 'checkout_participants'
 const CHECKOUT_STEP_KEY = 'checkout_step'
 
 // Load saved checkout data on mount
-onMounted(() => {
+onMounted(async () => {
+  // Fetch cart from backend to ensure we have latest data
+  await cartStore.fetchCart()
+
   try {
     // Load contact form (except passwords)
     const savedContact = localStorage.getItem(CHECKOUT_CONTACT_KEY)
@@ -485,8 +488,8 @@ async function submitBooking() {
       } else {
         throw new Error('No payment URL received from MercadoPago')
       }
-    } else if (selectedPaymentMethod.value.method === PaymentMethod.PIX) {
-      // PIX: Show QR code modal
+    } else if (selectedPaymentMethod.value.method === PaymentMethod.QR_CODE) {
+      // QR Code: Show QR code modal
       showPIXModal.value = true
     }
   } catch (error: unknown) {
@@ -945,28 +948,17 @@ const total = computed(() => cartStore.cart.cartTotal)
       <UModal
         v-model:open="showPIXModal"
         :prevent-close="true"
+        class="max-w-2xl"
       >
         <template #content>
-          <div class="p-6">
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">
-                {{ t('payment.pix.scan_qr_code') }}
-              </h3>
-              <UButton
-                icon="i-lucide-x"
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                @click="showPIXModal = false"
-              />
-            </div>
-
+          <div class="max-h-[85vh] overflow-y-auto p-6">
             <PaymentPIXDisplay
               v-if="paymentStore.currentPayment"
               :payment="paymentStore.currentPayment"
               @success="handlePIXSuccess"
               @failed="handlePIXFailed"
               @expired="handlePIXExpired"
+              @close="showPIXModal = false"
             />
           </div>
         </template>

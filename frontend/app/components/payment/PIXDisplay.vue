@@ -16,6 +16,7 @@ const emit = defineEmits<{
   success: []
   failed: [error: string]
   expired: []
+  close: []
 }>()
 
 // Time remaining
@@ -139,33 +140,44 @@ watch(
 
 <template>
   <div class="space-y-6">
-    <!-- Header -->
-    <div class="text-center">
-      <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-        <UIcon
-          name="i-lucide-qr-code"
-          class="w-8 h-8 text-primary"
-        />
-      </div>
-      <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
-        {{ t('payment.pix.scan_qr_code') }}
-      </h2>
-      <p class="text-neutral-600 dark:text-neutral-300">
-        {{ t('payment.pix.scan_description') }}
-      </p>
+    <!-- Header with close button -->
+    <div class="relative">
+      <UButton
+        icon="i-lucide-x"
+        color="neutral"
+        variant="ghost"
+        size="sm"
+        class="absolute top-0 right-0"
+        @click="emit('close')"
+      />
 
-      <!-- Test Mode Badge -->
-      <div
-        v-if="payment.isTest"
-        class="inline-flex items-center gap-2 mt-3 px-3 py-1.5 bg-warning/10 border border-warning/30 rounded-full"
-      >
-        <UIcon
-          name="i-lucide-flask-conical"
-          class="w-4 h-4 text-warning"
-        />
-        <span class="text-sm font-semibold text-warning">
-          {{ t('payment.test_mode') }}
-        </span>
+      <div class="text-center">
+        <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <UIcon
+            name="i-lucide-qr-code"
+            class="w-8 h-8 text-primary"
+          />
+        </div>
+        <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-2">
+          {{ t('payment.pix.scan_qr_code') }}
+        </h2>
+        <p class="text-neutral-600 dark:text-neutral-300">
+          {{ t('payment.pix.scan_description') }}
+        </p>
+
+        <!-- Test Mode Badge -->
+        <div
+          v-if="payment.isTest"
+          class="inline-flex items-center gap-2 mt-3 px-3 py-1.5 bg-warning/10 border border-warning/30 rounded-full"
+        >
+          <UIcon
+            name="i-lucide-flask-conical"
+            class="w-4 h-4 text-warning"
+          />
+          <span class="text-sm font-semibold text-warning">
+            {{ t('payment.test_mode') }}
+          </span>
+        </div>
       </div>
     </div>
 

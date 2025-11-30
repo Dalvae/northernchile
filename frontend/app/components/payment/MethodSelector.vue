@@ -33,26 +33,26 @@ const paymentOptions: PaymentOption[] = [
     method: PaymentMethod.WEBPAY,
     name: 'Webpay Plus',
     description: t('payment.methods.transbank.description'),
-    icon: 'i-lucide-credit-card',
+    icon: '/assets/images/payment-methods/webpay.svg',
     country: 'Chile',
     available: true
   },
   {
     provider: PaymentProvider.MERCADOPAGO,
     method: PaymentMethod.CREDIT_CARD,
-    name: 'MercadoPago',
+    name: 'Mercado Pago',
     description: t('payment.methods.mercadopago.description'),
-    icon: 'i-lucide-wallet',
+    icon: '/assets/images/payment-methods/mercadopago.svg',
     country: t('payment.methods.mercadopago.countries'),
     available: true
   },
   {
     provider: PaymentProvider.MERCADOPAGO,
-    method: PaymentMethod.PIX,
-    name: 'PIX (MercadoPago)',
-    description: t('payment.methods.pix.description'),
-    icon: 'i-lucide-qr-code',
-    country: 'Brasil',
+    method: PaymentMethod.QR_CODE,
+    name: 'Pago con QR',
+    description: t('payment.methods.qr.description'),
+    icon: '/assets/images/payment-methods/qr-code.svg',
+    country: 'Chile',
     available: true
   }
 ]
@@ -121,19 +121,15 @@ function isSelected(option: PaymentOption) {
         @keydown.space.prevent="selectMethod(option)"
       >
         <div class="flex items-start gap-4">
-          <!-- Icon -->
+          <!-- Logo -->
           <div
-            class="flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center"
-            :class="[
-              isSelected(option)
-                ? 'bg-primary/20 text-primary'
-                : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
-            ]"
+            class="flex-shrink-0 w-16 h-12 rounded-lg flex items-center justify-center overflow-hidden bg-white dark:bg-neutral-800 p-2"
           >
-            <UIcon
-              :name="option.icon"
-              class="w-6 h-6"
-            />
+            <img
+              :src="option.icon"
+              :alt="option.name"
+              class="w-full h-full object-contain"
+            >
           </div>
 
           <!-- Content -->
@@ -178,9 +174,9 @@ function isSelected(option: PaymentOption) {
           </div>
         </div>
 
-        <!-- Additional Info for PIX -->
+        <!-- Additional Info for QR Code -->
         <div
-          v-if="option.method === PaymentMethod.PIX && isSelected(option)"
+          v-if="option.method === PaymentMethod.QR_CODE && isSelected(option)"
           class="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700"
         >
           <div class="flex items-start gap-2 text-xs text-neutral-600 dark:text-neutral-300">
@@ -189,7 +185,7 @@ function isSelected(option: PaymentOption) {
               class="w-4 h-4 flex-shrink-0 mt-0.5 text-primary"
             />
             <p>
-              {{ t('payment.methods.pix.info') }}
+              {{ t('payment.methods.qr.info') }}
             </p>
           </div>
         </div>

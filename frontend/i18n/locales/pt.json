@@ -592,9 +592,9 @@
         "countries": "Internacional",
         "info": "Você será redirecionado ao MercadoPago para escolher seu método de pagamento preferido."
       },
-      "pix": {
+      "qr": {
         "description": "Transferência instantânea via MercadoPago",
-        "info": "O código PIX expira em 30 minutos. Sua reserva será confirmada automaticamente após o pagamento."
+        "info": "O código QR expira em 30 minutos. Sua reserva será confirmada automaticamente após o pagamento."
       },
       "credit_card": {
         "name": "Cartão de Crédito Internacional",
@@ -603,28 +603,28 @@
         "info": "Você será redirecionado ao MercadoPago para completar o pagamento de forma segura."
       }
     },
-    "pix": {
+    "qr": {
       "scan_qr_code": "Escaneie o Código QR",
       "scan_description": "Abra seu aplicativo bancário e escaneie o código para concluir o pagamento",
       "expires_in": "Expira em",
       "expired": "Código expirado",
-      "expired_description": "O código PIX expirou. Por favor, inicie um novo pagamento.",
-      "copy_paste_option": "Ou copie e cole o código PIX",
+      "expired_description": "O código QR expirou. Por favor, inicie um novo pagamento.",
+      "copy_paste_option": "Ou copie e cole o código QR",
       "code_copied": "Código copiado",
-      "code_copied_description": "O código PIX foi copiado para a área de transferência",
+      "code_copied_description": "O código QR foi copiado para a área de transferência",
       "copy_error": "Erro ao copiar código",
-      "how_to_pay": "Como pagar com PIX?",
+      "how_to_pay": "Como pagar com QR?",
       "step_1": "Abra o aplicativo do seu banco",
-      "step_2": "Selecione a opção PIX",
+      "step_2": "Selecione a opção QR",
       "step_3": "Escaneie o QR ou cole o código",
       "step_4": "Confirme o pagamento no seu app",
       "waiting_payment": "Aguardando seu pagamento",
       "automatic_confirmation": "Confirmaremos sua reserva automaticamente ao receber o pagamento",
-      "supported_banks": "PIX está disponível em todos os bancos brasileiros",
+      "supported_banks": "QR está disponível em todos os bancos brasileiros",
       "payment_received": "Pagamento recebido!",
       "payment_received_description": "Seu pagamento foi confirmado com sucesso",
       "payment_failed": "Pagamento falhou",
-      "payment_failed_description": "Não conseguimos confirmar seu pagamento PIX"
+      "payment_failed_description": "Não conseguimos confirmar seu pagamento QR"
     },
     "security": {
       "title": "Pagamento 100% Seguro",
@@ -880,7 +880,7 @@
       "sections": [
         {
           "title": "1. Reservas, Preços e Pagamentos",
-          "content": "Para confirmar uma reserva, é necessário o pagamento integral ou o depósito indicado no checkout. Todos os preços estão em Pesos Chilenos (CLP) e incluem IVA (19%). Aceitamos Webpay Plus, PIX e cartões internacionais. A reserva só é aperfeiçoada após o recebimento do comprovante (voucher) em seu e-mail."
+          "content": "Para confirmar uma reserva, é necessário o pagamento integral ou o depósito indicado no checkout. Todos os preços estão em Pesos Chilenos (CLP) e incluem IVA (19%). Aceitamos Webpay Plus, QR e cartões internacionais. A reserva só é aperfeiçoada após o recebimento do comprovante (voucher) em seu e-mail."
         },
         {
           "title": "2. Exclusão do Direito de Arrependimento",

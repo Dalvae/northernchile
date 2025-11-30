@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <!-- MercadoPago Logo -->
+  <defs>
+    <linearGradient id="mpGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00BCFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#009EE3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="30" cy="30" r="20" fill="url(#mpGradient)"/>
+  <path d="M 25 25 L 30 35 L 40 20" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="60" y="35" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#009EE3">Mercado Pago</text>
+</svg>

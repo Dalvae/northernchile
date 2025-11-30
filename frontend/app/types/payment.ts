@@ -8,8 +8,8 @@ export enum PaymentProvider {
 
 export enum PaymentMethod {
   WEBPAY = 'WEBPAY',
-  PIX = 'PIX',
   CREDIT_CARD = 'CREDIT_CARD',
+  QR_CODE = 'QR_CODE',
   DEBIT_CARD = 'DEBIT_CARD',
   BANK_TRANSFER = 'BANK_TRANSFER',
   WALLET = 'WALLET'
