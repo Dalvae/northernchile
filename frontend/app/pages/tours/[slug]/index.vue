@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { TourRes, ContentBlock, TourImageRes } from 'api-client'
+import type { TourRes, TourScheduleRes, ContentBlock, TourImageRes } from 'api-client'
 import { useCalendarData } from '~/composables/useCalendarData'
 import { useCurrency } from '~/composables/useCurrency'
 import { getTodayString, getLocalDateString } from '~/utils/dateUtils'
+import { useIntersectionObserver } from '@vueuse/core'
 
 const route = useRoute()
+const router = useRouter()
 const { locale, t } = useI18n()
-const localePath = useLocalePath()
+const _localePath = useLocalePath()
+const toast = useToast()
+const cartStore = useCartStore()
 const { formatPrice } = useCurrency()
 const tourSlug = route.params.slug as string
 
@@ -36,7 +40,7 @@ async function fetchContent(contentKey: string | undefined) {
   try {
     const contentModule = await import(`~/app/content/tours/${contentKey}.ts`)
     tourContent.value = contentModule.default
-  } catch (e) {
+  } catch (_e) {
     console.error(
       'No se encontró contenido enriquecido para la clave:',
       contentKey
@@ -55,7 +59,7 @@ watch(
   { immediate: true }
 )
 
-const translatedContent = computed(() => {
+const _translatedContent = computed(() => {
   if (!tourContent.value) return null
   return tourContent.value[locale.value] || tourContent.value.es
 })
@@ -168,7 +172,7 @@ useHead({
             'priceCurrency': 'CLP',
             'availability': 'https://schema.org/InStock',
             'url': `https://www.northernchile.com/tours/${tourSlug}`,
-'priceValidUntil': getLocalDateString(new Date(new Date().getFullYear() + 1, 11, 31)),
+            'priceValidUntil': getLocalDateString(new Date(new Date().getFullYear() + 1, 11, 31)),
             'seller': {
               '@type': 'Organization',
               'name': 'Northern Chile Tours'
@@ -199,11 +203,6 @@ useHead({
     }
   ]
 })
-
-async function goToSchedule() {
-  const schedulePath = localePath(`/tours/${tourSlug}/schedule`)
-  await navigateTo(schedulePath)
-}
 
 const showFloatingButton = ref(false)
 
@@ -255,6 +254,146 @@ function openLightbox(index: number) {
   lightboxInitialIndex.value = index
   lightboxOpen.value = true
 }
+
+// ===== BOOKING: Próximas salidas y calendario inline =====
+
+interface TourScheduleWithTour extends TourScheduleRes {
+  tour?: TourRes
+}
+
+const upcomingSchedules = ref<TourScheduleWithTour[]>([])
+const loadingSchedules = ref(true)
+
+// Selected schedule for booking modal
+const selectedSchedule = ref<TourScheduleWithTour | null>(null)
+const participantCount = ref(1)
+const showParticipantModal = ref(false)
+
+// Lazy loading for inline calendar
+const showInlineCalendar = ref(false)
+const calendarSectionRef = ref(null)
+
+useIntersectionObserver(
+  calendarSectionRef,
+  (entries) => {
+    const entry = entries[0]
+    if (entry?.isIntersecting) {
+      showInlineCalendar.value = true
+    }
+  },
+  { rootMargin: '200px' }
+)
+
+// Fetch upcoming schedules for this tour
+async function fetchUpcomingSchedules() {
+  if (!tour.value?.id) return
+
+  try {
+    loadingSchedules.value = true
+    const response = await $fetch<TourScheduleRes[]>(`/api/tours/${tour.value.id}/schedules`)
+
+    // Filter only available schedules with spots, sort by date, take first 5
+    upcomingSchedules.value = (response || [])
+      .filter(s => s.status === 'SCHEDULED' && (s.availableSpots ?? 0) > 0)
+      .sort((a, b) => new Date(a.startDatetime!).getTime() - new Date(b.startDatetime!).getTime())
+      .slice(0, 5)
+      .map(s => ({ ...s, tour: tour.value! }))
+  } catch (e) {
+    console.error('Error fetching schedules:', e)
+    upcomingSchedules.value = []
+  } finally {
+    loadingSchedules.value = false
+  }
+}
+
+// Format schedule date for display
+function formatScheduleDate(datetime: string) {
+  const date = new Date(datetime)
+  return date.toLocaleDateString(locale.value, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short'
+  })
+}
+
+function formatScheduleTime(datetime: string) {
+  const date = new Date(datetime)
+  return date.toLocaleTimeString(locale.value, {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+// Open booking modal for a schedule
+function openBookingModal(schedule: TourScheduleWithTour) {
+  selectedSchedule.value = schedule
+  participantCount.value = 1
+  showParticipantModal.value = true
+}
+
+// Handle schedule click from inline calendar
+function handleCalendarScheduleClick(schedule: TourScheduleRes, _tour: TourRes) {
+  openBookingModal({ ...schedule, tour: tour.value! })
+}
+
+// Computed for max participants in modal
+const maxParticipantsForSelected = computed(() => {
+  return selectedSchedule.value?.availableSpots ?? 1
+})
+
+// Total price computed
+const totalPrice = computed(() => {
+  return (tour.value?.price || 0) * participantCount.value
+})
+
+// Add to cart
+async function addToCart() {
+  if (!selectedSchedule.value?.id) return
+
+  try {
+    await cartStore.addItem({
+      scheduleId: selectedSchedule.value.id,
+      numParticipants: participantCount.value
+    })
+
+    toast.add({
+      color: 'success',
+      title: t('schedule.added_to_cart'),
+      description: `${translatedName.value} - ${formatScheduleDate(selectedSchedule.value.startDatetime!)}`
+    })
+
+    showParticipantModal.value = false
+    selectedSchedule.value = null
+
+    router.push('/cart')
+  } catch (e: unknown) {
+    const errorMessage = (e && typeof e === 'object' && 'data' in e
+      && e.data && typeof e.data === 'object' && 'message' in e.data)
+      ? (e.data as { message?: string }).message
+      : undefined
+
+    toast.add({
+      color: 'error',
+      title: t('common.error'),
+      description: errorMessage || t('schedule.error_adding_to_cart')
+    })
+  }
+}
+
+// Scroll to calendar section
+function scrollToCalendar() {
+  const element = document.getElementById('calendario-disponibilidad')
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+
+// Fetch schedules when tour is loaded
+watch(tour, (newTour) => {
+  if (newTour?.id) {
+    fetchUpcomingSchedules()
+  }
+}, { immediate: true })
 </script>
 
 <template>
@@ -501,27 +640,106 @@ function openLightbox(index: number) {
 
                 <div class="space-y-2">
                   <div class="flex justify-between text-sm">
-                    <span class="text-neutral-300">Precio por persona</span>
-                    <span class="text-white font-bold">${{ tour.price }}</span>
+                    <span class="text-neutral-300">{{ t('tours.price_per_person') }}</span>
+                    <span class="text-white font-bold">{{ formatPrice(tour.price || 0) }}</span>
                   </div>
                   <div class="flex justify-between text-sm">
-                    <span class="text-neutral-300">Duración</span>
+                    <span class="text-neutral-300">{{ t('tours.duration') }}</span>
                     <span class="text-white">{{ tour.durationHours }}h</span>
                   </div>
                 </div>
 
+                <!-- Próximas Salidas -->
+                <div class="space-y-3">
+                  <h4 class="text-sm font-semibold text-neutral-300">
+                    {{ t('schedule.upcoming_departures') }}
+                  </h4>
+
+                  <!-- Loading state -->
+                  <div
+                    v-if="loadingSchedules"
+                    class="space-y-2"
+                  >
+                    <div
+                      v-for="i in 3"
+                      :key="i"
+                      class="h-12 bg-white/5 rounded-lg animate-pulse"
+                    />
+                  </div>
+
+                  <!-- No schedules -->
+                  <div
+                    v-else-if="upcomingSchedules.length === 0"
+                    class="text-sm text-neutral-400 text-center py-4"
+                  >
+                    {{ t('schedule.no_upcoming') }}
+                  </div>
+
+                  <!-- Schedule buttons -->
+                  <div
+                    v-else
+                    class="space-y-2"
+                  >
+                    <button
+                      v-for="schedule in upcomingSchedules"
+                      :key="schedule.id"
+                      class="w-full flex items-center justify-between p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors group"
+                      @click="openBookingModal(schedule)"
+                    >
+                      <div class="flex items-center gap-3">
+                        <UIcon
+                          name="i-lucide-calendar"
+                          class="w-4 h-4 text-primary"
+                        />
+                        <div class="text-left">
+                          <span class="text-sm font-medium text-white block">
+                            {{ formatScheduleDate(schedule.startDatetime!) }}
+                          </span>
+                          <span class="text-xs text-neutral-400">
+                            {{ formatScheduleTime(schedule.startDatetime!) }}
+                          </span>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs text-neutral-400">
+                          {{ schedule.availableSpots }}/{{ schedule.maxParticipants }}
+                        </span>
+                        <UIcon
+                          name="i-lucide-chevron-right"
+                          class="w-4 h-4 text-neutral-500 group-hover:text-primary transition-colors"
+                        />
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- CTA Button -->
                 <UButton
+                  v-if="upcomingSchedules.length > 0"
                   block
                   size="xl"
                   color="primary"
                   class="cobre-glow font-bold"
-                  @click="goToSchedule"
+                  icon="i-lucide-ticket"
+                  @click="openBookingModal(upcomingSchedules[0]!)"
                 >
-                  Ver Disponibilidad
+                  {{ t('schedule.book_now') }}
                 </UButton>
 
+                <!-- Ver calendario completo -->
+                <button
+                  class="w-full text-center text-sm text-primary hover:text-primary/80 transition-colors flex items-center justify-center gap-1"
+                  @click="scrollToCalendar"
+                >
+                  {{ t('schedule.view_full_calendar') }}
+                  <UIcon
+                    name="i-lucide-chevron-down"
+                    class="w-4 h-4"
+                  />
+                </button>
+
                 <p class="text-xs text-center text-neutral-500">
-                  Cancelación gratuita hasta 24h antes
+                  {{ t('schedule.free_cancellation') }}
                 </p>
               </div>
 
@@ -575,6 +793,48 @@ function openLightbox(index: number) {
         </div>
       </UContainer>
 
+      <!-- Calendario de Disponibilidad (Inline) -->
+      <UContainer class="pb-24">
+        <div
+          id="calendario-disponibilidad"
+          ref="calendarSectionRef"
+          class="scroll-mt-24"
+        >
+          <h2 class="text-3xl font-display font-bold text-white mb-6">
+            {{ t('schedule.availability_calendar') }}
+          </h2>
+
+          <!-- Skeleton while loading -->
+          <div
+            v-if="!showInlineCalendar"
+            class="animate-pulse bg-neutral-800 h-96 rounded-xl flex items-center justify-center"
+          >
+            <p class="text-neutral-400">
+              {{ t('common.loading') }}...
+            </p>
+          </div>
+
+          <!-- Lazy-loaded calendar -->
+          <LazyTourCalendar
+            v-else
+            :tours="[tour]"
+            @schedule-click="handleCalendarScheduleClick"
+          >
+            <template #info>
+              <div class="mt-4 p-4 bg-info/10 rounded-lg">
+                <p class="text-sm text-info">
+                  <UIcon
+                    name="i-lucide-info"
+                    class="inline w-4 h-4 mr-1"
+                  />
+                  {{ t('schedule.calendar_info') }}
+                </p>
+              </div>
+            </template>
+          </LazyTourCalendar>
+        </div>
+      </UContainer>
+
       <!-- Image Lightbox -->
       <CommonImageLightbox
         v-if="galleryImages.length > 0"
@@ -582,6 +842,102 @@ function openLightbox(index: number) {
         :images="galleryImages"
         :initial-index="lightboxInitialIndex"
       />
+
+      <!-- Booking Modal -->
+      <UModal v-model:open="showParticipantModal">
+        <template #content>
+          <div class="p-6">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-xl font-bold text-neutral-900 dark:text-white">
+                {{ t('schedule.select_participants') }}
+              </h3>
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-x"
+                size="sm"
+                @click="showParticipantModal = false"
+              />
+            </div>
+
+            <!-- Selected Schedule Info -->
+            <div
+              v-if="selectedSchedule"
+              class="mb-6 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg"
+            >
+              <p class="text-sm text-neutral-600 dark:text-neutral-300 mb-1">
+                {{ t('schedule.selected_date') }}
+              </p>
+              <p class="font-semibold text-neutral-900 dark:text-white">
+                {{ new Date(selectedSchedule.startDatetime!).toLocaleDateString(locale, {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                }) }}
+                -
+                {{ formatScheduleTime(selectedSchedule.startDatetime!) }}
+              </p>
+              <p class="text-sm text-neutral-500 mt-1">
+                {{ selectedSchedule.availableSpots }} {{ t('schedule.spots_available') }}
+              </p>
+            </div>
+
+            <!-- Participant Counter -->
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-3">
+                {{ t('schedule.number_of_participants') }}
+              </label>
+              <div class="flex items-center justify-center gap-4">
+                <UButton
+                  color="neutral"
+                  variant="outline"
+                  icon="i-lucide-minus"
+                  size="lg"
+                  :disabled="participantCount <= 1"
+                  @click="participantCount--"
+                />
+                <span class="text-3xl font-bold text-neutral-900 dark:text-white w-16 text-center">
+                  {{ participantCount }}
+                </span>
+                <UButton
+                  color="neutral"
+                  variant="outline"
+                  icon="i-lucide-plus"
+                  size="lg"
+                  :disabled="participantCount >= maxParticipantsForSelected"
+                  @click="participantCount++"
+                />
+              </div>
+            </div>
+
+            <!-- Price Summary -->
+            <div class="mb-6 p-4 bg-primary/10 rounded-lg">
+              <div class="flex justify-between items-center">
+                <span class="text-neutral-700 dark:text-neutral-200">
+                  {{ formatPrice(tour.price || 0) }} x {{ participantCount }}
+                </span>
+                <span class="text-2xl font-bold text-primary">
+                  {{ formatPrice(totalPrice) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Add to Cart Button -->
+            <UButton
+              block
+              size="xl"
+              color="primary"
+              class="font-bold"
+              icon="i-lucide-shopping-cart"
+              @click="addToCart"
+            >
+              {{ t('schedule.add_to_cart') }}
+            </UButton>
+          </div>
+        </template>
+      </UModal>
     </div>
 
     <!-- Floating Mobile Booking Button -->
@@ -603,18 +959,29 @@ function openLightbox(index: number) {
               {{ translatedName }}
             </p>
             <p class="text-xl font-bold text-white">
-              ${{ tour.price }}
-              <span class="text-sm text-neutral-400 font-normal">/ persona</span>
+              {{ formatPrice(tour.price || 0) }}
+              <span class="text-sm text-neutral-400 font-normal">/ {{ t('common.person') }}</span>
             </p>
           </div>
           <UButton
+            v-if="upcomingSchedules.length > 0"
             size="lg"
             color="primary"
             class="cobre-glow font-bold shadow-lg"
-            icon="i-lucide-calendar-check"
-            @click="goToSchedule"
+            icon="i-lucide-ticket"
+            @click="openBookingModal(upcomingSchedules[0]!)"
           >
-            Reservar
+            {{ t('schedule.book_now') }}
+          </UButton>
+          <UButton
+            v-else
+            size="lg"
+            color="primary"
+            class="cobre-glow font-bold shadow-lg"
+            icon="i-lucide-calendar"
+            @click="scrollToCalendar"
+          >
+            {{ t('schedule.view_calendar') }}
           </UButton>
         </div>
       </div>
