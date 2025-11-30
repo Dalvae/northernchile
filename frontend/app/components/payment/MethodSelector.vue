@@ -45,15 +45,6 @@ const paymentOptions: PaymentOption[] = [
     icon: '/assets/images/payment-methods/mercadopago.svg',
     country: t('payment.methods.mercadopago.countries'),
     available: true
-  },
-  {
-    provider: PaymentProvider.MERCADOPAGO,
-    method: PaymentMethod.QR_CODE,
-    name: 'Pago con QR',
-    description: t('payment.methods.qr.description'),
-    icon: '/assets/images/payment-methods/qr-code.svg',
-    country: 'Chile',
-    available: true
   }
 ]
 
@@ -171,22 +162,6 @@ function isSelected(option: PaymentOption) {
                 class="w-4 h-4 text-white"
               />
             </div>
-          </div>
-        </div>
-
-        <!-- Additional Info for QR Code -->
-        <div
-          v-if="option.method === PaymentMethod.QR_CODE && isSelected(option)"
-          class="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700"
-        >
-          <div class="flex items-start gap-2 text-xs text-neutral-600 dark:text-neutral-300">
-            <UIcon
-              name="i-lucide-info"
-              class="w-4 h-4 flex-shrink-0 mt-0.5 text-primary"
-            />
-            <p>
-              {{ t('payment.methods.qr.info') }}
-            </p>
           </div>
         </div>
 
