@@ -38,12 +38,14 @@ interface Props {
   showLegend?: boolean
   height?: string
   initialView?: string
+  preloadedSchedules?: TourSchedule[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showLegend: true,
   height: 'auto',
-  initialView: 'dayGridMonth'
+  initialView: 'dayGridMonth',
+  preloadedSchedules: undefined
 })
 
 const emit = defineEmits<{
@@ -89,6 +91,12 @@ onMounted(() => {
 })
 
 async function fetchSchedules() {
+  // Use preloaded schedules if available
+  if (props.preloadedSchedules && props.preloadedSchedules.length > 0) {
+    schedules.value = props.preloadedSchedules
+    return
+  }
+
   try {
     const start = new Date()
     start.setHours(0, 0, 0, 0)

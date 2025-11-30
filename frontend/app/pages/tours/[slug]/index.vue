@@ -261,8 +261,17 @@ interface TourScheduleWithTour extends TourScheduleRes {
   tour?: TourRes
 }
 
-const upcomingSchedules = ref<TourScheduleWithTour[]>([])
+// All schedules for this tour (shared between sidebar and calendar)
+const allSchedules = ref<TourScheduleWithTour[]>([])
 const loadingSchedules = ref(true)
+
+// Upcoming schedules for sidebar (filtered from allSchedules)
+const upcomingSchedules = computed(() => {
+  return allSchedules.value
+    .filter(s => s.status === 'SCHEDULED' && (s.availableSpots ?? s.maxParticipants ?? 0) > 0)
+    .sort((a, b) => new Date(a.startDatetime!).getTime() - new Date(b.startDatetime!).getTime())
+    .slice(0, 5)
+})
 
 // Selected schedule for booking modal
 const selectedSchedule = ref<TourScheduleWithTour | null>(null)
@@ -284,8 +293,8 @@ useIntersectionObserver(
   { rootMargin: '200px' }
 )
 
-// Fetch upcoming schedules for this tour
-async function fetchUpcomingSchedules() {
+// Fetch all schedules for this tour (used by both sidebar and calendar)
+async function fetchSchedules() {
   if (!tour.value?.id) return
 
   try {
@@ -304,15 +313,11 @@ async function fetchUpcomingSchedules() {
       }
     })
 
-    // Filter only available schedules with spots, sort by date, take first 5
-    upcomingSchedules.value = (response || [])
-      .filter(s => s.status === 'SCHEDULED' && (s.availableSpots ?? s.maxParticipants ?? 0) > 0)
-      .sort((a, b) => new Date(a.startDatetime!).getTime() - new Date(b.startDatetime!).getTime())
-      .slice(0, 5)
-      .map(s => ({ ...s, tour: tour.value! }))
+    // Store all schedules with tour reference
+    allSchedules.value = (response || []).map(s => ({ ...s, tour: tour.value! }))
   } catch (e) {
     console.error('Error fetching schedules:', e)
-    upcomingSchedules.value = []
+    allSchedules.value = []
   } finally {
     loadingSchedules.value = false
   }
@@ -403,7 +408,7 @@ function scrollToCalendar() {
 // Fetch schedules when tour is loaded
 watch(tour, (newTour) => {
   if (newTour?.id) {
-    fetchUpcomingSchedules()
+    fetchSchedules()
   }
 }, { immediate: true })
 </script>
@@ -830,6 +835,7 @@ watch(tour, (newTour) => {
           <LazyTourCalendar
             v-else
             :tours="[tour]"
+            :preloaded-schedules="allSchedules"
             @schedule-click="handleCalendarScheduleClick"
           >
             <template #info>
