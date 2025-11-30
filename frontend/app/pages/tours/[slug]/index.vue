@@ -290,11 +290,23 @@ async function fetchUpcomingSchedules() {
 
   try {
     loadingSchedules.value = true
-    const response = await $fetch<TourScheduleRes[]>(`/api/tours/${tour.value.id}/schedules`)
+
+    // Set date range: today to 90 days from now
+    const start = new Date()
+    start.setHours(0, 0, 0, 0)
+    const end = new Date()
+    end.setDate(end.getDate() + 90)
+
+    const response = await $fetch<TourScheduleRes[]>(`/api/tours/${tour.value.id}/schedules`, {
+      params: {
+        start: getLocalDateString(start),
+        end: getLocalDateString(end)
+      }
+    })
 
     // Filter only available schedules with spots, sort by date, take first 5
     upcomingSchedules.value = (response || [])
-      .filter(s => s.status === 'SCHEDULED' && (s.availableSpots ?? 0) > 0)
+      .filter(s => s.status === 'SCHEDULED' && (s.availableSpots ?? s.maxParticipants ?? 0) > 0)
       .sort((a, b) => new Date(a.startDatetime!).getTime() - new Date(b.startDatetime!).getTime())
       .slice(0, 5)
       .map(s => ({ ...s, tour: tour.value! }))
