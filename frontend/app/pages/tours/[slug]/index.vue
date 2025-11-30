@@ -268,7 +268,7 @@ const loadingSchedules = ref(true)
 // Upcoming schedules for sidebar (filtered from allSchedules)
 const upcomingSchedules = computed(() => {
   return allSchedules.value
-    .filter(s => s.status === 'SCHEDULED' && (s.availableSpots ?? s.maxParticipants ?? 0) > 0)
+    .filter(s => (s.status === 'SCHEDULED' || s.status === 'OPEN') && (s.availableSpots ?? s.maxParticipants ?? 0) > 0)
     .sort((a, b) => new Date(a.startDatetime!).getTime() - new Date(b.startDatetime!).getTime())
     .slice(0, 5)
 })
