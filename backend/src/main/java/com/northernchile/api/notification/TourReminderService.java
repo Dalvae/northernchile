@@ -81,10 +81,14 @@ public class TourReminderService {
         TourSchedule schedule = booking.getSchedule();
         var tour = schedule.getTour();
 
-        // Format date and time
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' HH:mm")
-                .withZone(ZoneId.of(appTimezone));
-        String tourDateTime = dateFormatter.format(schedule.getStartDatetime());
+        // Format date and time separately
+        ZoneId zone = ZoneId.of(appTimezone);
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy")
+                .withZone(zone);
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+                .withZone(zone);
+        String tourDate = dateFormatter.format(schedule.getStartDatetime());
+        String tourTime = timeFormatter.format(schedule.getStartDatetime());
 
         // Get tour name in the correct language, with safe fallbacks
         String tourName = null;
@@ -112,7 +116,8 @@ public class TourReminderService {
                 booking.getUser().getFullName(),
                 booking.getId().toString(),
                 tourName,
-                tourDateTime,
+                tourDate,
+                tourTime,
                 booking.getLanguageCode() != null ? booking.getLanguageCode() : "es-CL"
         );
 

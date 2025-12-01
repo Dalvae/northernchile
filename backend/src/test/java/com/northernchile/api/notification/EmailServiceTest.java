@@ -176,7 +176,8 @@ class EmailServiceTest {
                     "Jane Doe",
                     "BK-67890",
                     "Tour del Valle del Elqui",
-                    "2025-01-16 10:00",
+                    "2025-01-16",
+                    "10:00",
                     "en-US"
             );
 
@@ -311,6 +312,7 @@ class EmailServiceTest {
                     "19:00",
                     "Hotel Plaza San Pedro",
                     "Ropa abrigada, cámara fotográfica",
+                    "+56 9 5765 5764",
                     "es-CL"
             );
 

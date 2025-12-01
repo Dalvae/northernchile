@@ -34,6 +34,9 @@ public class ManifestService {
     @Value("${manifest.operator-email:contacto@northernchile.com}")
     private String operatorEmail;
 
+    @Value("${manifest.emergency-contact:+56 9 5765 5764}")
+    private String emergencyContact;
+
     public ManifestService(BookingRepository bookingRepository, EmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.emailService = emailService;
@@ -130,7 +133,7 @@ public class ManifestService {
 
         String tourDate = dateFormatter.format(schedule.getStartDatetime());
         String tourTime = timeFormatter.format(schedule.getStartDatetime());
-        String pickupAddress = info.participant.getPickupAddress();
+        String pickupLocation = info.participant.getPickupAddress();
 
         // Get equipment list from tour
         String equipment = "";
@@ -149,8 +152,9 @@ public class ManifestService {
                 tourName,
                 tourDate,
                 tourTime,
-                pickupAddress != null ? pickupAddress : "",
+                pickupLocation != null ? pickupLocation : "",
                 equipment,
+                emergencyContact,
                 languageCode
         );
     }

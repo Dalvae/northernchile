@@ -91,14 +91,15 @@ public class EmailService {
      */
     @Async
     public CompletableFuture<Void> sendTourReminderEmail(String toEmail, String customerName, String bookingId,
-                                     String tourName, String tourDateTime, String languageCode) {
+                                     String tourName, String tourDate, String tourTime, String languageCode) {
         Locale locale = Locale.forLanguageTag(languageCode);
 
         Context context = new Context(locale);
         context.setVariable("customerName", customerName);
         context.setVariable("bookingId", bookingId);
         context.setVariable("tourName", tourName);
-        context.setVariable("tourDateTime", tourDateTime);
+        context.setVariable("tourDate", tourDate);
+        context.setVariable("tourTime", tourTime);
 
         String subject = messageSource.getMessage("email.reminder.title", null, locale);
         sendHtmlEmail(toEmail, subject, "email/tour-reminder", context, locale);
@@ -245,10 +246,10 @@ public class EmailService {
      * Send pickup reminder to participant 2 hours before tour
      */
     @Async
-    public CompletableFuture<Void> sendPickupReminderToParticipant(String toEmail, String participantName,
+    public CompletableFuture<Void> sendPickupReminderToParticipant(String toEmail, String customerName,
                                                                     String tourName, String tourDate, String tourTime,
-                                                                    String pickupAddress, String equipment,
-                                                                    String languageCode) {
+                                                                    String pickupLocation, String equipmentList,
+                                                                    String emergencyContact, String languageCode) {
         log.info("Sending pickup reminder to: {} for tour: {}", toEmail, tourName);
 
         if (!mailEnabled) {
@@ -264,12 +265,13 @@ public class EmailService {
             Locale locale = Locale.forLanguageTag(lang);
 
             Context context = new Context(locale);
-            context.setVariable("participantName", participantName);
+            context.setVariable("customerName", customerName);
             context.setVariable("tourName", tourName);
             context.setVariable("tourDate", tourDate);
             context.setVariable("tourTime", tourTime);
-            context.setVariable("pickupAddress", pickupAddress);
-            context.setVariable("equipment", equipment);
+            context.setVariable("pickupLocation", pickupLocation);
+            context.setVariable("equipmentList", equipmentList);
+            context.setVariable("emergencyContact", emergencyContact);
 
             String subject = messageSource.getMessage("pickup.subject", null, locale);
             sendHtmlEmail(toEmail, subject, "email/pickup-reminder", context, locale);
@@ -342,11 +344,9 @@ public class EmailService {
         Context context = new Context(locale);
         context.setVariable("customerName", customerName);
         context.setVariable("tourType", tourType);
-        context.setVariable("requestedDate", requestedDate);
-        context.setVariable("participantCount", participantCount);
-        context.setVariable("quotedPrice", quotedPrice);
-        context.setVariable("specialRequests", specialRequests);
-        context.setVariable("adminNotes", adminNotes);
+        context.setVariable("price", quotedPrice);
+        context.setVariable("requests", specialRequests);
+        context.setVariable("notes", adminNotes);
 
         String subject = messageSource.getMessage("email.private.quote.title", null, locale);
         sendHtmlEmail(toEmail, subject, "email/private-tour-quote", context, locale);
