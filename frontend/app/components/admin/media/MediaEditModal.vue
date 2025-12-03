@@ -56,7 +56,7 @@ const scheduleOptions = computed(() => [
 const tagInput = ref('')
 
 function addTag() {
-  const tag = tagInput.value.trim()
+  const tag = tagInput.value.trim().toLowerCase()
   if (tag && !state.value.tags.includes(tag)) {
     state.value.tags.push(tag)
     tagInput.value = ''
