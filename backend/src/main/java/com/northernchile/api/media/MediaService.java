@@ -279,8 +279,8 @@ public class MediaService {
     /**
      * List all media with pagination and filtering.
      */
-    public Page<MediaRes> listMedia(UUID requesterId, UUID tourId, UUID scheduleId, String search, Pageable pageable) {
-        log.info("Listing media for requester: {}, tour: {}, schedule: {}, search: {}", requesterId, tourId, scheduleId, search);
+    public Page<MediaRes> listMedia(UUID requesterId, UUID tourId, UUID scheduleId, String type, String search, Pageable pageable) {
+        log.info("Listing media for requester: {}, tour: {}, schedule: {}, type: {}, search: {}", requesterId, tourId, scheduleId, type, search);
 
         User requester = userRepository.findById(requesterId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
@@ -305,6 +305,14 @@ public class MediaService {
                             java.util.stream.Collectors.toList(),
                             list -> new org.springframework.data.domain.PageImpl<>(list, pageable, list.size())
                     ));
+        } else if (type != null && !type.isBlank()) {
+            // Filter by type (TOUR, SCHEDULE, LOOSE)
+            mediaPage = switch (type.toUpperCase()) {
+                case "TOUR" -> mediaRepository.findTourMediaByOwner(requesterId, pageable);
+                case "SCHEDULE" -> mediaRepository.findScheduleMediaByOwner(requesterId, pageable);
+                case "LOOSE" -> mediaRepository.findLooseMediaByOwner(requesterId, pageable);
+                default -> mediaRepository.findByOwnerId(requesterId, pageable);
+            };
         } else if (search != null && !search.isBlank()) {
             // For search: SUPER_ADMIN can search all media, PARTNER_ADMIN only their own
             if (isSuperAdmin) {

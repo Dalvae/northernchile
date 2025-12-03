@@ -45,6 +45,18 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
     Page<Media> findLooseMediaByOwner(@Param("ownerId") UUID ownerId, Pageable pageable);
 
     /**
+     * Find media assigned to any tour (tour IS NOT NULL)
+     */
+    @Query("SELECT m FROM Media m WHERE m.tour IS NOT NULL AND m.schedule IS NULL AND m.owner.id = :ownerId")
+    Page<Media> findTourMediaByOwner(@Param("ownerId") UUID ownerId, Pageable pageable);
+
+    /**
+     * Find media assigned to any schedule (schedule IS NOT NULL)
+     */
+    @Query("SELECT m FROM Media m WHERE m.schedule IS NOT NULL AND m.owner.id = :ownerId")
+    Page<Media> findScheduleMediaByOwner(@Param("ownerId") UUID ownerId, Pageable pageable);
+
+    /**
      * Search media by tags (contains any of the given tags)
      */
     @Query(value = "SELECT * FROM media WHERE owner_id = :ownerId AND tags && CAST(:tags AS text[])",

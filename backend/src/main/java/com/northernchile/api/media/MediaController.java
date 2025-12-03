@@ -75,6 +75,7 @@ public class MediaController {
     public ResponseEntity<Page<MediaRes>> listMedia(
             @RequestParam(required = false) UUID tourId,
             @RequestParam(required = false) UUID scheduleId,
+            @RequestParam(required = false) String type,
             @RequestParam(required = false) String search,
             Pageable pageable,
             @CurrentUser User currentUser) {
@@ -83,6 +84,7 @@ public class MediaController {
                 currentUser.getId(),
                 tourId,
                 scheduleId,
+                type,
                 search,
                 pageable
         );

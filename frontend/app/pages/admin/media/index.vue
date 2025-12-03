@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
-import type { MediaRes, PageMediaRes } from 'api-client'
+import type { MediaRes, PageMediaRes, TourRes } from 'api-client'
 import { formatFileSize, formatDate, getMediaTypeLabel, getMediaTypeBadgeColor } from '~/utils/media'
 
 definePageMeta({
@@ -10,7 +10,7 @@ definePageMeta({
 })
 
 const toast = useToast()
-const { fetchAdminMedia, deleteAdminMedia } = useAdminData()
+const { fetchAdminMedia, deleteAdminMedia, fetchAdminTours } = useAdminData()
 
 // Resolve components for use in h()
 const UCheckbox = resolveComponent('UCheckbox')
@@ -24,6 +24,8 @@ const editModalOpen = ref(false)
 const selectedMedia = ref<MediaRes | null>(null)
 const lightboxOpen = ref(false)
 const lightboxIndex = ref(0)
+const bulkAssignTourModalOpen = ref(false)
+const bulkTagsModalOpen = ref(false)
 
 // Row selection state (TanStack Table format: { rowIndex: true })
 const rowSelection = ref<Record<string, boolean>>({})
@@ -38,11 +40,40 @@ const selectedItems = computed(() => {
 
 // Filters
 const filters = ref({
-  search: ''
+  search: '',
+  type: undefined as string | undefined,
+  tourId: undefined as string | undefined
 })
 
 const page = ref(1)
 const pageSize = ref(20)
+
+// Type options for filter
+const typeOptions = [
+  { label: 'Todos los tipos', value: undefined },
+  { label: 'De Tour', value: 'TOUR' },
+  { label: 'De Salida', value: 'SCHEDULE' },
+  { label: 'Sin Asignar', value: 'LOOSE' }
+]
+
+// Fetch tours for filter dropdown
+const { data: tours } = useAsyncData<TourRes[]>(
+  'tours-for-media-filter',
+  () => fetchAdminTours(),
+  {
+    server: false,
+    lazy: true,
+    default: () => []
+  }
+)
+
+const tourOptions = computed(() => [
+  { label: 'Todos los tours', value: undefined },
+  ...(tours.value?.map(t => ({
+    label: t.nameTranslations?.es || 'Sin nombre',
+    value: t.id
+  })) || [])
+])
 
 // Lightbox state - accumulates all loaded media for seamless navigation
 const allLoadedMedia = ref<MediaRes[]>([])
@@ -58,7 +89,9 @@ const {
   () => fetchAdminMedia({
     page: (page.value - 1).toString(),
     size: pageSize.value.toString(),
-    search: filters.value.search || undefined
+    search: filters.value.search || undefined,
+    type: filters.value.type || undefined,
+    tourId: filters.value.tourId || undefined
   }),
   {
     server: false,
@@ -96,7 +129,7 @@ watch(media, (newMedia) => {
 
     // Create a new array to ensure reactivity
     const updated = [...allLoadedMedia.value]
-    
+
     // Ensure we have space for all items up to this page
     while (updated.length < startIndex) {
       updated.push(null as unknown as MediaRes)
@@ -106,15 +139,16 @@ watch(media, (newMedia) => {
     newMedia.forEach((item, idx) => {
       updated[startIndex + idx] = item
     })
-    
+
     allLoadedMedia.value = updated
   }
 }, { immediate: true })
 
 // Reset allLoadedMedia when filters change
-watch(() => filters.value.search, () => {
+watch([() => filters.value.search, () => filters.value.type, () => filters.value.tourId], () => {
   allLoadedMedia.value = []
   page.value = 1
+  refresh()
 })
 
 // Load more media for lightbox
@@ -128,7 +162,9 @@ async function loadMoreForLightbox() {
     const response = await fetchAdminMedia({
       page: nextPage.toString(),
       size: pageSize.value.toString(),
-      search: filters.value.search || undefined
+      search: filters.value.search || undefined,
+      type: filters.value.type || undefined,
+      tourId: filters.value.tourId || undefined
     })
 
     if (response?.content) {
@@ -328,6 +364,12 @@ async function bulkDelete() {
   rowSelection.value = {}
   await fetchMedia()
 }
+
+// Handle bulk action success (assign to tour, tags)
+async function handleBulkSuccess() {
+  rowSelection.value = {}
+  await fetchMedia()
+}
 </script>
 
 <template>
@@ -369,14 +411,33 @@ async function bulkDelete() {
 
     <!-- Filters -->
     <UCard>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Search -->
         <UInput
           v-model="filters.search"
           icon="i-heroicons-magnifying-glass"
-          placeholder="Buscar por nombre de archivo o etiquetas..."
+          placeholder="Buscar por nombre..."
           size="lg"
-          @update:model-value="fetchMedia"
+        />
+
+        <!-- Type filter -->
+        <USelect
+          v-model="filters.type"
+          :items="typeOptions"
+          option-attribute="label"
+          value-attribute="value"
+          placeholder="Filtrar por tipo"
+          size="lg"
+        />
+
+        <!-- Tour filter -->
+        <USelect
+          v-model="filters.tourId"
+          :items="tourOptions"
+          option-attribute="label"
+          value-attribute="value"
+          placeholder="Filtrar por tour"
+          size="lg"
         />
       </div>
     </UCard>
@@ -391,6 +452,22 @@ async function bulkDelete() {
       </span>
 
       <div class="flex gap-2">
+        <UButton
+          icon="i-heroicons-photo"
+          color="primary"
+          variant="soft"
+          @click="bulkAssignTourModalOpen = true"
+        >
+          Asignar a Tour
+        </UButton>
+        <UButton
+          icon="i-heroicons-tag"
+          color="secondary"
+          variant="soft"
+          @click="bulkTagsModalOpen = true"
+        >
+          Etiquetas
+        </UButton>
         <UButton
           icon="i-heroicons-trash"
           color="error"
@@ -454,6 +531,18 @@ async function bulkDelete() {
       :has-more="hasMoreItems"
       :loading-more="lightboxLoadingMore"
       @load-more="loadMoreForLightbox"
+    />
+
+    <AdminMediaBulkAssignTourModal
+      v-model="bulkAssignTourModalOpen"
+      :media-ids="selectedItems"
+      @success="handleBulkSuccess"
+    />
+
+    <AdminMediaBulkTagsModal
+      v-model="bulkTagsModalOpen"
+      :media-ids="selectedItems"
+      @success="handleBulkSuccess"
     />
   </div>
 </template>
