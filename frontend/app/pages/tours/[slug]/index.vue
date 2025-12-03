@@ -99,12 +99,22 @@ const featuredImages = computed(() => {
   return (
     tour.value?.images
       ?.filter((img: TourImageRes) => img.isFeatured && !img.isHeroImage)
-      .slice(0, 3) || []
+      .slice(0, 6) || []
   )
 })
 
 const galleryImages = computed(() => {
-  return (tour.value?.images?.filter((img: TourImageRes) => !img.isHeroImage) || [])
+  // Get IDs of featured images to exclude them from gallery
+  const featuredIds = new Set(featuredImages.value.map(img => img.id))
+  return (tour.value?.images?.filter((img: TourImageRes) => 
+    !img.isHeroImage && !featuredIds.has(img.id)
+  ) || [])
+    .filter((img): img is TourImageRes & { imageUrl: string } => !!img.imageUrl)
+})
+
+// All images for lightbox (featured + gallery, in order)
+const allLightboxImages = computed(() => {
+  return [...featuredImages.value, ...galleryImages.value]
     .filter((img): img is TourImageRes & { imageUrl: string } => !!img.imageUrl)
 })
 
@@ -250,8 +260,15 @@ onMounted(async () => {
 const lightboxOpen = ref(false)
 const lightboxInitialIndex = ref(0)
 
-function openLightbox(index: number) {
+function openFeaturedLightbox(index: number) {
+  // Featured images are at the beginning of allLightboxImages
   lightboxInitialIndex.value = index
+  lightboxOpen.value = true
+}
+
+function openGalleryLightbox(index: number) {
+  // Gallery images come after featured images in allLightboxImages
+  lightboxInitialIndex.value = featuredImages.value.length + index
   lightboxOpen.value = true
 }
 
@@ -559,11 +576,12 @@ watch(tour, (newTour) => {
               <h2 class="text-3xl font-display font-bold text-white">
                 Lo Mejor del Tour
               </h2>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div
                   v-for="(img, index) in featuredImages"
-                  :key="index"
-                  class="relative aspect-[4/3] rounded-xl overflow-hidden atacama-card group"
+                  :key="img.id || index"
+                  class="relative aspect-[4/3] rounded-xl overflow-hidden atacama-card group cursor-pointer"
+                  @click="openFeaturedLightbox(index)"
                 >
                   <NuxtImg
                     :src="img.imageUrl"
@@ -574,8 +592,13 @@ watch(tour, (newTour) => {
                     placeholder
                   />
                   <div
-                    class="absolute inset-0 bg-gradient-to-t from-neutral-950/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  />
+                    class="absolute inset-0 bg-gradient-to-t from-neutral-950/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
+                  >
+                    <UIcon
+                      name="i-heroicons-magnifying-glass-plus"
+                      class="w-10 h-10 text-white"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -597,7 +620,7 @@ watch(tour, (newTour) => {
               >
                 <div
                   class="relative aspect-[4/3] rounded-xl overflow-hidden atacama-card group cursor-pointer"
-                  @click="openLightbox(index)"
+                  @click="openGalleryLightbox(index)"
                 >
                   <NuxtImg
                     :src="item.imageUrl"
@@ -855,9 +878,9 @@ watch(tour, (newTour) => {
 
       <!-- Image Lightbox -->
       <CommonImageLightbox
-        v-if="galleryImages.length > 0"
+        v-if="allLightboxImages.length > 0"
         v-model="lightboxOpen"
-        :images="galleryImages"
+        :images="allLightboxImages"
         :initial-index="lightboxInitialIndex"
       />
 

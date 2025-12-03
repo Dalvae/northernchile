@@ -38,6 +38,11 @@ public class TourRes {
     private List<String> equipment;
     private List<String> additionalInfo;
 
+    // Full translations for admin editing
+    private Map<String, List<ItineraryItem>> itineraryTranslations;
+    private Map<String, List<String>> equipmentTranslations;
+    private Map<String, List<String>> additionalInfoTranslations;
+
     private Map<String, java.util.List<ContentBlock>> descriptionBlocksTranslations;
  
     public TourRes() {
@@ -226,6 +231,30 @@ public class TourRes {
  
     public void setAdditionalInfo(List<String> additionalInfo) {
         this.additionalInfo = additionalInfo;
+    }
+
+    public Map<String, List<ItineraryItem>> getItineraryTranslations() {
+        return itineraryTranslations;
+    }
+
+    public void setItineraryTranslations(Map<String, List<ItineraryItem>> itineraryTranslations) {
+        this.itineraryTranslations = itineraryTranslations;
+    }
+
+    public Map<String, List<String>> getEquipmentTranslations() {
+        return equipmentTranslations;
+    }
+
+    public void setEquipmentTranslations(Map<String, List<String>> equipmentTranslations) {
+        this.equipmentTranslations = equipmentTranslations;
+    }
+
+    public Map<String, List<String>> getAdditionalInfoTranslations() {
+        return additionalInfoTranslations;
+    }
+
+    public void setAdditionalInfoTranslations(Map<String, List<String>> additionalInfoTranslations) {
+        this.additionalInfoTranslations = additionalInfoTranslations;
     }
 
     public Map<String, java.util.List<ContentBlock>> getDescriptionBlocksTranslations() {

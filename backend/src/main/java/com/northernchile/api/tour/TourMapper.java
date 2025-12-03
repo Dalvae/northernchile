@@ -41,7 +41,10 @@ public interface TourMapper {
             @Mapping(target = "descriptionBlocksTranslations", source = "tour.descriptionBlocksTranslations"),
             @Mapping(target = "itinerary", expression = "java(mapItinerary(tour.getItineraryTranslations(), locale))"),
             @Mapping(target = "equipment", expression = "java(mapStringList(tour.getEquipmentTranslations(), locale))"),
-            @Mapping(target = "additionalInfo", expression = "java(mapStringList(tour.getAdditionalInfoTranslations(), locale))")
+            @Mapping(target = "additionalInfo", expression = "java(mapStringList(tour.getAdditionalInfoTranslations(), locale))"),
+            @Mapping(target = "itineraryTranslations", expression = "java(mapAllItineraryTranslations(tour.getItineraryTranslations()))"),
+            @Mapping(target = "equipmentTranslations", expression = "java(mapAllStringListTranslations(tour.getEquipmentTranslations()))"),
+            @Mapping(target = "additionalInfoTranslations", expression = "java(mapAllStringListTranslations(tour.getAdditionalInfoTranslations()))")
     })
     TourRes toTourRes(Tour tour, Locale locale);
 
@@ -79,6 +82,58 @@ public interface TourMapper {
         return result;
     }
 
+    /**
+     * Map all itinerary translations for admin editing (es, en, pt)
+     */
+    default Map<String, java.util.List<ItineraryItem>> mapAllItineraryTranslations(Map<String, Object> translations) {
+        if (translations == null || translations.isEmpty()) return null;
+        Map<String, java.util.List<ItineraryItem>> result = new java.util.HashMap<>();
+        for (String lang : translations.keySet()) {
+            Object localized = translations.get(lang);
+            if (localized instanceof java.util.List<?> list) {
+                java.util.List<ItineraryItem> items = new java.util.ArrayList<>();
+                for (Object o : list) {
+                    if (o instanceof java.util.Map<?, ?> m) {
+                        Object time = m.get("time");
+                        Object description = m.get("description");
+                        if (time != null && description != null) {
+                            ItineraryItem item = new ItineraryItem();
+                            item.setTime(time.toString());
+                            item.setDescription(description.toString());
+                            items.add(item);
+                        }
+                    }
+                }
+                if (!items.isEmpty()) {
+                    result.put(lang, items);
+                }
+            }
+        }
+        return result.isEmpty() ? null : result;
+    }
+
+    /**
+     * Map all string list translations for admin editing (es, en, pt)
+     */
+    default Map<String, java.util.List<String>> mapAllStringListTranslations(Map<String, Object> translations) {
+        if (translations == null || translations.isEmpty()) return null;
+        Map<String, java.util.List<String>> result = new java.util.HashMap<>();
+        for (String lang : translations.keySet()) {
+            Object localized = translations.get(lang);
+            if (localized instanceof java.util.List<?> list) {
+                java.util.List<String> items = new java.util.ArrayList<>();
+                for (Object o : list) {
+                    if (o != null) {
+                        items.add(o.toString());
+                    }
+                }
+                if (!items.isEmpty()) {
+                    result.put(lang, items);
+                }
+            }
+        }
+        return result.isEmpty() ? null : result;
+    }
 
 
     default TourRes toTourRes(Tour tour) {

@@ -3,13 +3,6 @@ import { z } from 'zod'
 import type { FormSubmitEvent, FormErrorEvent, FormError } from '@nuxt/ui'
 import type { TourRes, TourCreateReq, TourUpdateReq, ContentBlock, ItineraryItem, LocalTime } from 'api-client'
 
-// Extended TourRes with optional properties that may exist in responses
-interface ExtendedTourRes extends TourRes {
-  itineraryTranslations?: Record<string, ItineraryItem[]>
-  equipmentTranslations?: Record<string, string[]>
-  additionalInfoTranslations?: Record<string, string[]>
-}
-
 // Schema definition
 const schema = z.object({
   nameTranslations: z.object({
@@ -100,7 +93,6 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
     (tour) => {
       nextTick(() => {
         if (tour) {
-          const extendedTour = tour as ExtendedTourRes
           Object.assign(state, {
             nameTranslations: tour.nameTranslations || initialState.nameTranslations,
             moonSensitive: tour.moonSensitive ?? tour.isMoonSensitive ?? false,
@@ -114,9 +106,9 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
             status: tour.status,
             contentKey: tour.contentKey || '',
             guideName: tour.guideName || undefined,
-            itineraryTranslations: extendedTour.itineraryTranslations || undefined,
-            equipmentTranslations: extendedTour.equipmentTranslations || undefined,
-            additionalInfoTranslations: extendedTour.additionalInfoTranslations || undefined,
+            itineraryTranslations: tour.itineraryTranslations || undefined,
+            equipmentTranslations: tour.equipmentTranslations || undefined,
+            additionalInfoTranslations: tour.additionalInfoTranslations || undefined,
             descriptionBlocksTranslations: tour.descriptionBlocksTranslations || undefined
           })
         } else {
