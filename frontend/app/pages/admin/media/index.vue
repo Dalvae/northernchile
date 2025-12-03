@@ -48,7 +48,6 @@ const {
   {
     server: false,
     lazy: true,
-    watch: [page, pageSize], // Re-fetch when page or pageSize changes
     default: () => ({
       content: [],
       totalElements: 0,
@@ -64,6 +63,11 @@ const {
   }
 )
 
+// Watch page changes to trigger refresh
+watch([page, pageSize], () => {
+  refresh()
+})
+
 const media = computed(() => mediaResponse.value?.content || [])
 const totalItems = computed(() => mediaResponse.value?.totalElements || 0)
 const hasMoreItems = computed(() => allLoadedMedia.value.length < totalItems.value)
@@ -74,16 +78,20 @@ watch(media, (newMedia) => {
     // Calculate the start index for the current page
     const startIndex = (page.value - 1) * pageSize.value
 
+    // Create a new array to ensure reactivity
+    const updated = [...allLoadedMedia.value]
+    
     // Ensure we have space for all items up to this page
-    if (allLoadedMedia.value.length < startIndex) {
-      // Fill gaps with placeholders if needed (shouldn't happen with normal navigation)
-      allLoadedMedia.value.length = startIndex
+    while (updated.length < startIndex) {
+      updated.push(null as unknown as MediaRes)
     }
 
     // Add/replace items for current page
     newMedia.forEach((item, idx) => {
-      allLoadedMedia.value[startIndex + idx] = item
+      updated[startIndex + idx] = item
     })
+    
+    allLoadedMedia.value = updated
   }
 }, { immediate: true })
 
@@ -108,10 +116,8 @@ async function loadMoreForLightbox() {
     })
 
     if (response?.content) {
-      const startIndex = nextPage * pageSize.value
-      response.content.forEach((item, idx) => {
-        allLoadedMedia.value[startIndex + idx] = item
-      })
+      // Append new items to the array
+      allLoadedMedia.value = [...allLoadedMedia.value, ...response.content]
     }
   } catch (error) {
     console.error('Error loading more media:', error)
@@ -455,8 +461,8 @@ async function bulkDelete() {
           </div>
 
           <UPagination
-            v-model="page"
-            :page-count="pageSize"
+            v-model:page="page"
+            :items-per-page="pageSize"
             :total="totalItems"
           />
         </div>
