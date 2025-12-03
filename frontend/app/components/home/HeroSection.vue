@@ -7,11 +7,11 @@
       <NuxtImg
         src="https://northern-chile-assets.s3.sa-east-1.amazonaws.com/media/fac678c9-7461-4559-bc59-daf110182709.webp"
         alt="Cielo de Atacama"
-        class="w-full h-full object-cover object-bottom opacity-60 sm:opacity-70 scale-105 animate-slow-zoom"
+        class="w-full h-full object-cover object-bottom scale-105 animate-slow-zoom"
         placeholder
       />
       <div
-        class="absolute inset-0 bg-gradient-to-b from-neutral-950/80 via-neutral-950/20 to-neutral-950/40 z-10"
+        class="absolute inset-0 bg-gradient-to-b from-neutral-950/70 via-transparent to-neutral-950/30 z-10"
       />
       <ClientOnly>
         <LazyUiBgStars class="z-0 opacity-60" />
