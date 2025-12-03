@@ -29,6 +29,10 @@ const filters = ref({
 const page = ref(1)
 const pageSize = ref(20)
 
+// Lightbox state - accumulates all loaded media for seamless navigation
+const allLoadedMedia = ref<MediaRes[]>([])
+const lightboxLoadingMore = ref(false)
+
 // Fetch media with useAsyncData
 const {
   data: mediaResponse,
@@ -44,6 +48,7 @@ const {
   {
     server: false,
     lazy: true,
+    watch: [page, pageSize], // Re-fetch when page or pageSize changes
     default: () => ({
       content: [],
       totalElements: 0,
@@ -61,6 +66,59 @@ const {
 
 const media = computed(() => mediaResponse.value?.content || [])
 const totalItems = computed(() => mediaResponse.value?.totalElements || 0)
+const hasMoreItems = computed(() => allLoadedMedia.value.length < totalItems.value)
+
+// Update allLoadedMedia when media changes
+watch(media, (newMedia) => {
+  if (newMedia.length > 0) {
+    // Calculate the start index for the current page
+    const startIndex = (page.value - 1) * pageSize.value
+
+    // Ensure we have space for all items up to this page
+    if (allLoadedMedia.value.length < startIndex) {
+      // Fill gaps with placeholders if needed (shouldn't happen with normal navigation)
+      allLoadedMedia.value.length = startIndex
+    }
+
+    // Add/replace items for current page
+    newMedia.forEach((item, idx) => {
+      allLoadedMedia.value[startIndex + idx] = item
+    })
+  }
+}, { immediate: true })
+
+// Reset allLoadedMedia when filters change
+watch(() => filters.value.search, () => {
+  allLoadedMedia.value = []
+  page.value = 1
+})
+
+// Load more media for lightbox
+async function loadMoreForLightbox() {
+  if (lightboxLoadingMore.value || !hasMoreItems.value) return
+
+  const nextPage = Math.floor(allLoadedMedia.value.length / pageSize.value)
+
+  lightboxLoadingMore.value = true
+  try {
+    const response = await fetchAdminMedia({
+      page: nextPage.toString(),
+      size: pageSize.value.toString(),
+      search: filters.value.search || undefined
+    })
+
+    if (response?.content) {
+      const startIndex = nextPage * pageSize.value
+      response.content.forEach((item, idx) => {
+        allLoadedMedia.value[startIndex + idx] = item
+      })
+    }
+  } catch (error) {
+    console.error('Error loading more media:', error)
+  } finally {
+    lightboxLoadingMore.value = false
+  }
+}
 
 // Table columns
 const columns = [
@@ -157,8 +215,9 @@ const columns = [
   }
 ]
 
-// Fetch media function
+// Fetch media function - also resets accumulated media
 async function fetchMedia() {
+  allLoadedMedia.value = []
   await refresh()
 }
 
@@ -169,15 +228,16 @@ async function deleteMediaItem(id: string) {
   try {
     await deleteAdminMedia(id)
     toast.add({ color: 'success', title: 'Medio eliminado' })
-    await fetchMedia()
+    allLoadedMedia.value = [] // Reset accumulated media
+    await refresh()
   } catch (error) {
     console.error('Error deleting media:', error)
     toast.add({ color: 'error', title: 'Error al eliminar medio' })
   }
 }
 
-// Actions per row
-function getRowActions(row: MediaRes) {
+// Actions per row (available for future context menu usage)
+function _getRowActions(row: MediaRes) {
   return [
     [{
       label: 'Editar',
@@ -203,9 +263,12 @@ function openEditModal(mediaItem: MediaRes) {
 }
 
 function openLightbox(mediaItem: MediaRes) {
-  const index = media.value.findIndex(m => m.id === mediaItem.id)
-  if (index !== -1) {
-    lightboxIndex.value = index
+  // Find index in current page
+  const pageIndex = media.value.findIndex(m => m.id === mediaItem.id)
+  if (pageIndex !== -1) {
+    // Calculate global index: (page - 1) * pageSize + pageIndex
+    const globalIndex = (page.value - 1) * pageSize.value + pageIndex
+    lightboxIndex.value = globalIndex
     lightboxOpen.value = true
   }
 }
@@ -395,7 +458,6 @@ async function bulkDelete() {
             v-model="page"
             :page-count="pageSize"
             :total="totalItems"
-            @update:model-value="fetchMedia"
           />
         </div>
       </template>
@@ -415,8 +477,12 @@ async function bulkDelete() {
 
     <AdminMediaLightbox
       v-model="lightboxOpen"
-      :media="media"
+      :media="allLoadedMedia"
       :initial-index="lightboxIndex"
+      :total-items="totalItems"
+      :has-more="hasMoreItems"
+      :loading-more="lightboxLoadingMore"
+      @load-more="loadMoreForLightbox"
     />
   </div>
 </template>

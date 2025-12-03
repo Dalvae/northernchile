@@ -68,38 +68,44 @@ async function onFilesSelected(event: Event) {
 }
 
 async function processFiles(files: File[]) {
-  // Validate files first
-  const validFiles = files.filter((file) => {
-    // Validate type
+  // Validate type only (size validation happens AFTER optimization)
+  const imageFiles = files.filter((file) => {
     if (!file.type.startsWith('image/')) {
       toast.add({ color: 'error', title: `Archivo inválido: ${file.name}. Solo se permiten imágenes.` })
       return false
     }
-
-    // Validate size
-    if (file.size > 10 * 1024 * 1024) { // 10MB
-      toast.add({ color: 'error', title: `Archivo muy grande: ${file.name}. Máximo 10MB.` })
-      return false
-    }
-
     return true
   })
 
-  if (validFiles.length === 0) return
+  if (imageFiles.length === 0) return
 
-  // Optimize images in batch
+  // Optimize images in batch FIRST
   isOptimizing.value = true
 
   try {
-    const optimizedResults = await optimizeImages(validFiles, {
+    const optimizedResults = await optimizeImages(imageFiles, {
       maxDimension: 4000,
       onProgress: (current, total) => {
         // Could show progress here if desired
       }
     })
 
+    // Validate size AFTER optimization (10MB limit)
+    const maxSize = 10 * 1024 * 1024
+    const validResults = optimizedResults.filter((result) => {
+      if (result.file.size > maxSize) {
+        toast.add({
+          color: 'error',
+          title: `Archivo muy grande: ${result.file.name}`,
+          description: `Incluso después de optimizar, el archivo supera 10MB (${formatFileSize(result.file.size)})`
+        })
+        return false
+      }
+      return true
+    })
+
     // Add optimized files to upload queue
-    optimizedResults.forEach((result) => {
+    validResults.forEach((result) => {
       uploadingFiles.value.push({
         file: result.file,
         originalSize: result.originalSize,
@@ -110,15 +116,17 @@ async function processFiles(files: File[]) {
     })
 
     // Show optimization summary
-    const totalSavings = optimizedResults.reduce((sum, r) => sum + r.savings, 0)
-    const avgSavings = totalSavings / optimizedResults.length
+    if (validResults.length > 0) {
+      const totalSavings = validResults.reduce((sum, r) => sum + r.savings, 0)
+      const avgSavings = totalSavings / validResults.length
 
-    if (avgSavings > 5) {
-      toast.add({
-        title: `${validFiles.length} imágenes optimizadas`,
-        description: `Reducción promedio: ${avgSavings.toFixed(0)}%`,
-        color: 'success'
-      })
+      if (avgSavings > 5) {
+        toast.add({
+          title: `${validResults.length} imágenes optimizadas`,
+          description: `Reducción promedio: ${avgSavings.toFixed(0)}%`,
+          color: 'success'
+        })
+      }
     }
   } catch (error) {
     console.error('Error optimizing images:', error)
@@ -128,8 +136,13 @@ async function processFiles(files: File[]) {
       color: 'error'
     })
 
-    // Add original files if optimization fails
-    validFiles.forEach((file) => {
+    // Add original files if optimization fails (with size check)
+    const maxSize = 10 * 1024 * 1024
+    imageFiles.forEach((file) => {
+      if (file.size > maxSize) {
+        toast.add({ color: 'error', title: `Archivo muy grande: ${file.name}. Máximo 10MB.` })
+        return
+      }
       uploadingFiles.value.push({
         file,
         progress: 0,
@@ -274,7 +287,7 @@ function openFileDialog() {
             </p>
 
             <p class="text-sm text-neutral-600 dark:text-neutral-300 mb-4">
-              {{ isOptimizing ? 'Convirtiendo a WebP y comprimiendo' : 'Máximo 10MB por archivo. Se convertirán a WebP automáticamente' }}
+              {{ isOptimizing ? 'Convirtiendo a WebP y comprimiendo' : 'Se convertirán a WebP automáticamente (límite 10MB después de optimizar)' }}
             </p>
 
             <UButton

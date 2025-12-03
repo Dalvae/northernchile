@@ -7,7 +7,7 @@ const items = computed(() => [
     title: t('home.experience.astro_title'),
     description: t('home.experience.astro_desc'),
     icon: 'i-lucide-stars',
-    image: '/images/astro-experience.jpg',
+    image: 'https://northern-chile-assets.s3.sa-east-1.amazonaws.com/media/61d4013e-900c-4aa7-abb9-0eaae8706ba9.webp',
     color: 'text-primary-400',
     bg: 'bg-primary-500/10'
   },

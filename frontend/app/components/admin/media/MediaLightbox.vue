@@ -5,9 +5,12 @@ const props = defineProps<{
   modelValue: boolean
   media: MediaRes[]
   initialIndex: number
+  totalItems?: number
+  hasMore?: boolean
+  loadingMore?: boolean
 }>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'load-more'])
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -27,6 +30,9 @@ function goToPrevious() {
 function goToNext() {
   if (currentIndex.value < props.media.length - 1) {
     currentIndex.value++
+  } else if (props.hasMore && !props.loadingMore) {
+    // At the end but there's more - emit event to load more
+    emit('load-more')
   }
 }
 
@@ -45,6 +51,14 @@ function handleKeydown(event: KeyboardEvent) {
 // Watch for initial index changes
 watch(() => props.initialIndex, (newIndex) => {
   currentIndex.value = newIndex
+})
+
+// When more media is loaded, we stay at current index (which now has the next item)
+watch(() => props.media.length, (newLength, oldLength) => {
+  // If we were at the end and more items were loaded, advance to next
+  if (currentIndex.value === oldLength - 1 && newLength > oldLength) {
+    currentIndex.value++
+  }
 })
 
 // Add keyboard listener
@@ -113,11 +127,13 @@ function getTypeBadgeColor(type?: string): BadgeColor {
 
         <div class="absolute inset-y-0 right-4 flex items-center z-10">
           <UButton
-            v-if="currentIndex < media.length - 1"
-            icon="i-heroicons-chevron-right"
+            v-if="currentIndex < media.length - 1 || hasMore"
+            :icon="loadingMore ? 'i-heroicons-arrow-path' : 'i-heroicons-chevron-right'"
+            :class="{ 'animate-spin': loadingMore }"
             color="neutral"
             variant="soft"
             size="xl"
+            :disabled="loadingMore"
             @click="goToNext"
           />
         </div>
@@ -182,7 +198,7 @@ function getTypeBadgeColor(type?: string): BadgeColor {
 
             <!-- Right side: Counter -->
             <div class="text-sm text-neutral-300">
-              {{ currentIndex + 1 }} / {{ media.length }}
+              {{ currentIndex + 1 }} / {{ totalItems || media.length }}
             </div>
           </div>
         </div>

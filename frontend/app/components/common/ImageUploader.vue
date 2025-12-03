@@ -50,7 +50,7 @@
           {{ isDragging ? 'Suelta la imagen aquí' : 'Arrastra una imagen o haz clic para seleccionar' }}
         </p>
         <p class="text-sm text-neutral-500">
-          PNG, JPG, GIF hasta 10MB (se convertirá a WebP automáticamente)
+          PNG, JPG, GIF (se convertirá a WebP, límite 10MB después de optimizar)
         </p>
       </div>
 
@@ -153,17 +153,17 @@ const processFile = async (file: File) => {
       return
     }
 
-    // Validar tamaño máximo (10MB)
-    const maxSize = 10 * 1024 * 1024
-    if (file.size > maxSize) {
-      error.value = 'La imagen es muy grande. El tamaño máximo es 10MB'
-      return
-    }
-
-    // Optimizar imagen
+    // Optimizar imagen PRIMERO
     isOptimizing.value = true
     const { file: optimizedFile, originalSize, newSize, savings } = await optimizeImage(file)
     isOptimizing.value = false
+
+    // Validar tamaño DESPUÉS de optimizar (10MB)
+    const maxSize = 10 * 1024 * 1024
+    if (optimizedFile.size > maxSize) {
+      error.value = `La imagen sigue siendo muy grande después de optimizar (${formatFileSize(optimizedFile.size)}). Máximo 10MB.`
+      return
+    }
 
     // Mostrar información de optimización si hubo ahorro significativo
     if (savings > 5) {
