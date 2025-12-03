@@ -608,9 +608,21 @@ watch(tour, (newTour) => {
               v-if="galleryImages.length > 0"
               class="space-y-6"
             >
-              <h2 class="text-3xl font-display font-bold text-white">
-                Galería
-              </h2>
+              <div class="flex items-center justify-between">
+                <h2 class="text-3xl font-display font-bold text-white">
+                  Galería
+                </h2>
+                <button
+                  class="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors group"
+                  @click="openGalleryLightbox(0)"
+                >
+                  <span class="text-sm font-medium">{{ galleryImages.length }} {{ t('tours.images') }}</span>
+                  <UIcon
+                    name="i-lucide-images"
+                    class="w-5 h-5 group-hover:scale-110 transition-transform"
+                  />
+                </button>
+              </div>
               <UCarousel
                 v-slot="{ item, index }"
                 :items="galleryImages"
@@ -640,6 +652,22 @@ watch(tour, (newTour) => {
                   </div>
                 </div>
               </UCarousel>
+              <!-- View all images hint -->
+              <div
+                v-if="galleryImages.length > 3"
+                class="text-center"
+              >
+                <button
+                  class="inline-flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full text-sm text-neutral-300 hover:text-white transition-colors"
+                  @click="openGalleryLightbox(0)"
+                >
+                  <UIcon
+                    name="i-lucide-expand"
+                    class="w-4 h-4"
+                  />
+                  {{ t('tours.view_all_images', { count: allLightboxImages.length }) }}
+                </button>
+              </div>
             </div>
           </div>
 

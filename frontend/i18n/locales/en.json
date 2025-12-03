@@ -135,7 +135,9 @@
     "seo_description": "Explore our complete selection of astronomical tours and unique experiences in San Pedro de Atacama.",
     "subtitle": "Discover our exclusive experiences under the clearest skies in the world.",
     "calendar_subtitle": "Plan your visit. Check available dates for all our experiences.",
-    "loading_availability": "Loading availability..."
+    "loading_availability": "Loading availability...",
+    "images": "photos",
+    "view_all_images": "View all {count} photos"
   },
   "booking": {
     "title": "Book Tour",
