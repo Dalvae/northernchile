@@ -137,7 +137,9 @@
     "calendar_subtitle": "Planifica tu visita. Revisa las fechas disponibles para todas nuestras experiencias.",
     "loading_availability": "Cargando disponibilidad...",
     "images": "fotos",
-    "view_all_images": "Ver todas las {count} fotos"
+    "view_all_images": "Ver todas las {count} fotos",
+    "itinerary_title": "Itinerario",
+    "highlights_title": "Lo Mejor del Tour"
   },
   "booking": {
     "title": "Reservar Tour",

@@ -137,7 +137,9 @@
     "calendar_subtitle": "Plan your visit. Check available dates for all our experiences.",
     "loading_availability": "Loading availability...",
     "images": "photos",
-    "view_all_images": "View all {count} photos"
+    "view_all_images": "View all {count} photos",
+    "itinerary_title": "Itinerary",
+    "highlights_title": "Tour Highlights"
   },
   "booking": {
     "title": "Book Tour",

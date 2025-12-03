@@ -73,6 +73,14 @@ const descriptionBlocks = computed(() => {
     : []
 })
 
+const translatedItinerary = computed(() => {
+  const itinerary
+    = tour.value?.itineraryTranslations?.[locale.value]
+      || tour.value?.itineraryTranslations?.es
+      || tour.value?.itinerary
+  return Array.isArray(itinerary) ? itinerary : []
+})
+
 const translatedDescription = computed(() => {
   if (descriptionBlocks.value.length) {
     return ''
@@ -541,17 +549,17 @@ watch(tour, (newTour) => {
 
             <!-- Itinerary (Vertical Timeline) -->
             <div
-              v-if="tour.itinerary && tour.itinerary.length"
+              v-if="translatedItinerary && translatedItinerary.length"
               class="space-y-8"
             >
               <h2 class="text-3xl font-display font-bold text-white">
-                Itinerario Estelar
+                {{ t('tours.itinerary_title') }}
               </h2>
               <div
                 class="relative border-l-2 border-primary/30 ml-4 space-y-12 py-4"
               >
                 <div
-                  v-for="(item, index) in tour.itinerary"
+                  v-for="(item, index) in translatedItinerary"
                   :key="index"
                   class="relative pl-8"
                 >
@@ -574,7 +582,7 @@ watch(tour, (newTour) => {
               class="space-y-6"
             >
               <h2 class="text-3xl font-display font-bold text-white">
-                Lo Mejor del Tour
+                {{ t('tours.highlights_title') }}
               </h2>
               <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div
