@@ -5,7 +5,7 @@
     <!-- 1. BACKGROUND -->
     <div class="absolute inset-0 z-0 pointer-events-none">
       <NuxtImg
-        src="/images/hero-bg.jpg"
+        src="https://northern-chile-assets.s3.sa-east-1.amazonaws.com/media/fac678c9-7461-4559-bc59-daf110182709.webp"
         alt="Cielo de Atacama"
         class="w-full h-full object-cover opacity-40 sm:opacity-50 scale-105 animate-slow-zoom"
         placeholder
