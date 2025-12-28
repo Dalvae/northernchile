@@ -1,24 +1,20 @@
-export default defineEventHandler(async (event): Promise<any> => {
+export default defineEventHandler(async (event): Promise<unknown> => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
-
   const body = await readBody(event)
   const cookie = getHeader(event, 'cookie') || ''
 
   try {
-    const response = await $fetch(`${backendUrl}/api/profile/me/password`, {
+    return await $fetch(`${backendUrl}/api/profile/me/password`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': cookie
-      },
+      headers: { 'Content-Type': 'application/json', 'Cookie': cookie },
       body
     })
-    return response
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as { response?: { status?: number }, data?: { message?: string } }
     throw createError({
-      statusCode: error.response?.status || 500,
-      statusMessage: error.data?.message || 'Failed to update password'
+      statusCode: err.response?.status || 500,
+      statusMessage: err.data?.message || 'Failed to update password'
     })
   }
 })

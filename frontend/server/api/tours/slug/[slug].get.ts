@@ -14,14 +14,11 @@ export default defineEventHandler(async (event): Promise<TourRes> => {
     return await $fetch<TourRes>(
       `${apiBase}/api/tours/slug/${encodeURIComponent(slugParam)}`
     )
-  } catch (error: any) {
-    if (error?.status === 404) {
+  } catch (error) {
+    const status = (error as { status?: number })?.status
+    if (status === 404) {
       throw createError({ statusCode: 404, statusMessage: 'Tour not found' })
     }
-
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch tour'
-    })
+    throw createError({ statusCode: 500, statusMessage: 'Failed to fetch tour' })
   }
 })

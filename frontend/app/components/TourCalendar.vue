@@ -83,11 +83,19 @@ const lunarMap = ref(new Map<string, LunarPhase>())
 
 // Detect mobile
 const isMobile = ref(false)
-onMounted(() => {
+
+function handleResize() {
   isMobile.value = window.innerWidth < 768
-  window.addEventListener('resize', () => {
-    isMobile.value = window.innerWidth < 768
-  })
+}
+
+onMounted(async () => {
+  handleResize()
+  window.addEventListener('resize', handleResize)
+  await fetchCalendarData()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
 })
 
 async function fetchSchedules() {
@@ -540,10 +548,6 @@ watch(
   },
   { deep: true }
 )
-
-onMounted(async () => {
-  await fetchCalendarData()
-})
 
 defineExpose({
   refresh: fetchCalendarData

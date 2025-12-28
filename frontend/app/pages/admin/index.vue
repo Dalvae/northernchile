@@ -113,17 +113,18 @@ const bookingColumns = [
   {
     accessorKey: 'tourDate',
     header: 'Fecha/Hora',
-    cell: ({ row }: any) => {
+    cell: ({ row }: { row: import('@tanstack/vue-table').Row<BookingRes> }) => {
       const date = row.original.tourDate || row.getValue('tourDate')
       const time = row.original.tourStartTime
       if (!date) return ''
-      const formattedDate = formatDate(date)
+      const formattedDate = formatDate(date as string)
       return `${formattedDate}${time ? ` - ${time.slice(0, 5)}` : ''}`
     }
   },
   { accessorKey: 'userFullName', header: 'Cliente' },
   { accessorKey: 'status', header: 'Estado' },
-  { accessorKey: 'totalAmount', header: 'Monto' }
+  { accessorKey: 'totalAmount', header: 'Monto' },
+  { id: 'actions', header: '' }
 ]
 
 type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
@@ -138,15 +139,6 @@ function getStatusColor(status: string): BadgeColor {
   return colors[status] || 'neutral'
 }
 
-const actions = (row: BookingRes) => [
-  [
-    {
-      label: 'Ver Detalles',
-      icon: 'i-lucide-eye'
-      // TODO: Add click handler
-    }
-  ]
-]
 </script>
 
 <template>
@@ -228,6 +220,9 @@ const actions = (row: BookingRes) => [
         </template>
         <template #totalAmount-data="{ row }">
           <span>{{ formatCurrency(row.original.totalAmount) }}</span>
+        </template>
+        <template #actions-data="{ row }">
+          <AdminBookingsBookingDetailsModal :booking="row.original" />
         </template>
       </UTable>
     </UCard>

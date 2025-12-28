@@ -1,22 +1,16 @@
-export default defineEventHandler(async (event): Promise<any> => {
+export default defineEventHandler(async (event): Promise<unknown> => {
   const config = useRuntimeConfig(event)
   const backendUrl = config.public.apiBase
-
   const body = await readBody(event)
 
   try {
-    const response = await $fetch(`${backendUrl}/api/auth/register`, {
+    return await $fetch(`${backendUrl}/api/auth/register`, {
       method: 'POST',
-      body: body,
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: { 'Content-Type': 'application/json' },
+      body
     })
-    return response
-  } catch (error: any) {
-    throw createError({
-      statusCode: error.response?.status || 500,
-      statusMessage: 'Failed to register'
-    })
+  } catch (error) {
+    const status = (error as { response?: { status?: number } })?.response?.status || 500
+    throw createError({ statusCode: status, statusMessage: 'Failed to register' })
   }
 })

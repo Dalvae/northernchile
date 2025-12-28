@@ -6,8 +6,9 @@ export default defineNuxtPlugin((nuxtApp) => {
     authStore.initializeAuth()
 
     // Interceptor global para manejar errores 401
-    nuxtApp.hook('app:error', (error: any) => {
-      if (error?.statusCode === 401 || error?.response?.status === 401) {
+    nuxtApp.hook('app:error', (error) => {
+      const err = error as { statusCode?: number, response?: { status?: number } }
+      if (err?.statusCode === 401 || err?.response?.status === 401) {
         authStore.logout()
       }
     })
@@ -15,17 +16,17 @@ export default defineNuxtPlugin((nuxtApp) => {
     // Interceptor para fetch - automatically include cookies
     const originalFetch = globalThis.$fetch
 
-    const wrappedFetch = (async (url: any, options: any = {}) => {
-      // Ensure credentials are included for cookie-based auth
+    const wrappedFetch = (async (url: string, options: Parameters<typeof $fetch>[1] = {}) => {
       const enhancedOptions = {
         ...options,
-        credentials: options.credentials || 'include'
+        credentials: options.credentials || 'include' as const
       }
 
       try {
-        return await (originalFetch as any)(url, enhancedOptions)
-      } catch (error: any) {
-        if (error?.statusCode === 401 || error?.response?.status === 401) {
+        return await originalFetch(url, enhancedOptions)
+      } catch (error) {
+        const err = error as { statusCode?: number, response?: { status?: number } }
+        if (err?.statusCode === 401 || err?.response?.status === 401) {
           authStore.logout()
         }
         throw error
