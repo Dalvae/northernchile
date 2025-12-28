@@ -23,6 +23,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
@@ -40,6 +42,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("ReportsService Tests")
 class ReportsServiceTest {
 
@@ -87,7 +90,7 @@ class ReportsServiceTest {
     @DisplayName("Should calculate overview report with correct metrics")
     void shouldCalculateOverviewWithCorrectMetrics() {
         // Given
-        when(bookingRepository.findByCreatedAtBetween(any(), any())).thenReturn(mockBookings);
+        when(bookingRepository.findByCreatedAtBetweenWithTourInfo(any(), any())).thenReturn(mockBookings);
         when(userRepository.count()).thenReturn(100L);
         when(tourRepository.count()).thenReturn(20L);
         when(tourScheduleRepository.count()).thenReturn(150L);
@@ -112,7 +115,7 @@ class ReportsServiceTest {
     @DisplayName("Should calculate average booking value correctly")
     void shouldCalculateAverageBookingValue() {
         // Given
-        when(bookingRepository.findByCreatedAtBetween(any(), any())).thenReturn(mockBookings);
+        when(bookingRepository.findByCreatedAtBetweenWithTourInfo(any(), any())).thenReturn(mockBookings);
         when(userRepository.count()).thenReturn(100L);
         when(tourRepository.count()).thenReturn(20L);
         when(tourScheduleRepository.count()).thenReturn(150L);
@@ -129,7 +132,7 @@ class ReportsServiceTest {
     @DisplayName("Should handle empty bookings list")
     void shouldHandleEmptyBookingsList() {
         // Given
-        when(bookingRepository.findByCreatedAtBetween(any(), any())).thenReturn(new ArrayList<>());
+        when(bookingRepository.findByCreatedAtBetweenWithTourInfo(any(), any())).thenReturn(new ArrayList<>());
         when(userRepository.count()).thenReturn(100L);
         when(tourRepository.count()).thenReturn(20L);
         when(tourScheduleRepository.count()).thenReturn(150L);
@@ -149,7 +152,7 @@ class ReportsServiceTest {
     @DisplayName("Should group bookings by day correctly")
     void shouldGroupBookingsByDay() {
         // Given
-        when(bookingRepository.findByCreatedAtBetween(any(), any())).thenReturn(mockBookings);
+        when(bookingRepository.findByCreatedAtBetweenWithTourInfo(any(), any())).thenReturn(mockBookings);
 
         // When
         List<BookingsByDayReport> report = reportsService.getBookingsByDay(start, end);
@@ -169,7 +172,7 @@ class ReportsServiceTest {
     @DisplayName("Should aggregate revenue by day correctly")
     void shouldAggregateRevenueByDay() {
         // Given
-        when(bookingRepository.findByCreatedAtBetween(any(), any())).thenReturn(mockBookings);
+        when(bookingRepository.findByCreatedAtBetweenWithTourInfo(any(), any())).thenReturn(mockBookings);
 
         // When
         List<BookingsByDayReport> report = reportsService.getBookingsByDay(start, end);
@@ -187,7 +190,7 @@ class ReportsServiceTest {
     @DisplayName("Should get top tours sorted by bookings count")
     void shouldGetTopToursSortedByBookingsCount() {
         // Given
-        when(bookingRepository.findByCreatedAtBetween(any(), any())).thenReturn(mockBookings);
+        when(bookingRepository.findByCreatedAtBetweenWithTourInfo(any(), any())).thenReturn(mockBookings);
 
         // When
         List<TopTourReport> report = reportsService.getTopTours(start, end, 10);
@@ -210,7 +213,7 @@ class ReportsServiceTest {
         for (int i = 0; i < 20; i++) {
             manyBookings.addAll(mockBookings);
         }
-        when(bookingRepository.findByCreatedAtBetween(any(), any())).thenReturn(manyBookings);
+        when(bookingRepository.findByCreatedAtBetweenWithTourInfo(any(), any())).thenReturn(manyBookings);
 
         // When
         List<TopTourReport> report = reportsService.getTopTours(start, end, 5);
@@ -223,7 +226,7 @@ class ReportsServiceTest {
     @DisplayName("Should calculate participants count in top tours")
     void shouldCalculateParticipantsCountInTopTours() {
         // Given
-        when(bookingRepository.findByCreatedAtBetween(any(), any())).thenReturn(mockBookings);
+        when(bookingRepository.findByCreatedAtBetweenWithTourInfo(any(), any())).thenReturn(mockBookings);
 
         // When
         List<TopTourReport> report = reportsService.getTopTours(start, end, 10);

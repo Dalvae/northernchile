@@ -5,11 +5,14 @@ import com.northernchile.api.availability.AvailabilityValidator.AvailabilityResu
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.cart.dto.CartItemReq;
 import com.northernchile.api.cart.dto.CartRes;
+import com.northernchile.api.exception.ResourceNotFoundException;
+import com.northernchile.api.exception.ScheduleFullException;
 import com.northernchile.api.model.Cart;
 import com.northernchile.api.model.CartItem;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.User;
+import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +57,9 @@ class CartServiceTest {
 
     @Mock
     private AvailabilityValidator availabilityValidator;
+
+    @Mock
+    private PricingService pricingService;
 
     @InjectMocks
     private CartService cartService;
@@ -212,7 +218,7 @@ class CartServiceTest {
 
             // When/Then
             assertThatThrownBy(() -> cartService.addItemToCart(testCart, itemReq))
-                    .isInstanceOf(EntityNotFoundException.class)
+                    .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessageContaining("TourSchedule not found");
         }
 
@@ -231,7 +237,7 @@ class CartServiceTest {
 
             // When/Then
             assertThatThrownBy(() -> cartService.addItemToCart(testCart, itemReq))
-                    .isInstanceOf(IllegalStateException.class)
+                    .isInstanceOf(ScheduleFullException.class)
                     .hasMessageContaining("No hay suficientes cupos disponibles");
         }
 
@@ -304,19 +310,39 @@ class CartServiceTest {
 
             testCart.getItems().add(item1);
 
+            // Mock pricing service - 2 participants * 50000 = 100000
+            when(pricingService.calculateMultipleItems(any())).thenReturn(
+                new PricingService.PricingResult(
+                    new BigDecimal("100000"),  // subtotal
+                    new BigDecimal("19000"),   // taxAmount
+                    new BigDecimal("119000"),  // totalAmount
+                    new BigDecimal("0.19")     // taxRate
+                )
+            );
+
             // When
             CartRes result = cartService.toCartRes(testCart);
 
             // Then
             assertThat(result.getCartId()).isEqualTo(testCart.getId());
             assertThat(result.getItems()).hasSize(1);
-            // 2 participants * 50000 = 100000
-            assertThat(result.getCartTotal()).isEqualByComparingTo(new BigDecimal("100000"));
+            // Total from pricing service
+            assertThat(result.getCartTotal()).isEqualByComparingTo(new BigDecimal("119000"));
         }
 
         @Test
         @DisplayName("Should handle empty cart")
         void shouldHandleEmptyCart() {
+            // Mock pricing service for empty cart
+            when(pricingService.calculateMultipleItems(any())).thenReturn(
+                new PricingService.PricingResult(
+                    BigDecimal.ZERO,           // subtotal
+                    BigDecimal.ZERO,           // taxAmount
+                    BigDecimal.ZERO,           // totalAmount
+                    new BigDecimal("0.19")     // taxRate
+                )
+            );
+
             // When
             CartRes result = cartService.toCartRes(testCart);
 
@@ -351,13 +377,23 @@ class CartServiceTest {
             testCart.getItems().add(item1);
             testCart.getItems().add(item2);
 
+            // Mock pricing service - (2 * 50000) + (3 * 30000) = 190000
+            when(pricingService.calculateMultipleItems(any())).thenReturn(
+                new PricingService.PricingResult(
+                    new BigDecimal("190000"),  // subtotal
+                    new BigDecimal("36100"),   // taxAmount
+                    new BigDecimal("226100"),  // totalAmount
+                    new BigDecimal("0.19")     // taxRate
+                )
+            );
+
             // When
             CartRes result = cartService.toCartRes(testCart);
 
             // Then
             assertThat(result.getItems()).hasSize(2);
-            // (2 * 50000) + (3 * 30000) = 100000 + 90000 = 190000
-            assertThat(result.getCartTotal()).isEqualByComparingTo(new BigDecimal("190000"));
+            // Total from pricing service (subtotal + tax)
+            assertThat(result.getCartTotal()).isEqualByComparingTo(new BigDecimal("226100"));
         }
 
         @Test
@@ -370,6 +406,16 @@ class CartServiceTest {
             item.setNumParticipants(4);
 
             testCart.getItems().add(item);
+
+            // Mock pricing service
+            when(pricingService.calculateMultipleItems(any())).thenReturn(
+                new PricingService.PricingResult(
+                    new BigDecimal("200000"),  // subtotal
+                    new BigDecimal("38000"),   // taxAmount
+                    new BigDecimal("238000"),  // totalAmount
+                    new BigDecimal("0.19")     // taxRate
+                )
+            );
 
             // When
             CartRes result = cartService.toCartRes(testCart);

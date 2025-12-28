@@ -6,6 +6,10 @@ import com.northernchile.api.availability.AvailabilityValidator.AvailabilityResu
 import com.northernchile.api.booking.dto.BookingCreateReq;
 import com.northernchile.api.booking.dto.BookingRes;
 import com.northernchile.api.booking.dto.ParticipantReq;
+import com.northernchile.api.exception.BookingCutoffException;
+import com.northernchile.api.exception.InvalidBookingStateException;
+import com.northernchile.api.exception.ResourceNotFoundException;
+import com.northernchile.api.exception.ScheduleFullException;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.Participant;
 import com.northernchile.api.model.Tour;
@@ -139,7 +143,7 @@ class BookingServiceTest {
             // Given
             when(tourScheduleRepository.findByIdWithLock(testSchedule.getId()))
                     .thenReturn(Optional.of(testSchedule));
-            when(availabilityValidator.validateAvailability(any(), anyInt()))
+            when(availabilityValidator.validateAvailability(any(), anyInt(), any(), any()))
                     .thenReturn(new AvailabilityResult(true, 10, 1, 0, 9, 1));
             when(bookingRepository.save(any(Booking.class)))
                     .thenAnswer(invocation -> {
@@ -156,16 +160,9 @@ class BookingServiceTest {
             // Then
             assertThat(result).isNotNull();
             verify(bookingRepository).save(any(Booking.class));
-            verify(emailService).sendBookingConfirmationEmail(
-                    eq(testUser.getEmail()),
-                    eq(testUser.getFullName()),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    eq(1),
-                    any(),
-                    eq("es-CL")
+            // Note: Email is sent after payment confirmation, not on booking creation
+            verify(emailService, never()).sendBookingConfirmationEmail(
+                    any(), any(), any(), any(), any(), any(), anyInt(), any(), any()
             );
         }
 
@@ -178,7 +175,7 @@ class BookingServiceTest {
 
             // When/Then
             assertThatThrownBy(() -> bookingService.createBooking(validBookingRequest, testUser))
-                    .isInstanceOf(EntityNotFoundException.class)
+                    .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessageContaining("TourSchedule not found");
         }
 
@@ -188,12 +185,12 @@ class BookingServiceTest {
             // Given
             when(tourScheduleRepository.findByIdWithLock(testSchedule.getId()))
                     .thenReturn(Optional.of(testSchedule));
-            when(availabilityValidator.validateAvailability(any(), anyInt()))
+            when(availabilityValidator.validateAvailability(any(), anyInt(), any(), any()))
                     .thenReturn(new AvailabilityResult(false, 10, 10, 0, 0, 1));
 
             // When/Then
             assertThatThrownBy(() -> bookingService.createBooking(validBookingRequest, testUser))
-                    .isInstanceOf(IllegalStateException.class)
+                    .isInstanceOf(ScheduleFullException.class)
                     .hasMessageContaining("No hay suficientes cupos disponibles");
         }
 
@@ -207,7 +204,7 @@ class BookingServiceTest {
 
             // When/Then
             assertThatThrownBy(() -> bookingService.createBooking(validBookingRequest, testUser))
-                    .isInstanceOf(IllegalStateException.class)
+                    .isInstanceOf(BookingCutoffException.class)
                     .hasMessageContaining("Bookings for this tour are closed");
         }
 
@@ -217,7 +214,7 @@ class BookingServiceTest {
             // Given
             when(tourScheduleRepository.findByIdWithLock(testSchedule.getId()))
                     .thenReturn(Optional.of(testSchedule));
-            when(availabilityValidator.validateAvailability(any(), anyInt()))
+            when(availabilityValidator.validateAvailability(any(), anyInt(), any(), any()))
                     .thenReturn(new AvailabilityResult(true, 10, 1, 0, 9, 1));
 
             ArgumentCaptor<Booking> bookingCaptor = ArgumentCaptor.forClass(Booking.class);
@@ -234,7 +231,10 @@ class BookingServiceTest {
 
             // Then
             Booking savedBooking = bookingCaptor.getValue();
-            assertThat(savedBooking.getTotalAmount()).isEqualByComparingTo(new BigDecimal("50000"));
+            // Now uses PricingService which returns totalAmount (59500) = subtotal (50000) + tax (9500)
+            assertThat(savedBooking.getTotalAmount()).isEqualByComparingTo(new BigDecimal("59500"));
+            assertThat(savedBooking.getSubtotal()).isEqualByComparingTo(new BigDecimal("50000"));
+            assertThat(savedBooking.getTaxAmount()).isEqualByComparingTo(new BigDecimal("9500"));
             assertThat(savedBooking.getStatus()).isEqualTo("PENDING");
         }
 
@@ -254,9 +254,18 @@ class BookingServiceTest {
 
             validBookingRequest.setParticipants(List.of(p1, p2));
 
+            // Set up pricing for 2 participants
+            PricingService.PricingResult pricingResult2 = new PricingService.PricingResult(
+                new BigDecimal("100000"),  // subtotal = 50000 * 2
+                new BigDecimal("19000"),   // taxAmount
+                new BigDecimal("119000"),  // totalAmount
+                new BigDecimal("0.19")     // taxRate
+            );
+            when(pricingService.calculateLineItem(any(BigDecimal.class), eq(2))).thenReturn(pricingResult2);
+
             when(tourScheduleRepository.findByIdWithLock(testSchedule.getId()))
                     .thenReturn(Optional.of(testSchedule));
-            when(availabilityValidator.validateAvailability(any(), eq(2)))
+            when(availabilityValidator.validateAvailability(any(), eq(2), any(), any()))
                     .thenReturn(new AvailabilityResult(true, 10, 2, 0, 8, 2));
 
             ArgumentCaptor<Booking> bookingCaptor = ArgumentCaptor.forClass(Booking.class);
@@ -274,8 +283,9 @@ class BookingServiceTest {
             // Then
             Booking savedBooking = bookingCaptor.getValue();
             assertThat(savedBooking.getParticipants()).hasSize(2);
-            // Total = 50000 * 2 = 100000
-            assertThat(savedBooking.getTotalAmount()).isEqualByComparingTo(new BigDecimal("100000"));
+            // Total = 50000 * 2 + tax = 119000
+            assertThat(savedBooking.getTotalAmount()).isEqualByComparingTo(new BigDecimal("119000"));
+            assertThat(savedBooking.getSubtotal()).isEqualByComparingTo(new BigDecimal("100000"));
         }
     }
 
@@ -358,7 +368,7 @@ class BookingServiceTest {
             // When/Then
             assertThatThrownBy(() -> bookingService.updateBookingStatus(
                     existingBooking.getId(), "CONFIRMED", testUser))
-                    .isInstanceOf(IllegalStateException.class)
+                    .isInstanceOf(InvalidBookingStateException.class)
                     .hasMessageContaining("Invalid status transition");
         }
 
@@ -373,7 +383,7 @@ class BookingServiceTest {
             // When/Then
             assertThatThrownBy(() -> bookingService.updateBookingStatus(
                     existingBooking.getId(), "CANCELLED", testUser))
-                    .isInstanceOf(IllegalStateException.class)
+                    .isInstanceOf(InvalidBookingStateException.class)
                     .hasMessageContaining("Invalid status transition");
         }
 
@@ -388,7 +398,7 @@ class BookingServiceTest {
             // When/Then
             assertThatThrownBy(() -> bookingService.updateBookingStatus(
                     existingBooking.getId(), "COMPLETED", testUser))
-                    .isInstanceOf(IllegalStateException.class)
+                    .isInstanceOf(InvalidBookingStateException.class)
                     .hasMessageContaining("Invalid status transition");
         }
     }
@@ -446,7 +456,7 @@ class BookingServiceTest {
 
             // When/Then
             assertThatThrownBy(() -> bookingService.getBookingById(nonExistentId, testUser))
-                    .isInstanceOf(EntityNotFoundException.class);
+                    .isInstanceOf(ResourceNotFoundException.class);
         }
     }
 
@@ -554,7 +564,7 @@ class BookingServiceTest {
             // When/Then
             assertThatThrownBy(() -> bookingService.confirmBookingAfterMockPayment(
                     confirmedBooking.getId(), testUser))
-                    .isInstanceOf(IllegalStateException.class)
+                    .isInstanceOf(InvalidBookingStateException.class)
                     .hasMessageContaining("Only PENDING bookings");
         }
     }
