@@ -4,7 +4,7 @@ import com.northernchile.api.booking.dto.BookingRes;
 import com.northernchile.api.booking.dto.ParticipantRes;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.Participant;
-import com.northernchile.api.util.ChileDateTimeUtils;
+import com.northernchile.api.util.DateTimeUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -37,10 +37,10 @@ public interface BookingMapper {
     }
 
     default LocalDate mapInstantToLocalDate(Instant instant) {
-        return ChileDateTimeUtils.toChileDate(instant);
+        return DateTimeUtils.toLocalDate(instant);
     }
 
     default LocalTime mapInstantToLocalTime(Instant instant) {
-        return ChileDateTimeUtils.toChileTime(instant);
+        return DateTimeUtils.toLocalTime(instant);
     }
 }

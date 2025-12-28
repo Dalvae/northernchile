@@ -1,6 +1,6 @@
 package com.northernchile.api.tour.dto;
 
-import com.northernchile.api.util.ChileDateTimeUtils;
+import com.northernchile.api.util.DateTimeUtils;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
@@ -60,7 +60,7 @@ public class TourScheduleCreateReq {
     public Instant getStartDatetime() {
         // Prefer date + time if both are provided
         if (date != null && time != null) {
-            return ChileDateTimeUtils.toInstant(date, time);
+            return DateTimeUtils.toInstant(date, time);
         }
         return startDatetime;
     }

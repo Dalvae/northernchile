@@ -15,9 +15,13 @@ import java.time.format.DateTimeFormatter;
  *
  * Java automatically handles these transitions.
  */
-public class DateTimeUtils {
+public final class DateTimeUtils {
 
-    private static final ZoneId CHILE_ZONE = ZoneId.of("America/Santiago");
+    public static final ZoneId CHILE_ZONE = ZoneId.of("America/Santiago");
+
+    private DateTimeUtils() {
+        // Utility class, no instantiation
+    }
 
     /**
      * Get the current date/time in Chile timezone
@@ -34,9 +38,17 @@ public class DateTimeUtils {
     }
 
     /**
+     * Get current time in Chile timezone
+     */
+    public static LocalTime timeNowInChile() {
+        return LocalTime.now(CHILE_ZONE);
+    }
+
+    /**
      * Convert a LocalDate to Instant at start of day in Chile timezone
      */
     public static Instant toInstantStartOfDay(LocalDate date) {
+        if (date == null) return null;
         return date.atStartOfDay(CHILE_ZONE).toInstant();
     }
 
@@ -44,6 +56,7 @@ public class DateTimeUtils {
      * Convert a LocalDate to Instant at end of day in Chile timezone
      */
     public static Instant toInstantEndOfDay(LocalDate date) {
+        if (date == null) return null;
         return date.atTime(23, 59, 59).atZone(CHILE_ZONE).toInstant();
     }
 
@@ -51,6 +64,7 @@ public class DateTimeUtils {
      * Convert LocalDate and LocalTime to Instant in Chile timezone
      */
     public static Instant toInstant(LocalDate date, LocalTime time) {
+        if (date == null || time == null) return null;
         return ZonedDateTime.of(date, time, CHILE_ZONE).toInstant();
     }
 
@@ -58,13 +72,15 @@ public class DateTimeUtils {
      * Convert LocalDateTime to Instant in Chile timezone
      */
     public static Instant toInstant(LocalDateTime dateTime) {
+        if (dateTime == null) return null;
         return dateTime.atZone(CHILE_ZONE).toInstant();
     }
 
     /**
      * Convert Instant to ZonedDateTime in Chile timezone
      */
-    public static ZonedDateTime toChileTime(Instant instant) {
+    public static ZonedDateTime toChileZonedDateTime(Instant instant) {
+        if (instant == null) return null;
         return instant.atZone(CHILE_ZONE);
     }
 
@@ -72,6 +88,7 @@ public class DateTimeUtils {
      * Convert Instant to LocalDate in Chile timezone
      */
     public static LocalDate toLocalDate(Instant instant) {
+        if (instant == null) return null;
         return instant.atZone(CHILE_ZONE).toLocalDate();
     }
 
@@ -79,6 +96,7 @@ public class DateTimeUtils {
      * Convert Instant to LocalTime in Chile timezone
      */
     public static LocalTime toLocalTime(Instant instant) {
+        if (instant == null) return null;
         return instant.atZone(CHILE_ZONE).toLocalTime();
     }
 
