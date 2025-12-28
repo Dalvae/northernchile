@@ -19,6 +19,13 @@ public final class DateTimeUtils {
 
     public static final ZoneId CHILE_ZONE = ZoneId.of("America/Santiago");
 
+    // Common formatters for display
+    public static final DateTimeFormatter DISPLAY_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    public static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("HH:mm");
+    public static final DateTimeFormatter DISPLAY_DATETIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    public static final DateTimeFormatter ISO_DATE = DateTimeFormatter.ISO_LOCAL_DATE;
+    public static final DateTimeFormatter ISO_TIME = DateTimeFormatter.ISO_LOCAL_TIME;
+
     private DateTimeUtils() {
         // Utility class, no instantiation
     }
@@ -106,6 +113,30 @@ public final class DateTimeUtils {
     public static String formatForDisplay(Instant instant, String pattern) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern).withZone(CHILE_ZONE);
         return formatter.format(instant);
+    }
+
+    /**
+     * Format an Instant as date (dd/MM/yyyy) in Chile timezone
+     */
+    public static String formatDate(Instant instant) {
+        if (instant == null) return null;
+        return DISPLAY_DATE.withZone(CHILE_ZONE).format(instant);
+    }
+
+    /**
+     * Format an Instant as time (HH:mm) in Chile timezone
+     */
+    public static String formatTime(Instant instant) {
+        if (instant == null) return null;
+        return DISPLAY_TIME.withZone(CHILE_ZONE).format(instant);
+    }
+
+    /**
+     * Format an Instant as date and time (dd/MM/yyyy HH:mm) in Chile timezone
+     */
+    public static String formatDateTime(Instant instant) {
+        if (instant == null) return null;
+        return DISPLAY_DATETIME.withZone(CHILE_ZONE).format(instant);
     }
 
     /**

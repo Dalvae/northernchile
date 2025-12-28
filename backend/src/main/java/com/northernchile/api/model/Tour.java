@@ -19,7 +19,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "tours")
-public class Tour {
+public class Tour implements OwnedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -17,53 +17,16 @@ const isOpen = computed({
   set: value => emit('update:modelValue', value)
 })
 
-const currentIndex = ref(props.initialIndex)
-
-const currentImage = computed(() => props.images[currentIndex.value])
-
-function goToPrevious() {
-  if (currentIndex.value > 0) {
-    currentIndex.value--
-  } else {
-    // Loop to last image
-    currentIndex.value = props.images.length - 1
+const { currentIndex, currentItem, goToPrevious, goToNext } = useLightboxNavigation(
+  toRef(() => props.images),
+  toRef(() => props.initialIndex),
+  {
+    loop: true,
+    onClose: () => { isOpen.value = false }
   }
-}
+)
 
-function goToNext() {
-  if (currentIndex.value < props.images.length - 1) {
-    currentIndex.value++
-  } else {
-    // Loop to first image
-    currentIndex.value = 0
-  }
-}
-
-function handleKeydown(event: KeyboardEvent) {
-  if (!isOpen.value) return
-
-  if (event.key === 'ArrowLeft') {
-    goToPrevious()
-  } else if (event.key === 'ArrowRight') {
-    goToNext()
-  } else if (event.key === 'Escape') {
-    isOpen.value = false
-  }
-}
-
-// Watch for initial index changes
-watch(() => props.initialIndex, (newIndex) => {
-  currentIndex.value = newIndex
-})
-
-// Add keyboard listener
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
-})
+const currentImage = computed(() => currentItem.value as ImageItem | undefined)
 </script>
 
 <template>

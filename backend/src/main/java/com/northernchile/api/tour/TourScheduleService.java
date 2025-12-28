@@ -8,8 +8,8 @@ import com.northernchile.api.model.User;
 import com.northernchile.api.tour.dto.TourScheduleCreateReq;
 import com.northernchile.api.tour.dto.TourScheduleRes;
 import com.northernchile.api.user.UserRepository;
+import com.northernchile.api.util.SecurityUtils;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,10 +48,7 @@ public class TourScheduleService {
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + req.getTourId()));
 
         // Check ownership for non-super-admins
-        if (!"ROLE_SUPER_ADMIN".equals(currentUser.getRole()) &&
-            !tour.getOwner().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("You do not have permission to create schedules for this tour.");
-        }
+        SecurityUtils.validateOwnership(currentUser, tour, "You do not have permission to create schedules for this tour.");
 
         var guide = req.getAssignedGuideId() != null ? userRepository.findById(req.getAssignedGuideId())
                 .orElseThrow(() -> new EntityNotFoundException("Guide not found with id: " + req.getAssignedGuideId())) : null;
@@ -88,10 +85,7 @@ public class TourScheduleService {
         Tour tour = schedule.getTour();
 
         // Check ownership for non-super-admins
-        if (!"ROLE_SUPER_ADMIN".equals(currentUser.getRole()) &&
-            !tour.getOwner().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("You do not have permission to update this schedule.");
-        }
+        SecurityUtils.validateOwnership(currentUser, tour, "You do not have permission to update this schedule.");
 
         // Capture old values for audit
         Map<String, Object> oldValues = Map.of(
@@ -134,10 +128,7 @@ public class TourScheduleService {
         Tour tour = schedule.getTour();
 
         // Check ownership for non-super-admins
-        if (!"ROLE_SUPER_ADMIN".equals(currentUser.getRole()) &&
-            !tour.getOwner().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("You do not have permission to cancel this schedule.");
-        }
+        SecurityUtils.validateOwnership(currentUser, tour, "You do not have permission to cancel this schedule.");
 
         // Capture old status for audit
         String oldStatus = schedule.getStatus();
@@ -179,10 +170,7 @@ public class TourScheduleService {
         Tour tour = schedule.getTour();
 
         // Check ownership for non-super-admins
-        if (!"ROLE_SUPER_ADMIN".equals(currentUser.getRole()) &&
-            !tour.getOwner().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("You do not have permission to delete this schedule.");
-        }
+        SecurityUtils.validateOwnership(currentUser, tour, "You do not have permission to delete this schedule.");
 
         // Audit log before deletion
         String tourName = tour.getDisplayName();

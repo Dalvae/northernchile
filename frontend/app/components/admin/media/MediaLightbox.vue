@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MediaRes } from 'api-client'
+import type { BadgeColor } from '~/types/ui'
 
 const props = defineProps<{
   modelValue: boolean
@@ -17,57 +18,27 @@ const isOpen = computed({
   set: value => emit('update:modelValue', value)
 })
 
-const currentIndex = ref(props.initialIndex)
-
-const currentMedia = computed(() => props.media[currentIndex.value])
-
-function goToPrevious() {
-  if (currentIndex.value > 0) {
-    currentIndex.value--
+const { currentIndex, currentItem, goToPrevious, goToNext, canGoPrevious } = useLightboxNavigation(
+  toRef(() => props.media),
+  toRef(() => props.initialIndex),
+  {
+    loop: false,
+    onClose: () => { isOpen.value = false },
+    onReachEnd: () => {
+      if (props.hasMore && !props.loadingMore) {
+        emit('load-more')
+      }
+    }
   }
-}
+)
 
-function goToNext() {
-  if (currentIndex.value < props.media.length - 1) {
-    currentIndex.value++
-  } else if (props.hasMore && !props.loadingMore) {
-    // At the end but there's more - emit event to load more
-    emit('load-more')
-  }
-}
+const currentMedia = computed(() => currentItem.value as MediaRes | undefined)
 
-function handleKeydown(event: KeyboardEvent) {
-  if (!isOpen.value) return
-
-  if (event.key === 'ArrowLeft') {
-    goToPrevious()
-  } else if (event.key === 'ArrowRight') {
-    goToNext()
-  } else if (event.key === 'Escape') {
-    isOpen.value = false
-  }
-}
-
-// Watch for initial index changes
-watch(() => props.initialIndex, (newIndex) => {
-  currentIndex.value = newIndex
-})
-
-// When more media is loaded, we stay at current index (which now has the next item)
+// When more media is loaded, advance to next item
 watch(() => props.media.length, (newLength, oldLength) => {
-  // If we were at the end and more items were loaded, advance to next
   if (currentIndex.value === oldLength - 1 && newLength > oldLength) {
-    currentIndex.value++
+    goToNext()
   }
-})
-
-// Add keyboard listener
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
 })
 
 function formatDate(dateString?: string) {
@@ -83,8 +54,6 @@ function getTypeLabel(type?: string) {
   }
   return labels[type || ''] || type || '-'
 }
-
-type BadgeColor = 'error' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'info' | 'warning' | 'neutral'
 
 function getTypeBadgeColor(type?: string): BadgeColor {
   const colors: Record<string, BadgeColor> = {
@@ -116,7 +85,7 @@ function getTypeBadgeColor(type?: string): BadgeColor {
         <!-- Navigation arrows -->
         <div class="absolute inset-y-0 left-4 flex items-center z-10">
           <UButton
-            v-if="currentIndex > 0"
+            v-if="canGoPrevious"
             icon="i-heroicons-chevron-left"
             color="neutral"
             variant="soft"
