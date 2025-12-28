@@ -90,6 +90,17 @@
     },
     "today": "Hoje"
   },
+  "aria": {
+    "search_tours": "Buscar tours",
+    "filter_category": "Filtrar por categoria",
+    "sort_tours": "Ordenar tours",
+    "select_language": "Selecionar idioma",
+    "pickup_address": "Endereço de coleta",
+    "special_requirements": "Requisitos especiais",
+    "country_code": "Código do país",
+    "phone_number": "Número de telefone",
+    "email": "Email"
+  },
   "tours": {
     "all": "Todos os Tours",
     "featured": "Tours em Destaque",
@@ -170,6 +181,9 @@
     "pickup_address": "Endereço de Coleta",
     "pickup_address_placeholder": "Hotel, hostel ou endereço em San Pedro de Atacama",
     "pickup_address_help": "Por favor, indique onde você está hospedado em San Pedro de Atacama para a coleta",
+    "date_of_birth_help": "Usada para calcular a idade",
+    "phone_help": "Opcional. Para entrar em contato e enviar fotos do tour",
+    "email_help": "Opcional. Para enviar fotos do tour",
     "special_requirements": "Requisitos Especiais",
     "special_requirements_placeholder": "Alergias, mobilidade reduzida, restrições alimentares, etc.",
     "contact_info": "Informações de Contato",
@@ -280,9 +294,14 @@
     "password_update_error": "Erro ao atualizar senha",
     "personal_info": "Informações Pessoais",
     "phone": "Telefone",
+    "phone_placeholder": "+55 11 91234 5678",
     "select_country": "Selecione seu país",
     "saving": "Salvando...",
     "save": "Salvar",
+    "full_name": "Nome Completo",
+    "nationality": "Nacionalidade",
+    "date_of_birth": "Data de Nascimento",
+    "email_cannot_change_hint": "O email não pode ser alterado",
     "edit_booking": {
       "title": "Editar Reserva",
       "participants_info": "Informações dos Participantes",

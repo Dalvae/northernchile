@@ -74,7 +74,7 @@ function clearFilters() {
           size="xl"
           variant="ghost"
           class="w-full bg-white/5 text-white placeholder-neutral-400 focus:ring-primary-500"
-          aria-label="Buscar tours"
+          :aria-label="t('aria.search_tours')"
         />
       </div>
 
@@ -90,7 +90,7 @@ function clearFilters() {
             size="xl"
             variant="ghost"
             class="w-full bg-white/5 text-white"
-            aria-label="Filtrar por categoría"
+            :aria-label="t('aria.filter_category')"
           />
         </div>
 
@@ -104,7 +104,7 @@ function clearFilters() {
             size="xl"
             variant="ghost"
             class="w-full bg-white/5 text-white"
-            aria-label="Ordenar tours"
+            :aria-label="t('aria.sort_tours')"
           />
         </div>
       </div>

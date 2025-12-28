@@ -55,14 +55,14 @@
             <template #header>
               <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold text-neutral-900 dark:text-white">
-                  Información Personal
+                  {{ t("profile.personal_info") }}
                 </h2>
                 <UButton
                   v-if="!isEditing"
                   color="primary"
                   @click="startEditing"
                 >
-                  Editar
+                  {{ t("common.edit") }}
                 </UButton>
               </div>
             </template>
@@ -73,7 +73,7 @@
               class="py-12 text-center"
             >
               <p class="text-neutral-600 dark:text-neutral-300">
-                Cargando...
+                {{ t("common.loading") }}
               </p>
             </div>
 
@@ -86,20 +86,20 @@
               <!-- Email -->
               <div>
                 <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
-                  Email
+                  {{ t("auth.email") }}
                 </label>
                 <div class="px-4 py-3 rounded-lg bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700">
                   <span class="text-neutral-900 dark:text-white">{{ profileForm.email }}</span>
                 </div>
                 <p class="text-xs text-neutral-500 mt-1">
-                  El email no se puede cambiar
+                  {{ t("profile.email_cannot_change_hint") }}
                 </p>
               </div>
 
               <!-- Full Name -->
               <div>
                 <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
-                  Nombre Completo *
+                  {{ t("profile.full_name") }} *
                 </label>
                 <UInput
                   v-if="isEditing"
@@ -121,13 +121,13 @@
               <CountrySelect
                 v-if="isEditing"
                 v-model="profileForm.nationality"
-                label="Nacionalidad"
-                placeholder="Selecciona tu país"
+                :label="t('profile.nationality')"
+                :placeholder="t('profile.select_country')"
                 size="lg"
               />
               <div v-else>
                 <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
-                  Nacionalidad
+                  {{ t("profile.nationality") }}
                 </label>
                 <div class="px-4 py-3 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
                   <div
@@ -147,14 +147,14 @@
               <!-- Phone Number -->
               <div>
                 <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
-                  Teléfono
+                  {{ t("profile.phone") }}
                 </label>
                 <UInput
                   v-if="isEditing"
                   v-model="profileForm.phoneNumber"
                   type="tel"
                   size="lg"
-                  placeholder="+56 9 1234 5678"
+                  :placeholder="t('profile.phone_placeholder')"
                   class="w-full"
                 />
                 <div
@@ -168,7 +168,7 @@
               <!-- Date of Birth -->
               <div>
                 <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
-                  Fecha de Nacimiento
+                  {{ t("profile.date_of_birth") }}
                 </label>
                 <DateInput
                   v-if="isEditing"
@@ -204,7 +204,7 @@
                   color="primary"
                   :disabled="isSaving"
                 >
-                  {{ isSaving ? 'Guardando...' : 'Guardar' }}
+                  {{ isSaving ? t('profile.saving') : t('profile.save') }}
                 </UButton>
               </div>
             </form>
@@ -364,7 +364,7 @@ const passwordForm = reactive({
 })
 
 // Original values for cancel
-let originalValues: any = null
+let originalValues: typeof profileForm | null = null
 
 // Start editing
 function startEditing() {
@@ -407,10 +407,13 @@ async function saveProfile() {
     })
 
     isEditing.value = false
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorData = error && typeof error === 'object' && 'data' in error
+      ? (error as { data?: { message?: string } }).data
+      : undefined
     toast.add({
       title: t('common.error'),
-      description: error.data?.message || t('profile.profile_update_error'),
+      description: errorData?.message || t('profile.profile_update_error'),
       color: 'error'
     })
   } finally {
@@ -462,10 +465,13 @@ async function changePassword() {
     passwordForm.currentPassword = ''
     passwordForm.newPassword = ''
     passwordForm.confirmPassword = ''
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorData = error && typeof error === 'object' && 'data' in error
+      ? (error as { data?: { message?: string } }).data
+      : undefined
     toast.add({
       title: t('common.error'),
-      description: error.data?.message || t('profile.password_update_error'),
+      description: errorData?.message || t('profile.password_update_error'),
       color: 'error'
     })
   } finally {

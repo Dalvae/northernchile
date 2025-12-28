@@ -61,7 +61,7 @@
       <UFormField
         :label="t('booking.date_of_birth') || 'Fecha de Nacimiento'"
         name="dateOfBirth"
-        help="Usada para calcular la edad"
+        :help="t('booking.date_of_birth_help')"
       >
         <DateInput
           :model-value="participant.dateOfBirth || null"
@@ -86,7 +86,7 @@
           icon="i-lucide-map-pin"
           required
           maxlength="200"
-          aria-label="Dirección de recogida"
+          :aria-label="t('aria.pickup_address')"
           @update:model-value="emit('update', { pickupAddress: $event })"
         />
       </UFormField>
@@ -104,7 +104,7 @@
           size="lg"
           class="w-full"
           maxlength="500"
-          aria-label="Requerimientos especiales"
+          :aria-label="t('aria.special_requirements')"
           @update:model-value="emit('update', { specialRequirements: $event })"
         />
       </UFormField>
@@ -114,13 +114,13 @@
         <UFormField
           :label="t('booking.phone')"
           name="phoneNumber"
-          help="Opcional. Para contactarte y enviarte fotos del tour"
+          :help="t('booking.phone_help')"
         >
           <div class="flex gap-2">
             <select
               :value="participant.phoneCountryCode"
               class="w-28 px-2 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-              aria-label="Código de país"
+              :aria-label="t('aria.country_code')"
               @change="emit('update', { phoneCountryCode: ($event.target as HTMLSelectElement).value })"
             >
               <option
@@ -140,7 +140,7 @@
               class="flex-1"
               minlength="6"
               maxlength="15"
-              aria-label="Número de teléfono"
+              :aria-label="t('aria.phone_number')"
               @update:model-value="emit('update', { phoneNumber: $event })"
             />
           </div>
@@ -149,7 +149,7 @@
         <UFormField
           :label="t('booking.email')"
           name="email"
-          help="Opcional. Para enviarte fotos del tour"
+          :help="t('booking.email_help')"
         >
           <UInput
             :model-value="participant.email"
@@ -159,7 +159,7 @@
             icon="i-lucide-mail"
             class="w-full"
             maxlength="100"
-            aria-label="Correo electrónico"
+            :aria-label="t('aria.email')"
             @update:model-value="emit('update', { email: $event })"
           />
         </UFormField>

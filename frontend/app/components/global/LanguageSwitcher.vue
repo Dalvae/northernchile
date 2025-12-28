@@ -4,14 +4,14 @@
       color="neutral"
       variant="ghost"
       icon="i-heroicons-language"
-      aria-label="Seleccionar idioma"
+      :aria-label="t('aria.select_language')"
       class="hover:bg-white/10"
     />
   </UDropdownMenu>
 </template>
 
 <script setup lang="ts">
-const { locale, locales, setLocale } = useI18n()
+const { locale, locales, setLocale, t } = useI18n()
 
 const items = computed(() => {
   const menuItems = locales.value.map((l) => {

@@ -90,6 +90,17 @@
     },
     "today": "Today"
   },
+  "aria": {
+    "search_tours": "Search tours",
+    "filter_category": "Filter by category",
+    "sort_tours": "Sort tours",
+    "select_language": "Select language",
+    "pickup_address": "Pickup address",
+    "special_requirements": "Special requirements",
+    "country_code": "Country code",
+    "phone_number": "Phone number",
+    "email": "Email"
+  },
   "tours": {
     "all": "All Tours",
     "featured": "Featured Tours",
@@ -170,6 +181,9 @@
     "pickup_address": "Pickup Address",
     "pickup_address_placeholder": "Hotel, hostel or address in San Pedro de Atacama",
     "pickup_address_help": "Please indicate where you are staying in San Pedro de Atacama for pickup",
+    "date_of_birth_help": "Used to calculate age",
+    "phone_help": "Optional. To contact you and send tour photos",
+    "email_help": "Optional. To send tour photos",
     "special_requirements": "Special Requirements",
     "special_requirements_placeholder": "Allergies, reduced mobility, dietary restrictions, etc.",
     "contact_info": "Contact Information",
@@ -280,9 +294,14 @@
     "password_update_error": "Error updating password",
     "personal_info": "Personal Information",
     "phone": "Phone",
+    "phone_placeholder": "+1 555 123 4567",
     "select_country": "Select your country",
     "saving": "Saving...",
     "save": "Save",
+    "full_name": "Full Name",
+    "nationality": "Nationality",
+    "date_of_birth": "Date of Birth",
+    "email_cannot_change_hint": "Email cannot be changed",
     "edit_booking": {
       "title": "Edit Booking",
       "participants_info": "Participant Information",
