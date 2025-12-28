@@ -93,7 +93,7 @@ export function getStatusColor(status: string): BadgeColor {
   return STATUS_COLORS[status] || 'neutral'
 }
 
-export function getStatusLabel(status: string, options: readonly { label: string; value: string }[]): string {
+export function getStatusLabel(status: string, options: readonly { label: string, value: string }[]): string {
   const option = options.find(opt => opt.value === status)
   return option?.label || status
 }

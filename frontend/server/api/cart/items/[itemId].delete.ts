@@ -1,11 +1,6 @@
-export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
-  const itemId = getRouterParam(event, 'itemId')
+import { proxyDelete } from '../../../utils/apiProxy'
 
-  return await $fetch(`${config.public.apiBase}/api/cart/items/${itemId}`, {
-    method: 'DELETE',
-    headers: {
-      cookie: getHeader(event, 'cookie') || ''
-    }
-  })
+export default defineEventHandler(async (event): Promise<void> => {
+  const itemId = getRouterParam(event, 'itemId')
+  await proxyDelete(event, `/api/cart/items/${itemId}`, 'Failed to remove item from cart')
 })

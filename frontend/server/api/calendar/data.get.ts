@@ -1,20 +1,5 @@
-export default defineEventHandler(async (event): Promise<unknown> => {
-  const config = useRuntimeConfig(event)
-  const backendUrl = config.public.apiBase
+import { proxyGetPublic } from '../../utils/apiProxy'
 
-  const query = getQuery(event)
-
-  try {
-    const response = await $fetch(`${backendUrl}/api/calendar/data`, {
-      method: 'GET',
-      query: query
-    })
-    return response
-  } catch (error: unknown) {
-    const err = error as { response?: { status?: number }, data?: { message?: string }, message?: string }
-    throw createError({
-      statusCode: err.response?.status || 500,
-      statusMessage: err.data?.message || err.message || 'Failed to get calendar data'
-    })
-  }
+export default defineEventHandler((event) => {
+  return proxyGetPublic(event, '/api/calendar/data', 'Failed to get calendar data')
 })

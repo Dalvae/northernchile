@@ -4,7 +4,7 @@ type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 interface FetchError {
   statusCode?: number
-  data?: { message?: string; error?: string }
+  data?: { message?: string, error?: string }
   message?: string
 }
 
@@ -102,3 +102,89 @@ export const proxyPut = <T>(event: H3Event, endpoint: string, errorMessage?: str
 
 export const proxyPatch = <T>(event: H3Event, endpoint: string, errorMessage?: string) =>
   proxyWithBody<T>(event, 'PATCH', endpoint, errorMessage)
+
+/**
+ * Proxy a POST request without body (trigger actions).
+ */
+export async function proxyPostNoBody<T>(event: H3Event, endpoint: string, errorMessage = 'Request failed'): Promise<T> {
+  const config = useRuntimeConfig(event)
+  const backendUrl = config.public.apiBase
+  const cookie = getHeader(event, 'cookie') || ''
+
+  try {
+    const result = await $fetch<T>(`${backendUrl}${endpoint}`, {
+      method: 'POST',
+      headers: { Cookie: cookie }
+    })
+    return result as T
+  } catch (error) {
+    throw createError({
+      statusCode: extractStatusCode(error),
+      statusMessage: extractErrorMessage(error, errorMessage)
+    })
+  }
+}
+
+/**
+ * Proxy a PUT request without body (trigger actions).
+ */
+export async function proxyPutNoBody<T>(event: H3Event, endpoint: string, errorMessage = 'Request failed'): Promise<T> {
+  const config = useRuntimeConfig(event)
+  const backendUrl = config.public.apiBase
+  const cookie = getHeader(event, 'cookie') || ''
+
+  try {
+    const result = await $fetch<T>(`${backendUrl}${endpoint}`, {
+      method: 'PUT',
+      headers: { Cookie: cookie }
+    })
+    return result as T
+  } catch (error) {
+    throw createError({
+      statusCode: extractStatusCode(error),
+      statusMessage: extractErrorMessage(error, errorMessage)
+    })
+  }
+}
+
+/**
+ * Proxy a GET request to a public endpoint (no auth).
+ */
+export async function proxyGetPublic<T>(event: H3Event, endpoint: string, errorMessage = 'Request failed'): Promise<T> {
+  const config = useRuntimeConfig(event)
+  const backendUrl = config.public.apiBase
+  const query = getQuery(event)
+
+  try {
+    const result = await $fetch<T>(`${backendUrl}${endpoint}`, { query })
+    return result as T
+  } catch (error) {
+    throw createError({
+      statusCode: extractStatusCode(error),
+      statusMessage: extractErrorMessage(error, errorMessage)
+    })
+  }
+}
+
+/**
+ * Proxy a POST request to a public endpoint (no auth).
+ */
+export async function proxyPostPublic<T>(event: H3Event, endpoint: string, errorMessage = 'Request failed'): Promise<T> {
+  const config = useRuntimeConfig(event)
+  const backendUrl = config.public.apiBase
+  const body = await readBody(event)
+
+  try {
+    const result = await $fetch<T>(`${backendUrl}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body
+    })
+    return result as T
+  } catch (error) {
+    throw createError({
+      statusCode: extractStatusCode(error),
+      statusMessage: extractErrorMessage(error, errorMessage)
+    })
+  }
+}

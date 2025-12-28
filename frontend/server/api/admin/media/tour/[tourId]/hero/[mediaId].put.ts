@@ -1,21 +1,7 @@
-export default defineEventHandler(async (event): Promise<unknown> => {
-  const config = useRuntimeConfig(event)
-  const backendUrl = config.public.apiBase
-  const cookie = getHeader(event, 'cookie') || ''
+import { proxyPutNoBody } from '../../../../../../utils/apiProxy'
+
+export default defineEventHandler((event) => {
   const tourId = getRouterParam(event, 'tourId')
   const mediaId = getRouterParam(event, 'mediaId')
-
-  try {
-    const result = await $fetch(`${backendUrl}/api/admin/media/tour/${tourId}/hero/${mediaId}`, {
-      method: 'PUT',
-      headers: { Cookie: cookie }
-    })
-    return result
-  } catch (error: unknown) {
-    const err = error as { statusCode?: number, data?: { message?: string, error?: string }, message?: string }
-    throw createError({
-      statusCode: err.statusCode || 500,
-      statusMessage: err.data?.message || err.data?.error || err.message || 'Failed to set hero image'
-    })
-  }
+  return proxyPutNoBody(event, `/api/admin/media/tour/${tourId}/hero/${mediaId}`, 'Failed to set hero image')
 })
