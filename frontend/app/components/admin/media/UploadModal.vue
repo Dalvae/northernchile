@@ -193,10 +193,10 @@ async function startUpload() {
 
       item.status = 'success'
       item.url = result.url
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Upload error:', error)
       item.status = 'error'
-      item.error = error.message || 'Error al subir'
+      item.error = error instanceof Error ? error.message : 'Error al subir'
     }
   }
 

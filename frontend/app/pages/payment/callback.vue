@@ -147,7 +147,7 @@ async function handleMercadoPagoCallback() {
         description: t('payment.callback.pending_description')
       })
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error handling MercadoPago callback:', error)
 
     // Fallback: Map collection_status if backend call fails
@@ -163,7 +163,8 @@ async function handleMercadoPagoCallback() {
 
     paymentStatus.value = statusMap[mpCollectionStatus] || PaymentStatus.PENDING
     paymentId.value = mpPaymentId || mpPreferenceId || null
-    errorMessage.value = error.message || t('payment.error.confirmation_failed')
+    const errorMsg = error instanceof Error ? error.message : t('payment.error.confirmation_failed')
+    errorMessage.value = errorMsg
   }
 }
 

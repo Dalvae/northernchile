@@ -115,10 +115,10 @@ async function handleDelete(tour: TourRes) {
         icon: 'i-lucide-check-circle'
       })
       await refresh()
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast.add({
         title: 'Error al eliminar',
-        description: e.message || 'Error desconocido',
+        description: e instanceof Error ? e.message : 'Error desconocido',
         color: 'error',
         icon: 'i-lucide-x-circle'
       })

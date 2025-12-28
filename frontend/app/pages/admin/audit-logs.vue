@@ -364,6 +364,8 @@
 </template>
 
 <script setup lang="ts">
+import type { AuditLog } from 'api-client'
+
 definePageMeta({
   layout: 'admin'
 })
@@ -376,7 +378,7 @@ const { formatDate, formatTime } = useDateTime()
 
 // State
 const pending = ref(false)
-const auditLogs = ref<any[]>([])
+const auditLogs = ref<AuditLog[]>([])
 const stats = ref({
   totalLogs: 0,
   createActions: 0,
@@ -512,7 +514,7 @@ const visiblePages = computed(() => {
 type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
 
 interface AuditLogsResponse {
-  data: any[]
+  data: AuditLog[]
   totalItems: number
   totalPages: number
   currentPage: number

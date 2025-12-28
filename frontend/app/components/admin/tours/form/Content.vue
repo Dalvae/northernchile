@@ -7,7 +7,7 @@ const props = defineProps<{
 }>()
 
 // Helper para inicializar arrays si no existen
-const ensureArray = (obj: any, lang: string) => {
+const ensureArray = <T>(obj: Record<string, T[]>, lang: string): T[] => {
   if (!obj[lang]) obj[lang] = []
   return obj[lang]
 }

@@ -16,7 +16,7 @@ const ogImageOptions = computed(() => ({
 defineOgImageComponent('Tour', ogImageOptions)
 
 // SEO Meta tags globales
-const seoMetaConfig: any = {
+const seoMetaConfig: Parameters<typeof useSeoMeta>[0] & { fbAppId?: string } = {
   titleTemplate: (titleChunk: string | undefined) => {
     return titleChunk
       ? `${titleChunk} | Northern Chile`

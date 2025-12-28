@@ -73,7 +73,7 @@ async function handleSubmit() {
     if (typeof error === 'string') {
       description = error
     } else if (error && typeof error === 'object') {
-      const anyError = error as { data?: any, message?: string }
+      const anyError = error as { data?: { message?: string }, message?: string }
       description
         = anyError.data?.message
           || anyError.message

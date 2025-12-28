@@ -360,7 +360,7 @@ const currentStep = ref(0)
 
 // Payment processing state
 const isProcessingPayment = ref(false)
-const confirmedBooking = ref<any>(null)
+const confirmedBooking = ref<BookingRes | null>(null)
 
 // Booking state
 const bookingState = reactive({
@@ -456,7 +456,7 @@ function copyUserDataToFirstParticipant() {
   })
 }
 
-function getTourName(tour: any): string {
+function getTourName(tour: TourRes): string {
   const name
     = tour.nameTranslations?.[locale.value] || tour.nameTranslations?.es || ''
   return name

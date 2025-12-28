@@ -74,12 +74,15 @@ const { data: overview, pending: overviewPending, refresh: refreshOverview, erro
         }
       })
       return response
-    } catch (err: any) {
-      console.error('❌ Error fetching overview:', err)
+    } catch (err: unknown) {
+      console.error('Error fetching overview:', err)
+      const errorData = err && typeof err === 'object' && 'data' in err
+        ? (err as { data?: { message?: string } }).data
+        : undefined
       toast.add({
         color: 'error',
         title: 'Error al cargar reportes',
-        description: err?.data?.message || 'No se pudieron cargar los datos del reporte'
+        description: errorData?.message || 'No se pudieron cargar los datos del reporte'
       })
       return null
     }

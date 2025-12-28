@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PrivateTourRequest } from 'api-client'
 import { parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
 
 definePageMeta({
@@ -21,22 +22,7 @@ const {
   'private-tour-requests',
   async () => {
     try {
-      const response = await $fetch<
-        Array<{
-          id: string
-          customerName: string
-          customerEmail: string
-          customerPhone: string
-          requestedTourType: string
-          requestedDatetime: string
-          numAdults: number
-          numChildren: number
-          specialRequests: string
-          status: string
-          quotedPrice: number
-          createdAt: string
-        }>
-      >('/api/admin/private-tours/requests')
+      const response = await $fetch<PrivateTourRequest[]>('/api/admin/private-tours/requests')
       return response
     } catch (err) {
       console.error('Error fetching private tour requests:', err)
@@ -122,7 +108,7 @@ const statusSelectOptions = [
 ]
 
 // Functions
-const openDetailsModal = (request: any) => {
+const openDetailsModal = (request: PrivateTourRequest) => {
   selectedRequest.value = request
   statusForm.value = {
     status: request.status,

@@ -96,11 +96,14 @@ export const useS3Upload = () => {
       })
 
       return response
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Upload error:', error)
+      const errorData = error && typeof error === 'object' && 'data' in error
+        ? (error as { data?: { error?: string } }).data
+        : undefined
       toast.add({
         title: 'Upload Failed',
-        description: error.data?.error || 'Failed to upload file',
+        description: errorData?.error || 'Failed to upload file',
         color: 'error'
       })
       return null
@@ -131,7 +134,7 @@ export const useS3Upload = () => {
       )
 
       return response.uploadUrl
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error getting presigned URL:', error)
       toast.add({
         title: 'Error',
