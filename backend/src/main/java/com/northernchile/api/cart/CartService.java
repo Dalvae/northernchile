@@ -10,6 +10,7 @@ import com.northernchile.api.model.CartItem;
 import com.northernchile.api.model.User;
 import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
+import com.northernchile.api.tour.TourUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -195,7 +196,7 @@ public class CartService {
                 itemRes.setItemId(item.getId());
                 itemRes.setScheduleId(item.getSchedule().getId());
                 itemRes.setTourId(item.getSchedule().getTour().getId());
-                itemRes.setTourName(item.getSchedule().getTour().getNameTranslations().get("es"));
+                itemRes.setTourName(TourUtils.getTourName(item.getSchedule().getTour()));
                 itemRes.setNumParticipants(item.getNumParticipants());
 
                 BigDecimal pricePerParticipant = item.getSchedule().getTour().getPrice();
@@ -222,13 +223,18 @@ public class CartService {
     }
 
     /**
-     * Scheduled task to delete expired carts
-     * Runs every 5 minutes to cleanup carts that have passed their expiration time
+     * Scheduled task to delete expired carts.
+     * Runs every 15 minutes to cleanup carts that have passed their expiration time.
+     * Interval increased from 5 min to reduce database compute costs on Neon.
      */
-    @org.springframework.scheduling.annotation.Scheduled(cron = "0 */5 * * * *")
+    @org.springframework.scheduling.annotation.Scheduled(cron = "0 */15 * * * *")
     @Transactional
     public void cleanupExpiredCarts() {
         Instant now = Instant.now();
+        // Quick check to avoid unnecessary DELETE when no expired carts exist
+        if (!cartRepository.existsExpiredCarts(now)) {
+            return;
+        }
         int deletedCount = cartRepository.deleteByExpiresAtBefore(now);
         if (deletedCount > 0) {
             org.slf4j.LoggerFactory.getLogger(CartService.class)

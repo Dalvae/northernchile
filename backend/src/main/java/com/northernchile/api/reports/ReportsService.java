@@ -11,6 +11,7 @@ import com.northernchile.api.reports.dto.OverviewReport;
 import com.northernchile.api.reports.dto.TopTourReport;
 import com.northernchile.api.tour.TourRepository;
 import com.northernchile.api.tour.TourScheduleRepository;
+import com.northernchile.api.tour.TourUtils;
 import com.northernchile.api.user.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,8 @@ public class ReportsService {
     }
 
     public OverviewReport getOverview(Instant start, Instant end) {
-        List<Booking> bookings = bookingRepository.findByCreatedAtBetween(start, end);
+        // Use query with JOIN FETCH for participants to avoid N+1 in countTotalParticipants
+        List<Booking> bookings = bookingRepository.findByCreatedAtBetweenWithTourInfo(start, end);
 
         long totalBookings = bookings.size();
         long confirmedBookings = countConfirmedBookings(bookings);
@@ -102,7 +104,8 @@ public class ReportsService {
     }
 
     public List<BookingsByDayReport> getBookingsByDay(Instant start, Instant end) {
-        List<Booking> bookings = bookingRepository.findByCreatedAtBetween(start, end);
+        // Reuse the same optimized query to avoid N+1
+        List<Booking> bookings = bookingRepository.findByCreatedAtBetweenWithTourInfo(start, end);
 
         // Only count confirmed/completed bookings
         Map<LocalDate, List<Booking>> bookingsByDay = bookings.stream()
@@ -124,16 +127,14 @@ public class ReportsService {
     }
 
     public List<TopTourReport> getTopTours(Instant start, Instant end, int limit) {
-        List<Booking> bookings = bookingRepository.findByCreatedAtBetween(start, end);
+        // Use query with JOIN FETCH to avoid N+1 when accessing tour names
+        List<Booking> bookings = bookingRepository.findByCreatedAtBetweenWithTourInfo(start, end);
 
         // Only count confirmed/completed bookings for top tours
         Map<String, List<Booking>> bookingsByTour = bookings.stream()
                 .filter(this::isConfirmedOrCompleted)
                 .filter(b -> b.getSchedule() != null && b.getSchedule().getTour() != null)
-                .collect(Collectors.groupingBy(b -> {
-                    String tourName = b.getSchedule().getTour().getNameTranslations().get("es");
-                    return tourName != null ? tourName : "Sin nombre";
-                }));
+                .collect(Collectors.groupingBy(b -> TourUtils.getTourName(b.getSchedule().getTour())));
 
         return bookingsByTour.entrySet().stream()
                 .map(entry -> {

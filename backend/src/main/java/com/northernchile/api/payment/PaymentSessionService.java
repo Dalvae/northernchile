@@ -13,6 +13,7 @@ import com.northernchile.api.payment.dto.PaymentSessionRes;
 import com.northernchile.api.payment.model.*;
 import com.northernchile.api.payment.repository.PaymentSessionRepository;
 import com.northernchile.api.tour.TourScheduleRepository;
+import com.northernchile.api.tour.TourUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -288,10 +289,16 @@ public class PaymentSessionService {
 
     /**
      * Expire old pending sessions.
+     * Only runs the UPDATE if there are expired sessions (saves DB compute).
      */
     @Transactional
     public int expirePendingSessions() {
-        int expired = sessionRepository.expirePendingSessions(Instant.now());
+        Instant now = Instant.now();
+        // Quick check to avoid unnecessary UPDATE when no expired sessions exist
+        if (!sessionRepository.existsExpiredPendingSessions(now)) {
+            return 0;
+        }
+        int expired = sessionRepository.expirePendingSessions(now);
         if (expired > 0) {
             log.info("Expired {} pending payment sessions", expired);
         }
@@ -342,11 +349,8 @@ public class PaymentSessionService {
 
         PaymentSessionItem item = new PaymentSessionItem();
         item.setScheduleId(reqItem.getScheduleId());
-        // Get tour name (use default language or first available)
-        String tourName = schedule.getTour().getNameTranslations() != null
-            ? schedule.getTour().getNameTranslations().getOrDefault("es",
-                schedule.getTour().getNameTranslations().values().iterator().next())
-            : "Tour";
+        // Get tour name using centralized utility
+        String tourName = TourUtils.getTourName(schedule.getTour());
         item.setTourName(tourName);
         item.setTourDate(schedule.getStartDatetime().atZone(java.time.ZoneId.systemDefault()).toLocalDate());
         item.setNumParticipants(reqItem.getNumParticipants());

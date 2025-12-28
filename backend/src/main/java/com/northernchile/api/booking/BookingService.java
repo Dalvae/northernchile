@@ -15,6 +15,7 @@ import com.northernchile.api.model.User;
 import com.northernchile.api.notification.EmailService;
 import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
+import com.northernchile.api.tour.TourUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -178,26 +178,8 @@ public class BookingService {
         String tourDate = dateFormatter.format(schedule.getStartDatetime());
         String tourTime = timeFormatter.format(schedule.getStartDatetime());
 
-        // Get tour name in the correct language, with safe fallbacks
-        String tourName = null;
-        Map<String, String> nameTranslations = tour.getNameTranslations();
-
-        if (nameTranslations != null && !nameTranslations.isEmpty()) {
-            tourName = nameTranslations.get(booking.getLanguageCode());
-            if (tourName == null) {
-                // Try default language (es)
-                tourName = nameTranslations.get("es");
-                if (tourName == null && !nameTranslations.isEmpty()) {
-                    // Use any available translation
-                    tourName = nameTranslations.values().iterator().next();
-                }
-            }
-        }
-
-        // Final fallback to display name
-        if (tourName == null) {
-            tourName = tour.getDisplayName();
-        }
+        // Get tour name in the correct language using centralized utility
+        String tourName = TourUtils.getTourName(tour, booking.getLanguageCode());
 
         emailService.sendBookingConfirmationEmail(
                 booking.getUser().getEmail(),
@@ -212,18 +194,6 @@ public class BookingService {
         );
 
         emailService.sendNewBookingNotificationToAdmin(booking, adminEmail);
-    }
-
-    private static class BookingPricing {
-        final BigDecimal subtotal;
-        final BigDecimal taxAmount;
-        final BigDecimal totalAmount;
-
-        BookingPricing(BigDecimal subtotal, BigDecimal taxAmount, BigDecimal totalAmount) {
-            this.subtotal = subtotal;
-            this.taxAmount = taxAmount;
-            this.totalAmount = totalAmount;
-        }
     }
 
     @Transactional(readOnly = true)

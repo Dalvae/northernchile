@@ -27,6 +27,17 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
 
     List<Booking> findByCreatedAtBetween(Instant start, Instant end);
 
+    /**
+     * Find bookings in date range with tour info eagerly loaded (for reports).
+     * Avoids N+1 queries when accessing schedule.tour.nameTranslations.
+     */
+    @Query("SELECT DISTINCT b FROM Booking b " +
+           "LEFT JOIN FETCH b.schedule s " +
+           "LEFT JOIN FETCH s.tour t " +
+           "LEFT JOIN FETCH b.participants " +
+           "WHERE b.createdAt BETWEEN :start AND :end")
+    List<Booking> findByCreatedAtBetweenWithTourInfo(@Param("start") Instant start, @Param("end") Instant end);
+
     @Query("SELECT b FROM Booking b " +
            "LEFT JOIN FETCH b.schedule s " +
            "LEFT JOIN FETCH s.tour t " +

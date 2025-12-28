@@ -206,31 +206,25 @@ public class Booking {
         this.reminderSentAt = reminderSentAt;
     }
 
+    /**
+     * Equals based only on ID to avoid Hibernate proxy issues with lazy-loaded relations.
+     * See: https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Booking)) return false;
         Booking booking = (Booking) o;
-        return Objects.equals(id, booking.id) &&
-            Objects.equals(user, booking.user) &&
-            Objects.equals(schedule, booking.schedule) &&
-            Objects.equals(participants, booking.participants) &&
-            Objects.equals(tourDate, booking.tourDate) &&
-            Objects.equals(status, booking.status) &&
-            Objects.equals(subtotal, booking.subtotal) &&
-            Objects.equals(taxAmount, booking.taxAmount) &&
-            Objects.equals(totalAmount, booking.totalAmount) &&
-            Objects.equals(languageCode, booking.languageCode) &&
-            Objects.equals(specialRequests, booking.specialRequests) &&
-            Objects.equals(createdAt, booking.createdAt) &&
-            Objects.equals(updatedAt, booking.updatedAt) &&
-            Objects.equals(deletedAt, booking.deletedAt) &&
-            Objects.equals(reminderSentAt, booking.reminderSentAt);
+        return id != null && id.equals(booking.getId());
     }
 
+    /**
+     * HashCode returns class hashCode for consistent behavior with proxies.
+     * This ensures entities work correctly in HashSet/HashMap before and after persistence.
+     */
     @Override
     public int hashCode() {
-        return Objects.hash(id, user, schedule, participants, tourDate, status, subtotal, taxAmount, totalAmount, languageCode, specialRequests, createdAt, updatedAt, deletedAt, reminderSentAt);
+        return getClass().hashCode();
     }
 
     @Override
