@@ -3,6 +3,7 @@ import { h } from 'vue'
 import AdminStatusBadge from '~/components/admin/StatusBadge.vue'
 import AdminCountryCell from '~/components/admin/CountryCell.vue'
 import type { UserRes } from 'api-client'
+import { USER_ROLE_FILTER_OPTIONS } from '~/utils/adminOptions'
 
 definePageMeta({
   layout: 'admin'
@@ -73,12 +74,7 @@ const columns: Array<{ id: string, accessorKey?: keyof UserRes, header: string, 
   }
 ]
 
-const roleOptions = [
-  { label: 'Todos', value: 'ALL' },
-  { label: 'Clientes', value: 'ROLE_CLIENT' },
-  { label: 'Partner Admin', value: 'ROLE_PARTNER_ADMIN' },
-  { label: 'Super Admin', value: 'ROLE_SUPER_ADMIN' }
-]
+const roleOptions = USER_ROLE_FILTER_OPTIONS
 
 const filteredRows = computed(() => {
   if (!users.value || users.value.length === 0) return []

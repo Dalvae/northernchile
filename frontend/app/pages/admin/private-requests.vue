@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PrivateTourRequest } from 'api-client'
 import { parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
+import { PRIVATE_REQUEST_STATUS_OPTIONS, getStatusColor as getAdminStatusColor } from '~/utils/adminOptions'
 
 definePageMeta({
   layout: 'admin'
@@ -92,20 +93,8 @@ const statusForm = ref({
   quotedPrice: ''
 })
 
-// Status options - sin valor vacío porque USelect no lo permite
-const statusOptions = [
-  { label: 'Pendiente', value: 'PENDING' },
-  { label: 'Cotizado', value: 'QUOTED' },
-  { label: 'Confirmado', value: 'CONFIRMED' },
-  { label: 'Cancelado', value: 'CANCELLED' }
-]
-
-const statusSelectOptions = [
-  { label: 'Pendiente', value: 'PENDING' },
-  { label: 'Cotizado', value: 'QUOTED' },
-  { label: 'Confirmado', value: 'CONFIRMED' },
-  { label: 'Cancelado', value: 'CANCELLED' }
-]
+// Status options - use centralized options
+const statusOptions = PRIVATE_REQUEST_STATUS_OPTIONS
 
 // Functions
 const openDetailsModal = (request: PrivateTourRequest) => {
@@ -162,17 +151,8 @@ const updateRequestStatus = async () => {
   }
 }
 
-type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
-
-const getStatusColor = (status: string): BadgeColor => {
-  const colors: Record<string, BadgeColor> = {
-    PENDING: 'warning',
-    QUOTED: 'info',
-    CONFIRMED: 'success',
-    CANCELLED: 'error'
-  }
-  return colors[status] || 'neutral'
-}
+// Use centralized status color function
+const getStatusColor = getAdminStatusColor
 
 const formatDateTime = (datetime: string) => {
   return new Date(datetime).toLocaleString('es-CL', {
@@ -547,7 +527,7 @@ const formatCurrency = (value: number | null | undefined) => value != null ? for
               <div class="space-y-3">
                 <USelect
                   v-model="statusForm.status"
-                  :items="statusSelectOptions"
+                  :items="statusOptions"
                   option-attribute="label"
                   value-attribute="value"
                   placeholder="Seleccionar estado"

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { UserRes, UserUpdateReq, AdminPasswordChangeReq } from 'api-client'
 import { z } from 'zod'
+import { USER_ROLE_OPTIONS } from '~/utils/adminOptions'
 
 const props = defineProps<{
   user: UserRes
@@ -15,13 +16,6 @@ const toast = useToast()
 const { countries } = useCountries()
 
 const isOpen = ref(false)
-
-// Role options for select
-const roleOptions = [
-  { label: 'Cliente', value: 'ROLE_CLIENT' },
-  { label: 'Partner Admin', value: 'ROLE_PARTNER_ADMIN' },
-  { label: 'Super Admin', value: 'ROLE_SUPER_ADMIN' }
-]
 
 // Form state - initialize with user data
 const state = reactive<UserUpdateReq>({
@@ -214,7 +208,7 @@ async function handleSubmit() {
           >
             <USelect
               v-model="state.role"
-              :items="roleOptions"
+              :items="USER_ROLE_OPTIONS"
               option-attribute="label"
               value-attribute="value"
               placeholder="Selecciona un rol"
