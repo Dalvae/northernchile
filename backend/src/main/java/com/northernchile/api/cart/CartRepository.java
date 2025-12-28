@@ -31,6 +31,12 @@ public interface CartRepository extends JpaRepository<Cart, UUID> {
     @Query("DELETE FROM Cart c WHERE c.expiresAt < :now")
     int deleteByExpiresAtBefore(@Param("now") Instant now);
 
+    /**
+     * Check if there are any expired carts (lightweight check before running DELETE)
+     */
+    @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM Cart c WHERE c.expiresAt < :now")
+    boolean existsExpiredCarts(@Param("now") Instant now);
+
     @Query("SELECT COALESCE(SUM(ci.numParticipants), 0) FROM CartItem ci " +
            "WHERE ci.schedule.id = :scheduleId " +
            "AND ci.cart.id != :excludeCartId " +

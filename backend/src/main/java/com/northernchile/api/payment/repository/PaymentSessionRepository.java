@@ -50,4 +50,10 @@ public interface PaymentSessionRepository extends JpaRepository<PaymentSession, 
     @Modifying
     @Query("UPDATE PaymentSession ps SET ps.status = 'EXPIRED' WHERE ps.status = 'PENDING' AND ps.expiresAt < :now")
     int expirePendingSessions(@Param("now") Instant now);
+
+    /**
+     * Check if there are any expired pending sessions (lightweight check before running UPDATE)
+     */
+    @Query("SELECT CASE WHEN COUNT(ps) > 0 THEN true ELSE false END FROM PaymentSession ps WHERE ps.status = 'PENDING' AND ps.expiresAt < :now")
+    boolean existsExpiredPendingSessions(@Param("now") Instant now);
 }

@@ -39,10 +39,11 @@ public class ScheduleAutoCloseJob {
     }
 
     /**
-     * Runs every 5 minutes to close schedules that are within the cutoff window.
+     * Runs every 15 minutes to close schedules that are within the cutoff window.
      * For each closed schedule, generates and sends manifest + participant reminders.
+     * Interval increased from 5 min to reduce database compute costs on Neon.
      */
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRate = 900000) // Every 15 minutes
     @Transactional
     public void closeSchedulesWithinCutoff() {
         Instant cutoffTime = Instant.now().plus(minHoursBeforeTour, ChronoUnit.HOURS);
