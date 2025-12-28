@@ -1,21 +1,5 @@
-export default defineEventHandler(async (event): Promise<unknown> => {
-  const config = useRuntimeConfig(event)
-  const backendUrl = config.public.apiBase
-  const cookie = getHeader(event, 'cookie') || ''
-  const body = await readBody(event)
+import { proxyPost } from '../../../utils/apiProxy'
 
-  try {
-    const newUser = await $fetch(`${backendUrl}/api/admin/users`, {
-      method: 'POST',
-      headers: { 'Cookie': cookie, 'Content-Type': 'application/json' },
-      body
-    })
-    return newUser
-  } catch (error: unknown) {
-    const err = error as { statusCode?: number, data?: { message?: string, error?: string }, message?: string }
-    throw createError({
-      statusCode: err.statusCode || 500,
-      statusMessage: err.data?.message || err.data?.error || err.message || 'Failed to create user'
-    })
-  }
-})
+export default defineEventHandler((event) =>
+  proxyPost<unknown>(event, '/api/admin/users', 'Failed to create user')
+)

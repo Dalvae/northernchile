@@ -1,20 +1,7 @@
-export default defineEventHandler(async (event): Promise<unknown> => {
-  const config = useRuntimeConfig(event)
-  const backendUrl = config.public.apiBase
-  const cookie = getHeader(event, 'cookie') || ''
-  const tourId = getRouterParam(event, 'id')
+import { proxyDelete } from '../../../utils/apiProxy'
 
-  try {
-    await $fetch(`${backendUrl}/api/admin/tours/${tourId}`, {
-      method: 'DELETE',
-      headers: { Cookie: cookie }
-    })
-    return { status: 'success' }
-  } catch (error: unknown) {
-    const err = error as { statusCode?: number, data?: { message?: string, error?: string }, message?: string }
-    throw createError({
-      statusCode: err.statusCode || 500,
-      statusMessage: err.data?.message || err.data?.error || err.message || 'Failed to delete tour'
-    })
-  }
+export default defineEventHandler(async (event) => {
+  const tourId = getRouterParam(event, 'id')
+  await proxyDelete(event, `/api/admin/tours/${tourId}`, 'Failed to delete tour')
+  return { status: 'success' }
 })

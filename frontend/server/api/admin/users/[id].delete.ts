@@ -1,20 +1,7 @@
-export default defineEventHandler(async (event): Promise<unknown> => {
-  const config = useRuntimeConfig(event)
-  const backendUrl = config.public.apiBase
-  const cookie = getHeader(event, 'cookie') || ''
-  const userId = getRouterParam(event, 'id')
+import { proxyDelete } from '../../../utils/apiProxy'
 
-  try {
-    await $fetch(`${backendUrl}/api/admin/users/${userId}`, {
-      method: 'DELETE',
-      headers: { Cookie: cookie }
-    })
-    return { status: 'success' }
-  } catch (error: unknown) {
-    const err = error as { statusCode?: number, data?: { message?: string, error?: string }, message?: string }
-    throw createError({
-      statusCode: err.statusCode || 500,
-      statusMessage: err.data?.message || err.data?.error || err.message || 'Failed to delete user'
-    })
-  }
+export default defineEventHandler(async (event) => {
+  const userId = getRouterParam(event, 'id')
+  await proxyDelete(event, `/api/admin/users/${userId}`, 'Failed to delete user')
+  return { status: 'success' }
 })

@@ -1,20 +1,5 @@
-export default defineEventHandler(async (event): Promise<unknown> => {
-  const config = useRuntimeConfig(event)
-  const backendUrl = config.public.apiBase
-  const cookie = getHeader(event, 'cookie') || ''
-  const query = getQuery(event)
+import { proxyGet } from '../../../utils/apiProxy'
 
-  try {
-    const result: unknown = await $fetch(`${backendUrl}/api/admin/reports/top-tours`, {
-      headers: { Cookie: cookie },
-      query
-    })
-    return result
-  } catch (error: unknown) {
-    const err = error as { statusCode?: number, data?: { message?: string, error?: string }, message?: string }
-    throw createError({
-      statusCode: err.statusCode || 500,
-      statusMessage: err.data?.message || err.data?.error || err.message || 'Failed to fetch top tours'
-    })
-  }
-})
+export default defineEventHandler((event) =>
+  proxyGet<unknown>(event, '/api/admin/reports/top-tours', 'Failed to fetch top tours')
+)

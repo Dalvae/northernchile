@@ -1,22 +1,6 @@
-export default defineEventHandler(async (event): Promise<unknown> => {
-  const config = useRuntimeConfig(event)
-  const backendUrl = config.public.apiBase
-  const cookie = getHeader(event, 'cookie') || ''
-  const userId = getRouterParam(event, 'id')
-  const body = await readBody(event)
+import { proxyPut } from '../../../utils/apiProxy'
 
-  try {
-    const updatedUser = await $fetch(`${backendUrl}/api/admin/users/${userId}`, {
-      method: 'PUT',
-      headers: { 'Cookie': cookie, 'Content-Type': 'application/json' },
-      body
-    })
-    return updatedUser
-  } catch (error: unknown) {
-    const err = error as { statusCode?: number, data?: { message?: string, error?: string }, message?: string }
-    throw createError({
-      statusCode: err.statusCode || 500,
-      statusMessage: err.data?.message || err.data?.error || err.message || 'Failed to update user'
-    })
-  }
+export default defineEventHandler((event) => {
+  const userId = getRouterParam(event, 'id')
+  return proxyPut<unknown>(event, `/api/admin/users/${userId}`, 'Failed to update user')
 })
