@@ -2,22 +2,39 @@
  * Shared utility functions for media management
  */
 
-export function formatFileSize(bytes?: number): string {
+import type { BadgeColor } from '~/types/ui'
+import { formatDisplayDate, formatDisplayDateTime } from '~/utils/dateUtils'
+
+/**
+ * Format file size in human-readable format.
+ * @param bytes - File size in bytes
+ * @param precision - Decimal places (default: 1)
+ */
+export function formatFileSize(bytes?: number, precision = 1): string {
   if (!bytes) return '-'
-  const kb = bytes / 1024
-  if (kb < 1024) return `${kb.toFixed(1)} KB`
-  const mb = kb / 1024
-  return `${mb.toFixed(1)} MB`
+  const KB = 1024
+  const MB = KB * 1024
+  if (bytes >= MB) return `${(bytes / MB).toFixed(precision)} MB`
+  if (bytes >= KB) return `${(bytes / KB).toFixed(precision)} KB`
+  return `${bytes} bytes`
 }
 
+/**
+ * Format date for display (uses centralized dateUtils).
+ * @deprecated Use formatDisplayDate from dateUtils directly
+ */
 export function formatDate(dateString?: string): string {
   if (!dateString) return '-'
-  return new Date(dateString).toLocaleDateString('es-CL')
+  return formatDisplayDate(dateString)
 }
 
+/**
+ * Format datetime for display (uses centralized dateUtils).
+ * @deprecated Use formatDisplayDateTime from dateUtils directly
+ */
 export function formatDateTime(dateString?: string): string {
   if (!dateString) return '-'
-  return new Date(dateString).toLocaleString('es-CL')
+  return formatDisplayDateTime(new Date(dateString))
 }
 
 export function getMediaTypeLabel(type?: string): string {
@@ -28,8 +45,6 @@ export function getMediaTypeLabel(type?: string): string {
   }
   return labels[type || ''] || type || '-'
 }
-
-type BadgeColor = 'primary' | 'secondary' | 'tertiary' | 'info' | 'success' | 'warning' | 'error' | 'neutral'
 
 export function getMediaTypeBadgeColor(type?: string): BadgeColor {
   const colors: Record<string, BadgeColor> = {

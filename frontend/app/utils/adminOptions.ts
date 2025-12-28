@@ -3,6 +3,11 @@
  * Use these constants for dropdowns, filters, and status badges.
  */
 
+import type { BadgeColor } from '~/types/ui'
+
+// Re-export for convenience
+export type { BadgeColor } from '~/types/ui'
+
 // User roles
 export const USER_ROLE_OPTIONS = [
   { label: 'Cliente', value: 'ROLE_CLIENT' },
@@ -63,8 +68,6 @@ export const ALERT_STATUS_OPTIONS = [
 ] as const
 
 // Badge colors for statuses
-type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'warning' | 'neutral'
-
 const STATUS_COLORS: Record<string, BadgeColor> = {
   // Booking status
   CONFIRMED: 'success',

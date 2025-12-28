@@ -16,7 +16,6 @@ const isOpen = computed({
 
 // State
 const tags = ref<string[]>([])
-const tagInput = ref('')
 const mode = ref<'add' | 'replace'>('add')
 const saving = ref(false)
 
@@ -24,29 +23,9 @@ const saving = ref(false)
 watch(isOpen, (open) => {
   if (open) {
     tags.value = []
-    tagInput.value = ''
     mode.value = 'add'
   }
 })
-
-function addTag() {
-  const tag = tagInput.value.trim().toLowerCase()
-  if (tag && !tags.value.includes(tag)) {
-    tags.value.push(tag)
-    tagInput.value = ''
-  }
-}
-
-function removeTag(index: number) {
-  tags.value.splice(index, 1)
-}
-
-function handleTagKeydown(event: KeyboardEvent) {
-  if (event.key === 'Enter') {
-    event.preventDefault()
-    addTag()
-  }
-}
 
 async function save() {
   if (tags.value.length === 0) {
@@ -164,40 +143,10 @@ async function save() {
             <label class="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
               Etiquetas
             </label>
-
-            <!-- Tags display -->
-            <div
-              v-if="tags.length > 0"
-              class="flex flex-wrap gap-2 mb-2"
-            >
-              <UBadge
-                v-for="(tag, index) in tags"
-                :key="index"
-                color="primary"
-                variant="soft"
-                class="cursor-pointer"
-                @click="removeTag(index)"
-              >
-                {{ tag }}
-                <UIcon
-                  name="i-heroicons-x-mark"
-                  class="w-3 h-3 ml-1"
-                />
-              </UBadge>
-            </div>
-
-            <!-- Tag input -->
-            <UInput
-              v-model="tagInput"
-              placeholder="Escribe y presiona Enter"
-              size="lg"
-              class="w-full"
-              @keydown="handleTagKeydown"
+            <UiTagInput
+              v-model="tags"
+              lowercase
             />
-
-            <p class="text-xs text-neutral-600 dark:text-neutral-300 mt-1">
-              Presiona Enter para agregar. Click en la etiqueta para eliminar.
-            </p>
           </div>
         </div>
 

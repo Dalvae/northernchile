@@ -3,6 +3,9 @@
  * Convierte a WebP con compresión inteligente según tamaño
  * Solo se usa en admin - no afecta rendimiento de páginas públicas
  */
+
+import { formatFileSize } from '~/utils/media'
+
 export const useImageOptimizer = () => {
   /**
    * Crea un elemento Image desde un File
@@ -208,22 +211,6 @@ export const useImageOptimizer = () => {
     }
 
     return results
-  }
-
-  /**
-   * Formatea el tamaño de archivo en formato legible
-   */
-  const formatFileSize = (bytes: number): string => {
-    const KB = 1024
-    const MB = KB * 1024
-
-    if (bytes >= MB) {
-      return `${(bytes / MB).toFixed(2)} MB`
-    } else if (bytes >= KB) {
-      return `${(bytes / KB).toFixed(2)} KB`
-    } else {
-      return `${bytes} bytes`
-    }
   }
 
   return {

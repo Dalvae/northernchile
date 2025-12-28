@@ -6,6 +6,9 @@
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
  */
+
+import { getLocaleCode } from '~/utils/localeUtils'
+
 export const useCurrency = () => {
   const { locale } = useI18n()
 
@@ -60,21 +63,6 @@ export const useCurrency = () => {
       // Fallback to basic formatting
       return `$${numericValue.toLocaleString(localeCode)}`
     }
-  }
-
-  /**
-   * Maps i18n locale to Intl.NumberFormat locale code
-   *
-   * @param locale - Current i18n locale (es, en, pt)
-   * @returns Locale code for NumberFormat (es-CL, en-US, pt-BR)
-   */
-  const getLocaleCode = (locale: string): string => {
-    const localeMap: Record<string, string> = {
-      es: 'es-CL',
-      en: 'en-US',
-      pt: 'pt-BR'
-    }
-    return localeMap[locale] || 'es-CL'
   }
 
   /**

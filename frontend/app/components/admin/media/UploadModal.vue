@@ -38,27 +38,6 @@ const metadata = ref({
   takenAt: ''
 })
 
-const tagInput = ref('')
-
-function addTag() {
-  const tag = tagInput.value.trim()
-  if (tag && !metadata.value.tags.includes(tag)) {
-    metadata.value.tags.push(tag)
-    tagInput.value = ''
-  }
-}
-
-function removeTag(index: number) {
-  metadata.value.tags.splice(index, 1)
-}
-
-function handleTagKeydown(event: KeyboardEvent) {
-  if (event.key === 'Enter') {
-    event.preventDefault()
-    addTag()
-  }
-}
-
 // File handling
 async function onFilesSelected(event: Event) {
   const target = event.target as HTMLInputElement
@@ -449,39 +428,10 @@ function openFileDialog() {
               <label class="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
                 Etiquetas
               </label>
-
-              <!-- Tags display -->
-              <div
-                v-if="metadata.tags.length > 0"
-                class="flex flex-wrap gap-2 mb-2"
-              >
-                <UBadge
-                  v-for="(tag, index) in metadata.tags"
-                  :key="index"
-                  color="primary"
-                  variant="soft"
-                  class="cursor-pointer"
-                  @click="removeTag(index)"
-                >
-                  {{ tag }}
-                  <UIcon
-                    name="i-heroicons-x-mark"
-                    class="w-3 h-3 ml-1"
-                  />
-                </UBadge>
-              </div>
-
-              <!-- Tag input -->
-              <UInput
-                v-model="tagInput"
+              <UiTagInput
+                v-model="metadata.tags"
                 placeholder="Añade etiquetas (ej: noche, estrellas, grupo)"
-                size="lg"
-                class="w-full"
-                @keydown="handleTagKeydown"
               />
-              <p class="text-xs text-neutral-600 dark:text-neutral-300 mt-1">
-                Presiona Enter para agregar. Click en la etiqueta para eliminar.
-              </p>
             </div>
 
             <!-- Photo date -->

@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf'
 import { parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
+import { getLocaleCode } from '~/utils/localeUtils'
 
 interface BookingParticipant {
   id: string
@@ -29,15 +30,6 @@ export const useBookingPdf = () => {
   const { t, locale } = useI18n()
   const { formatPrice } = useCurrency()
   const { getCountryLabel } = useCountries()
-
-  const getLocaleCode = (loc: string): string => {
-    const localeMap: Record<string, string> = {
-      es: 'es-CL',
-      en: 'en-US',
-      pt: 'pt-BR'
-    }
-    return localeMap[loc] || 'es-CL'
-  }
 
   const formatDateTime = (dateString: string, timeString: string): string => {
     if (!dateString) return '-'
