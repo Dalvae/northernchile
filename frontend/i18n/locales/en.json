@@ -745,7 +745,7 @@
       },
       "phone": {
         "title": "Phone",
-        "number": "+56 9 1234 5678",
+        "number": "+56 9 4269 3271",
         "hours": "Mon - Sun: 9:00 AM - 8:00 PM"
       },
       "email": {
@@ -885,6 +885,10 @@
     "accept": "Accept",
     "reject": "Reject",
     "learn_more": "Learn more"
+  },
+  "whatsapp": {
+    "aria_label": "Contact us on WhatsApp",
+    "default_message": "Hello, I would like to get more information about astronomical tours."
   },
   "error": {
     "code": "Code",

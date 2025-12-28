@@ -745,7 +745,7 @@
       },
       "phone": {
         "title": "Teléfono",
-        "number": "+56 9 1234 5678",
+        "number": "+56 9 4269 3271",
         "hours": "Lun - Dom: 9:00 - 20:00"
       },
       "email": {
@@ -885,6 +885,10 @@
     "accept": "Aceptar",
     "reject": "Rechazar",
     "learn_more": "Más información"
+  },
+  "whatsapp": {
+    "aria_label": "Contáctanos por WhatsApp",
+    "default_message": "Hola, me gustaría obtener más información sobre los tours astronómicos."
   },
   "error": {
     "code": "Código",

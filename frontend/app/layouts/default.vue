@@ -48,6 +48,7 @@ watch(() => consentGiven.value, (hasConsent) => {
     <ClientOnly>
       <CookieBanner />
       <DevWarningModal />
+      <GlobalWhatsAppButton />
     </ClientOnly>
   </div>
 </template>
