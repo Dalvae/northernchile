@@ -33,7 +33,7 @@ const paymentOptions: PaymentOption[] = [
     method: PaymentMethod.WEBPAY,
     name: 'Webpay Plus',
     description: t('payment.methods.transbank.description'),
-    icon: '/assets/images/payment-methods/webpay.svg',
+    icon: '/images/payment-methods/webpay.svg',
     country: 'Chile',
     available: true
   },
@@ -42,7 +42,7 @@ const paymentOptions: PaymentOption[] = [
     method: PaymentMethod.CREDIT_CARD,
     name: 'Mercado Pago',
     description: t('payment.methods.mercadopago.description'),
-    icon: '/assets/images/payment-methods/mercadopago.svg',
+    icon: '/images/payment-methods/mercadopago.svg',
     country: t('payment.methods.mercadopago.countries'),
     available: true
   }
