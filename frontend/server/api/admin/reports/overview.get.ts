@@ -1,5 +1,6 @@
+import type { OverviewReport } from 'api-client'
 import { proxyGet } from '../../../utils/apiProxy'
 
 export default defineEventHandler(event =>
-  proxyGet<unknown>(event, '/api/admin/reports/overview', 'Failed to fetch reports overview')
+  proxyGet<OverviewReport>(event, '/api/admin/reports/overview', 'Failed to fetch reports overview')
 )
