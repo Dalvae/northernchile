@@ -27,11 +27,22 @@ const { data: featuredTours } = useFetch<TourRes[]>('/api/tours', {
         id: tour.id,
         slug: tour.slug,
         nameTranslations: tour.nameTranslations,
-        images: tour.images?.slice(0, 1),
+        // Pass hero, featured, or first image - TourCard needs flags to select correctly
+        images: tour.images
+          ? (() => {
+              const hero = tour.images.find(img => img.isHeroImage)
+              const featured = tour.images.find(img => img.isFeatured)
+              const first = tour.images[0]
+              // Return unique images in priority order
+              return [hero, featured, first].filter((img, idx, arr) =>
+                img && arr.findIndex(i => i?.imageUrl === img.imageUrl) === idx
+              )
+            })()
+          : [],
         category: tour.category,
         price: tour.price,
         durationHours: tour.durationHours,
-        defaultMaxParticipants: (tour as any).defaultMaxParticipants,
+        defaultMaxParticipants: tour.defaultMaxParticipants,
         moonSensitive: tour.moonSensitive,
         windSensitive: tour.windSensitive,
         descriptionBlocksTranslations: tour.descriptionBlocksTranslations

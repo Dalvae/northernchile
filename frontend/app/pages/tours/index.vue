@@ -14,8 +14,18 @@ const { data: allTours } = await useFetch<TourRes[]>('/api/tours', {
       id: tour.id,
       slug: tour.slug,
       nameTranslations: tour.nameTranslations,
-
-      images: tour.images?.slice(0, 1),
+      // Pass hero, featured, or first image - need flags for image selection
+      images: tour.images
+        ? (() => {
+            const hero = tour.images.find(img => img.isHeroImage)
+            const featured = tour.images.find(img => img.isFeatured)
+            const first = tour.images[0]
+            // Return unique images in priority order
+            return [hero, featured, first].filter((img, idx, arr) =>
+              img && arr.findIndex(i => i?.imageUrl === img.imageUrl) === idx
+            )
+          })()
+        : [],
       category: tour.category,
       price: tour.price,
       durationHours: tour.durationHours,
@@ -150,9 +160,11 @@ const getTourDescription = (tour: TourRes) => {
 }
 
 const getTourImage = (tour: TourRes) => {
+  // Priority: Hero -> Featured -> First -> Placeholder
   const hero = tour.images?.find((img: TourImageRes) => img.isHeroImage)?.imageUrl
+  const featured = tour.images?.find((img: TourImageRes) => img.isFeatured)?.imageUrl
   const first = tour.images?.[0]?.imageUrl
-  return hero || first || '/images/tour-placeholder.svg'
+  return hero || featured || first || '/images/tour-placeholder.svg'
 }
 
 defineOgImageComponent('Tour', {
