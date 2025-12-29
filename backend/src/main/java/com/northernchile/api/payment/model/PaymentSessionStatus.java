@@ -27,5 +27,10 @@ public enum PaymentSessionStatus {
     /**
      * User cancelled the payment
      */
-    CANCELLED
+    CANCELLED,
+
+    /**
+     * Payment was refunded
+     */
+    REFUNDED
 }

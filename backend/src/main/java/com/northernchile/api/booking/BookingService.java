@@ -16,6 +16,8 @@ import com.northernchile.api.notification.EmailService;
 import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
 import com.northernchile.api.tour.TourUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,6 +39,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class BookingService {
+
+    private static final Logger log = LoggerFactory.getLogger(BookingService.class);
 
     private final BookingRepository bookingRepository;
     private final TourScheduleRepository tourScheduleRepository;
@@ -193,7 +197,18 @@ public class BookingService {
                 booking.getLanguageCode() != null ? booking.getLanguageCode() : "es-CL"
         );
 
-        emailService.sendNewBookingNotificationToAdmin(booking, adminEmail);
+        // Send notification to tour owner (Partner Admin) if different from general admin
+        User tourOwner = schedule.getTour().getOwner();
+        if (tourOwner != null && tourOwner.getEmail() != null) {
+            emailService.sendNewBookingNotificationToAdmin(booking, tourOwner.getEmail());
+            log.info("Sent booking notification to tour owner: {}", tourOwner.getEmail());
+        }
+
+        // Also send to general admin (contacto@northernchile) if different from owner
+        if (adminEmail != null && (tourOwner == null || !adminEmail.equalsIgnoreCase(tourOwner.getEmail()))) {
+            emailService.sendNewBookingNotificationToAdmin(booking, adminEmail);
+            log.info("Sent booking notification to general admin: {}", adminEmail);
+        }
     }
 
     @Transactional(readOnly = true)

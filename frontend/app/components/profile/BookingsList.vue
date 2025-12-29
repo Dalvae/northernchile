@@ -112,8 +112,9 @@ async function cancelBooking(bookingId: string) {
 
   loading.value = true
   try {
-    await $fetch(`/api/bookings/${bookingId}`, {
-      method: 'DELETE',
+    // Call the refund endpoint - it validates 24h policy automatically
+    const result = await $fetch<{ status: string, message: string, refundAmount: number }>(`/api/refunds/booking/${bookingId}/cancel`, {
+      method: 'POST',
       credentials: 'include'
     })
 
@@ -123,15 +124,27 @@ async function cancelBooking(bookingId: string) {
     toast.add({
       color: 'success',
       title: t('profile.cancel_booking'),
-      description: t('profile.booking_cancelled_success')
+      description: t('profile.booking_cancelled_refund', { amount: formatPrice(result.refundAmount) })
     })
   } catch (error: unknown) {
     console.error('Error cancelling booking:', error)
-    toast.add({
-      color: 'error',
-      title: t('common.error'),
-      description: t('profile.booking_cancel_error')
-    })
+    const err = error as { data?: { message?: string }, statusCode?: number }
+    const errorMessage = err?.data?.message || t('profile.booking_cancel_error')
+
+    // Check if it's a 24-hour policy violation
+    if (errorMessage.includes('24') || err?.statusCode === 400) {
+      toast.add({
+        color: 'warning',
+        title: t('profile.cancel_booking_not_allowed'),
+        description: t('profile.cancel_booking_24h_policy')
+      })
+    } else {
+      toast.add({
+        color: 'error',
+        title: t('common.error'),
+        description: errorMessage
+      })
+    }
   } finally {
     loading.value = false
   }

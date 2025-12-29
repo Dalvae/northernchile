@@ -200,6 +200,19 @@ export const useAdminData = () => {
         body: orders,
         headers: jsonHeaders,
         ...baseFetchOptions
+      }),
+    // Refund operations
+    refundBooking: (bookingId: string, adminOverride: boolean = false) =>
+      $fetch<{
+        bookingId: string
+        provider: string
+        providerRefundId: string
+        refundAmount: number
+        status: string
+        message: string
+      }>(`/api/refunds/booking/${bookingId}?adminOverride=${adminOverride}`, {
+        method: 'POST',
+        ...baseFetchOptions
       })
   }
 }

@@ -4,7 +4,6 @@ import type { BookingRes } from 'api-client'
 import { getGroupedRowModel } from '@tanstack/vue-table'
 import type { GroupingOptions } from '@tanstack/vue-table'
 
-import AdminStatusBadge from '~/components/admin/StatusBadge.vue'
 import AdminCountryCell from '~/components/admin/CountryCell.vue'
 
 definePageMeta({
@@ -17,9 +16,9 @@ useHead({
 
 const UBadge = resolveComponent('UBadge')
 
-const { fetchAdminBookings } = useAdminData()
+const { fetchAdminBookings, refundBooking } = useAdminData()
 const { formatPrice: formatCurrency } = useCurrency()
-const { getCountryLabel, getCountryFlag } = useCountries()
+const toast = useToast()
 
 const {
   data: bookings,
@@ -33,13 +32,20 @@ const {
 
 const q = ref('')
 const activeTab = ref<'upcoming' | 'past'>('upcoming')
+const viewMode = ref<'manifest' | 'bookings'>('manifest')
 
-// Transform bookings into participant rows
+// Refund modal state
+const refundModal = ref(false)
+const selectedBooking = ref<BookingRes | null>(null)
+const refundProcessing = ref(false)
+const adminOverride = ref(false)
+
+// Transform bookings into participant rows (for manifest view)
 type ParticipantRow = {
   scheduleId: string | undefined
   tourName?: string
   tourDate?: string
-  tourStartTime?: string | any
+  tourStartTime?: string
   participantName?: string
   documentId?: string
   nationality?: string
@@ -116,7 +122,41 @@ const participantRows = computed<ParticipantRow[]>(() => {
   return rows
 })
 
-const columns = [
+// Filtered bookings for bookings view
+const filteredBookings = computed(() => {
+  if (!bookings.value || bookings.value.length === 0) return []
+
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+
+  return bookings.value.filter((booking) => {
+    // Filter by search query
+    if (q.value) {
+      const query = q.value.toLowerCase()
+      const matchesSearch
+        = booking.tourName?.toLowerCase().includes(query)
+          || booking.userFullName?.toLowerCase().includes(query)
+          || booking.id?.toLowerCase().includes(query)
+          || booking.userEmail?.toLowerCase().includes(query)
+
+      if (!matchesSearch) return false
+    }
+
+    // Filter by date based on active tab
+    if (!booking.tourDate) return false
+    const tourDateStr = booking.tourDate
+    if (activeTab.value === 'upcoming' && tourDateStr < todayStr) {
+      return false
+    }
+    if (activeTab.value === 'past' && tourDateStr >= todayStr) {
+      return false
+    }
+
+    return true
+  })
+})
+
+const manifestColumns = [
   {
     id: 'title',
     header: 'Tour'
@@ -149,7 +189,7 @@ const columns = [
   },
   {
     accessorKey: 'pickupAddress',
-    header: 'Dirección Recogida',
+    header: 'Direccion Recogida',
     meta: {
       class: {
         td: 'w-full'
@@ -162,12 +202,51 @@ const columns = [
   }
 ]
 
+const bookingColumns = [
+  {
+    id: 'id',
+    accessorKey: 'id',
+    header: 'ID'
+  },
+  {
+    id: 'tourName',
+    accessorKey: 'tourName',
+    header: 'Tour'
+  },
+  {
+    id: 'tourDate',
+    accessorKey: 'tourDate',
+    header: 'Fecha'
+  },
+  {
+    id: 'userFullName',
+    accessorKey: 'userFullName',
+    header: 'Cliente'
+  },
+  {
+    id: 'participantCount',
+    header: 'Participantes'
+  },
+  {
+    id: 'totalAmount',
+    accessorKey: 'totalAmount',
+    header: 'Total'
+  },
+  {
+    id: 'status',
+    accessorKey: 'status',
+    header: 'Estado'
+  },
+  {
+    id: 'actions',
+    header: 'Acciones'
+  }
+]
+
 const groupingOptions = ref<GroupingOptions>({
   groupedColumnMode: 'remove',
   getGroupedRowModel: getGroupedRowModel()
 })
-
-const { formatDateTime } = useDateTime()
 
 function formatTourDateTime(dateString: string, timeString?: string): string {
   if (!dateString) return ''
@@ -187,6 +266,77 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
 
   return formattedDate
 }
+
+function getStatusColor(status: string): 'success' | 'warning' | 'error' | 'info' | 'neutral' {
+  switch (status) {
+    case 'CONFIRMED':
+      return 'success'
+    case 'PENDING':
+      return 'warning'
+    case 'CANCELLED':
+      return 'error'
+    default:
+      return 'neutral'
+  }
+}
+
+function getStatusLabel(status: string): string {
+  switch (status) {
+    case 'CONFIRMED':
+      return 'Confirmada'
+    case 'PENDING':
+      return 'Pendiente'
+    case 'CANCELLED':
+      return 'Cancelada'
+    default:
+      return status
+  }
+}
+
+function openRefundModal(booking: BookingRes) {
+  selectedBooking.value = booking
+  adminOverride.value = false
+  refundModal.value = true
+}
+
+async function handleRefund() {
+  if (!selectedBooking.value?.id) return
+
+  refundProcessing.value = true
+  try {
+    const result = await refundBooking(selectedBooking.value.id, adminOverride.value)
+
+    toast.add({
+      title: 'Reembolso procesado',
+      description: `Se ha reembolsado ${formatCurrency(result.refundAmount)} correctamente.`,
+      color: 'success',
+      icon: 'i-lucide-check-circle'
+    })
+
+    refundModal.value = false
+    selectedBooking.value = null
+    await refresh()
+  } catch (error: unknown) {
+    const err = error as { data?: { message?: string }, message?: string }
+    const message = err?.data?.message || err?.message || 'Error al procesar el reembolso'
+    toast.add({
+      title: 'Error en reembolso',
+      description: message,
+      color: 'error',
+      icon: 'i-lucide-x-circle'
+    })
+  } finally {
+    refundProcessing.value = false
+  }
+}
+
+// Check if booking is within 24 hours
+function isWithin24Hours(tourDate: string, tourTime?: string): boolean {
+  const now = new Date()
+  const tourDateTime = new Date(`${tourDate}T${tourTime || '00:00:00'}`)
+  const hoursUntilTour = (tourDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)
+  return hoursUntilTour < 24
+}
 </script>
 
 <template>
@@ -196,47 +346,74 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-default">
-            Gestión de Reservas
+            Gestion de Reservas
           </h1>
           <p class="text-default text-sm mt-1">
-            Administra todas las reservas confirmadas del sistema
+            Administra todas las reservas del sistema
           </p>
         </div>
         <div class="flex items-center gap-3">
           <UInput
             v-model="q"
             icon="i-lucide-search"
-            placeholder="Buscar participante..."
+            :placeholder="viewMode === 'manifest' ? 'Buscar participante...' : 'Buscar reserva...'"
             class="w-80"
           />
         </div>
       </div>
 
-      <!-- Tabs -->
-      <div class="flex gap-2">
-        <UButton
-          :variant="activeTab === 'upcoming' ? 'solid' : 'ghost'"
-          :color="activeTab === 'upcoming' ? 'primary' : 'neutral'"
-          @click="activeTab = 'upcoming'"
-        >
-          Próximas
-        </UButton>
-        <UButton
-          :variant="activeTab === 'past' ? 'solid' : 'ghost'"
-          :color="activeTab === 'past' ? 'primary' : 'neutral'"
-          @click="activeTab = 'past'"
-        >
-          Anteriores
-        </UButton>
+      <!-- View Mode Toggle -->
+      <div class="flex items-center gap-4">
+        <div class="flex gap-2">
+          <UButton
+            :variant="viewMode === 'manifest' ? 'solid' : 'ghost'"
+            :color="viewMode === 'manifest' ? 'primary' : 'neutral'"
+            icon="i-lucide-users"
+            @click="viewMode = 'manifest'"
+          >
+            Manifiesto
+          </UButton>
+          <UButton
+            :variant="viewMode === 'bookings' ? 'solid' : 'ghost'"
+            :color="viewMode === 'bookings' ? 'primary' : 'neutral'"
+            icon="i-lucide-list"
+            @click="viewMode = 'bookings'"
+          >
+            Reservas
+          </UButton>
+        </div>
+
+        <div class="h-6 w-px bg-neutral-300 dark:bg-neutral-600" />
+
+        <!-- Date Tabs -->
+        <div class="flex gap-2">
+          <UButton
+            :variant="activeTab === 'upcoming' ? 'soft' : 'ghost'"
+            :color="activeTab === 'upcoming' ? 'primary' : 'neutral'"
+            size="sm"
+            @click="activeTab = 'upcoming'"
+          >
+            Proximas
+          </UButton>
+          <UButton
+            :variant="activeTab === 'past' ? 'soft' : 'ghost'"
+            :color="activeTab === 'past' ? 'primary' : 'neutral'"
+            size="sm"
+            @click="activeTab = 'past'"
+          >
+            Anteriores
+          </UButton>
+        </div>
       </div>
 
-      <!-- Table Container -->
+      <!-- Manifest View -->
       <div
+        v-if="viewMode === 'manifest'"
         class="bg-elevated rounded-lg shadow-sm border border-default overflow-hidden"
       >
         <UTable
           :data="participantRows"
-          :columns="columns"
+          :columns="manifestColumns"
           :loading="pending"
           :grouping="['scheduleId']"
           :grouping-options="groupingOptions"
@@ -328,7 +505,7 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
                   v-if="!row.original.participantPhone && row.original.bookingUserPhone"
                   class="text-xs text-neutral-500 dark:text-neutral-300"
                 >
-                  (teléfono del contacto {{ row.original.bookingUserName }})
+                  (telefono del contacto {{ row.original.bookingUserName }})
                 </span>
               </div>
 
@@ -349,12 +526,206 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
                 v-if="!row.original.participantPhone && !row.original.bookingUserPhone && !row.original.participantEmail"
                 class="text-sm text-default"
               >
-                Sin información de contacto
+                Sin informacion de contacto
+              </span>
+            </div>
+          </template>
+        </UTable>
+      </div>
+
+      <!-- Bookings View -->
+      <div
+        v-else
+        class="bg-elevated rounded-lg shadow-sm border border-default overflow-hidden"
+      >
+        <UTable
+          :data="filteredBookings"
+          :columns="bookingColumns"
+          :loading="pending"
+          :empty-state="{
+            icon: 'i-lucide-calendar-x',
+            label: 'No hay reservas registradas.'
+          }"
+          :ui="{
+            root: 'min-w-full',
+            td: 'p-4 text-sm text-default whitespace-nowrap [&:has([role=checkbox])]:pe-0'
+          }"
+        >
+          <template #id-cell="{ row }">
+            <span class="text-xs font-mono text-muted">
+              {{ row.original.id?.substring(0, 8) }}...
+            </span>
+          </template>
+
+          <template #tourName-cell="{ row }">
+            <div class="flex flex-col">
+              <span class="font-medium text-default">
+                {{ row.original.tourName }}
+              </span>
+              <span class="text-xs text-muted">
+                {{ row.original.tourStartTime }}
+              </span>
+            </div>
+          </template>
+
+          <template #tourDate-cell="{ row }">
+            <span class="text-sm text-default">
+              {{ formatTourDateTime(row.original.tourDate || '') }}
+            </span>
+          </template>
+
+          <template #userFullName-cell="{ row }">
+            <div class="flex flex-col">
+              <span class="font-medium text-default">
+                {{ row.original.userFullName }}
+              </span>
+              <span class="text-xs text-muted">
+                {{ row.original.userEmail }}
+              </span>
+            </div>
+          </template>
+
+          <template #participantCount-cell="{ row }">
+            <UBadge
+              :label="`${row.original.participants?.length || 0} pax`"
+              color="neutral"
+              variant="soft"
+            />
+          </template>
+
+          <template #totalAmount-cell="{ row }">
+            <span class="font-medium text-default">
+              {{ formatCurrency(row.original.totalAmount || 0) }}
+            </span>
+          </template>
+
+          <template #status-cell="{ row }">
+            <UBadge
+              :label="getStatusLabel(row.original.status || '')"
+              :color="getStatusColor(row.original.status || '')"
+              variant="soft"
+            />
+          </template>
+
+          <template #actions-cell="{ row }">
+            <div class="flex items-center gap-2">
+              <UButton
+                v-if="row.original.status === 'CONFIRMED'"
+                icon="i-lucide-undo-2"
+                color="error"
+                variant="soft"
+                size="xs"
+                @click="openRefundModal(row.original)"
+              >
+                Reembolsar
+              </UButton>
+              <span
+                v-else
+                class="text-xs text-muted"
+              >
+                -
               </span>
             </div>
           </template>
         </UTable>
       </div>
     </div>
+
+    <!-- Refund Modal -->
+    <UModal v-model:open="refundModal">
+      <template #content>
+        <div class="p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-error/10 rounded-full flex items-center justify-center">
+              <UIcon
+                name="i-lucide-undo-2"
+                class="w-5 h-5 text-error"
+              />
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-default">
+                Procesar Reembolso
+              </h3>
+              <p class="text-sm text-muted">
+                Esta accion no se puede deshacer
+              </p>
+            </div>
+          </div>
+
+          <div
+            v-if="selectedBooking"
+            class="space-y-4"
+          >
+            <!-- Booking Details -->
+            <div class="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-4 space-y-2">
+              <div class="flex justify-between">
+                <span class="text-sm text-muted">Tour:</span>
+                <span class="text-sm font-medium text-default">{{ selectedBooking.tourName }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-muted">Fecha:</span>
+                <span class="text-sm text-default">{{ formatTourDateTime(selectedBooking.tourDate || '') }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-muted">Cliente:</span>
+                <span class="text-sm text-default">{{ selectedBooking.userFullName }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-muted">Participantes:</span>
+                <span class="text-sm text-default">{{ selectedBooking.participants?.length || 0 }}</span>
+              </div>
+              <div class="flex justify-between border-t border-neutral-200 dark:border-neutral-700 pt-2 mt-2">
+                <span class="text-sm font-medium text-muted">Monto a reembolsar:</span>
+                <span class="text-lg font-bold text-error">{{ formatCurrency(selectedBooking.totalAmount || 0) }}</span>
+              </div>
+            </div>
+
+            <!-- 24-hour warning -->
+            <div
+              v-if="isWithin24Hours(selectedBooking.tourDate || '', selectedBooking.tourStartTime)"
+              class="bg-warning/10 border border-warning/30 rounded-lg p-4"
+            >
+              <div class="flex items-start gap-3">
+                <UIcon
+                  name="i-lucide-alert-triangle"
+                  class="w-5 h-5 text-warning mt-0.5"
+                />
+                <div>
+                  <p class="text-sm font-medium text-warning">
+                    Reserva dentro de 24 horas
+                  </p>
+                  <p class="text-xs text-muted mt-1">
+                    Segun la politica de cancelacion, las reservas dentro de las 24 horas previas no son elegibles para reembolso automatico.
+                  </p>
+                  <label class="flex items-center gap-2 mt-3">
+                    <UCheckbox v-model="adminOverride" />
+                    <span class="text-sm text-default">Aplicar reembolso de todas formas (anulacion administrativa)</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-end gap-3 pt-4">
+              <UButton
+                color="neutral"
+                variant="ghost"
+                @click="refundModal = false"
+              >
+                Cancelar
+              </UButton>
+              <UButton
+                color="error"
+                :loading="refundProcessing"
+                :disabled="isWithin24Hours(selectedBooking.tourDate || '', selectedBooking.tourStartTime) && !adminOverride"
+                @click="handleRefund"
+              >
+                Confirmar Reembolso
+              </UButton>
+            </div>
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

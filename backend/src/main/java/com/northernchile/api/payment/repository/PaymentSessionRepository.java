@@ -56,4 +56,24 @@ public interface PaymentSessionRepository extends JpaRepository<PaymentSession, 
      */
     @Query("SELECT CASE WHEN COUNT(ps) > 0 THEN true ELSE false END FROM PaymentSession ps WHERE ps.status = 'PENDING' AND ps.expiresAt < :now")
     boolean existsExpiredPendingSessions(@Param("now") Instant now);
+
+    /**
+     * Find a completed payment session for a user that contains a specific schedule.
+     * Used for refund processing.
+     */
+    @Query(value = """
+        SELECT ps.* FROM payment_sessions ps
+        WHERE ps.user_id = :userId
+          AND ps.status = 'COMPLETED'
+          AND EXISTS (
+            SELECT 1 FROM jsonb_array_elements(ps.items) AS item
+            WHERE (item->>'scheduleId')::uuid = :scheduleId
+          )
+        ORDER BY ps.created_at DESC
+        LIMIT 1
+        """, nativeQuery = true)
+    Optional<PaymentSession> findCompletedSessionByUserAndSchedule(
+        @Param("userId") UUID userId,
+        @Param("scheduleId") UUID scheduleId
+    );
 }
