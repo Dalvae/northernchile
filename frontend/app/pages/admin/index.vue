@@ -138,7 +138,6 @@ function getStatusColor(status: string): BadgeColor {
   }
   return colors[status] || 'neutral'
 }
-
 </script>
 
 <template>

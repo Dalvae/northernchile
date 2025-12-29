@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { getTodayString } from '~/utils/dateUtils'
 
-const { t } = useI18n();
-const toast = useToast();
-const config = useRuntimeConfig();
+const { t } = useI18n()
+const toast = useToast()
+const config = useRuntimeConfig()
 
 useSeoMeta({
   title: t('privateTours.seo.title'),

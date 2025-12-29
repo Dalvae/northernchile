@@ -114,7 +114,7 @@ const featuredImages = computed(() => {
 const galleryImages = computed(() => {
   // Get IDs of featured images to exclude them from gallery
   const featuredIds = new Set(featuredImages.value.map(img => img.id))
-  return (tour.value?.images?.filter((img: TourImageRes) => 
+  return (tour.value?.images?.filter((img: TourImageRes) =>
     !img.isHeroImage && !featuredIds.has(img.id)
   ) || [])
     .filter((img): img is TourImageRes & { imageUrl: string } => !!img.imageUrl)

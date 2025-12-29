@@ -13,7 +13,10 @@
       :leading-icon="leadingIcon"
       :class="props.class"
     >
-      <template v-if="$slots.trailing" #trailing>
+      <template
+        v-if="$slots.trailing"
+        #trailing
+      >
         <slot name="trailing" />
       </template>
     </UInputDate>
