@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Validates email configuration at application startup.
- * Logs warnings if email is enabled but configuration is incomplete.
+ * Logs warnings if email is enabled but AWS SES configuration is incomplete.
  */
 @Component
 public class EmailConfigValidator {
@@ -19,17 +19,14 @@ public class EmailConfigValidator {
     @Value("${mail.enabled:false}")
     private Boolean mailEnabled;
 
-    @Value("${mail.host:}")
-    private String mailHost;
+    @Value("${aws.ses.access-key-id:${AWS_ACCESS_KEY_ID:}}")
+    private String awsAccessKeyId;
 
-    @Value("${mail.port:587}")
-    private Integer mailPort;
+    @Value("${aws.ses.secret-access-key:${AWS_SECRET_ACCESS_KEY:}}")
+    private String awsSecretAccessKey;
 
-    @Value("${mail.username:}")
-    private String mailUsername;
-
-    @Value("${mail.password:}")
-    private String mailPassword;
+    @Value("${aws.ses.region:${AWS_REGION:us-east-1}}")
+    private String awsRegion;
 
     @Value("${mail.from.email:}")
     private String mailFromEmail;
@@ -47,27 +44,16 @@ public class EmailConfigValidator {
             return;
         }
 
-        // Email is enabled, validate required configuration
+        // Email is enabled, validate required AWS SES configuration
         boolean hasErrors = false;
 
-        if (isBlank(mailHost)) {
-            log.error("MAIL_HOST is not configured but email is enabled!");
+        if (isBlank(awsAccessKeyId)) {
+            log.error("AWS_ACCESS_KEY_ID is not configured but email is enabled!");
             hasErrors = true;
         }
 
-        if (mailPort == null || mailPort <= 0) {
-            log.error("MAIL_PORT is invalid: {}", mailPort);
-            hasErrors = true;
-        }
-
-        if (isBlank(mailUsername)) {
-            log.error("MAIL_USERNAME is not configured but email is enabled!");
-            hasErrors = true;
-        }
-
-        if (isBlank(mailPassword)) {
-            log.error("MAIL_PASSWORD is not configured but email is enabled!");
-            log.error("For Gmail/Google Workspace, generate an app-specific password.");
+        if (isBlank(awsSecretAccessKey)) {
+            log.error("AWS_SECRET_ACCESS_KEY is not configured but email is enabled!");
             hasErrors = true;
         }
 
@@ -80,25 +66,23 @@ public class EmailConfigValidator {
             log.error("================================================");
             log.error("EMAIL CONFIGURATION IS INCOMPLETE!");
             log.error("================================================");
-            log.error("Email sending is ENABLED but required configuration is missing.");
+            log.error("Email sending is ENABLED but required AWS SES configuration is missing.");
             log.error("Please set the following environment variables:");
-            log.error("  - MAIL_HOST (e.g., smtp.gmail.com)");
-            log.error("  - MAIL_PORT (e.g., 587)");
-            log.error("  - MAIL_USERNAME (your email address)");
-            log.error("  - MAIL_PASSWORD (app-specific password)");
-            log.error("  - MAIL_FROM_EMAIL (sender email address)");
+            log.error("  - AWS_ACCESS_KEY_ID (your AWS access key)");
+            log.error("  - AWS_SECRET_ACCESS_KEY (your AWS secret key)");
+            log.error("  - AWS_REGION (e.g., us-east-1) [optional, defaults to us-east-1]");
+            log.error("  - MAIL_FROM_EMAIL (sender email address verified in SES)");
             log.error("");
             log.error("Or set MAIL_ENABLED=false to disable email sending.");
             log.error("See backend/docs/EMAIL_SETUP.md for setup instructions.");
             log.error("================================================");
         } else {
-            log.info("Email configuration is valid:");
-            log.info("  Host: {}", mailHost);
-            log.info("  Port: {}", mailPort);
-            log.info("  Username: {}", maskEmail(mailUsername));
+            log.info("Email configuration is valid (AWS SES):");
+            log.info("  Region: {}", awsRegion);
             log.info("  From Email: {}", mailFromEmail);
             log.info("  From Name: {}", mailFromName);
-            log.info("Email sending is ENABLED and ready.");
+            log.info("  AWS credentials: configured");
+            log.info("Email sending via AWS SES is ENABLED and ready.");
         }
     }
 
@@ -107,28 +91,5 @@ public class EmailConfigValidator {
      */
     private boolean isBlank(String str) {
         return str == null || str.trim().isEmpty();
-    }
-
-    /**
-     * Mask email address for logging (show first char and domain only)
-     */
-    private String maskEmail(String email) {
-        if (isBlank(email)) {
-            return "[not set]";
-        }
-
-        int atIndex = email.indexOf('@');
-        if (atIndex <= 0) {
-            return "***@[invalid]";
-        }
-
-        String localPart = email.substring(0, atIndex);
-        String domain = email.substring(atIndex);
-
-        if (localPart.length() <= 2) {
-            return "***" + domain;
-        }
-
-        return localPart.charAt(0) + "***" + domain;
     }
 }
