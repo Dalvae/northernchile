@@ -122,20 +122,47 @@ jobs:
 
       - name: Create app directory on VPS
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "mkdir -p /app/northernchile"
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o ServerAliveInterval=30 \
+            -o ConnectTimeout=30 \
+            ${VPS_USER}@${VPS_HOST} "mkdir -p /app/northernchile"
 
       - name: Copy files to VPS
         run: |
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no .env ${VPS_USER}@${VPS_HOST}:/app/northernchile/.env
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no docker-compose.prod.yml ${VPS_USER}@${VPS_HOST}:/app/northernchile/docker-compose.prod.yml
+          scp -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o ServerAliveInterval=30 \
+            -o ConnectTimeout=30 \
+            .env ${VPS_USER}@${VPS_HOST}:/app/northernchile/.env
+          scp -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o ServerAliveInterval=30 \
+            -o ConnectTimeout=30 \
+            docker-compose.prod.yml ${VPS_USER}@${VPS_HOST}:/app/northernchile/docker-compose.prod.yml
 
       - name: Deploy on VPS
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "cd /app/northernchile && echo '${{ secrets.GHCR_PAT }}' | docker login ghcr.io -u '${{ github.repository_owner }}' --password-stdin && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d --remove-orphans && docker image prune -f"
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=10 \
+            -o ConnectTimeout=30 \
+            ${VPS_USER}@${VPS_HOST} << 'ENDSSH'
+              cd /app/northernchile
+              echo '${{ secrets.GHCR_PAT }}' | docker login ghcr.io -u '${{ github.repository_owner }}' --password-stdin
+              docker compose -f docker-compose.prod.yml pull
+              docker compose -f docker-compose.prod.yml up -d --remove-orphans
+              docker image prune -f
+          ENDSSH
 
       - name: Wait and verify deployment
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} << 'ENDSSH'
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=10 \
+            ${VPS_USER}@${VPS_HOST} << 'ENDSSH'
             echo "Waiting for Spring Boot to start..."
             for i in {1..30}; do
               echo "Health check attempt $i/30..."
@@ -155,4 +182,8 @@ jobs:
       - name: Show container status
         if: always()
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "docker ps -a && echo '---LOGS---' && docker logs northernchile-backend-1 --tail 50"
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o ServerAliveInterval=30 \
+            -o ConnectTimeout=30 \
+            ${VPS_USER}@${VPS_HOST} "docker ps -a && echo '---LOGS---' && docker logs northernchile-backend-1 --tail 50" || echo "Could not connect to VPS"
