@@ -891,7 +891,7 @@
   },
   "whatsapp": {
     "aria_label": "Contact us on WhatsApp",
-    "default_message": "Hello, I would like to get more information about astronomical tours."
+    "default_message": "Hello, I would like to get more information about your tours."
   },
   "error": {
     "code": "Code",

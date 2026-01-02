@@ -891,7 +891,7 @@
   },
   "whatsapp": {
     "aria_label": "Contáctanos por WhatsApp",
-    "default_message": "Hola, me gustaría obtener más información sobre los tours astronómicos."
+    "default_message": "Hola, me gustaría obtener más información sobre sus tours."
   },
   "error": {
     "code": "Código",
