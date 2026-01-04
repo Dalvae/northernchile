@@ -57,13 +57,13 @@ const { data: tours } = await useAsyncData(
   }
 )
 
-// Refresh alerts count every 5 minutes
+// Refresh alerts count every 15 minutes
 let alertsRefreshInterval: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
   alertsRefreshInterval = setInterval(() => {
     refreshAlertsCount()
-  }, 5 * 60 * 1000)
+  }, 15 * 60 * 1000)
 })
 
 // Cleanup interval on unmount

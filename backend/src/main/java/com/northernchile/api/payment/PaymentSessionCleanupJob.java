@@ -23,10 +23,10 @@ public class PaymentSessionCleanupJob {
     }
 
     /**
-     * Runs every 15 minutes to expire old pending payment sessions.
-     * Interval increased from 5 min to reduce database compute costs on Neon.
+     * Runs every hour to expire old pending payment sessions.
+     * Interval increased to 1 hour to reduce database compute costs on Neon.
      */
-    @Scheduled(fixedRate = 900000) // Every 15 minutes
+    @Scheduled(fixedRate = 3600000) // Every 1 hour
     @Transactional
     public void cleanupExpiredSessions() {
         log.debug("Running payment session cleanup job");
