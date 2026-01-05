@@ -2,67 +2,65 @@
 import type { TourSchema } from '~/composables/useAdminTourForm'
 import type { ContentBlock } from 'api-client'
 
-const props = defineProps<{
-  state: TourSchema
-}>()
+const state = inject<TourSchema>('tour-form-state')!
 
 // Helper para inicializar arrays si no existen
-const ensureArray = <T>(obj: Record<string, T[]>, lang: string): T[] => {
+function ensureArray<T>(obj: Record<string, T[]>, lang: string): T[] {
   if (!obj[lang]) obj[lang] = []
   return obj[lang]
 }
 
 // Helpers de Itinerario
 const addItineraryItem = (lang: string) => {
-  if (!props.state.itineraryTranslations) {
-    props.state.itineraryTranslations = { es: [], en: [], pt: [] }
+  if (!state.itineraryTranslations) {
+    state.itineraryTranslations = { es: [], en: [], pt: [] }
   }
-  ensureArray(props.state.itineraryTranslations, lang).push({ time: '', description: '' })
+  ensureArray(state.itineraryTranslations, lang).push({ time: '', description: '' })
 }
 
 const removeItineraryItem = (lang: string, index: number) => {
-  if (props.state.itineraryTranslations?.[lang]) {
-    props.state.itineraryTranslations[lang].splice(index, 1)
+  if (state.itineraryTranslations?.[lang]) {
+    state.itineraryTranslations[lang].splice(index, 1)
   }
 }
 
 // Helpers de Equipamiento
 const addEquipmentItem = (lang: string) => {
-  if (!props.state.equipmentTranslations) {
-    props.state.equipmentTranslations = { es: [], en: [], pt: [] }
+  if (!state.equipmentTranslations) {
+    state.equipmentTranslations = { es: [], en: [], pt: [] }
   }
-  ensureArray(props.state.equipmentTranslations, lang).push('')
+  ensureArray(state.equipmentTranslations, lang).push('')
 }
 
 const removeEquipmentItem = (lang: string, index: number) => {
-  if (props.state.equipmentTranslations?.[lang]) {
-    props.state.equipmentTranslations[lang].splice(index, 1)
+  if (state.equipmentTranslations?.[lang]) {
+    state.equipmentTranslations[lang].splice(index, 1)
   }
 }
 
 // Helpers de Información Adicional
 const addAdditionalInfoItem = (lang: string) => {
-  if (!props.state.additionalInfoTranslations) {
-    props.state.additionalInfoTranslations = { es: [], en: [], pt: [] }
+  if (!state.additionalInfoTranslations) {
+    state.additionalInfoTranslations = { es: [], en: [], pt: [] }
   }
-  ensureArray(props.state.additionalInfoTranslations, lang).push('')
+  ensureArray(state.additionalInfoTranslations, lang).push('')
 }
 
 const removeAdditionalInfoItem = (lang: string, index: number) => {
-  if (props.state.additionalInfoTranslations?.[lang]) {
-    props.state.additionalInfoTranslations[lang].splice(index, 1)
+  if (state.additionalInfoTranslations?.[lang]) {
+    state.additionalInfoTranslations[lang].splice(index, 1)
   }
 }
 
 // Helper para asegurar que descriptionBlocksTranslations esté inicializado
 const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
-  if (!props.state.descriptionBlocksTranslations) {
-    props.state.descriptionBlocksTranslations = { es: [], en: [], pt: [] }
+  if (!state.descriptionBlocksTranslations) {
+    state.descriptionBlocksTranslations = { es: [], en: [], pt: [] }
   }
-  if (!props.state.descriptionBlocksTranslations[lang]) {
-    props.state.descriptionBlocksTranslations[lang] = []
+  if (!state.descriptionBlocksTranslations[lang]) {
+    state.descriptionBlocksTranslations[lang] = []
   }
-  return props.state.descriptionBlocksTranslations[lang]
+  return state.descriptionBlocksTranslations[lang]
 }
 </script>
 
@@ -105,6 +103,7 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
               language="es"
               @update:model-value="(value) => {
                 ensureDescriptionBlocks('es')
+                ensureDescriptionBlocks('es')
                 state.descriptionBlocksTranslations!.es = value
               }"
             />
@@ -117,6 +116,7 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
               language="en"
               @update:model-value="(value) => {
                 ensureDescriptionBlocks('en')
+                ensureDescriptionBlocks('en')
                 state.descriptionBlocksTranslations!.en = value
               }"
             />
@@ -128,6 +128,7 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
               :model-value="ensureDescriptionBlocks('pt')"
               language="pt"
               @update:model-value="(value) => {
+                ensureDescriptionBlocks('pt')
                 ensureDescriptionBlocks('pt')
                 state.descriptionBlocksTranslations!.pt = value
               }"

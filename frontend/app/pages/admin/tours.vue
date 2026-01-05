@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { h, resolveComponent } from 'vue'
+import { h } from 'vue'
 import AdminStatusBadge from '~/components/admin/StatusBadge.vue'
 import type { TourRes } from 'api-client'
 
@@ -189,7 +189,7 @@ async function handleDelete(tour: TourRes) {
 
           <template #price-data="{ row }">
             <span class="font-semibold">
-              {{ formatPrice(row.getValue("price") || 0) }}
+              {{ formatPrice(row.getValue("price")) }}
             </span>
           </template>
 

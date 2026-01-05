@@ -52,17 +52,17 @@ public class AuthService {
 
     @Transactional
     public User register(RegisterReq registerReq, HttpServletRequest request) {
-        if (userRepository.findByEmail(registerReq.getEmail()).isPresent()) {
-            throw new EmailAlreadyExistsException(registerReq.getEmail());
+        if (userRepository.findByEmail(registerReq.email()).isPresent()) {
+            throw new EmailAlreadyExistsException(registerReq.email());
         }
 
         User user = new User();
-        user.setEmail(registerReq.getEmail());
-        user.setFullName(registerReq.getFullName());
-        user.setPasswordHash(passwordEncoder.encode(registerReq.getPassword()));
-        user.setNationality(registerReq.getNationality());
-        user.setPhoneNumber(registerReq.getPhoneNumber());
-        user.setDateOfBirth(registerReq.getDateOfBirth());
+        user.setEmail(registerReq.email());
+        user.setFullName(registerReq.fullName());
+        user.setPasswordHash(passwordEncoder.encode(registerReq.password()));
+        user.setNationality(registerReq.nationality());
+        user.setPhoneNumber(registerReq.phoneNumber());
+        user.setDateOfBirth(registerReq.dateOfBirth());
         user.setRole("ROLE_CLIENT"); // Default role
         user.setAuthProvider("LOCAL");
         user.setEmailVerified(false); // Email not verified yet
@@ -111,7 +111,7 @@ public class AuthService {
 
     public Map<String, Object> login(LoginReq loginReq) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginReq.getEmail(), loginReq.getPassword())
+                new UsernamePasswordAuthenticationToken(loginReq.email(), loginReq.password())
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);

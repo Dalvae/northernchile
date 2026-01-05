@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PaymentInitRes } from '~/types/payment'
+import type { PaymentSessionRes } from '~/types/payment'
 import { PaymentStatus } from '~/types/payment'
 
 const { t } = useI18n()
@@ -9,7 +9,7 @@ const localePath = useLocalePath()
 const paymentStore = usePaymentStore()
 
 const props = defineProps<{
-  payment: PaymentInitRes
+  payment: PaymentSessionRes
 }>()
 
 const emit = defineEmits<{
@@ -44,7 +44,7 @@ async function copyPixCode() {
     setTimeout(() => {
       pixCodeCopied.value = false
     }, 3000)
-  } catch (error) {
+  } catch {
     toast.add({
       color: 'error',
       title: t('common.error'),
@@ -85,7 +85,7 @@ onMounted(() => {
   countdownInterval.value = setInterval(updateTimeRemaining, 1000)
 
   // Start polling payment status every 5 seconds
-  paymentStore.startPolling(props.payment.paymentId, 5000)
+  paymentStore.startPolling(props.payment.sessionId, 5000)
 })
 
 onUnmounted(() => {
@@ -101,7 +101,7 @@ watch(
   (newStatus) => {
     if (!newStatus) return
 
-    if (newStatus === PaymentStatus.COMPLETED) {
+    if (newStatus === PaymentStatus.Completed) {
       emit('success')
       toast.add({
         color: 'success',
@@ -115,18 +115,18 @@ watch(
           path: localePath('/payment/callback'),
           query: {
             status: 'success',
-            paymentId: props.payment.paymentId
+            sessionId: props.payment.sessionId
           }
         })
       }, 1500)
-    } else if (newStatus === PaymentStatus.FAILED) {
+    } else if (newStatus === PaymentStatus.Failed) {
       emit('failed', t('payment.pix.payment_failed'))
       toast.add({
         color: 'error',
         title: t('payment.pix.payment_failed'),
         description: t('payment.pix.payment_failed_description')
       })
-    } else if (newStatus === PaymentStatus.EXPIRED) {
+    } else if (newStatus === PaymentStatus.Expired) {
       emit('expired')
       toast.add({
         color: 'warning',

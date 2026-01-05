@@ -12,8 +12,23 @@ import type {
   UserRes,
   MediaRes,
   MediaUpdateReq,
-  PageMediaRes
+  PageMediaRes,
+  SystemSettingsRes,
+  SystemSettingsUpdateReq,
+  OverviewReport,
+  BookingsByDayReport,
+  TopTourReport,
+  AuditLog,
+  PrivateTourRequest,
+  RefundRes
 } from 'api-client'
+
+export interface PageAuditLog {
+  data: AuditLog[]
+  totalItems: number
+  totalPages: number
+  currentPage: number
+}
 
 export const useAdminData = () => {
   // Base fetch options with credentials for HttpOnly cookie auth
@@ -43,7 +58,7 @@ export const useAdminData = () => {
         ...baseFetchOptions
       }),
     deleteAdminTour: (id: string) =>
-      $fetch<void>(`/api/admin/tours/${id}`, {
+      $fetch<unknown>(`/api/admin/tours/${id}`, {
         method: 'DELETE',
         ...baseFetchOptions
       }),
@@ -64,7 +79,7 @@ export const useAdminData = () => {
         ...baseFetchOptions
       }),
     deleteAdminSchedule: (id: string) =>
-      $fetch<void>(`/api/admin/schedules/${id}`, {
+      $fetch<unknown>(`/api/admin/schedules/${id}`, {
         method: 'DELETE',
         ...baseFetchOptions
       }),
@@ -80,7 +95,7 @@ export const useAdminData = () => {
         ...baseFetchOptions
       }),
     deleteAdminBooking: (id: string) =>
-      $fetch<void>(`/api/admin/bookings/${id}`, {
+      $fetch<unknown>(`/api/admin/bookings/${id}`, {
         method: 'DELETE',
         ...baseFetchOptions
       }),
@@ -103,12 +118,12 @@ export const useAdminData = () => {
         ...baseFetchOptions
       }),
     deleteAdminUser: (id: string) =>
-      $fetch<void>(`/api/admin/users/${id}`, {
+      $fetch<unknown>(`/api/admin/users/${id}`, {
         method: 'DELETE',
         ...baseFetchOptions
       }),
     resetAdminUserPassword: (id: string, newPassword: string) =>
-      $fetch<void>(`/api/admin/users/${id}/password`, {
+      $fetch<unknown>(`/api/admin/users/${id}/password`, {
         method: 'PUT',
         body: { newPassword },
         headers: jsonHeaders,
@@ -119,16 +134,16 @@ export const useAdminData = () => {
         ...baseFetchOptions
       }),
     fetchAdminSettings: () =>
-      $fetch<Record<string, unknown>>('/api/admin/settings', { ...baseFetchOptions }),
-    updateAdminSettings: (settings: Record<string, unknown>) =>
-      $fetch<Record<string, unknown>>('/api/admin/settings', {
+      $fetch<SystemSettingsRes>('/api/admin/settings', { ...baseFetchOptions }),
+    updateAdminSettings: (settings: SystemSettingsUpdateReq) =>
+      $fetch<SystemSettingsRes>('/api/admin/settings', {
         method: 'PATCH',
         body: settings,
         headers: jsonHeaders,
         ...baseFetchOptions
       }),
     // Media management
-    fetchAdminMedia: (params?: Record<string, any>) =>
+    fetchAdminMedia: (params?: Record<string, string | number | boolean | undefined>) =>
       $fetch<PageMediaRes>('/api/admin/media', { params, ...baseFetchOptions }),
     fetchAdminMediaById: (id: string) =>
       $fetch<MediaRes>(`/api/admin/media/${id}`, { ...baseFetchOptions }),
@@ -154,7 +169,7 @@ export const useAdminData = () => {
         ...baseFetchOptions
       }),
     deleteAdminMedia: (id: string) =>
-      $fetch<void>(`/api/admin/media/${id}`, {
+      $fetch<unknown>(`/api/admin/media/${id}`, {
         method: 'DELETE',
         ...baseFetchOptions
       }),
@@ -164,63 +179,92 @@ export const useAdminData = () => {
     fetchScheduleGallery: (scheduleId: string) =>
       $fetch<MediaRes[]>(`/api/admin/media/schedule/${scheduleId}/gallery`, { ...baseFetchOptions }),
     setTourHeroImage: (tourId: string, mediaId: string) =>
-      $fetch<void>(`/api/admin/media/tour/${tourId}/hero/${mediaId}`, {
+      $fetch<unknown>(`/api/admin/media/tour/${tourId}/hero/${mediaId}`, {
         method: 'PUT',
         ...baseFetchOptions
       }),
     toggleTourFeaturedImage: (tourId: string, mediaId: string) =>
-      $fetch<void>(`/api/admin/media/tour/${tourId}/featured/${mediaId}`, {
+      $fetch<unknown>(`/api/admin/media/tour/${tourId}/featured/${mediaId}`, {
         method: 'PUT',
         ...baseFetchOptions
       }),
     assignMediaToTour: (tourId: string, mediaIds: string[]) =>
-      $fetch<void>(`/api/admin/media/tour/${tourId}/assign`, {
+      $fetch<unknown>(`/api/admin/media/tour/${tourId}/assign`, {
         method: 'POST',
         body: { targetId: tourId, mediaIds },
         headers: jsonHeaders,
         ...baseFetchOptions
       }),
     assignMediaToSchedule: (scheduleId: string, mediaIds: string[]) =>
-      $fetch<void>(`/api/admin/media/schedule/${scheduleId}/assign`, {
+      $fetch<unknown>(`/api/admin/media/schedule/${scheduleId}/assign`, {
         method: 'POST',
         body: { targetId: scheduleId, mediaIds },
         headers: jsonHeaders,
         ...baseFetchOptions
       }),
     reorderTourGallery: (tourId: string, orders: Array<{ mediaId: string, displayOrder: number }>) =>
-      $fetch<void>(`/api/admin/media/tour/${tourId}/reorder`, {
+      $fetch<unknown>(`/api/admin/media/tour/${tourId}/reorder`, {
         method: 'PUT',
         body: orders,
         headers: jsonHeaders,
         ...baseFetchOptions
       }),
     reorderScheduleGallery: (scheduleId: string, orders: Array<{ mediaId: string, displayOrder: number }>) =>
-      $fetch<void>(`/api/admin/media/schedule/${scheduleId}/reorder`, {
+      $fetch<unknown>(`/api/admin/media/schedule/${scheduleId}/reorder`, {
         method: 'PUT',
         body: orders,
         headers: jsonHeaders,
         ...baseFetchOptions
       }),
     unassignMediaFromTour: (tourId: string, mediaId: string) =>
-      $fetch<void>(`/api/admin/media/tour/${tourId}/media/${mediaId}`, {
+      $fetch<unknown>(`/api/admin/media/tour/${tourId}/media/${mediaId}`, {
         method: 'DELETE',
         ...baseFetchOptions
       }),
     unassignMediaFromSchedule: (scheduleId: string, mediaId: string) =>
-      $fetch<void>(`/api/admin/media/schedule/${scheduleId}/media/${mediaId}`, {
+      $fetch<unknown>(`/api/admin/media/schedule/${scheduleId}/media/${mediaId}`, {
         method: 'DELETE',
+        ...baseFetchOptions
+      }),
+    // Reports
+    fetchReportsOverview: (startDate: string, endDate: string) =>
+      $fetch<OverviewReport>('/api/admin/reports/overview', {
+        params: { startDate, endDate },
+        ...baseFetchOptions
+      }),
+    fetchBookingsByDayReport: (startDate: string, endDate: string) =>
+      $fetch<BookingsByDayReport[]>('/api/admin/reports/bookings-by-day', {
+        params: { startDate, endDate },
+        ...baseFetchOptions
+      }),
+    fetchTopToursReport: (startDate: string, endDate: string, limit: number = 5) =>
+      $fetch<TopTourReport[]>('/api/admin/reports/top-tours', {
+        params: { startDate, endDate, limit },
+        ...baseFetchOptions
+      }),
+    // Audit Logs
+    fetchAuditLogs: (params?: Record<string, string>) =>
+      $fetch<PageAuditLog>('/api/admin/audit-logs', { params, ...baseFetchOptions }),
+    fetchAuditStats: () =>
+      $fetch<{
+        totalLogs: number
+        createActions: number
+        updateActions: number
+        deleteActions: number
+      }>('/api/admin/audit-logs/stats', { ...baseFetchOptions }),
+    // Private Tour Requests
+    fetchPrivateRequests: () =>
+      $fetch<PrivateTourRequest[]>('/api/admin/private-tours/requests', { ...baseFetchOptions }),
+    updatePrivateRequest: (id: string, data: { status: string, quotedPrice?: number | null }) =>
+      $fetch<PrivateTourRequest>(`/api/admin/private-tours/requests/${id}`, {
+        method: 'PUT',
+        body: data,
+        headers: jsonHeaders,
         ...baseFetchOptions
       }),
     // Refund operations
     refundBooking: (bookingId: string, adminOverride: boolean = false) =>
-      $fetch<{
-        bookingId: string
-        provider: string
-        providerRefundId: string
-        refundAmount: number
-        status: string
-        message: string
-      }>(`/api/refunds/booking/${bookingId}?adminOverride=${adminOverride}`, {
+      $fetch<RefundRes>(`/api/refunds/booking/${bookingId}?adminOverride=${adminOverride}`, {
         method: 'POST',
         ...baseFetchOptions
       })

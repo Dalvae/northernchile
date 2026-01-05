@@ -9,7 +9,7 @@
       :disabled="disabled"
       :max-value="maxDate"
       :min-value="minDate"
-      :placeholder="placeholder"
+      :placeholder="placeholderDate"
       :leading-icon="leadingIcon"
       :class="props.class"
     >
@@ -83,29 +83,32 @@ const emit = defineEmits<{
 /**
  * Convert ISO string (YYYY-MM-DD) to CalendarDate
  */
-function parseIsoDate(isoString: string | null | undefined): CalendarDate | null {
-  if (!isoString) return null
+function parseIsoDate(isoString: string | null | undefined): CalendarDate | undefined {
+  if (!isoString) return undefined
 
   const parts = isoString.split('-')
-  if (parts.length !== 3) return null
+  if (parts.length !== 3) return undefined
 
-  const year = parseInt(parts[0], 10)
-  const month = parseInt(parts[1], 10)
-  const day = parseInt(parts[2], 10)
+  const [y, m, d] = parts
+  if (y === undefined || m === undefined || d === undefined) return undefined
 
-  if (isNaN(year) || isNaN(month) || isNaN(day)) return null
+  const year = parseInt(y, 10)
+  const month = parseInt(m, 10)
+  const day = parseInt(d, 10)
+
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return undefined
 
   try {
     return new CalendarDate(year, month, day)
   } catch {
-    return null
+    return undefined
   }
 }
 
 /**
  * Convert CalendarDate to ISO string (YYYY-MM-DD)
  */
-function toIsoDate(date: CalendarDate | null): string | null {
+function toIsoDate(date: CalendarDate | null | undefined): string | null {
   if (!date) return null
 
   const year = date.year.toString().padStart(4, '0')
@@ -116,7 +119,7 @@ function toIsoDate(date: CalendarDate | null): string | null {
 }
 
 // Internal CalendarDate value
-const dateValue = computed<CalendarDate | null>({
+const dateValue = computed<CalendarDate | undefined>({
   get() {
     return parseIsoDate(props.modelValue)
   },
@@ -130,4 +133,14 @@ const maxDate = computed(() => parseIsoDate(props.max))
 
 // Convert min prop to CalendarDate
 const minDate = computed(() => parseIsoDate(props.min))
+
+// Convert placeholder prop to CalendarDate
+const placeholderDate = computed(() => {
+  if (!props.placeholder) return undefined
+  try {
+    return new CalendarDate(props.placeholder.year, props.placeholder.month, props.placeholder.day)
+  } catch {
+    return undefined
+  }
+})
 </script>

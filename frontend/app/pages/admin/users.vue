@@ -13,9 +13,8 @@ useHead({
   title: 'Usuarios - Admin - Northern Chile'
 })
 
-const { fetchAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser }
+const { fetchAdminUsers, deleteAdminUser }
   = useAdminData()
-const { getCountryLabel, getCountryFlag } = useCountries()
 const { formatDateTime } = useDateTime()
 
 const {
@@ -103,51 +102,24 @@ const filteredRows = computed(() => {
 const toast = useToast()
 
 async function handleDelete(user: UserRes) {
-  const userName = user.fullName || user.email || 'este usuario'
-  if (confirm(`¿Estás seguro de que quieres eliminar a "${userName}"?`)) {
-    try {
-      if (!user.id) throw new Error('Missing user id')
-      await deleteAdminUser(user.id)
-      toast.add({
-        title: 'Usuario eliminado',
-        color: 'success',
-        icon: 'i-lucide-check-circle'
-      })
-      await refresh()
-    } catch (e: unknown) {
-      toast.add({
-        title: 'Error al eliminar',
-        description: e instanceof Error ? e.message : 'Error desconocido',
-        color: 'error',
-        icon: 'i-lucide-x-circle'
-      })
-    }
-  }
-}
+  if (!user.id) return
+  if (!confirm(`¿Estás seguro de que deseas eliminar al usuario ${user.email}?`)) return
 
-function getRoleLabel(role: string): string {
-  switch (role) {
-    case 'ROLE_CLIENT':
-      return 'Cliente'
-    case 'ROLE_PARTNER_ADMIN':
-      return 'Partner Admin'
-    case 'ROLE_SUPER_ADMIN':
-      return 'Super Admin'
-    default:
-      return role
-  }
-}
-
-function getRoleBadgeColor(role: string): string {
-  switch (role) {
-    case 'ROLE_SUPER_ADMIN':
-      return 'error'
-    case 'ROLE_PARTNER_ADMIN':
-      return 'warning'
-    case 'ROLE_CLIENT':
-      return 'info'
-    default:
-      return 'neutral'
+  try {
+    await deleteAdminUser(user.id)
+    toast.add({
+      color: 'success',
+      title: 'Usuario eliminado',
+      description: 'El usuario ha sido eliminado correctamente.'
+    })
+    refresh()
+  } catch (error) {
+    console.error('Error deleting user:', error)
+    toast.add({
+      color: 'error',
+      title: 'Error',
+      description: 'No se pudo eliminar el usuario.'
+    })
   }
 }
 </script>

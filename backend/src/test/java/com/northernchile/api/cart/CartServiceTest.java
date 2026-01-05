@@ -186,9 +186,7 @@ class CartServiceTest {
         @DisplayName("Should add item to cart successfully")
         void shouldAddItemToCartSuccessfully() {
             // Given
-            CartItemReq itemReq = new CartItemReq();
-            itemReq.setScheduleId(testSchedule.getId());
-            itemReq.setNumParticipants(2);
+            CartItemReq itemReq = new CartItemReq(testSchedule.getId(), 2);
 
             when(tourScheduleRepository.findById(testSchedule.getId()))
                     .thenReturn(Optional.of(testSchedule));
@@ -210,9 +208,7 @@ class CartServiceTest {
         @DisplayName("Should reject item when schedule not found")
         void shouldRejectItemWhenScheduleNotFound() {
             // Given
-            CartItemReq itemReq = new CartItemReq();
-            itemReq.setScheduleId(UUID.randomUUID());
-            itemReq.setNumParticipants(2);
+            CartItemReq itemReq = new CartItemReq(UUID.randomUUID(), 2);
 
             when(tourScheduleRepository.findById(any())).thenReturn(Optional.empty());
 
@@ -226,9 +222,7 @@ class CartServiceTest {
         @DisplayName("Should reject item when no availability")
         void shouldRejectItemWhenNoAvailability() {
             // Given
-            CartItemReq itemReq = new CartItemReq();
-            itemReq.setScheduleId(testSchedule.getId());
-            itemReq.setNumParticipants(15); // More than max participants
+            CartItemReq itemReq = new CartItemReq(testSchedule.getId(), 15); // More than max participants
 
             when(tourScheduleRepository.findById(testSchedule.getId()))
                     .thenReturn(Optional.of(testSchedule));
@@ -252,9 +246,7 @@ class CartServiceTest {
             existingItem.setCart(testCart);
             testCart.getItems().add(existingItem);
 
-            CartItemReq itemReq = new CartItemReq();
-            itemReq.setScheduleId(testSchedule.getId());
-            itemReq.setNumParticipants(2); // Adding 2 more
+            CartItemReq itemReq = new CartItemReq(testSchedule.getId(), 2); // Adding 2 more
 
             when(tourScheduleRepository.findById(testSchedule.getId()))
                     .thenReturn(Optional.of(testSchedule));
@@ -324,10 +316,10 @@ class CartServiceTest {
             CartRes result = cartService.toCartRes(testCart);
 
             // Then
-            assertThat(result.getCartId()).isEqualTo(testCart.getId());
-            assertThat(result.getItems()).hasSize(1);
+            assertThat(result.cartId()).isEqualTo(testCart.getId());
+            assertThat(result.items()).hasSize(1);
             // Total from pricing service
-            assertThat(result.getCartTotal()).isEqualByComparingTo(new BigDecimal("119000"));
+            assertThat(result.cartTotal()).isEqualByComparingTo(new BigDecimal("119000"));
         }
 
         @Test
@@ -347,8 +339,8 @@ class CartServiceTest {
             CartRes result = cartService.toCartRes(testCart);
 
             // Then
-            assertThat(result.getItems()).isEmpty();
-            assertThat(result.getCartTotal()).isEqualByComparingTo(BigDecimal.ZERO);
+            assertThat(result.items()).isEmpty();
+            assertThat(result.cartTotal()).isEqualByComparingTo(BigDecimal.ZERO);
         }
 
         @Test
@@ -391,9 +383,9 @@ class CartServiceTest {
             CartRes result = cartService.toCartRes(testCart);
 
             // Then
-            assertThat(result.getItems()).hasSize(2);
+            assertThat(result.items()).hasSize(2);
             // Total from pricing service (subtotal + tax)
-            assertThat(result.getCartTotal()).isEqualByComparingTo(new BigDecimal("226100"));
+            assertThat(result.cartTotal()).isEqualByComparingTo(new BigDecimal("226100"));
         }
 
         @Test
@@ -421,14 +413,14 @@ class CartServiceTest {
             CartRes result = cartService.toCartRes(testCart);
 
             // Then
-            assertThat(result.getItems()).hasSize(1);
-            var itemRes = result.getItems().get(0);
-            assertThat(itemRes.getScheduleId()).isEqualTo(testSchedule.getId());
-            assertThat(itemRes.getTourId()).isEqualTo(testTour.getId());
-            assertThat(itemRes.getTourName()).isEqualTo("Tour de Prueba");
-            assertThat(itemRes.getNumParticipants()).isEqualTo(4);
-            assertThat(itemRes.getPricePerParticipant()).isEqualByComparingTo(new BigDecimal("50000"));
-            assertThat(itemRes.getItemTotal()).isEqualByComparingTo(new BigDecimal("200000"));
+            assertThat(result.items()).hasSize(1);
+            var itemRes = result.items().get(0);
+            assertThat(itemRes.scheduleId()).isEqualTo(testSchedule.getId());
+            assertThat(itemRes.tourId()).isEqualTo(testTour.getId());
+            assertThat(itemRes.tourName()).isEqualTo("Tour de Prueba");
+            assertThat(itemRes.numParticipants()).isEqualTo(4);
+            assertThat(itemRes.pricePerParticipant()).isEqualByComparingTo(new BigDecimal("50000"));
+            assertThat(itemRes.itemTotal()).isEqualByComparingTo(new BigDecimal("200000"));
         }
     }
 }

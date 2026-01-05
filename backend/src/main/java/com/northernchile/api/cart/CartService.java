@@ -86,24 +86,24 @@ public class CartService {
 
     @Transactional
     public Cart addItemToCart(Cart cart, CartItemReq itemReq) {
-        var schedule = tourScheduleRepository.findById(itemReq.getScheduleId())
-                .orElseThrow(() -> new ResourceNotFoundException("TourSchedule", itemReq.getScheduleId()));
+        var schedule = tourScheduleRepository.findById(itemReq.scheduleId())
+                .orElseThrow(() -> new ResourceNotFoundException("TourSchedule", itemReq.scheduleId()));
 
         // Count participants already in THIS cart for the same schedule
         int participantsInCart = cart.getItems() != null
             ? cart.getItems().stream()
-                .filter(item -> item.getSchedule().getId().equals(itemReq.getScheduleId()))
+                .filter(item -> item.getSchedule().getId().equals(itemReq.scheduleId()))
                 .mapToInt(CartItem::getNumParticipants)
                 .sum()
             : 0;
 
         // Validate availability excluding this cart (to allow adding more to same cart)
-        int totalRequestedSlots = participantsInCart + itemReq.getNumParticipants();
+        int totalRequestedSlots = participantsInCart + itemReq.numParticipants();
         var availabilityResult = availabilityValidator.validateAvailability(
                 schedule, totalRequestedSlots, cart.getId(), null);
 
-        if (!availabilityResult.isAvailable()) {
-            throw new ScheduleFullException(availabilityResult.getErrorMessage());
+        if (!availabilityResult.available()) {
+            throw new ScheduleFullException(availabilityResult.errorMessage());
         }
 
         if (cart.getItems() == null) {
@@ -112,19 +112,19 @@ public class CartService {
 
         // Check if there's already an item for this schedule - consolidate instead of creating new
         CartItem existingItem = cart.getItems().stream()
-                .filter(item -> item.getSchedule().getId().equals(itemReq.getScheduleId()))
+                .filter(item -> item.getSchedule().getId().equals(itemReq.scheduleId()))
                 .findFirst()
                 .orElse(null);
 
         if (existingItem != null) {
             // Update existing item instead of creating a new one
-            existingItem.setNumParticipants(existingItem.getNumParticipants() + itemReq.getNumParticipants());
+            existingItem.setNumParticipants(existingItem.getNumParticipants() + itemReq.numParticipants());
         } else {
             // Create new item only if no existing item for this schedule
             CartItem newItem = new CartItem();
             newItem.setCart(cart);
             newItem.setSchedule(schedule);
-            newItem.setNumParticipants(itemReq.getNumParticipants());
+            newItem.setNumParticipants(itemReq.numParticipants());
             cart.getItems().add(newItem);
         }
 
@@ -183,43 +183,43 @@ public class CartService {
 
     @Transactional(readOnly = true)
     public CartRes toCartRes(Cart cart) {
-        CartRes res = new CartRes();
-        res.setCartId(cart.getId());
-
         // Build line items and collect pricing data
         List<CartItemRes> itemResponses = new ArrayList<>();
         List<PricingService.LineItem> pricingItems = new ArrayList<>();
 
         if (cart.getItems() != null) {
             for (var item : cart.getItems()) {
-                CartItemRes itemRes = new CartItemRes();
-                itemRes.setItemId(item.getId());
-                itemRes.setScheduleId(item.getSchedule().getId());
-                itemRes.setTourId(item.getSchedule().getTour().getId());
-                itemRes.setTourName(TourUtils.getTourName(item.getSchedule().getTour()));
-                itemRes.setNumParticipants(item.getNumParticipants());
-
                 BigDecimal pricePerParticipant = item.getSchedule().getTour().getPrice();
-                itemRes.setPricePerParticipant(pricePerParticipant);
-
                 BigDecimal itemTotal = pricePerParticipant.multiply(BigDecimal.valueOf(item.getNumParticipants()));
-                itemRes.setItemTotal(itemTotal);
+
+                CartItemRes itemRes = new CartItemRes(
+                        item.getId(),
+                        item.getSchedule().getId(),
+                        item.getSchedule().getTour().getId(),
+                        TourUtils.getTourName(item.getSchedule().getTour()),
+                        item.getNumParticipants(),
+                        pricePerParticipant,
+                        itemTotal,
+                        item.getSchedule().getTour().getDurationHours(),
+                        item.getSchedule().getStartDatetime()
+                );
                 itemResponses.add(itemRes);
 
                 pricingItems.add(new PricingService.LineItem(pricePerParticipant, item.getNumParticipants()));
             }
         }
 
-        res.setItems(itemResponses);
-
         // Use centralized pricing service for consistent tax calculations
         var pricing = pricingService.calculateMultipleItems(pricingItems);
-        res.setSubtotal(pricing.subtotal());
-        res.setTaxAmount(pricing.taxAmount());
-        res.setTaxRate(pricing.taxRate());
-        res.setCartTotal(pricing.totalAmount());
 
-        return res;
+        return new CartRes(
+                cart.getId(),
+                itemResponses,
+                pricing.totalAmount(),
+                pricing.subtotal(),
+                pricing.taxAmount(),
+                pricing.taxRate()
+        );
     }
 
     /**

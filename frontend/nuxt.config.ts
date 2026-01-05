@@ -72,9 +72,9 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    // Nuxt internal paths - never proxy these
-    '/_nuxt/**': { proxy: false },
-    '/_nuxt_icon/**': { proxy: false },
+    // Nuxt internal paths - no special handling needed
+    '/_nuxt/**': {},
+    '/_nuxt_icon/**': {},
     '/__og_image__/**': { headers: { 'cache-control': 'public, max-age=3600, stale-while-revalidate=60' } },
     '/': { swr: 300 },
     '/tours': { swr: 300 },
@@ -143,6 +143,7 @@ export default defineNuxtConfig({
     compressPublicAssets: true,
     minify: true,
     devProxy: {
+      // Proxy /api to backend, but exclude Nuxt internal paths
       '/api': {
         target: 'http://localhost:8080/api',
         changeOrigin: true

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { SystemSettingsRes } from 'api-client'
+
 definePageMeta({
   layout: 'admin'
 })
@@ -10,7 +12,7 @@ useHead({
 const toast = useToast()
 const { fetchAdminSettings } = useAdminData()
 
-const { data: settings, pending, error, refresh } = await useAsyncData(
+const { data: settings, pending, error, refresh } = await useAsyncData<SystemSettingsRes>(
   'system-settings',
   async () => {
     try {

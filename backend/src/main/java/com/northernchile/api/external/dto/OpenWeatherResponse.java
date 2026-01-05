@@ -2,6 +2,7 @@ package com.northernchile.api.external.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 /**
@@ -9,16 +10,13 @@ import java.util.List;
  * https://openweathermap.org/api/one-call-3
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OpenWeatherResponse {
-    public double lat;
-    public double lon;
-    public String timezone;
-
-    @JsonProperty("timezone_offset")
-    public int timezoneOffset;
-
-    public CurrentWeather current;
-    public List<DailyForecast> daily;
-    public List<HourlyForecast> hourly;
-    public List<Alert> alerts;
-}
+public record OpenWeatherResponse(
+    double lat,
+    double lon,
+    String timezone,
+    @JsonProperty("timezone_offset") int timezoneOffset,
+    CurrentWeather current,
+    List<DailyForecast> daily,
+    List<HourlyForecast> hourly,
+    List<Alert> alerts
+) {}

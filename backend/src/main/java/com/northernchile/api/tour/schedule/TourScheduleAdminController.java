@@ -194,27 +194,41 @@ public class TourScheduleAdminController {
     }
 
     private TourScheduleRes mapToResponse(TourSchedule schedule) {
-        TourScheduleRes res = new TourScheduleRes();
-        res.setId(schedule.getId());
-        res.setStartDatetime(schedule.getStartDatetime());
-        res.setMaxParticipants(schedule.getMaxParticipants());
-        res.setStatus(schedule.getStatus());
-        res.setCreatedAt(schedule.getCreatedAt());
+        UUID tourId = null;
+        String tourName = null;
+        Map<String, String> tourNameTranslations = null;
+        Integer tourDurationHours = null;
 
         if (schedule.getTour() != null) {
-            res.setTourId(schedule.getTour().getId());
-            res.setTourDurationHours(schedule.getTour().getDurationHours());
+            tourId = schedule.getTour().getId();
+            tourDurationHours = schedule.getTour().getDurationHours();
             if (schedule.getTour().getNameTranslations() != null) {
-                res.setTourName(schedule.getTour().getNameTranslations().get("es"));
-                res.setTourNameTranslations(schedule.getTour().getNameTranslations());
+                tourName = schedule.getTour().getNameTranslations().get("es");
+                tourNameTranslations = schedule.getTour().getNameTranslations();
             }
         }
 
+        UUID assignedGuideId = null;
+        String assignedGuideName = null;
         if (schedule.getAssignedGuide() != null) {
-            res.setAssignedGuideId(schedule.getAssignedGuide().getId());
-            res.setAssignedGuideName(schedule.getAssignedGuide().getFullName());
+            assignedGuideId = schedule.getAssignedGuide().getId();
+            assignedGuideName = schedule.getAssignedGuide().getFullName();
         }
 
-        return res;
+        return new TourScheduleRes(
+                schedule.getId(),
+                tourId,
+                tourName,
+                tourNameTranslations,
+                tourDurationHours,
+                schedule.getStartDatetime(),
+                schedule.getMaxParticipants(),
+                0, // bookedParticipants - will be calculated elsewhere if needed
+                schedule.getMaxParticipants(), // availableSpots - will be calculated elsewhere if needed
+                schedule.getStatus(),
+                assignedGuideId,
+                assignedGuideName,
+                schedule.getCreatedAt()
+        );
     }
 }

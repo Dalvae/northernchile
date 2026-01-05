@@ -7,7 +7,6 @@ export default defineEventHandler(async (event): Promise<unknown> => {
   try {
     // Use new payment-sessions endpoint for confirmation
     const response = await $fetch(`${backendUrl}/api/payment-sessions/confirm/mercadopago`, {
-      method: 'GET',
       query: query
     })
     return response

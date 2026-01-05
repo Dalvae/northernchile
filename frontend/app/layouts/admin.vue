@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TourRes } from '~/lib/api-client/api'
+import type { TourRes } from 'api-client'
 import { useAuthStore } from '~/stores/auth'
 
 definePageMeta({
@@ -90,7 +90,7 @@ const navigationLinks = computed(() => {
     tours.value.forEach((tour: TourRes) => {
       mediaChildren.push({
         label: tour.nameTranslations?.es || 'Sin nombre',
-        description: tour.category || '',
+        description: tour.category,
         icon: 'i-lucide-image',
         to: `/admin/media/${tour.slug}`
       })

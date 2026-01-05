@@ -70,7 +70,7 @@
               >
                 <span class="text-2xl">{{ moon.icon }}</span>
                 <span class="font-medium text-neutral-900 dark:text-white">
-                  {{ formatFullDate(moon.date) }}
+                  {{ formatFullDate(moon.date || '') }}
                 </span>
                 <UBadge
                   color="tertiary"
@@ -160,7 +160,7 @@
                   : 'text-neutral-300 dark:text-neutral-600'
               ]"
             >
-              {{ translatePhaseName(day.phaseName) }}
+              {{ translatePhaseName(day.phaseName || '') }}
             </span>
           </div>
         </div>
@@ -226,9 +226,9 @@
 
 <script setup lang="ts">
 import { getLocalDateString, getTodayString, parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
+import type { MoonPhaseDTO } from 'api-client'
 
 const { t, locale } = useI18n()
-const config = useRuntimeConfig()
 
 definePageMeta({
   layout: 'default'
@@ -247,8 +247,8 @@ useSeoMeta({
 // State
 const currentDate = ref(new Date())
 const pending = ref(false)
-const moonData = ref<any[]>([])
-const nextFullMoons = ref<any[]>([])
+const moonData = ref<MoonPhaseDTO[]>([])
+const nextFullMoons = ref<MoonPhaseDTO[]>([])
 
 // Computed
 const currentMonthLabel = computed(() => {
@@ -352,7 +352,7 @@ const fetchMoonData = async () => {
     const startDate = getLocalDateString(prevMonth)
     const endDate = getLocalDateString(nextMonth)
 
-    const response = await $fetch<any[]>(
+    const response = await $fetch<MoonPhaseDTO[]>(
       '/api/lunar/calendar',
       {
         params: { startDate, endDate }
@@ -369,7 +369,7 @@ const fetchMoonData = async () => {
 
 const fetchNextFullMoons = async () => {
   try {
-    const response = await $fetch<any[]>(
+    const response = await $fetch<MoonPhaseDTO[]>(
       '/api/lunar/next-full-moons',
       {
         params: { count: 3 }

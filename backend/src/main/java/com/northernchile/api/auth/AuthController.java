@@ -1,8 +1,8 @@
 package com.northernchile.api.auth;
 
 import com.northernchile.api.auth.dto.LoginReq;
-import com.northernchile.api.auth.dto.PasswordResetDto;
-import com.northernchile.api.auth.dto.PasswordResetRequestDto;
+import com.northernchile.api.auth.dto.PasswordResetReq;
+import com.northernchile.api.auth.dto.PasswordResetRequestReq;
 import com.northernchile.api.auth.dto.RegisterReq;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -91,10 +91,10 @@ public class AuthController {
      */
     @PostMapping("/password-reset/request")
     public ResponseEntity<?> requestPasswordReset(
-            @Valid @RequestBody PasswordResetRequestDto request,
+            @Valid @RequestBody PasswordResetRequestReq request,
             @RequestHeader(value = "Accept-Language", defaultValue = "es-CL") String language) {
         try {
-            authService.requestPasswordReset(request.getEmail(), language);
+            authService.requestPasswordReset(request.email(), language);
             Map<String, String> response = new HashMap<>();
             response.put("message", "Password reset email sent. Please check your inbox.");
             return ResponseEntity.ok(response);
@@ -110,9 +110,9 @@ public class AuthController {
      * Reset password with token
      */
     @PostMapping("/password-reset/confirm")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody PasswordResetDto request) {
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody PasswordResetReq request) {
         try {
-            authService.resetPassword(request.getToken(), request.getNewPassword());
+            authService.resetPassword(request.token(), request.newPassword());
             Map<String, String> response = new HashMap<>();
             response.put("message", "Password reset successfully. You can now log in with your new password.");
             return ResponseEntity.ok(response);

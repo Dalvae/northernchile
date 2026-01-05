@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import TourCard from '~/components/tour/TourCard.vue'
-import type { TourRes } from 'api-client'
+import type { TourRes, TourImageRes } from 'api-client'
 
 const { t } = useI18n()
 const localePath = useLocalePath()
@@ -19,16 +19,12 @@ useSeoMeta({
 // Usamos useFetch directo con transform para eficiencia y lazy: true
 const { data: featuredTours } = useFetch<TourRes[]>('/api/tours', {
   lazy: true,
-  transform: (tours) => {
+  transform: (tours: TourRes[]) => {
     return (tours || [])
-      .filter(t => t.status === 'PUBLISHED')
+      .filter(t => t.status === 'PUBLISHED' && t.id)
       .slice(0, 6)
-      .map(tour => ({
-        id: tour.id,
-        slug: tour.slug,
-        nameTranslations: tour.nameTranslations,
-        // Pass hero, featured, or first image - TourCard needs flags to select correctly
-        images: tour.images
+      .map((tour) => {
+        const images = tour.images
           ? (() => {
               const hero = tour.images.find(img => img.isHeroImage)
               const featured = tour.images.find(img => img.isFeatured)
@@ -36,17 +32,14 @@ const { data: featuredTours } = useFetch<TourRes[]>('/api/tours', {
               // Return unique images in priority order
               return [hero, featured, first].filter((img, idx, arr) =>
                 img && arr.findIndex(i => i?.imageUrl === img.imageUrl) === idx
-              )
+              ) as TourImageRes[]
             })()
-          : [],
-        category: tour.category,
-        price: tour.price,
-        durationHours: tour.durationHours,
-        defaultMaxParticipants: tour.defaultMaxParticipants,
-        moonSensitive: tour.moonSensitive,
-        windSensitive: tour.windSensitive,
-        descriptionBlocksTranslations: tour.descriptionBlocksTranslations
-      }))
+          : []
+        return {
+          ...tour,
+          images
+        }
+      })
   }
 })
 </script>
@@ -95,7 +88,7 @@ const { data: featuredTours } = useFetch<TourRes[]>('/api/tours', {
           class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
           <TourCard
-            v-for="(tour, index) in featuredTours"
+            v-for="(tour, index) in (featuredTours as TourRes[])"
             :key="tour.id"
             :tour="tour"
             :index="index"

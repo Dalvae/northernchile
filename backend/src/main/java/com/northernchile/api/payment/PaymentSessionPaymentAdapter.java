@@ -90,13 +90,20 @@ public class PaymentSessionPaymentAdapter {
                 buyOrder,
                 sessionId,
                 amount,
-                request.getReturnUrl()
+                request.returnUrl()
             );
 
-            PaymentSessionRes result = new PaymentSessionRes();
-            result.setToken(response.getToken());
-            result.setPaymentUrl(response.getUrl());
-            return result;
+            return new PaymentSessionRes(
+                session.getId(),
+                PaymentSessionStatus.PENDING,
+                response.getUrl(),
+                response.getToken(),
+                null,
+                null,
+                session.getExpiresAt(),
+                session.isTest(),
+                null
+            );
 
         } catch (TransactionCreateException | java.io.IOException e) {
             log.error("Error creating Transbank transaction for session: {}", session.getId(), e);
@@ -111,39 +118,73 @@ public class PaymentSessionPaymentAdapter {
             WebpayPlus.Transaction transaction = getTransbankTransaction();
             WebpayPlusTransactionCommitResponse response = transaction.commit(session.getToken());
 
-            PaymentSessionRes result = new PaymentSessionRes();
-            
             // Response code 0 = approved
-            if (response.getResponseCode() == 0) {
-                result.setStatus(PaymentSessionStatus.COMPLETED);
+            PaymentSessionStatus status = response.getResponseCode() == 0 ? 
+                PaymentSessionStatus.COMPLETED : PaymentSessionStatus.FAILED;
+            
+            if (status == PaymentSessionStatus.COMPLETED) {
                 log.info("Transbank payment approved for session: {}", session.getId());
             } else {
-                result.setStatus(PaymentSessionStatus.FAILED);
                 log.warn("Transbank payment rejected for session: {} - response code: {}", 
                     session.getId(), response.getResponseCode());
             }
 
-            return result;
+            return new PaymentSessionRes(
+                session.getId(),
+                status,
+                null,
+                session.getToken(),
+                null,
+                null,
+                session.getExpiresAt(),
+                session.isTest(),
+                null
+            );
 
         } catch (TransactionCommitException e) {
             // Check if transaction was aborted (user cancelled)
             String errorMessage = e.getMessage() != null ? e.getMessage() : "";
             if (errorMessage.contains("aborted")) {
                 log.info("Transbank transaction aborted (user cancelled) for session: {}", session.getId());
-                PaymentSessionRes result = new PaymentSessionRes();
-                result.setStatus(PaymentSessionStatus.CANCELLED);
-                return result;
+                log.info("Transbank transaction aborted (user cancelled) for session: {}", session.getId());
+                return new PaymentSessionRes(
+                    session.getId(),
+                    PaymentSessionStatus.CANCELLED,
+                    null,
+                    session.getToken(),
+                    null,
+                    null,
+                    session.getExpiresAt(),
+                    session.isTest(),
+                    null
+                );
             }
             
             log.error("Error confirming Transbank transaction for session: {}", session.getId(), e);
-            PaymentSessionRes result = new PaymentSessionRes();
-            result.setStatus(PaymentSessionStatus.FAILED);
-            return result;
+            return new PaymentSessionRes(
+                session.getId(),
+                PaymentSessionStatus.FAILED,
+                null,
+                session.getToken(),
+                null,
+                null,
+                session.getExpiresAt(),
+                session.isTest(),
+                null
+            );
         } catch (java.io.IOException e) {
             log.error("IO Error confirming Transbank transaction for session: {}", session.getId(), e);
-            PaymentSessionRes result = new PaymentSessionRes();
-            result.setStatus(PaymentSessionStatus.FAILED);
-            return result;
+            return new PaymentSessionRes(
+                session.getId(),
+                PaymentSessionStatus.FAILED,
+                null,
+                session.getToken(),
+                null,
+                null,
+                session.getExpiresAt(),
+                session.isTest(),
+                null
+            );
         }
     }
 
@@ -178,10 +219,10 @@ public class PaymentSessionPaymentAdapter {
             List<PreferenceItemRequest> items = new ArrayList<>();
             for (var sessionItem : session.getItems()) {
                 PreferenceItemRequest item = PreferenceItemRequest.builder()
-                    .id(sessionItem.getScheduleId().toString())
-                    .title(sessionItem.getTourName())
-                    .quantity(sessionItem.getNumParticipants())
-                    .unitPrice(sessionItem.getPricePerPerson())
+                    .id(sessionItem.scheduleId().toString())
+                    .title(sessionItem.tourName())
+                    .quantity(sessionItem.numParticipants())
+                    .unitPrice(sessionItem.pricePerPerson())
                     .currencyId(session.getCurrency())
                     .build();
                 items.add(item);
@@ -194,9 +235,9 @@ public class PaymentSessionPaymentAdapter {
 
             // Build back URLs
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                .success(request.getReturnUrl())
-                .pending(request.getReturnUrl())
-                .failure(request.getCancelUrl())
+                .success(request.returnUrl())
+                .pending(request.returnUrl())
+                .failure(request.cancelUrl())
                 .build();
 
             // Build preference
@@ -211,14 +252,20 @@ public class PaymentSessionPaymentAdapter {
             PreferenceClient client = new PreferenceClient();
             Preference preference = client.create(preferenceRequest);
 
-            PaymentSessionRes result = new PaymentSessionRes();
-            result.setPaymentUrl(testMode ? preference.getSandboxInitPoint() : preference.getInitPoint());
-            result.setToken(preference.getId());
-
             // Store preference ID as external payment ID
             session.setExternalPaymentId(preference.getId());
 
-            return result;
+            return new PaymentSessionRes(
+                session.getId(),
+                PaymentSessionStatus.PENDING,
+                testMode ? preference.getSandboxInitPoint() : preference.getInitPoint(),
+                preference.getId(),
+                null,
+                null,
+                session.getExpiresAt(),
+                session.isTest(),
+                null
+            );
 
         } catch (Exception e) {
             log.error("Error creating MercadoPago preference for session: {}", session.getId(), e);
@@ -239,7 +286,7 @@ public class PaymentSessionPaymentAdapter {
             com.mercadopago.client.payment.PaymentCreateRequest paymentRequest =
                 com.mercadopago.client.payment.PaymentCreateRequest.builder()
                     .transactionAmount(session.getTotalAmount())
-                    .description(request.getDescription() != null ? request.getDescription() : "Tour booking")
+                    .description(request.description() != null ? request.description() : "Tour booking")
                     .paymentMethodId("pix")
                     .payer(
                         com.mercadopago.client.payment.PaymentPayerRequest.builder()
@@ -251,7 +298,13 @@ public class PaymentSessionPaymentAdapter {
 
             com.mercadopago.resources.payment.Payment payment = client.create(paymentRequest);
 
-            PaymentSessionRes result = new PaymentSessionRes();
+            // Store MercadoPago payment ID as external payment ID
+            session.setExternalPaymentId(payment.getId().toString());
+
+            log.info("PIX payment created: {} for session: {}", payment.getId(), session.getId());
+
+            String qrCode = null;
+            String pixCode = null;
 
             // Extract QR code from point_of_interaction
             if (payment.getPointOfInteraction() != null
@@ -261,26 +314,26 @@ public class PaymentSessionPaymentAdapter {
 
                 // QR code base64 image
                 if (transactionData.getQrCodeBase64() != null) {
-                    result.setQrCode("data:image/png;base64," + transactionData.getQrCodeBase64());
+                    qrCode = "data:image/png;base64," + transactionData.getQrCodeBase64();
                 }
 
                 // PIX copy-paste code
                 if (transactionData.getQrCode() != null) {
-                    result.setPixCode(transactionData.getQrCode());
+                    pixCode = transactionData.getQrCode();
                 }
             }
 
-            // Store MercadoPago payment ID as external payment ID
-            result.setSessionId(session.getId());
-            result.setToken(payment.getId().toString());
-            session.setExternalPaymentId(payment.getId().toString());
-
-            // Payment is pending until PIX is paid
-            result.setStatus(PaymentSessionStatus.PENDING);
-
-            log.info("PIX payment created: {} for session: {}", payment.getId(), session.getId());
-
-            return result;
+            return new PaymentSessionRes(
+                session.getId(),
+                PaymentSessionStatus.PENDING,
+                null,
+                payment.getId().toString(),
+                qrCode,
+                pixCode,
+                session.getExpiresAt(),
+                session.isTest(),
+                null
+            );
 
         } catch (Exception e) {
             log.error("Error creating MercadoPago PIX payment for session: {}", session.getId(), e);
@@ -294,33 +347,48 @@ public class PaymentSessionPaymentAdapter {
         try {
             MercadoPagoConfig.setAccessToken(mercadoPagoAccessToken);
 
-            PaymentSessionRes result = new PaymentSessionRes();
+            PaymentSessionStatus status = PaymentSessionStatus.PENDING;
 
             if (mpPaymentId != null && !mpPaymentId.isEmpty()) {
                 // Verify payment status with MercadoPago
                 com.mercadopago.client.payment.PaymentClient paymentClient = new com.mercadopago.client.payment.PaymentClient();
                 com.mercadopago.resources.payment.Payment mpPayment = paymentClient.get(Long.parseLong(mpPaymentId));
 
-                String status = mpPayment.getStatus();
-                if ("approved".equals(status)) {
-                    result.setStatus(PaymentSessionStatus.COMPLETED);
-                } else if ("pending".equals(status) || "in_process".equals(status)) {
-                    result.setStatus(PaymentSessionStatus.PENDING);
+                String mpStatus = mpPayment.getStatus();
+                if ("approved".equals(mpStatus)) {
+                    status = PaymentSessionStatus.COMPLETED;
+                } else if ("pending".equals(mpStatus) || "in_process".equals(mpStatus)) {
+                    status = PaymentSessionStatus.PENDING;
                 } else {
-                    result.setStatus(PaymentSessionStatus.FAILED);
+                    status = PaymentSessionStatus.FAILED;
                 }
-            } else {
-                // No payment ID yet - check preference
-                result.setStatus(PaymentSessionStatus.PENDING);
             }
 
-            return result;
+            return new PaymentSessionRes(
+                session.getId(),
+                status,
+                null,
+                session.getToken(),
+                null,
+                null,
+                session.getExpiresAt(),
+                session.isTest(),
+                null
+            );
 
         } catch (Exception e) {
             log.error("Error confirming MercadoPago payment for session: {}", session.getId(), e);
-            PaymentSessionRes result = new PaymentSessionRes();
-            result.setStatus(PaymentSessionStatus.FAILED);
-            return result;
+            return new PaymentSessionRes(
+                session.getId(),
+                PaymentSessionStatus.FAILED,
+                null,
+                session.getToken(),
+                null,
+                null,
+                session.getExpiresAt(),
+                session.isTest(),
+                null
+            );
         }
     }
 }

@@ -108,16 +108,24 @@ class BookingServiceTest {
         testSchedule.setMaxParticipants(10);
         testSchedule.setStatus("OPEN");
 
-        // Set up valid booking request
-        validBookingRequest = new BookingCreateReq();
-        validBookingRequest.setScheduleId(testSchedule.getId());
-        validBookingRequest.setLanguageCode("es-CL");
-
-        ParticipantReq participant = new ParticipantReq();
-        participant.setFullName("Test Participant");
-        participant.setEmail("participant@example.com");
-        participant.setNationality("CL");
-        validBookingRequest.setParticipants(List.of(participant));
+        // Set up valid booking request using record constructors
+        ParticipantReq participant = new ParticipantReq(
+            "Test Participant",  // fullName
+            "12345678-9",        // documentId
+            "CL",                // nationality
+            null,                // dateOfBirth
+            null,                // age
+            null,                // pickupAddress
+            null,                // specialRequirements
+            null,                // phoneNumber
+            "participant@example.com"  // email
+        );
+        validBookingRequest = new BookingCreateReq(
+            testSchedule.getId(),
+            List.of(participant),
+            "es-CL",
+            null  // specialRequests
+        );
 
         // Set required properties via reflection
         ReflectionTestUtils.setField(bookingService, "adminEmail", "admin@northernchile.com");
@@ -152,7 +160,7 @@ class BookingServiceTest {
                         return booking;
                     });
             when(bookingMapper.toBookingRes(any(Booking.class)))
-                    .thenReturn(new BookingRes());
+                    .thenReturn(createMockBookingRes());
 
             // When
             BookingRes result = bookingService.createBooking(validBookingRequest, testUser);
@@ -224,7 +232,7 @@ class BookingServiceTest {
                         booking.setId(UUID.randomUUID());
                         return booking;
                     });
-            when(bookingMapper.toBookingRes(any())).thenReturn(new BookingRes());
+            when(bookingMapper.toBookingRes(any())).thenReturn(createMockBookingRes());
 
             // When
             bookingService.createBooking(validBookingRequest, testUser);
@@ -242,17 +250,20 @@ class BookingServiceTest {
         @DisplayName("Should create booking with multiple participants")
         void shouldCreateBookingWithMultipleParticipants() {
             // Given
-            ParticipantReq p1 = new ParticipantReq();
-            p1.setFullName("Participant 1");
-            p1.setEmail("p1@example.com");
-            p1.setNationality("CL");
+            ParticipantReq p1 = new ParticipantReq(
+                "Participant 1", "11111111-1", "CL", null, null, null, null, null, "p1@example.com"
+            );
+            ParticipantReq p2 = new ParticipantReq(
+                "Participant 2", "22222222-2", "AR", null, null, null, null, null, "p2@example.com"
+            );
 
-            ParticipantReq p2 = new ParticipantReq();
-            p2.setFullName("Participant 2");
-            p2.setEmail("p2@example.com");
-            p2.setNationality("AR");
-
-            validBookingRequest.setParticipants(List.of(p1, p2));
+            // Create a new booking request with multiple participants
+            validBookingRequest = new BookingCreateReq(
+                testSchedule.getId(),
+                List.of(p1, p2),
+                "es-CL",
+                null
+            );
 
             // Set up pricing for 2 participants
             PricingService.PricingResult pricingResult2 = new PricingService.PricingResult(
@@ -275,7 +286,7 @@ class BookingServiceTest {
                         booking.setId(UUID.randomUUID());
                         return booking;
                     });
-            when(bookingMapper.toBookingRes(any())).thenReturn(new BookingRes());
+            when(bookingMapper.toBookingRes(any())).thenReturn(createMockBookingRes());
 
             // When
             bookingService.createBooking(validBookingRequest, testUser);
@@ -312,7 +323,7 @@ class BookingServiceTest {
             when(bookingRepository.findByIdWithDetails(existingBooking.getId()))
                     .thenReturn(Optional.of(existingBooking));
             when(bookingRepository.save(any())).thenReturn(existingBooking);
-            when(bookingMapper.toBookingRes(any())).thenReturn(new BookingRes());
+            when(bookingMapper.toBookingRes(any())).thenReturn(createMockBookingRes());
 
             // When
             BookingRes result = bookingService.updateBookingStatus(
@@ -346,7 +357,7 @@ class BookingServiceTest {
             when(bookingRepository.findByIdWithDetails(existingBooking.getId()))
                     .thenReturn(Optional.of(existingBooking));
             when(bookingRepository.save(any())).thenReturn(existingBooking);
-            when(bookingMapper.toBookingRes(any())).thenReturn(new BookingRes());
+            when(bookingMapper.toBookingRes(any())).thenReturn(createMockBookingRes());
 
             // When
             BookingRes result = bookingService.updateBookingStatus(
@@ -418,7 +429,7 @@ class BookingServiceTest {
 
             when(bookingRepository.findByUserId(testUser.getId()))
                     .thenReturn(List.of(booking1, booking2));
-            when(bookingMapper.toBookingRes(any())).thenReturn(new BookingRes());
+            when(bookingMapper.toBookingRes(any())).thenReturn(createMockBookingRes());
 
             // When
             List<BookingRes> result = bookingService.getBookingsByUser(testUser);
@@ -437,7 +448,7 @@ class BookingServiceTest {
 
             when(bookingRepository.findByIdWithDetails(booking.getId()))
                     .thenReturn(Optional.of(booking));
-            when(bookingMapper.toBookingRes(booking)).thenReturn(new BookingRes());
+            when(bookingMapper.toBookingRes(booking)).thenReturn(createMockBookingRes());
 
             // When
             Optional<BookingRes> result = bookingService.getBookingById(booking.getId(), testUser);
@@ -482,7 +493,7 @@ class BookingServiceTest {
             );
 
             when(bookingRepository.findAllWithDetails()).thenReturn(List.of(new Booking()));
-            when(bookingMapper.toBookingRes(any())).thenReturn(new BookingRes());
+            when(bookingMapper.toBookingRes(any())).thenReturn(createMockBookingRes());
 
             // When
             List<BookingRes> result = bookingService.getBookingsForAdmin(superAdmin);
@@ -511,7 +522,7 @@ class BookingServiceTest {
 
             when(bookingRepository.findByTourOwnerId(partnerAdmin.getId()))
                     .thenReturn(List.of(new Booking()));
-            when(bookingMapper.toBookingRes(any())).thenReturn(new BookingRes());
+            when(bookingMapper.toBookingRes(any())).thenReturn(createMockBookingRes());
 
             // When
             List<BookingRes> result = bookingService.getBookingsForAdmin(partnerAdmin);
@@ -539,7 +550,7 @@ class BookingServiceTest {
             when(bookingRepository.findByIdWithDetails(pendingBooking.getId()))
                     .thenReturn(Optional.of(pendingBooking));
             when(bookingRepository.save(any())).thenReturn(pendingBooking);
-            when(bookingMapper.toBookingRes(any())).thenReturn(new BookingRes());
+            when(bookingMapper.toBookingRes(any())).thenReturn(createMockBookingRes());
 
             // When
             BookingRes result = bookingService.confirmBookingAfterMockPayment(
@@ -567,5 +578,27 @@ class BookingServiceTest {
                     .isInstanceOf(InvalidBookingStateException.class)
                     .hasMessageContaining("Only PENDING bookings");
         }
+    }
+
+    // Helper method to create mock BookingRes for tests
+    private BookingRes createMockBookingRes() {
+        return new BookingRes(
+            UUID.randomUUID(),       // id
+            UUID.randomUUID(),       // userId
+            "Test User",             // userFullName
+            null,                    // userPhoneNumber
+            UUID.randomUUID(),       // scheduleId
+            "Test Tour",             // tourName
+            java.time.LocalDate.now(), // tourDate
+            java.time.LocalTime.of(10, 0), // tourStartTime
+            "PENDING",               // status
+            new BigDecimal("50000"), // subtotal
+            new BigDecimal("9500"),  // taxAmount
+            new BigDecimal("59500"), // totalAmount
+            "es-CL",                 // languageCode
+            null,                    // specialRequests
+            Instant.now(),           // createdAt
+            List.of()                // participants
+        );
     }
 }

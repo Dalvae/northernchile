@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
-import type {
-  PaymentInitRes,
-  PaymentStatusRes
+import {
+  type PaymentSessionRes,
+  PaymentStatus
 } from '~/types/payment'
 
 interface PaymentState {
-  currentPayment: PaymentInitRes | null
+  currentPayment: PaymentSessionRes | null
   isProcessing: boolean
   error: string | null
   pollingInterval: ReturnType<typeof setInterval> | null
@@ -36,24 +36,24 @@ export const usePaymentStore = defineStore('payment', {
 
   actions: {
     /**
-     * Get payment status
+     * Get payment session status
      */
-    async getPaymentStatus(paymentId: string): Promise<PaymentStatusRes> {
+    async getSessionStatus(sessionId: string): Promise<PaymentSessionRes> {
       const { extractErrorMessage } = useApiError()
 
       try {
-        const response = await $fetch<PaymentStatusRes>(
-          `/api/payments/${paymentId}/status`,
+        const response = await $fetch<PaymentSessionRes>(
+          `/api/payment-sessions/${sessionId}/status`,
           {
             credentials: 'include'
           }
         )
 
         // Update current payment status if it matches
-        if (this.currentPayment?.paymentId === paymentId) {
+        if (this.currentPayment?.sessionId === sessionId) {
           this.currentPayment = {
             ...this.currentPayment,
-            status: response.status
+            status: response.status || PaymentStatus.Pending
           }
         }
 
@@ -68,16 +68,23 @@ export const usePaymentStore = defineStore('payment', {
     /**
      * Start polling for payment status (for PIX)
      */
-    startPolling(paymentId: string, intervalMs: number = 5000) {
+    startPolling(sessionId: string, intervalMs: number = 5000) {
       // Clear any existing polling
       this.stopPolling()
 
       this.pollingInterval = setInterval(async () => {
         try {
-          const status = await this.getPaymentStatus(paymentId)
+          const status = await this.getSessionStatus(sessionId)
 
           // Stop polling if payment is complete or failed
-          if (['COMPLETED', 'FAILED', 'CANCELLED', 'EXPIRED'].includes(status.status)) {
+          const terminalStatuses: PaymentStatus[] = [
+            PaymentStatus.Completed,
+            PaymentStatus.Failed,
+            PaymentStatus.Cancelled,
+            PaymentStatus.Expired
+          ]
+
+          if (status.status && terminalStatuses.includes(status.status)) {
             this.stopPolling()
           }
         } catch (error) {
@@ -99,8 +106,8 @@ export const usePaymentStore = defineStore('payment', {
     /**
      * Set current payment state (for PaymentSession flow)
      */
-    setCurrentPayment(payment: Partial<PaymentInitRes>) {
-      this.currentPayment = payment as PaymentInitRes
+    setCurrentPayment(payment: Partial<PaymentSessionRes>) {
+      this.currentPayment = payment as PaymentSessionRes
     },
 
     /**

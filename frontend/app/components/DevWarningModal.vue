@@ -3,7 +3,7 @@
     v-model:open="isOpen"
     :dismissible="false"
     :ui="{
-      width: 'sm:max-w-lg'
+      content: 'sm:max-w-lg'
     }"
   >
     <template #content>

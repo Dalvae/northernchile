@@ -88,7 +88,7 @@ public class RefundService {
         }
 
         // Process refund with payment provider
-        RefundRes result = processProviderRefund(paymentSession, booking.getTotalAmount());
+        RefundRes providerResult = processProviderRefund(paymentSession, booking.getTotalAmount());
 
         // Update booking status
         booking.setStatus("CANCELLED");
@@ -103,7 +103,7 @@ public class RefundService {
             String customerEmail = booking.getUser().getEmail();
             String customerName = booking.getUser().getFullName();
             String tourName = booking.getSchedule().getTour().getNameTranslations().getOrDefault("es", "Tour").toString();
-            String refundAmountFormatted = String.format("$%,.0f CLP", result.getRefundAmount());
+            String refundAmountFormatted = String.format("$%,.0f CLP", providerResult.refundAmount());
             // Default to Spanish for email language
             String languageCode = "es";
             
@@ -113,7 +113,7 @@ public class RefundService {
                 booking.getId().toString(),
                 tourName,
                 refundAmountFormatted,
-                result.getProvider(),
+                providerResult.provider(),
                 languageCode
             );
         } catch (Exception e) {
@@ -121,9 +121,17 @@ public class RefundService {
         }
 
         log.info("Refund completed for booking {}: provider={}, refundId={}", 
-            bookingId, result.getProvider(), result.getProviderRefundId());
+            bookingId, providerResult.provider(), providerResult.providerRefundId());
 
-        return result;
+        // Return complete RefundRes with bookingId
+        return new RefundRes(
+            bookingId,
+            providerResult.provider(),
+            providerResult.providerRefundId(),
+            providerResult.refundAmount(),
+            providerResult.status(),
+            providerResult.message()
+        );
     }
 
     /**
@@ -136,13 +144,14 @@ public class RefundService {
         booking.setStatus("CANCELLED");
         bookingRepository.save(booking);
 
-        RefundRes result = new RefundRes();
-        result.setBookingId(booking.getId());
-        result.setStatus("CANCELLED_MANUAL");
-        result.setRefundAmount(booking.getTotalAmount());
-        result.setMessage(reason);
-
-        return result;
+        return new RefundRes(
+            booking.getId(),           // bookingId
+            null,                      // provider
+            null,                      // providerRefundId
+            booking.getTotalAmount(),  // refundAmount
+            "CANCELLED_MANUAL",        // status
+            reason                     // message
+        );
     }
 
     private void validateRefundEligibility(Booking booking, boolean isAdminOverride) {
@@ -196,15 +205,16 @@ public class RefundService {
                 amount.doubleValue()
             );
 
-            RefundRes result = new RefundRes();
-            result.setProvider(PaymentProvider.TRANSBANK.name());
-            result.setProviderRefundId(response.getAuthorizationCode());
-            result.setRefundAmount(amount);
-            result.setStatus("REFUNDED");
-            result.setMessage("Transbank refund processed successfully");
-
             log.info("Transbank refund successful: authCode={}", response.getAuthorizationCode());
-            return result;
+            
+            return new RefundRes(
+                null,                              // bookingId (set by caller)
+                PaymentProvider.TRANSBANK.name(),  // provider
+                response.getAuthorizationCode(),   // providerRefundId
+                amount,                            // refundAmount
+                "REFUNDED",                        // status
+                "Transbank refund processed successfully" // message
+            );
 
         } catch (Exception e) {
             log.error("Transbank refund failed for session: {}", session.getId(), e);
@@ -242,15 +252,16 @@ public class RefundService {
                 throw new RefundException("Invalid MercadoPago payment ID format: " + paymentId);
             }
 
-            RefundRes result = new RefundRes();
-            result.setProvider(PaymentProvider.MERCADOPAGO.name());
-            result.setProviderRefundId(refund.getId() != null ? refund.getId().toString() : null);
-            result.setRefundAmount(amount);
-            result.setStatus("REFUNDED");
-            result.setMessage("MercadoPago refund processed successfully");
-
             log.info("MercadoPago refund successful: refundId={}", refund.getId());
-            return result;
+            
+            return new RefundRes(
+                null,                                // bookingId (set by caller)
+                PaymentProvider.MERCADOPAGO.name(),  // provider
+                refund.getId() != null ? refund.getId().toString() : null, // providerRefundId
+                amount,                              // refundAmount
+                "REFUNDED",                          // status
+                "MercadoPago refund processed successfully" // message
+            );
 
         } catch (RefundException e) {
             throw e;

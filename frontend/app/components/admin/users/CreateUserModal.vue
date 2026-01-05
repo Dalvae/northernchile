@@ -4,7 +4,6 @@ import type { UserCreateReq } from 'api-client'
 import { USER_ROLE_OPTIONS } from '~/utils/adminOptions'
 
 const emit = defineEmits<{ success: [] }>()
-const { t } = useI18n()
 const { createAdminUser } = useAdminData()
 const toast = useToast()
 
@@ -178,7 +177,7 @@ async function handleSubmit() {
           >
             <USelect
               v-model="state.role"
-              :items="USER_ROLE_OPTIONS"
+              :items="[...USER_ROLE_OPTIONS] as { label: string, value: string }[]"
               option-attribute="label"
               value-attribute="value"
               placeholder="Selecciona un rol"

@@ -37,7 +37,7 @@ const features = [
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         <div
-          v-for="(feature, index) in features"
+          v-for="feature in features"
           :key="feature.titleKey"
           class="relative overflow-hidden atacama-card p-8 rounded-2xl text-center group hover:bg-white/5 transition-colors duration-500 border border-white/10"
         >

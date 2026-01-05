@@ -56,25 +56,28 @@ public class TourSchedulePublicController {
     }
 
     private TourScheduleRes mapToResponse(TourSchedule schedule) {
-        TourScheduleRes res = new TourScheduleRes();
-        res.setId(schedule.getId());
-        res.setTourId(schedule.getTour().getId());
-        res.setStartDatetime(schedule.getStartDatetime());
-        res.setMaxParticipants(schedule.getMaxParticipants());
-        res.setStatus(schedule.getStatus());
-        res.setCreatedAt(schedule.getCreatedAt());
-
-        // Add tour info for frontend
-        res.setTourName(schedule.getTour().getNameTranslations().get("es")); // Fallback
-        res.setTourNameTranslations(schedule.getTour().getNameTranslations());
-        res.setTourDurationHours(schedule.getTour().getDurationHours());
-
         // Assigned guide info (optional)
+        UUID assignedGuideId = null;
+        String assignedGuideName = null;
         if (schedule.getAssignedGuide() != null) {
-            res.setAssignedGuideId(schedule.getAssignedGuide().getId());
-            res.setAssignedGuideName(schedule.getAssignedGuide().getFullName());
+            assignedGuideId = schedule.getAssignedGuide().getId();
+            assignedGuideName = schedule.getAssignedGuide().getFullName();
         }
 
-        return res;
+        return new TourScheduleRes(
+                schedule.getId(),
+                schedule.getTour().getId(),
+                schedule.getTour().getNameTranslations().get("es"), // Fallback
+                schedule.getTour().getNameTranslations(),
+                schedule.getTour().getDurationHours(),
+                schedule.getStartDatetime(),
+                schedule.getMaxParticipants(),
+                0, // bookedParticipants - will be calculated elsewhere if needed
+                schedule.getMaxParticipants(), // availableSpots - will be calculated elsewhere if needed
+                schedule.getStatus(),
+                assignedGuideId,
+                assignedGuideName,
+                schedule.getCreatedAt()
+        );
     }
 }

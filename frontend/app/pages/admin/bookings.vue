@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { h, resolveComponent } from 'vue'
-import type { BookingRes } from 'api-client'
+import type { BookingRes, LocalTime } from 'api-client'
 import { getGroupedRowModel } from '@tanstack/vue-table'
 import type { GroupingOptions } from '@tanstack/vue-table'
 
@@ -18,6 +18,7 @@ const UBadge = resolveComponent('UBadge')
 
 const { fetchAdminBookings, refundBooking } = useAdminData()
 const { formatPrice: formatCurrency } = useCurrency()
+const { formatLocalTime } = useDateTime()
 const toast = useToast()
 
 const {
@@ -42,11 +43,11 @@ const adminOverride = ref(false)
 
 // Transform bookings into participant rows (for manifest view)
 type ParticipantRow = {
-  scheduleId: string | undefined
-  tourName?: string
-  tourDate?: string
-  tourStartTime?: string
-  participantName?: string
+  scheduleId: string
+  tourName: string
+  tourDate: string
+  tourStartTime: string
+  participantName: string
   documentId?: string
   nationality?: string
   age?: number
@@ -56,7 +57,7 @@ type ParticipantRow = {
   participantEmail?: string
   bookingUserName?: string
   bookingUserPhone?: string
-  bookingId?: string
+  bookingId: string
 }
 
 const participantRows = computed<ParticipantRow[]>(() => {
@@ -103,7 +104,7 @@ const participantRows = computed<ParticipantRow[]>(() => {
         scheduleId: booking.scheduleId,
         tourName: booking.tourName,
         tourDate: booking.tourDate,
-        tourStartTime: booking.tourStartTime,
+        tourStartTime: formatLocalTime(booking.tourStartTime),
         participantName: participant.fullName,
         documentId: participant.documentId,
         nationality: participant.nationality,
@@ -137,7 +138,6 @@ const filteredBookings = computed(() => {
         = booking.tourName?.toLowerCase().includes(query)
           || booking.userFullName?.toLowerCase().includes(query)
           || booking.id?.toLowerCase().includes(query)
-          || booking.userEmail?.toLowerCase().includes(query)
 
       if (!matchesSearch) return false
     }
@@ -248,7 +248,7 @@ const groupingOptions = ref<GroupingOptions>({
   getGroupedRowModel: getGroupedRowModel()
 })
 
-function formatTourDateTime(dateString: string, timeString?: string): string {
+function formatTourDateTime(dateString: string, timeValue?: LocalTime | string | null): string {
   if (!dateString) return ''
 
   // Format date as DD-MM-YYYY
@@ -257,10 +257,9 @@ function formatTourDateTime(dateString: string, timeString?: string): string {
 
   const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`
 
-  // Add time if provided (remove seconds)
-  if (timeString) {
-    const timeParts = timeString.split(':')
-    const formattedTime = timeParts.length >= 2 ? `${timeParts[0]}:${timeParts[1]}` : timeString
+  // Add time if provided
+  const formattedTime = formatLocalTime(timeValue)
+  if (formattedTime) {
     return `${formattedDate}, ${formattedTime}`
   }
 
@@ -331,9 +330,10 @@ async function handleRefund() {
 }
 
 // Check if booking is within 24 hours
-function isWithin24Hours(tourDate: string, tourTime?: string): boolean {
+function isWithin24Hours(tourDate: string, tourTime?: LocalTime | string | null): boolean {
   const now = new Date()
-  const tourDateTime = new Date(`${tourDate}T${tourTime || '00:00:00'}`)
+  const timeStr = formatLocalTime(tourTime) || '00:00:00'
+  const tourDateTime = new Date(`${tourDate}T${timeStr}`)
   const hoursUntilTour = (tourDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)
   return hoursUntilTour < 24
 }
@@ -448,8 +448,8 @@ function isWithin24Hours(tourDate: string, tourTime?: string): boolean {
                 <span class="text-sm text-default">
                   {{
                     formatTourDateTime(
-                      row.original.tourDate || '',
-                      row.original.tourStartTime || ''
+                      row.original.tourDate,
+                      row.original.tourStartTime
                     )
                   }}
                 </span>
@@ -563,14 +563,14 @@ function isWithin24Hours(tourDate: string, tourTime?: string): boolean {
                 {{ row.original.tourName }}
               </span>
               <span class="text-xs text-muted">
-                {{ row.original.tourStartTime }}
+                {{ formatLocalTime(row.original.tourStartTime) }}
               </span>
             </div>
           </template>
 
           <template #tourDate-cell="{ row }">
             <span class="text-sm text-default">
-              {{ formatTourDateTime(row.original.tourDate || '') }}
+              {{ formatTourDateTime(row.original.tourDate) }}
             </span>
           </template>
 
@@ -580,14 +580,14 @@ function isWithin24Hours(tourDate: string, tourTime?: string): boolean {
                 {{ row.original.userFullName }}
               </span>
               <span class="text-xs text-muted">
-                {{ row.original.userEmail }}
+                {{ row.original.userPhoneNumber }}
               </span>
             </div>
           </template>
 
           <template #participantCount-cell="{ row }">
             <UBadge
-              :label="`${row.original.participants?.length || 0} pax`"
+              :label="`${row.original.participants.length} pax`"
               color="neutral"
               variant="soft"
             />
@@ -595,14 +595,14 @@ function isWithin24Hours(tourDate: string, tourTime?: string): boolean {
 
           <template #totalAmount-cell="{ row }">
             <span class="font-medium text-default">
-              {{ formatCurrency(row.original.totalAmount || 0) }}
+              {{ formatCurrency(row.original.totalAmount) }}
             </span>
           </template>
 
           <template #status-cell="{ row }">
             <UBadge
-              :label="getStatusLabel(row.original.status || '')"
-              :color="getStatusColor(row.original.status || '')"
+              :label="getStatusLabel(row.original.status)"
+              :color="getStatusColor(row.original.status)"
               variant="soft"
             />
           </template>
@@ -664,7 +664,7 @@ function isWithin24Hours(tourDate: string, tourTime?: string): boolean {
               </div>
               <div class="flex justify-between">
                 <span class="text-sm text-muted">Fecha:</span>
-                <span class="text-sm text-default">{{ formatTourDateTime(selectedBooking.tourDate || '') }}</span>
+                <span class="text-sm text-default">{{ formatTourDateTime(selectedBooking.tourDate) }}</span>
               </div>
               <div class="flex justify-between">
                 <span class="text-sm text-muted">Cliente:</span>
@@ -672,17 +672,17 @@ function isWithin24Hours(tourDate: string, tourTime?: string): boolean {
               </div>
               <div class="flex justify-between">
                 <span class="text-sm text-muted">Participantes:</span>
-                <span class="text-sm text-default">{{ selectedBooking.participants?.length || 0 }}</span>
+                <span class="text-sm text-default">{{ selectedBooking.participants.length }}</span>
               </div>
               <div class="flex justify-between border-t border-neutral-200 dark:border-neutral-700 pt-2 mt-2">
                 <span class="text-sm font-medium text-muted">Monto a reembolsar:</span>
-                <span class="text-lg font-bold text-error">{{ formatCurrency(selectedBooking.totalAmount || 0) }}</span>
+                <span class="text-lg font-bold text-error">{{ formatCurrency(selectedBooking.totalAmount) }}</span>
               </div>
             </div>
 
             <!-- 24-hour warning -->
             <div
-              v-if="isWithin24Hours(selectedBooking.tourDate || '', selectedBooking.tourStartTime)"
+              v-if="isWithin24Hours(selectedBooking.tourDate, selectedBooking.tourStartTime)"
               class="bg-warning/10 border border-warning/30 rounded-lg p-4"
             >
               <div class="flex items-start gap-3">
@@ -717,7 +717,7 @@ function isWithin24Hours(tourDate: string, tourTime?: string): boolean {
               <UButton
                 color="error"
                 :loading="refundProcessing"
-                :disabled="isWithin24Hours(selectedBooking.tourDate || '', selectedBooking.tourStartTime) && !adminOverride"
+                :disabled="isWithin24Hours(selectedBooking.tourDate, selectedBooking.tourStartTime) && !adminOverride"
                 @click="handleRefund"
               >
                 Confirmar Reembolso

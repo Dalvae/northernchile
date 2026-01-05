@@ -76,18 +76,18 @@ public class BookingService {
     @Transactional
     public BookingRes createBooking(BookingCreateReq req, User currentUser) {
         // Use pessimistic locking to prevent race conditions instead of SERIALIZABLE isolation
-        var schedule = tourScheduleRepository.findByIdWithLock(req.getScheduleId())
-                .orElseThrow(() -> new ResourceNotFoundException("TourSchedule", req.getScheduleId()));
+        var schedule = tourScheduleRepository.findByIdWithLock(req.scheduleId())
+                .orElseThrow(() -> new ResourceNotFoundException("TourSchedule", req.scheduleId()));
 
         // Validate booking is not too close to tour start time
         validateBookingCutoffTime(schedule);
 
         // Exclude current user's cart from availability check (they're converting cart to booking)
         UUID excludeUserId = currentUser != null ? currentUser.getId() : null;
-        validateAvailability(schedule, req.getParticipants().size(), excludeUserId);
+        validateAvailability(schedule, req.participants().size(), excludeUserId);
 
         // Use centralized pricing service for consistent calculations
-        var pricing = pricingService.calculateLineItem(schedule.getTour().getPrice(), req.getParticipants().size());
+        var pricing = pricingService.calculateLineItem(schedule.getTour().getPrice(), req.participants().size());
 
         Booking booking = createBookingEntity(req, currentUser, schedule, pricing);
         List<Participant> participants = createParticipantEntities(req, booking);
@@ -109,8 +109,8 @@ public class BookingService {
         // Exclude the current user's cart items from availability check
         // since those items are being converted to a booking
         var availabilityResult = availabilityValidator.validateAvailability(schedule, requestedSlots, null, excludeUserId);
-        if (!availabilityResult.isAvailable()) {
-            throw new ScheduleFullException(availabilityResult.getErrorMessage());
+        if (!availabilityResult.available()) {
+            throw new ScheduleFullException(availabilityResult.errorMessage());
         }
     }
 
@@ -134,30 +134,30 @@ public class BookingService {
         booking.setSubtotal(pricing.subtotal());
         booking.setTaxAmount(pricing.taxAmount());
         booking.setTotalAmount(pricing.totalAmount());
-        booking.setLanguageCode(req.getLanguageCode());
-        booking.setSpecialRequests(req.getSpecialRequests());
+        booking.setLanguageCode(req.languageCode());
+        booking.setSpecialRequests(req.specialRequests());
         return booking;
     }
 
     private List<Participant> createParticipantEntities(BookingCreateReq req, Booking booking) {
         List<Participant> participants = new ArrayList<>();
-        for (var participantReq : req.getParticipants()) {
+        for (var participantReq : req.participants()) {
             Participant participant = new Participant();
             participant.setBooking(booking);
-            participant.setFullName(participantReq.getFullName());
-            participant.setDocumentId(participantReq.getDocumentId());
-            participant.setNationality(participantReq.getNationality());
+            participant.setFullName(participantReq.fullName());
+            participant.setDocumentId(participantReq.documentId());
+            participant.setNationality(participantReq.nationality());
 
-            if (participantReq.getDateOfBirth() != null) {
-                participant.setDateOfBirth(participantReq.getDateOfBirth());
-            } else if (participantReq.getAge() != null) {
-                participant.setAge(participantReq.getAge());
+            if (participantReq.dateOfBirth() != null) {
+                participant.setDateOfBirth(participantReq.dateOfBirth());
+            } else if (participantReq.age() != null) {
+                participant.setAge(participantReq.age());
             }
 
-            participant.setPickupAddress(participantReq.getPickupAddress());
-            participant.setSpecialRequirements(participantReq.getSpecialRequirements());
-            participant.setPhoneNumber(participantReq.getPhoneNumber());
-            participant.setEmail(participantReq.getEmail());
+            participant.setPickupAddress(participantReq.pickupAddress());
+            participant.setSpecialRequirements(participantReq.specialRequirements());
+            participant.setPhoneNumber(participantReq.phoneNumber());
+            participant.setEmail(participantReq.email());
             participants.add(participant);
         }
         return participants;
@@ -379,19 +379,19 @@ public class BookingService {
         }
 
         // Update special requests at booking level
-        booking.setSpecialRequests(req.getSpecialRequests());
+        booking.setSpecialRequests(req.specialRequests());
 
         // Update participants
-        for (BookingClientUpdateReq.ParticipantUpdateReq participantReq : req.getParticipants()) {
+        for (BookingClientUpdateReq.ParticipantUpdateReq participantReq : req.participants()) {
             Participant participant = booking.getParticipants().stream()
-                    .filter(p -> p.getId().equals(participantReq.getId()))
+                    .filter(p -> p.getId().equals(participantReq.id()))
                     .findFirst()
-                    .orElseThrow(() -> new ResourceNotFoundException("Participant", participantReq.getId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Participant", participantReq.id()));
 
-            participant.setPickupAddress(participantReq.getPickupAddress());
-            participant.setSpecialRequirements(participantReq.getSpecialRequirements());
-            participant.setPhoneNumber(participantReq.getPhoneNumber());
-            participant.setEmail(participantReq.getEmail());
+            participant.setPickupAddress(participantReq.pickupAddress());
+            participant.setSpecialRequirements(participantReq.specialRequirements());
+            participant.setPhoneNumber(participantReq.phoneNumber());
+            participant.setEmail(participantReq.email());
         }
 
         Booking updatedBooking = bookingRepository.save(booking);

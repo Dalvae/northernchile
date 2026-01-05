@@ -1,5 +1,6 @@
 package com.northernchile.api.media.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
@@ -7,35 +8,12 @@ import java.util.UUID;
 /**
  * Request DTO for reordering media in a gallery.
  */
-public class MediaOrderReq {
-
+public record MediaOrderReq(
     @NotNull(message = "Media ID is required")
-    private UUID mediaId;
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    UUID mediaId,
 
     @NotNull(message = "Display order is required")
-    private Integer displayOrder;
-
-    public MediaOrderReq() {
-    }
-
-    public MediaOrderReq(UUID mediaId, Integer displayOrder) {
-        this.mediaId = mediaId;
-        this.displayOrder = displayOrder;
-    }
-
-    public UUID getMediaId() {
-        return mediaId;
-    }
-
-    public void setMediaId(UUID mediaId) {
-        this.mediaId = mediaId;
-    }
-
-    public Integer getDisplayOrder() {
-        return displayOrder;
-    }
-
-    public void setDisplayOrder(Integer displayOrder) {
-        this.displayOrder = displayOrder;
-    }
-}
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    Integer displayOrder
+) {}

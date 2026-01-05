@@ -56,10 +56,6 @@ function updateBlock(index: number, field: 'type' | 'content', value: string) {
   blocks.value = newBlocks
 }
 
-function getBlockTypeLabel(type: string): string {
-  return blockTypeOptions.find(opt => opt.value === type)?.label || type
-}
-
 function getPlaceholder(type: string): string {
   switch (type) {
     case 'heading':

@@ -122,7 +122,7 @@ public class ReportsService {
                     BigDecimal revenue = calculateTotalRevenue(dayBookings);
                     return new BookingsByDayReport(date, count, revenue);
                 })
-                .sorted((a, b) -> a.getDate().compareTo(b.getDate()))
+                .sorted((a, b) -> a.date().compareTo(b.date()))
                 .collect(Collectors.toList());
     }
 
@@ -145,7 +145,7 @@ public class ReportsService {
                     long participants = countTotalParticipants(tourBookings);
                     return new TopTourReport(tourName, bookingsCount, revenue, participants);
                 })
-                .sorted((a, b) -> Integer.compare(b.getBookingsCount(), a.getBookingsCount()))
+                .sorted((a, b) -> Integer.compare(b.bookingsCount(), a.bookingsCount()))
                 .limit(limit)
                 .collect(Collectors.toList());
     }
@@ -221,7 +221,7 @@ public class ReportsService {
         // Calculate Transbank estimated net
         BigDecimal tbEstimatedNet = tbGross.subtract(tbFeesEstimated);
 
-        return new FinancialReport(
+        return FinancialReport.create(
                 start,
                 end,
                 mpGross,

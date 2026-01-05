@@ -77,7 +77,7 @@ const faqs = computed(() => [
   }
 ])
 
-async function onSubmit(event: FormSubmitEvent<Schema>) {
+async function onSubmit(_event: FormSubmitEvent<Schema>) {
   try {
     await $fetch('/api/contact', {
       method: 'POST',
@@ -103,7 +103,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     state.phone = ''
     state.subject = ''
     state.message = ''
-  } catch (error) {
+  } catch {
     toast.add({
       title: t('contact.form.toast.error_title'),
       description: t('contact.form.toast.error_description'),

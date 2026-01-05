@@ -208,17 +208,17 @@
             <div class="flex-1">
               <div class="flex items-center gap-3 mb-2">
                 <UBadge
-                  :color="getSeverityColor(alert.severity)"
+                  :color="getSeverityColor(alert.severity || 'LOW')"
                   :label="alert.severity"
                   size="lg"
                 />
                 <UBadge
-                  :color="getTypeColor(alert.alertType)"
-                  :label="getTypeLabel(alert.alertType)"
+                  :color="getTypeColor(alert.alertType || 'WIND')"
+                  :label="getTypeLabel(alert.alertType || 'WIND')"
                   variant="subtle"
                 />
                 <UBadge
-                  :color="getStatusColor(alert.status)"
+                  :color="getStatusColor(alert.status || 'PENDING')"
                   :label="alert.status"
                   variant="outline"
                 />
@@ -242,7 +242,7 @@
                     name="i-lucide-calendar"
                     class="w-4 h-4"
                   />
-                  <span>{{ formatDate(alert.scheduleDate) }}</span>
+                  <span>{{ formatDate(alert.scheduleDate || '') }}</span>
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -294,7 +294,7 @@
                     name="i-lucide-clock"
                     class="w-4 h-4"
                   />
-                  <span>Creada: {{ formatDate(alert.createdAt) }}</span>
+                  <span>Creada: {{ formatDate(alert.createdAt || '') }}</span>
                 </div>
               </div>
 
@@ -436,7 +436,7 @@
 </template>
 
 <script setup lang="ts">
-import type { WeatherAlert } from '~/lib/api-client/api'
+import type { WeatherAlert } from 'api-client'
 
 definePageMeta({
   layout: 'admin'

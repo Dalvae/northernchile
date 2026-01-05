@@ -52,7 +52,6 @@ public class RefundController {
         log.info("Admin refund request for booking: {} (override: {})", bookingId, adminOverride);
         
         RefundRes result = refundService.refundBooking(bookingId, adminOverride);
-        result.setBookingId(bookingId);
         
         return ResponseEntity.ok(result);
     }
@@ -76,7 +75,6 @@ public class RefundController {
         
         // User requests - no admin override, 24h policy applies
         RefundRes result = refundService.refundBooking(bookingId, false);
-        result.setBookingId(bookingId);
         
         return ResponseEntity.ok(result);
     }

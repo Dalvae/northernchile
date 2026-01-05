@@ -1,83 +1,24 @@
-// Payment types based on backend DTOs
+import {
+  PaymentSessionReqProviderEnum,
+  PaymentSessionReqPaymentMethodEnum,
+  PaymentStatusResStatusEnum,
+  type PaymentSessionReq,
+  type PaymentSessionRes,
+  type PaymentRes,
+  type PaymentStatusRes
+} from 'api-client'
 
-export enum PaymentProvider {
-  TRANSBANK = 'TRANSBANK',
-  MERCADOPAGO = 'MERCADOPAGO',
-  STRIPE = 'STRIPE'
-}
+export const PaymentProvider = PaymentSessionReqProviderEnum
+export type PaymentProvider = typeof PaymentSessionReqProviderEnum[keyof typeof PaymentSessionReqProviderEnum]
 
-export enum PaymentMethod {
-  WEBPAY = 'WEBPAY',
-  CREDIT_CARD = 'CREDIT_CARD',
-  QR_CODE = 'QR_CODE',
-  DEBIT_CARD = 'DEBIT_CARD',
-  BANK_TRANSFER = 'BANK_TRANSFER',
-  WALLET = 'WALLET'
-}
+export const PaymentMethod = PaymentSessionReqPaymentMethodEnum
+export type PaymentMethod = typeof PaymentSessionReqPaymentMethodEnum[keyof typeof PaymentSessionReqPaymentMethodEnum]
 
-export enum PaymentStatus {
-  PENDING = 'PENDING',
-  PROCESSING = 'PROCESSING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
-  CANCELLED = 'CANCELLED',
-  REFUNDED = 'REFUNDED',
-  EXPIRED = 'EXPIRED'
-}
+export const PaymentStatus = PaymentStatusResStatusEnum
+export type PaymentStatus = typeof PaymentStatusResStatusEnum[keyof typeof PaymentStatusResStatusEnum]
 
-export interface PaymentInitReq {
-  bookingId: string
-  provider: PaymentProvider
-  paymentMethod: PaymentMethod
-  amount: number
-  currency?: string
-  returnUrl?: string
-  cancelUrl?: string
-  userEmail?: string
-  description?: string
-  expirationMinutes?: number
-  additionalBookingIds?: string[]
-}
+// Re-export API types
+export type { PaymentSessionReq, PaymentSessionRes, PaymentRes, PaymentStatusRes }
 
-export interface PaymentInitRes {
-  paymentId: string
-  status: PaymentStatus
-  paymentUrl?: string
-  detailsUrl?: string
-  qrCode?: string
-  pixCode?: string
-  token?: string
-  expiresAt?: string
-  message?: string
-  isTest?: boolean
-}
-
-export interface PaymentStatusRes {
-  paymentId: string
-  externalPaymentId?: string
-  status: PaymentStatus
-  amount: number
-  currency: string
-  message?: string
-  updatedAt: string
-}
-
-export interface Payment {
-  id: string
-  bookingId: string
-  provider: PaymentProvider
-  paymentMethod: PaymentMethod
-  externalPaymentId?: string
-  status: PaymentStatus
-  amount: number
-  currency: string
-  paymentUrl?: string
-  detailsUrl?: string
-  qrCode?: string
-  pixCode?: string
-  token?: string
-  expiresAt?: string
-  errorMessage?: string
-  createdAt: string
-  updatedAt: string
-}
+// Alias for backward compatibility (if needed) or just use PaymentRes
+export type Payment = PaymentRes

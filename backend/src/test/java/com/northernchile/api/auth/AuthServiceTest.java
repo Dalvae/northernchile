@@ -105,16 +105,17 @@ class AuthServiceTest {
         );
         testUser.setEmailVerified(true);
 
-        validRegisterReq = new RegisterReq();
-        validRegisterReq.setEmail("newuser@example.com");
-        validRegisterReq.setFullName("New User");
-        validRegisterReq.setPassword("securePassword123");
-        validRegisterReq.setNationality("CL");
-        validRegisterReq.setPhoneNumber("+56912345678");
+        // Create records using constructor with all fields
+        validRegisterReq = new RegisterReq(
+            "newuser@example.com",
+            "securePassword123",
+            "New User",
+            "CL",
+            "+56912345678",
+            null  // dateOfBirth
+        );
 
-        validLoginReq = new LoginReq();
-        validLoginReq.setEmail("test@example.com");
-        validLoginReq.setPassword("password123");
+        validLoginReq = new LoginReq("test@example.com", "password123");
     }
 
     @Nested
@@ -125,8 +126,8 @@ class AuthServiceTest {
         @DisplayName("Should register user successfully with valid data")
         void shouldRegisterUserSuccessfully() {
             // Given
-            when(userRepository.findByEmail(validRegisterReq.getEmail())).thenReturn(Optional.empty());
-            when(passwordEncoder.encode(validRegisterReq.getPassword())).thenReturn("encodedPassword");
+            when(userRepository.findByEmail(validRegisterReq.email())).thenReturn(Optional.empty());
+            when(passwordEncoder.encode(validRegisterReq.password())).thenReturn("encodedPassword");
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
                 User user = invocation.getArgument(0);
                 ReflectionTestUtils.setField(user, "id", UUID.randomUUID());
@@ -142,14 +143,14 @@ class AuthServiceTest {
 
             // Then
             assertThat(result).isNotNull();
-            assertThat(result.getEmail()).isEqualTo(validRegisterReq.getEmail());
+            assertThat(result.getEmail()).isEqualTo(validRegisterReq.email());
             assertThat(result.getRole()).isEqualTo("ROLE_CLIENT");
             assertThat(result.isEmailVerified()).isFalse();
             
             verify(userRepository).save(any(User.class));
             verify(emailService).sendVerificationEmail(
-                    eq(validRegisterReq.getEmail()),
-                    eq(validRegisterReq.getFullName()),
+                    eq(validRegisterReq.email()),
+                    eq(validRegisterReq.fullName()),
                     contains("verification-token-123"),
                     anyString()
             );
@@ -159,7 +160,7 @@ class AuthServiceTest {
         @DisplayName("Should reject registration when email already exists")
         void shouldRejectRegistrationWhenEmailExists() {
             // Given
-            when(userRepository.findByEmail(validRegisterReq.getEmail()))
+            when(userRepository.findByEmail(validRegisterReq.email()))
                     .thenReturn(Optional.of(testUser));
 
             // When/Then

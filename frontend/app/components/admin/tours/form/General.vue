@@ -3,13 +3,11 @@ import type { FormError } from '@nuxt/ui'
 import type { TourSchema } from '~/composables/useAdminTourForm'
 import CronEditor from './CronEditor.vue'
 
-const props = defineProps<{
-  state: TourSchema
-  errors: FormError[]
-}>()
+const state = inject<TourSchema>('tour-form-state')!
+const errors = inject<Ref<FormError[]>>('tour-form-errors')!
 
 const findError = (path: string) =>
-  props.errors.find(e => (e as any).path === path)?.message
+  errors.value?.find(e => e.name === path)?.message
 
 const categoryOptions = [
   { label: 'Astronómico', value: 'ASTRONOMICAL' },

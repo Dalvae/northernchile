@@ -269,17 +269,17 @@ public class MediaService {
 
         mediaMapper.updateMediaFromReq(req, media);
 
-        if (req.getTourId() != null) {
-            Tour tour = tourRepository.findById(req.getTourId())
-                    .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + req.getTourId()));
+        if (req.tourId() != null) {
+            Tour tour = tourRepository.findById(req.tourId())
+                    .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + req.tourId()));
             media.setTour(tour);
         } else {
             media.setTour(null);
         }
 
-        if (req.getScheduleId() != null) {
-            TourSchedule schedule = scheduleRepository.findById(req.getScheduleId())
-                    .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + req.getScheduleId()));
+        if (req.scheduleId() != null) {
+            TourSchedule schedule = scheduleRepository.findById(req.scheduleId())
+                    .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + req.scheduleId()));
             media.setSchedule(schedule);
         } else {
             media.setSchedule(null);
@@ -411,11 +411,11 @@ public class MediaService {
         int tempOffset = 10000;
         for (int i = 0; i < orders.size(); i++) {
             MediaOrderReq order = orders.get(i);
-            Media media = mediaRepository.findById(order.getMediaId())
-                    .orElseThrow(() -> new EntityNotFoundException("Media not found: " + order.getMediaId()));
+            Media media = mediaRepository.findById(order.mediaId())
+                    .orElseThrow(() -> new EntityNotFoundException("Media not found: " + order.mediaId()));
 
             if (media.getTour() == null || !media.getTour().getId().equals(tourId)) {
-                throw new IllegalArgumentException("Media " + order.getMediaId() + " is not assigned to tour " + tourId);
+                throw new IllegalArgumentException("Media " + order.mediaId() + " is not assigned to tour " + tourId);
             }
 
             media.setDisplayOrder(tempOffset + i);
@@ -427,10 +427,10 @@ public class MediaService {
 
         // Step 3: Set final display orders
         for (MediaOrderReq order : orders) {
-            Media media = mediaRepository.findById(order.getMediaId())
-                    .orElseThrow(() -> new EntityNotFoundException("Media not found: " + order.getMediaId()));
+            Media media = mediaRepository.findById(order.mediaId())
+                    .orElseThrow(() -> new EntityNotFoundException("Media not found: " + order.mediaId()));
 
-            media.setDisplayOrder(order.getDisplayOrder());
+            media.setDisplayOrder(order.displayOrder());
             mediaRepository.save(media);
         }
 
@@ -608,14 +608,14 @@ public class MediaService {
         verifyScheduleAccess(requester, schedule);
 
         for (MediaOrderReq order : orders) {
-            Media media = mediaRepository.findById(order.getMediaId())
-                    .orElseThrow(() -> new EntityNotFoundException("Media not found: " + order.getMediaId()));
+            Media media = mediaRepository.findById(order.mediaId())
+                    .orElseThrow(() -> new EntityNotFoundException("Media not found: " + order.mediaId()));
 
             if (media.getSchedule() == null || !media.getSchedule().getId().equals(scheduleId)) {
-                throw new IllegalArgumentException("Media " + order.getMediaId() + " is not assigned to schedule " + scheduleId);
+                throw new IllegalArgumentException("Media " + order.mediaId() + " is not assigned to schedule " + scheduleId);
             }
 
-            media.setDisplayOrder(order.getDisplayOrder());
+            media.setDisplayOrder(order.displayOrder());
             mediaRepository.save(media);
         }
 
@@ -644,8 +644,7 @@ public class MediaService {
         List<Media> tourMediaList = mediaRepository.findByTourIdOrderByDisplayOrderAsc(tourId);
 
         for (Media m : tourMediaList) {
-            MediaRes res = mediaMapper.toMediaRes(m);
-            res.setIsInherited(true); // Mark as inherited from tour
+            MediaRes res = mediaMapper.toMediaRes(m).withIsInherited(true); // Mark as inherited from tour
             result.add(res);
         }
 
@@ -653,8 +652,7 @@ public class MediaService {
         List<Media> scheduleMediaList = mediaRepository.findByScheduleIdOrderByDisplayOrderAsc(scheduleId);
 
         for (Media m : scheduleMediaList) {
-            MediaRes res = mediaMapper.toMediaRes(m);
-            res.setIsInherited(false); // Mark as schedule-specific
+            MediaRes res = mediaMapper.toMediaRes(m).withIsInherited(false); // Mark as schedule-specific
             result.add(res);
         }
 

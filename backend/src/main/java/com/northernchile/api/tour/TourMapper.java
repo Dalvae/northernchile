@@ -15,10 +15,23 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE)
-public interface TourMapper {
+import com.northernchile.api.storage.S3StorageService;
+import org.mapstruct.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    Logger log = LoggerFactory.getLogger(TourMapper.class);
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+@Mapper(componentModel = "spring", unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE)
+public abstract class TourMapper {
+
+    protected static final Logger log = LoggerFactory.getLogger(TourMapper.class);
+
+    @Autowired
+    protected S3StorageService s3StorageService;
 
     @Mappings({
             @Mapping(target = "id", source = "tour.id"),
@@ -31,9 +44,9 @@ public interface TourMapper {
             @Mapping(target = "defaultStartTime", source = "tour.defaultStartTime"),
             @Mapping(target = "status", source = "tour.status"),
             @Mapping(target = "images", ignore = true), // Images loaded separately via /gallery endpoint
-            @Mapping(target = "moonSensitive", source = "tour.moonSensitive"),
-            @Mapping(target = "windSensitive", source = "tour.windSensitive"),
-            @Mapping(target = "cloudSensitive", source = "tour.cloudSensitive"),
+            @Mapping(target = "isMoonSensitive", source = "tour.moonSensitive"),
+            @Mapping(target = "isWindSensitive", source = "tour.windSensitive"),
+            @Mapping(target = "isCloudSensitive", source = "tour.cloudSensitive"),
             @Mapping(target = "createdAt", source = "tour.createdAt"),
             @Mapping(target = "updatedAt", source = "tour.updatedAt"),
             @Mapping(target = "contentKey", source = "tour.contentKey"),
@@ -46,10 +59,10 @@ public interface TourMapper {
             @Mapping(target = "equipmentTranslations", expression = "java(mapAllStringListTranslations(tour.getEquipmentTranslations()))"),
             @Mapping(target = "additionalInfoTranslations", expression = "java(mapAllStringListTranslations(tour.getAdditionalInfoTranslations()))")
     })
-    TourRes toTourRes(Tour tour, Locale locale);
+    public abstract TourRes toTourRes(Tour tour, Locale locale);
 
     // Helpers para contenido estructurado
-    default java.util.List<ItineraryItem> mapItinerary(Map<String, Object> translations, Locale locale) {
+    public java.util.List<ItineraryItem> mapItinerary(Map<String, Object> translations, Locale locale) {
         if (translations == null || translations.isEmpty()) return java.util.Collections.emptyList();
         Object localized = translations.getOrDefault(locale.getLanguage(), translations.get("es"));
         if (!(localized instanceof java.util.List<?> list)) return java.util.Collections.emptyList();
@@ -59,17 +72,14 @@ public interface TourMapper {
                 Object time = m.get("time");
                 Object description = m.get("description");
                 if (time != null && description != null) {
-                    ItineraryItem item = new ItineraryItem();
-                    item.setTime(time.toString());
-                    item.setDescription(description.toString());
-                    result.add(item);
+                    result.add(new ItineraryItem(time.toString(), description.toString()));
                 }
             }
         }
         return result;
     }
 
-    default java.util.List<String> mapStringList(Map<String, Object> translations, Locale locale) {
+    public java.util.List<String> mapStringList(Map<String, Object> translations, Locale locale) {
         if (translations == null || translations.isEmpty()) return java.util.Collections.emptyList();
         Object localized = translations.getOrDefault(locale.getLanguage(), translations.get("es"));
         if (!(localized instanceof java.util.List<?> list)) return java.util.Collections.emptyList();
@@ -85,7 +95,7 @@ public interface TourMapper {
     /**
      * Map all itinerary translations for admin editing (es, en, pt)
      */
-    default Map<String, java.util.List<ItineraryItem>> mapAllItineraryTranslations(Map<String, Object> translations) {
+    public Map<String, java.util.List<ItineraryItem>> mapAllItineraryTranslations(Map<String, Object> translations) {
         if (translations == null || translations.isEmpty()) return null;
         Map<String, java.util.List<ItineraryItem>> result = new java.util.HashMap<>();
         for (String lang : translations.keySet()) {
@@ -97,10 +107,7 @@ public interface TourMapper {
                         Object time = m.get("time");
                         Object description = m.get("description");
                         if (time != null && description != null) {
-                            ItineraryItem item = new ItineraryItem();
-                            item.setTime(time.toString());
-                            item.setDescription(description.toString());
-                            items.add(item);
+                            items.add(new ItineraryItem(time.toString(), description.toString()));
                         }
                     }
                 }
@@ -115,7 +122,7 @@ public interface TourMapper {
     /**
      * Map all string list translations for admin editing (es, en, pt)
      */
-    default Map<String, java.util.List<String>> mapAllStringListTranslations(Map<String, Object> translations) {
+    public Map<String, java.util.List<String>> mapAllStringListTranslations(Map<String, Object> translations) {
         if (translations == null || translations.isEmpty()) return null;
         Map<String, java.util.List<String>> result = new java.util.HashMap<>();
         for (String lang : translations.keySet()) {
@@ -136,21 +143,31 @@ public interface TourMapper {
     }
 
 
-    default TourRes toTourRes(Tour tour) {
+    public TourRes toTourRes(Tour tour) {
         return toTourRes(tour, Locale.forLanguageTag("es"));
     }
 
-    List<TourRes> toTourResList(List<Tour> tours);
+    public abstract List<TourRes> toTourResList(List<Tour> tours);
 
     // Map Media entity to TourImageRes
     @Mappings({
             @Mapping(source = "id", target = "id"),
-            @Mapping(source = "url", target = "imageUrl"),
+            @Mapping(target = "imageUrl", expression = "java(generateFreshImageUrl(media))"),
             @Mapping(source = "variants", target = "variants"),
             @Mapping(source = "isHero", target = "isHeroImage"),
             @Mapping(source = "isFeatured", target = "isFeatured"),
             @Mapping(source = "displayOrder", target = "displayOrder")
     })
-    TourImageRes toTourImageRes(Media media);
+    public abstract TourImageRes toTourImageRes(Media media);
+
+    /**
+     * Generate a fresh signed URL for the image
+     */
+    protected String generateFreshImageUrl(Media media) {
+        if (media == null || media.getS3Key() == null) {
+            return null;
+        }
+        return s3StorageService.getPublicUrl(media.getS3Key());
+    }
 
 }

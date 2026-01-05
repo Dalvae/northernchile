@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { PaymentStatus } from '~/types/payment'
+import type { PaymentSessionRes } from 'api-client'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -14,17 +15,6 @@ useHead({
     { name: 'robots', content: 'noindex, nofollow' }
   ]
 })
-
-// Response types for PaymentSession confirmation
-interface PaymentSessionConfirmRes {
-  sessionId: string
-  status: PaymentStatus
-  bookingIds?: string[]
-  amount?: number
-  currency?: string
-  message?: string
-  paymentId?: string
-}
 
 // Page state
 const isLoading = ref(true)
@@ -57,15 +47,9 @@ onMounted(async () => {
     // Case 1: MercadoPago Checkout Pro redirect (MP redirects here with its params)
     if (mpCollectionStatus || mpPaymentId) {
       await handleMercadoPagoCallback()
-    }
-    // Case 2: Direct success/error/cancelled from query
-    // This is used by Transbank (via /api/payments/callback server endpoint)
-    // and can also be used by other providers
-    else if (queryStatus) {
+    } else if (queryStatus) {
       handleDirectCallback()
-    }
-    // Case 3: No valid params, redirect to home
-    else {
+    } else {
       toast.add({
         color: 'warning',
         title: t('payment.callback.invalid_callback'),
@@ -77,7 +61,7 @@ onMounted(async () => {
     console.error('Error processing payment callback:', error)
     const err = error as { message?: string }
     errorMessage.value = err.message || t('payment.callback.error_processing')
-    paymentStatus.value = PaymentStatus.FAILED
+    paymentStatus.value = PaymentStatus.Failed
   } finally {
     isLoading.value = false
   }
@@ -94,26 +78,26 @@ async function handleMercadoPagoCallback() {
     if (mpExternalReference) queryParams.append('external_reference', mpExternalReference)
 
     // Use the correct backend endpoint for PaymentSession confirmation
-    const result = await $fetch<PaymentSessionConfirmRes>(
+    const result = await $fetch<PaymentSessionRes>(
       `/api/payment-sessions/confirm/mercadopago?${queryParams.toString()}`,
       {
         credentials: 'include'
       }
     )
 
-    paymentId.value = result.paymentId || result.sessionId
-    paymentStatus.value = result.status
+    paymentId.value = result.sessionId || null
+    paymentStatus.value = result.status || PaymentStatus.Pending
     if (result.bookingIds) {
       bookingIds.value = result.bookingIds
     }
 
-    if (result.status === PaymentStatus.COMPLETED) {
+    if (result.status === PaymentStatus.Completed) {
       // Google Analytics: Track purchase event
       if (typeof window !== 'undefined' && window.gtag) {
         window.gtag('event', 'purchase', {
-          transaction_id: result.paymentId || result.sessionId || 'unknown',
-          value: result.amount || 0,
-          currency: result.currency || 'USD'
+          transaction_id: result.sessionId || 'unknown',
+          value: 0, // Amount not available in PaymentSessionRes
+          currency: 'USD' // Currency not available in PaymentSessionRes
         })
       }
 
@@ -126,21 +110,21 @@ async function handleMercadoPagoCallback() {
         title: t('payment.success.title'),
         description: t('payment.success.description')
       })
-    } else if (result.status === PaymentStatus.FAILED) {
+    } else if (result.status === PaymentStatus.Failed) {
       errorMessage.value = t('payment.error.transaction_failed')
       toast.add({
         color: 'error',
         title: t('payment.error.title'),
         description: errorMessage.value
       })
-    } else if (result.status === PaymentStatus.CANCELLED) {
+    } else if (result.status === PaymentStatus.Cancelled) {
       errorMessage.value = t('payment.error.cancelled_by_user')
       toast.add({
         color: 'warning',
         title: t('payment.error.cancelled'),
         description: errorMessage.value
       })
-    } else if (result.status === PaymentStatus.PENDING) {
+    } else if (result.status === PaymentStatus.Pending) {
       toast.add({
         color: 'info',
         title: t('payment.callback.pending_title'),
@@ -152,16 +136,16 @@ async function handleMercadoPagoCallback() {
 
     // Fallback: Map collection_status if backend call fails
     const statusMap: Record<string, PaymentStatus> = {
-      approved: PaymentStatus.COMPLETED,
-      pending: PaymentStatus.PENDING,
-      in_process: PaymentStatus.PROCESSING,
-      rejected: PaymentStatus.FAILED,
-      cancelled: PaymentStatus.CANCELLED,
-      refunded: PaymentStatus.REFUNDED,
-      null: PaymentStatus.PENDING
+      approved: PaymentStatus.Completed,
+      pending: PaymentStatus.Pending,
+      in_process: PaymentStatus.Processing,
+      rejected: PaymentStatus.Failed,
+      cancelled: PaymentStatus.Cancelled,
+      refunded: PaymentStatus.Refunded,
+      null: PaymentStatus.Pending
     }
 
-    paymentStatus.value = statusMap[mpCollectionStatus] || PaymentStatus.PENDING
+    paymentStatus.value = statusMap[mpCollectionStatus] || PaymentStatus.Pending
     paymentId.value = mpPaymentId || mpPreferenceId || null
     const errorMsg = error instanceof Error ? error.message : t('payment.error.confirmation_failed')
     errorMessage.value = errorMsg
@@ -178,7 +162,7 @@ function handleDirectCallback() {
   }
 
   if (queryStatus === 'success') {
-    paymentStatus.value = PaymentStatus.COMPLETED
+    paymentStatus.value = PaymentStatus.Completed
 
     // Google Analytics: Track purchase event (direct callback)
     if (typeof window !== 'undefined' && window.gtag) {
@@ -194,18 +178,18 @@ function handleDirectCallback() {
     cartStore.clearCart()
     clearCheckoutData()
   } else if (queryStatus === 'error' || queryStatus === 'failed') {
-    paymentStatus.value = PaymentStatus.FAILED
+    paymentStatus.value = PaymentStatus.Failed
     errorMessage.value = route.query.message as string || t('payment.error.generic')
   } else if (queryStatus === 'cancelled') {
-    paymentStatus.value = PaymentStatus.CANCELLED
+    paymentStatus.value = PaymentStatus.Cancelled
     errorMessage.value = t('payment.error.cancelled_by_user')
   }
 }
 
-const isSuccess = computed(() => paymentStatus.value === PaymentStatus.COMPLETED)
+const isSuccess = computed(() => paymentStatus.value === PaymentStatus.Completed)
 const isFailed = computed(() =>
-  paymentStatus.value === PaymentStatus.FAILED
-  || paymentStatus.value === PaymentStatus.CANCELLED
+  paymentStatus.value === PaymentStatus.Failed
+  || paymentStatus.value === PaymentStatus.Cancelled
 )
 
 function goToBookings() {
@@ -392,7 +376,7 @@ function retryPayment() {
               {{ t('payment.error.title') }}
             </h1>
             <p class="text-lg text-neutral-600 dark:text-neutral-300">
-              {{ paymentStatus === PaymentStatus.CANCELLED ? t('payment.error.cancelled') : t('payment.error.subtitle') }}
+              {{ paymentStatus === PaymentStatus.Cancelled ? t('payment.error.cancelled') : t('payment.error.subtitle') }}
             </p>
           </div>
 
@@ -441,7 +425,7 @@ function retryPayment() {
                     {{ t('payment.callback.reason_transaction_limit') }}
                   </li>
                   <li
-                    v-if="paymentStatus === PaymentStatus.CANCELLED"
+                    v-if="paymentStatus === PaymentStatus.Cancelled"
                     class="flex items-center gap-2"
                   >
                     <UIcon

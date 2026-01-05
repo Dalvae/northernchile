@@ -1,5 +1,6 @@
 package com.northernchile.api.payment;
 
+import com.northernchile.api.payment.dto.PaymentRes;
 import com.northernchile.api.payment.dto.PaymentStatusRes;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -13,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -83,7 +85,7 @@ public class PaymentController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "404", description = "Booking not found")
     })
-    public ResponseEntity<?> getBookingPayments(@PathVariable("bookingId") UUID bookingId) {
+    public ResponseEntity<List<PaymentRes>> getBookingPayments(@PathVariable("bookingId") UUID bookingId) {
         log.info("Getting payments for booking: {}", bookingId);
         var payments = paymentService.getBookingPayments(bookingId);
         return ResponseEntity.ok(payments);
@@ -97,7 +99,7 @@ public class PaymentController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden - admin access required")
     })
-    public ResponseEntity<?> getTestPayments() {
+    public ResponseEntity<Map<String, Object>> getTestPayments() {
         log.info("Getting all test payments");
         var testPayments = paymentService.getTestPayments();
         return ResponseEntity.ok(Map.of(

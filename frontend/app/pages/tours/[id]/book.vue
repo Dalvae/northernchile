@@ -438,14 +438,14 @@ function copyUserDataToFirstParticipant() {
   if (firstParticipant) {
     bookingState.participants[0] = {
       ...firstParticipant,
-      fullName: user.fullName || '',
-      nationality: user.nationality || '',
-      dateOfBirth: user.dateOfBirth || null,
-      documentId: firstParticipant.documentId || '',
-      pickupAddress: firstParticipant.pickupAddress || '',
-      specialRequirements: firstParticipant.specialRequirements || '',
-      phoneNumber: firstParticipant.phoneNumber || '',
-      email: firstParticipant.email || ''
+      fullName: user.fullName,
+      nationality: user.nationality ?? '',
+      dateOfBirth: user.dateOfBirth ?? null,
+      documentId: firstParticipant.documentId ?? '',
+      pickupAddress: firstParticipant.pickupAddress ?? '',
+      specialRequirements: firstParticipant.specialRequirements ?? '',
+      phoneNumber: firstParticipant.phoneNumber ?? '',
+      email: firstParticipant.email ?? ''
     }
   }
 
@@ -475,7 +475,7 @@ function formatScheduleDate(datetime: string | undefined): string {
 
 function calculateTotal(): string {
   if (!tour.value) return formatCurrency(0)
-  const total = (tour.value.price || 0) * bookingState.totalParticipants
+  const total = tour.value.price * bookingState.totalParticipants
   return formatCurrency(total)
 }
 

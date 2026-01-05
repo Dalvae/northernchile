@@ -129,9 +129,9 @@ public class WeatherAlertService {
         if (tour.isWindSensitive()) {
             DailyForecast forecast = weatherService.getDailyForecast(date);
             if (forecast != null) {
-                double maxWind = forecast.windSpeed;
-                if (forecast.windGust != null && forecast.windGust > maxWind) {
-                    maxWind = forecast.windGust;
+                double maxWind = forecast.windSpeed();
+                if (forecast.windGust() != null && forecast.windGust() > maxWind) {
+                    maxWind = forecast.windGust();
                 }
 
                 if (maxWind > WIND_THRESHOLD_MS) {
@@ -152,15 +152,15 @@ public class WeatherAlertService {
         // Verificar nubosidad para tours sensibles
         if (tour.isCloudSensitive()) {
             DailyForecast forecast = weatherService.getDailyForecast(date);
-            if (forecast != null && forecast.clouds > CLOUD_THRESHOLD) {
+            if (forecast != null && forecast.clouds() > CLOUD_THRESHOLD) {
                 WeatherAlert alert = new WeatherAlert();
                 alert.setTourSchedule(schedule);
                 alert.setAlertType("CLOUDS");
                 alert.setSeverity("WARNING");
-                alert.setCloudCoverage(forecast.clouds);
+                alert.setCloudCoverage(forecast.clouds());
                 alert.setMessage(String.format(
                         "Nubosidad alta detectada: %d%%. Umbral: %d%%",
-                        forecast.clouds, CLOUD_THRESHOLD
+                        forecast.clouds(), CLOUD_THRESHOLD
                 ));
                 return alert;
             }

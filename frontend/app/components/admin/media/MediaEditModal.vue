@@ -18,8 +18,8 @@ const isOpen = computed({
 
 // Form state
 const state = ref({
-  altTranslations: { es: '', en: '', pt: '' },
-  captionTranslations: { es: '', en: '', pt: '' },
+  altTranslations: { es: '', en: '', pt: '' } as Record<string, string>,
+  captionTranslations: { es: '', en: '', pt: '' } as Record<string, string>,
   tags: [] as string[],
   takenAt: '',
   tourId: undefined as string | undefined,
@@ -68,6 +68,8 @@ watch(() => props.media, (media) => {
 }, { immediate: true })
 
 async function save() {
+  if (!props.media?.id) return
+
   try {
     await updateAdminMedia(props.media.id, {
       altTranslations: state.value.altTranslations,

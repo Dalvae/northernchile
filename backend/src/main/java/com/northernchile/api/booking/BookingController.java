@@ -102,7 +102,7 @@ public class BookingController {
             @PathVariable UUID bookingId,
             @Valid @RequestBody BookingUpdateReq req,
             @CurrentUser User currentUser) {
-        BookingRes updated = bookingService.updateBookingStatus(bookingId, req.getStatus(), currentUser);
+        BookingRes updated = bookingService.updateBookingStatus(bookingId, req.status(), currentUser);
         return new ResponseEntity<>(updated, HttpStatus.OK);
     }
 

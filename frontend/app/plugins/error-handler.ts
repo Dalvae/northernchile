@@ -16,8 +16,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       toast.add({
         title: 'Error inesperado',
         description: `${info}: ${errorMessage}`,
-        color: 'error',
-        timeout: 8000
+        color: 'error'
       })
     }
   }

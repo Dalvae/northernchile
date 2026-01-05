@@ -12,8 +12,9 @@ useHead({
 const toast = useToast()
 const { formatPrice } = useCurrency()
 const { formatDate } = useDateTime()
-const { locale } = useI18n()
-const authStore = useAuthStore()
+const { locale: _locale } = useI18n()
+const _authStore = useAuthStore()
+const { fetchReportsOverview, fetchBookingsByDayReport, fetchTopToursReport } = useAdminData()
 
 // Date range filter using UInputDate
 const today = new Date()
@@ -50,29 +51,16 @@ const endDate = computed(() => {
 const refreshKey = ref(0)
 
 // Fetch overview data
-const { data: overview, pending: overviewPending, refresh: refreshOverview, error: overviewError } = useAsyncData(
+const {
+  data: overview,
+  pending: loadingOverview,
+  refresh: _refreshOverview,
+  error: _overviewError
+} = useAsyncData(
   () => `reports-overview-${refreshKey.value}`,
   async () => {
     try {
-      const response = await $fetch<{
-        periodStart: string
-        periodEnd: string
-        totalBookings: number
-        confirmedBookings: number
-        cancelledBookings: number
-        totalRevenue: number
-        totalParticipants: number
-        averageBookingValue: number
-        conversionRate: number
-        totalUsers: number
-        totalTours: number
-        totalSchedules: number
-      }>('/api/admin/reports/overview', {
-        params: {
-          startDate: startDate.value,
-          endDate: endDate.value
-        }
-      })
+      const response = await fetchReportsOverview(startDate.value, endDate.value)
       return response
     } catch (err: unknown) {
       console.error('Error fetching overview:', err)
@@ -94,20 +82,15 @@ const { data: overview, pending: overviewPending, refresh: refreshOverview, erro
 )
 
 // Fetch bookings by day
-const { data: bookingsByDay, pending: bookingsByDayPending, refresh: refreshBookingsByDay } = useAsyncData(
+const {
+  data: bookingsByDay,
+  pending: loadingBookingsByDay,
+  refresh: _refreshBookingsByDay
+} = useAsyncData(
   () => `reports-bookings-by-day-${refreshKey.value}`,
   async () => {
     try {
-      const response = await $fetch<Array<{
-        date: string
-        count: number
-        revenue: number
-      }>>('/api/admin/reports/bookings-by-day', {
-        params: {
-          startDate: startDate.value,
-          endDate: endDate.value
-        }
-      })
+      const response = await fetchBookingsByDayReport(startDate.value, endDate.value)
       return response
     } catch (err) {
       console.error('Error fetching bookings by day:', err)
@@ -121,22 +104,15 @@ const { data: bookingsByDay, pending: bookingsByDayPending, refresh: refreshBook
 )
 
 // Fetch top tours
-const { data: topTours, pending: topToursPending, refresh: refreshTopTours } = useAsyncData(
+const {
+  data: topTours,
+  pending: loadingTopTours,
+  refresh: _refreshTopTours
+} = useAsyncData(
   () => `reports-top-tours-${refreshKey.value}`,
   async () => {
     try {
-      const response = await $fetch<Array<{
-        tourName: string
-        bookingsCount: number
-        revenue: number
-        participants: number
-      }>>('/api/admin/reports/top-tours', {
-        params: {
-          startDate: startDate.value,
-          endDate: endDate.value,
-          limit: 10
-        }
-      })
+      const response = await fetchTopToursReport(startDate.value, endDate.value, 10)
       return response
     } catch (err) {
       console.error('Error fetching top tours:', err)
@@ -216,7 +192,7 @@ function handleRefresh() {
 
     <!-- Loading state -->
     <div
-      v-if="overviewPending"
+      v-if="loadingOverview"
       class="flex justify-center items-center py-12"
     >
       <UIcon
@@ -242,7 +218,7 @@ function handleRefresh() {
       </p>
       <UButton
         color="primary"
-        @click="() => refreshOverview()"
+        @click="() => _refreshOverview()"
       >
         Reintentar
       </UButton>
@@ -254,28 +230,28 @@ function handleRefresh() {
       <div class="grid grid-cols-1 gap-4 mb-6 md:grid-cols-4">
         <AdminDashboardStat
           label="Total Reservas"
-          :value="overview.totalBookings"
+          :value="overview?.totalBookings ?? 0"
           icon="i-lucide-book-marked"
           icon-color="bg-primary/10"
           icon-text-color="text-primary"
         />
         <AdminDashboardStat
           label="Reservas Confirmadas"
-          :value="overview.confirmedBookings"
+          :value="overview?.confirmedBookings ?? 0"
           icon="i-lucide-check-circle"
           icon-color="bg-success/10"
           icon-text-color="text-success"
         />
         <AdminDashboardStat
           label="Ingresos Totales"
-          :value="formatPrice(overview.totalRevenue)"
+          :value="formatPrice(overview?.totalRevenue ?? 0)"
           icon="i-lucide-dollar-sign"
           icon-color="bg-tertiary/10"
           icon-text-color="text-tertiary"
         />
         <AdminDashboardStat
           label="Total Participantes"
-          :value="overview.totalParticipants"
+          :value="overview?.totalParticipants ?? 0"
           icon="i-lucide-users"
           icon-color="bg-info/10"
           icon-text-color="text-info"
@@ -286,21 +262,21 @@ function handleRefresh() {
       <div class="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3">
         <AdminDashboardStat
           label="Valor Promedio Reserva"
-          :value="formatPrice(overview.averageBookingValue)"
+          :value="formatPrice(overview?.averageBookingValue ?? 0)"
           icon="i-lucide-trending-up"
           icon-color="bg-secondary/10"
           icon-text-color="text-secondary"
         />
         <AdminDashboardStat
           label="Tasa de Conversión"
-          :value="`${(overview.conversionRate || 0).toFixed(1)}%`"
+          :value="`${(overview?.conversionRate ?? 0).toFixed(1)}%`"
           icon="i-lucide-percent"
           icon-color="bg-warning/10"
           icon-text-color="text-warning"
         />
         <AdminDashboardStat
           label="Cancelaciones"
-          :value="overview.cancelledBookings"
+          :value="overview?.cancelledBookings ?? 0"
           icon="i-lucide-x-circle"
           icon-color="bg-error/10"
           icon-text-color="text-error"
@@ -315,7 +291,7 @@ function handleRefresh() {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="text-center p-4 bg-primary/5 rounded-lg border border-primary/20">
             <div class="mb-1 text-3xl font-bold text-primary">
-              {{ overview.totalUsers }}
+              {{ overview?.totalUsers ?? 0 }}
             </div>
             <div class="text-sm text-muted">
               Usuarios Registrados
@@ -323,7 +299,7 @@ function handleRefresh() {
           </div>
           <div class="text-center p-4 bg-success/5 rounded-lg border border-success/20">
             <div class="text-3xl font-bold text-success mb-1">
-              {{ overview.totalTours }}
+              {{ overview?.totalTours ?? 0 }}
             </div>
             <div class="text-sm text-muted">
               Tours Activos
@@ -331,7 +307,7 @@ function handleRefresh() {
           </div>
           <div class="text-center p-4 bg-info/5 rounded-lg border border-info/20">
             <div class="text-3xl font-bold text-info mb-1">
-              {{ overview.totalSchedules }}
+              {{ overview?.totalSchedules ?? 0 }}
             </div>
             <div class="text-sm text-muted">
               Schedules Programados
@@ -346,7 +322,7 @@ function handleRefresh() {
           Reservas por Día
         </h3>
         <div
-          v-if="bookingsByDayPending"
+          v-if="loadingBookingsByDay"
           class="flex justify-center py-8"
         >
           <UIcon
@@ -413,7 +389,7 @@ function handleRefresh() {
           Tours Más Populares
         </h3>
         <div
-          v-if="topToursPending"
+          v-if="loadingTopTours"
           class="flex justify-center py-8"
         >
           <UIcon

@@ -102,7 +102,7 @@ public class WebhookController {
             // 6. Process webhook - confirm the payment session
             String lookupId = dataId; // data.id from MP notification
             PaymentSessionRes response = paymentSessionService.confirmMercadoPagoSession(lookupId, dataId);
-            log.info("Mercado Pago webhook processed successfully: {}", response.getSessionId());
+            log.info("Mercado Pago webhook processed successfully: {}", response.sessionId());
 
             // 7. Mark request as processed
             if (requestId != null) {

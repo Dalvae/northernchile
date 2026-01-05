@@ -9,14 +9,15 @@
  */
 
 import { unixToDateString } from '~/utils/dateUtils'
+import type { MoonPhaseDTO, TourScheduleRes } from 'api-client'
 
-export interface MoonPhase {
-  date: string
-  phase: number // 0.0-1.0
-  illumination: number // 0-100%
-  phaseName: string
-  isFullMoon: boolean
-  icon: string // emoji 🌑🌒🌓🌔🌕🌖🌗🌘
+export type MoonPhase = MoonPhaseDTO
+
+export interface WeatherConditions {
+  hasWind: boolean
+  hasClouds: boolean
+  hasFullMoon: boolean
+  hasRain: boolean
 }
 
 export interface DailyWeather {
@@ -38,20 +39,7 @@ export interface DailyWeather {
   }[]
 }
 
-export interface TourSchedule {
-  id: string
-  tourId: string
-  tourName: string
-  tourNameTranslations: Record<string, string>
-  tourDurationHours: number
-  startDatetime: string
-  maxParticipants: number
-  currentBookings?: number
-  status: 'OPEN' | 'CLOSED' | 'CANCELLED'
-  assignedGuideId?: string | null
-  assignedGuideName?: string | null
-  createdAt: string
-}
+export type TourSchedule = TourScheduleRes
 
 export interface WeatherAlert {
   id: string
@@ -183,7 +171,11 @@ export const useCalendarData = () => {
       // Crear mapa de fases lunares por fecha
       const moonMap = new Map<string, MoonPhase>()
       if (calendarResponse.moonPhases && Array.isArray(calendarResponse.moonPhases)) {
-        calendarResponse.moonPhases.forEach(moon => moonMap.set(moon.date, moon))
+        calendarResponse.moonPhases.forEach((moon) => {
+          if (moon.date) {
+            moonMap.set(moon.date, moon)
+          }
+        })
       }
 
       // Convertir weather response a Map
@@ -265,12 +257,7 @@ export const useCalendarData = () => {
     date: string,
     weather: Map<string, DailyWeather>,
     moonPhases: Map<string, MoonPhase>
-  ): {
-    hasWind: boolean
-    hasClouds: boolean
-    hasFullMoon: boolean
-    hasRain: boolean
-  } => {
+  ): WeatherConditions => {
     const dayWeather = weather.get(date)
     const moonPhase = moonPhases.get(date)
 

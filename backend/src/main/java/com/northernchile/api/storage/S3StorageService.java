@@ -80,7 +80,8 @@ public class S3StorageService {
     }
 
     /**
-     * Generate a static public URL for an S3 object (no signing, bucket must be public)
+     * Generate a static public URL for an S3 object.
+     * Requires the bucket/folder to have public read access.
      *
      * @param key The S3 object key
      * @return The static public URL
@@ -89,7 +90,7 @@ public class S3StorageService {
         if (key == null || key.isEmpty()) {
             return null;
         }
-        // Static URL - fast and cacheable, requires public bucket
+        // Static URL - bucket must have public read access for media/ folder
         return String.format("https://%s.s3.sa-east-1.amazonaws.com/%s", bucketName, key);
     }
 

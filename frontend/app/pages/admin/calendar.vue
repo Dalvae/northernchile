@@ -269,7 +269,8 @@ import type {
   EventClickArg
 } from '@fullcalendar/core'
 import esLocale from '@fullcalendar/core/locales/es'
-import type { TourRes, TourScheduleRes, TourScheduleCreateReq, WeatherAlert } from '~/lib/api-client/api'
+import type { TourRes, TourScheduleRes, TourScheduleCreateReq, WeatherAlert } from 'api-client'
+import type { DailyWeather, MoonPhase } from '~/composables/useCalendarData'
 import { getLocalDateString, CHILE_TIMEZONE } from '~/utils/dateUtils'
 
 definePageMeta({
@@ -287,12 +288,13 @@ const { fetchCalendarData, hasAdverseConditions, getWeatherIcon }
   = useCalendarData()
 
 const { fetchAdminTours } = useAdminData()
+const { formatLocalTime } = useDateTime()
 
 // Calendar data interface
 interface CalendarDataResponse {
   schedules: TourScheduleRes[]
-  moonPhases: Map<string, { icon: string, illumination: number }>
-  weather: Map<string, { temp: { max: number, min: number }, weather: Array<{ main: string }> }>
+  moonPhases: Map<string, MoonPhase>
+  weather: Map<string, DailyWeather>
   alerts: Map<string, WeatherAlert[]>
   allAlerts?: WeatherAlert[]
 }
@@ -328,7 +330,7 @@ const { data: toursData } = await useAsyncData(
 
 // Computed options for selects
 const tourOptions = computed(() => {
-  const list = Array.isArray(toursData.value) ? toursData.value : (toursData.value as { data?: TourRes[] })?.data || []
+  const list = Array.isArray(toursData.value) ? toursData.value : (toursData.value as unknown as { data?: TourRes[] })?.data || []
   return list
     .filter((tour: TourRes) => tour.status === 'PUBLISHED')
     .map((tour: TourRes) => ({
@@ -350,7 +352,7 @@ const isEditMode = computed(() => !!selectedSchedule.value)
 
 // Map de tours por ID para acceso rápido
 const toursMap = computed(() => {
-  const list = Array.isArray(toursData.value) ? toursData.value : (toursData.value as { data?: TourRes[] })?.data || []
+  const list = Array.isArray(toursData.value) ? toursData.value : (toursData.value as unknown as { data?: TourRes[] })?.data || []
   const map = new Map<string, TourRes>()
   list.forEach((tour: TourRes) => {
     if (tour.id) {
@@ -366,14 +368,7 @@ watch(() => scheduleForm.value.tourId, (newTourId) => {
 
   const selectedTour = toursMap.value.get(newTourId)
   if (selectedTour?.defaultStartTime) {
-    const timeVal = selectedTour.defaultStartTime
-    // Puede venir como string "HH:mm:ss" o como objeto LocalTime {hour, minute}
-    if (typeof timeVal === 'string') {
-      // Tomar solo HH:mm de "HH:mm:ss"
-      scheduleForm.value.time = timeVal.slice(0, 5)
-    } else if (timeVal.hour !== undefined && timeVal.minute !== undefined) {
-      scheduleForm.value.time = `${String(timeVal.hour).padStart(2, '0')}:${String(timeVal.minute).padStart(2, '0')}`
-    }
+    scheduleForm.value.time = formatLocalTime(selectedTour.defaultStartTime)
   }
 })
 
@@ -416,7 +411,7 @@ const loadCalendarData = async () => {
 const generateSchedules = async () => {
   try {
     generating.value = true
-    await $fetch<void>('/api/admin/schedules/generate', {
+    await $fetch('/api/admin/schedules/generate', {
       method: 'POST'
     })
 
@@ -447,9 +442,9 @@ const handleEventClick = (info: EventClickArg) => {
 
   // Fill form with schedule data
   // startDatetime is an Instant (ISO with Z), parse it correctly
-  const scheduleDate = new Date(schedule.startDatetime || '')
+  const scheduleDate = new Date(schedule.startDatetime)
   scheduleForm.value = {
-    tourId: schedule.tourId || '',
+    tourId: schedule.tourId,
     date: getLocalDateString(scheduleDate),
     time: scheduleDate.toLocaleTimeString('es-CL', {
       hour: '2-digit',
@@ -611,13 +606,13 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
     // Eventos (schedules)
     events: Array.isArray(schedules)
       ? schedules.map((schedule: TourScheduleRes) => {
-          const start = new Date(schedule.startDatetime || '')
+          const start = new Date(schedule.startDatetime)
 
           // Color único para todos los tours activos
           let backgroundColor = 'var(--color-atacama-dorado-500)'
 
           // Verificar si tiene alertas críticas
-          const scheduleAlerts = schedule.id ? alerts?.get(schedule.id) || [] : []
+          const scheduleAlerts = alerts?.get(schedule.id) ?? []
           const hasCriticalAlert = scheduleAlerts.some(
             (a: WeatherAlert) => a.severity === 'CRITICAL' && a.status === 'PENDING'
           )
@@ -698,7 +693,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
         tempDiv.className = 'flex items-center gap-1'
         tempDiv.innerHTML = `
           <span class="text-base">${getWeatherIcon(
-            dayWeather.weather[0]?.main
+            dayWeather.weather[0]?.main || ''
           )}</span>
           <span class="text-xs text-muted">
             ${Math.round(dayWeather.temp.max)}°/${Math.round(

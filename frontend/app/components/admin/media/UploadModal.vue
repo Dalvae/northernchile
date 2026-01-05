@@ -64,7 +64,7 @@ async function processFiles(files: File[]) {
   try {
     const optimizedResults = await optimizeImages(imageFiles, {
       maxDimension: 4000,
-      onProgress: (current, total) => {
+      onProgress: (_current, _total) => {
         // Could show progress here if desired
       }
     })

@@ -71,7 +71,7 @@ interface DockIconProps {
   tooltip?: string
 }
 
-const props = defineProps<DockIconProps>()
+defineProps<DockIconProps>()
 
 // Generate unique ID for this icon
 const iconId = `dock-icon-${Math.random().toString(36).substr(2, 9)}`

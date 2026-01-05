@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { TourRes, TourScheduleRes, ContentBlock, TourImageRes } from 'api-client'
+import type { TourRes, TourScheduleRes, ContentBlock, TourImageRes, ItineraryItem } from 'api-client'
 import { useCalendarData } from '~/composables/useCalendarData'
 import { useCurrency } from '~/composables/useCurrency'
 import { getTodayString, getLocalDateString } from '~/utils/dateUtils'
@@ -9,7 +9,6 @@ import { useIntersectionObserver } from '@vueuse/core'
 const route = useRoute()
 const router = useRouter()
 const { locale, t } = useI18n()
-const _localePath = useLocalePath()
 const toast = useToast()
 const cartStore = useCartStore()
 const { formatPrice } = useCurrency()
@@ -40,7 +39,7 @@ async function fetchContent(contentKey: string | undefined) {
   try {
     const contentModule = await import(`~/app/content/tours/${contentKey}.ts`)
     tourContent.value = contentModule.default
-  } catch (_e) {
+  } catch {
     console.error(
       'No se encontró contenido enriquecido para la clave:',
       contentKey
@@ -208,10 +207,10 @@ useHead({
           'itinerary': {
             '@type': 'ItemList',
             'numberOfItems': translatedItinerary.value?.length || 0,
-            'itemListElement': translatedItinerary.value?.map((step: string, idx: number) => ({
+            'itemListElement': translatedItinerary.value?.map((step: ItineraryItem | string, idx: number) => ({
               '@type': 'ListItem',
               'position': idx + 1,
-              'name': step
+              'name': typeof step === 'string' ? step : step.description
             })) || []
           },
           'touristAttraction': {
@@ -309,24 +308,21 @@ function openGalleryLightbox(index: number) {
 
 // ===== BOOKING: Próximas salidas y calendario inline =====
 
-interface TourScheduleWithTour extends TourScheduleRes {
-  tour?: TourRes
-}
-
 // All schedules for this tour (shared between sidebar and calendar)
-const allSchedules = ref<TourScheduleWithTour[]>([])
+// TourScheduleRes already contains tourId, tourName, tourNameTranslations
+const allSchedules = ref<TourScheduleRes[]>([])
 const loadingSchedules = ref(true)
 
 // Upcoming schedules for sidebar (filtered from allSchedules)
 const upcomingSchedules = computed(() => {
   return allSchedules.value
-    .filter(s => (s.status === 'SCHEDULED' || s.status === 'OPEN') && (s.availableSpots ?? s.maxParticipants ?? 0) > 0)
+    .filter(s => (s.status === 'SCHEDULED' || s.status === 'OPEN') && (s.availableSpots ?? s.maxParticipants) > 0)
     .sort((a, b) => new Date(a.startDatetime!).getTime() - new Date(b.startDatetime!).getTime())
     .slice(0, 5)
 })
 
 // Selected schedule for booking modal
-const selectedSchedule = ref<TourScheduleWithTour | null>(null)
+const selectedSchedule = ref<TourScheduleRes | null>(null)
 const participantCount = ref(1)
 const showParticipantModal = ref(false)
 
@@ -365,8 +361,8 @@ async function fetchSchedules() {
       }
     })
 
-    // Store all schedules with tour reference
-    allSchedules.value = (response || []).map(s => ({ ...s, tour: tour.value! }))
+    // Store all schedules (TourScheduleRes already contains tour info)
+    allSchedules.value = response || []
   } catch (e) {
     console.error('Error fetching schedules:', e)
     allSchedules.value = []
@@ -394,15 +390,16 @@ function formatScheduleTime(datetime: string) {
 }
 
 // Open booking modal for a schedule
-function openBookingModal(schedule: TourScheduleWithTour) {
+function openBookingModal(schedule: TourScheduleRes) {
   selectedSchedule.value = schedule
   participantCount.value = 1
   showParticipantModal.value = true
 }
 
 // Handle schedule click from inline calendar
-function handleCalendarScheduleClick(schedule: TourScheduleRes, _tour: TourRes) {
-  openBookingModal({ ...schedule, tour: tour.value! })
+// Note: _tour param comes from calendar but we use tour.value from this page
+function handleCalendarScheduleClick(schedule: TourScheduleRes, _tour: TourRes | undefined) {
+  openBookingModal(schedule)
 }
 
 // Computed for max participants in modal
@@ -919,7 +916,7 @@ watch(tour, (newTour) => {
 
           <!-- Lazy-loaded calendar -->
           <LazyTourCalendar
-            v-else
+            v-if="showInlineCalendar"
             :tours="[tour]"
             :preloaded-schedules="allSchedules"
             @schedule-click="handleCalendarScheduleClick"

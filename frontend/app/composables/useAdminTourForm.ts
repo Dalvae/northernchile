@@ -30,10 +30,10 @@ const schema = z.object({
 // Extended schema
 export const fullSchema = schema.extend({
   guideName: z.string().optional().or(z.literal('')),
-  itineraryTranslations: z.any().optional(),
-  equipmentTranslations: z.any().optional(),
-  additionalInfoTranslations: z.any().optional(),
-  descriptionBlocksTranslations: z.any().optional()
+  itineraryTranslations: z.record(z.string(), z.array(z.any())).optional(),
+  equipmentTranslations: z.record(z.string(), z.array(z.string())).optional(),
+  additionalInfoTranslations: z.record(z.string(), z.array(z.string())).optional(),
+  descriptionBlocksTranslations: z.record(z.string(), z.array(z.any())).optional()
 })
 
 export type TourSchema = z.output<typeof fullSchema>
@@ -95,9 +95,9 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
         if (tour) {
           Object.assign(state, {
             nameTranslations: tour.nameTranslations || initialState.nameTranslations,
-            moonSensitive: tour.moonSensitive ?? tour.isMoonSensitive ?? false,
-            windSensitive: tour.windSensitive ?? tour.isWindSensitive ?? false,
-            cloudSensitive: tour.cloudSensitive ?? tour.isCloudSensitive ?? false,
+            moonSensitive: tour.isMoonSensitive ?? false,
+            windSensitive: tour.isWindSensitive ?? false,
+            cloudSensitive: tour.isCloudSensitive ?? false,
             category: tour.category,
             price: tour.price,
             defaultMaxParticipants: tour.defaultMaxParticipants,
@@ -112,10 +112,7 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
             descriptionBlocksTranslations: tour.descriptionBlocksTranslations || undefined
           })
         } else {
-          // Reset state completely
-          Object.keys(state).forEach((key) => {
-            delete (state as Record<string, unknown>)[key]
-          })
+          // Reset state to initial values (simpler than delete + assign)
           Object.assign(state, { ...initialState })
         }
       })
@@ -175,9 +172,9 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
       const basePayload: TourCreateReq = {
         nameTranslations: event.data.nameTranslations,
         descriptionBlocksTranslations: cleanDescriptionBlocks || {},
-        moonSensitive: event.data.moonSensitive,
-        windSensitive: event.data.windSensitive,
-        cloudSensitive: event.data.cloudSensitive,
+        isMoonSensitive: event.data.moonSensitive,
+        isWindSensitive: event.data.windSensitive,
+        isCloudSensitive: event.data.cloudSensitive,
         category: event.data.category,
         price: event.data.price,
         defaultMaxParticipants: event.data.defaultMaxParticipants,

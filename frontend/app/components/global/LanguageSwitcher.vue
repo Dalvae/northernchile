@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-const { locale, locales, setLocale, t } = useI18n()
+const { locales, setLocale, t } = useI18n()
 
 const items = computed(() => {
   const menuItems = locales.value.map((l) => {

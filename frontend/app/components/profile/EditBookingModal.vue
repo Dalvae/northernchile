@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BookingRes, ParticipantRes, ParticipantUpdateReq } from '~/lib/api-client/api'
+import type { BookingRes, ParticipantRes, ParticipantUpdateReq } from 'api-client'
 
 const props = defineProps<{
   booking: BookingRes
@@ -20,14 +20,14 @@ interface ParticipantFormState extends ParticipantUpdateReq {
 
 // Form state
 const state = ref({
-  specialRequests: props.booking.specialRequests || '',
-  participants: (props.booking.participants || []).map((p: ParticipantRes) => ({
-    id: p.id || '',
-    fullName: p.fullName || '',
-    pickupAddress: p.pickupAddress || '',
-    specialRequirements: p.specialRequirements || '',
-    phoneNumber: p.phoneNumber || '',
-    email: p.email || ''
+  specialRequests: props.booking.specialRequests ?? '',
+  participants: props.booking.participants.map((p: ParticipantRes) => ({
+    id: p.id,
+    fullName: p.fullName,
+    pickupAddress: p.pickupAddress ?? '',
+    specialRequirements: p.specialRequirements ?? '',
+    phoneNumber: p.phoneNumber ?? '',
+    email: p.email ?? ''
   } as ParticipantFormState))
 })
 
@@ -36,7 +36,7 @@ const saving = ref(false)
 async function saveChanges() {
   saving.value = true
   try {
-    await $fetch<void>(`/api/bookings/${props.booking.id}`, {
+    await $fetch<unknown>(`/api/bookings/${props.booking.id}`, {
       method: 'PUT',
       credentials: 'include',
       headers: {
@@ -92,7 +92,7 @@ async function saveChanges() {
             {{ t('profile.edit_booking.title') }}
           </h3>
           <p class="text-sm text-neutral-500 dark:text-neutral-300 mt-1">
-            #{{ booking.id.substring(0, 8) }} - {{ booking.tourName }}
+            #{{ booking.id?.substring(0, 8) }} - {{ booking.tourName }}
           </p>
         </div>
         <UButton
@@ -131,7 +131,7 @@ async function saveChanges() {
             </h4>
             <div class="space-y-4">
               <div
-                v-for="(participant, index) in state.participants"
+                v-for="participant in state.participants"
                 :key="participant.id"
                 class="p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg space-y-4"
               >

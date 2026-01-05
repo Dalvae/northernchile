@@ -1,4 +1,10 @@
 <script setup lang="ts">
+interface Country {
+  value: string
+  label: string
+  phoneCode: string
+}
+
 const props = defineProps<{
   modelValue?: string | null
   label?: string
@@ -11,9 +17,9 @@ const emit = defineEmits<{
   'update:modelValue': [value: string | null]
 }>()
 
-const { countries, getCountryLabel, getCountryFlag } = useCountries()
+const { countries, getCountryFlag } = useCountries()
 
-const selected = computed<{ value: string, label: string } | undefined>({
+const selected = computed<Country | undefined>({
   get: () => {
     if (!props.modelValue) return undefined
     const country = countries.find(c => c.value === props.modelValue)
@@ -23,11 +29,6 @@ const selected = computed<{ value: string, label: string } | undefined>({
     const code = value ? value.value : null
     emit('update:modelValue', code)
   }
-})
-
-const displayValue = computed(() => {
-  if (!selected.value) return props.placeholder || 'Selecciona un país'
-  return `${getCountryFlag(selected.value.value)} ${selected.value.label}`
 })
 </script>
 

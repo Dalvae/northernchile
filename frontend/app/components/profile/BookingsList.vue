@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BookingRes } from '~/lib/api-client/api'
+import type { BookingRes, LocalTime } from 'api-client'
 import { parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
 
 const { locale, t } = useI18n()
@@ -44,11 +44,13 @@ onMounted(() => {
 })
 
 // Format date and time
-function formatDateTime(dateString: string, timeString: string) {
+function formatDateTime(dateString?: string, timeString?: LocalTime | string | null) {
   if (!dateString) return '-'
 
   // Parse date-only string correctly (avoid UTC interpretation)
   const date = parseDateOnly(dateString)
+  if (isNaN(date.getTime())) return '-'
+
   const dateFormatted = new Intl.DateTimeFormat(locale.value, {
     weekday: 'long',
     year: 'numeric',
@@ -59,7 +61,9 @@ function formatDateTime(dateString: string, timeString: string) {
 
   // If we have time, append it
   if (timeString) {
-    return `${dateFormatted} - ${timeString}`
+    const { formatLocalTime } = useDateTime()
+    const formattedTime = formatLocalTime(timeString)
+    return `${dateFormatted} - ${formattedTime}`
   }
 
   return dateFormatted
@@ -85,7 +89,7 @@ function getStatusLabel(status: string) {
 }
 
 function downloadBooking(booking: BookingRes) {
-  downloadingPdf.value = booking.id
+  downloadingPdf.value = booking.id || null
   try {
     generateBookingPdf(booking)
     toast.add({
@@ -217,7 +221,7 @@ async function handleBookingSaved() {
           <div class="flex justify-between items-start">
             <div>
               <p class="text-sm text-neutral-500 dark:text-neutral-300">
-                {{ t('profile.booking_reference') }} #{{ booking.id.substring(0, 8) }}
+                {{ t('profile.booking_reference') }} #{{ booking.id?.substring(0, 8) }}
               </p>
               <p
                 class="text-lg font-semibold text-neutral-900 dark:text-white mt-1"
@@ -226,10 +230,10 @@ async function handleBookingSaved() {
               </p>
             </div>
             <UBadge
-              :color="getStatusColor(booking.status)"
+              :color="getStatusColor(booking.status || 'PENDING')"
               size="lg"
             >
-              {{ getStatusLabel(booking.status) }}
+              {{ getStatusLabel(booking.status || 'PENDING') }}
             </UBadge>
           </div>
         </template>
@@ -250,7 +254,7 @@ async function handleBookingSaved() {
                   name="i-lucide-users"
                   class="w-4 h-4"
                 />
-                {{ booking.participants?.length || 0 }}
+                {{ booking.participants.length }}
                 {{ booking.participants?.length === 1 ? t('profile.participant') : t('profile.participants') }}
               </p>
             </div>

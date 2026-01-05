@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { PaymentProvider } from '~/types/payment'
-import { PaymentMethod } from '~/types/payment'
+import type { PaymentSessionRes } from 'api-client'
+import { PaymentProvider, PaymentMethod } from '~/types/payment'
 
 const cartStore = useCartStore()
 const authStore = useAuthStore()
@@ -270,8 +270,9 @@ watch(() => participants.value[0]?.pickupAddress, (newPickupAddress) => {
 
   // Copy to all other participants that have empty pickup address
   for (let i = 1; i < participants.value.length; i++) {
-    if (!participants.value[i].pickupAddress) {
-      participants.value[i].pickupAddress = newPickupAddress
+    const p = participants.value[i]
+    if (p && !p.pickupAddress) {
+      p.pickupAddress = newPickupAddress
     }
   }
 }, { immediate: false })
@@ -279,19 +280,6 @@ watch(() => participants.value[0]?.pickupAddress, (newPickupAddress) => {
 // Submit payment - creates PaymentSession, then redirects to payment provider
 const isSubmitting = ref(false)
 const lastSubmitTime = ref(0)
-
-// PaymentSession response type
-interface PaymentSessionRes {
-  sessionId: string
-  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'EXPIRED' | 'CANCELLED'
-  paymentUrl?: string
-  token?: string
-  qrCode?: string
-  pixCode?: string
-  expiresAt?: string
-  isTest?: boolean
-  bookingIds?: string[]
-}
 
 async function submitBooking() {
   // Prevent double submit - strict check
@@ -389,7 +377,7 @@ async function submitBooking() {
         tourName: item.tourName,
         numParticipants: item.numParticipants,
         pricePerPerson: item.pricePerParticipant,
-        itemTotal: item.itemTotal ?? 0,
+        itemTotal: item.itemTotal,
         specialRequests: null,
         participants: itemParticipants.map(p => ({
           fullName: p.fullName,
@@ -408,7 +396,7 @@ async function submitBooking() {
 
     // Step 3: Create PaymentSession (no bookings created yet!)
     // Transbank uses POST callback, MercadoPago uses GET redirect
-    const isTransbank = selectedPaymentMethod.value.provider === 'TRANSBANK'
+    const isTransbank = selectedPaymentMethod.value.provider === PaymentProvider.Transbank
     const returnUrl = isTransbank
       ? `${config.public.baseUrl}/api/payments/callback`
       : `${config.public.baseUrl}/payment/callback`
@@ -436,8 +424,8 @@ async function submitBooking() {
     // Store session ID for PIX polling
     if (paymentSessionRes.sessionId) {
       paymentStore.setCurrentPayment({
-        paymentId: paymentSessionRes.sessionId,
-        status: paymentSessionRes.status as any,
+        sessionId: paymentSessionRes.sessionId,
+        status: paymentSessionRes.status,
         qrCode: paymentSessionRes.qrCode,
         pixCode: paymentSessionRes.pixCode,
         expiresAt: paymentSessionRes.expiresAt
@@ -445,7 +433,7 @@ async function submitBooking() {
     }
 
     // Step 4: Handle payment flow based on method
-    if (selectedPaymentMethod.value.method === PaymentMethod.WEBPAY) {
+    if (selectedPaymentMethod.value.method === PaymentMethod.Webpay) {
       // Transbank Webpay - POST redirect to Transbank
       if (paymentSessionRes.paymentUrl && paymentSessionRes.token) {
         toast.add({
@@ -472,7 +460,7 @@ async function submitBooking() {
       } else {
         throw new Error('No payment URL or token received from Transbank')
       }
-    } else if (selectedPaymentMethod.value.method === PaymentMethod.CREDIT_CARD) {
+    } else if (selectedPaymentMethod.value.method === PaymentMethod.CreditCard) {
       // MercadoPago Checkout Pro - GET redirect
       if (paymentSessionRes.paymentUrl) {
         toast.add({
@@ -488,7 +476,7 @@ async function submitBooking() {
       } else {
         throw new Error('No payment URL received from MercadoPago')
       }
-    } else if (selectedPaymentMethod.value.method === PaymentMethod.QR_CODE) {
+    } else if (selectedPaymentMethod.value.method === PaymentMethod.Pix) {
       // QR Code: Show QR code modal
       showPIXModal.value = true
     }
@@ -905,7 +893,7 @@ const total = computed(() => cartStore.cart.cartTotal)
                 <!-- Cart Items -->
                 <div
                   v-for="item in cartStore.cart.items"
-                  :key="item.id || item.scheduleId"
+                  :key="item.itemId || item.scheduleId"
                   class="pb-4 border-b border-neutral-200 dark:border-neutral-700"
                 >
                   <p
@@ -922,7 +910,7 @@ const total = computed(() => cartStore.cart.cartTotal)
                   <p
                     class="text-sm font-semibold text-neutral-900 dark:text-white mt-2"
                   >
-                    {{ formatPrice(item.itemTotal ?? 0) }}
+                    {{ formatPrice(item.itemTotal) }}
                   </p>
                 </div>
 

@@ -1,19 +1,9 @@
 import { defineStore } from 'pinia'
-
-interface User {
-  id: string
-  email: string
-  fullName: string
-  role: string
-  nationality?: string
-  phoneNumber?: string
-  dateOfBirth?: string
-  authProvider?: string
-}
+import type { UserRes } from 'api-client'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: null as User | null,
+    user: null as UserRes | null,
     loading: true,
     initialized: false
   }),
@@ -35,31 +25,18 @@ export const useAuthStore = defineStore('auth', {
     async login(credentials: { email: string, password: string }) {
       this.loading = true
 
-      try {
-        // Call through Nuxt server API to properly forward cookies
-        const response = await $fetch<{ user: User }>('/api/auth/login', {
-          method: 'POST',
-          body: credentials,
-          credentials: 'include'
-        })
+      // Call through Nuxt server API to properly forward cookies
+      const response = await $fetch<{ user: UserRes }>('/api/auth/login', {
+        method: 'POST',
+        body: credentials,
+        credentials: 'include'
+      })
 
-        // Backend now returns user object (token is in cookie, not in response)
-        if (response?.user) {
-          this.user = {
-            id: response.user.id,
-            email: response.user.email,
-            fullName: response.user.fullName,
-            role: response.user.role,
-            nationality: response.user.nationality,
-            phoneNumber: response.user.phoneNumber,
-            dateOfBirth: response.user.dateOfBirth
-          }
-        }
-      } catch (error) {
-        throw error
-      } finally {
-        this.loading = false
+      // Backend now returns user object (token is in cookie, not in response)
+      if (response?.user) {
+        this.user = response.user
       }
+      this.loading = false
     },
 
     async register(userData: {
@@ -71,17 +48,12 @@ export const useAuthStore = defineStore('auth', {
     }) {
       this.loading = true
 
-      try {
-        // Call through Nuxt server API
-        await $fetch('/api/auth/register', {
-          method: 'POST',
-          body: userData
-        })
-      } catch (error) {
-        throw error
-      } finally {
-        this.loading = false
-      }
+      // Call through Nuxt server API
+      await $fetch('/api/auth/register', {
+        method: 'POST',
+        body: userData
+      })
+      this.loading = false
     },
 
     async logout() {
@@ -111,22 +83,13 @@ export const useAuthStore = defineStore('auth', {
     async fetchUser() {
       try {
         // Call through Nuxt server API
-        const response = await $fetch<User>('/api/profile/me', {
+        const response = await $fetch<UserRes>('/api/profile/me', {
           method: 'GET',
           credentials: 'include'
         })
 
         if (response) {
-          this.user = {
-            id: response.id,
-            email: response.email,
-            fullName: response.fullName,
-            role: response.role,
-            nationality: response.nationality,
-            phoneNumber: response.phoneNumber,
-            dateOfBirth: response.dateOfBirth,
-            authProvider: response.authProvider
-          }
+          this.user = response
         }
       } catch (error: unknown) {
         // 401/403 are expected when not authenticated - don't log as error

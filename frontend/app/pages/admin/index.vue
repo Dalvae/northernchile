@@ -12,8 +12,7 @@ useHead({
 
 const { fetchAdminBookings, fetchAdminTours, fetchAdminAlertsCount } = useAdminData()
 const { formatPrice: formatCurrency } = useCurrency()
-const { formatDate } = useDateTime()
-const config = useRuntimeConfig()
+const { formatDate, formatLocalTime } = useDateTime()
 
 const { data: bookingsData, pending: pendingBookings } = await useAsyncData(
   'admin-bookings-dashboard',
@@ -46,7 +45,7 @@ const latestBookings = computed<BookingRes[]>(() => {
   if (!Array.isArray(items) || items.length === 0) return []
   return [...items]
     .filter(b => b.status === 'CONFIRMED')
-    .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5)
 })
 
@@ -55,7 +54,7 @@ const stats = computed(() => {
   const allTours = Array.isArray(tours.value) ? tours.value : []
   const allBookings = Array.isArray(bookingsData.value) ? bookingsData.value : []
   const totalBookings = allBookings.length
-  const activeTours = allTours.filter(t => t.status === 'PUBLISHED').length || 0
+  const activeTours = allTours.filter(t => t.status === 'PUBLISHED').length
 
   // Calcular ingresos del mes actual
   const now = new Date()
@@ -70,7 +69,7 @@ const stats = computed(() => {
         && bookingDate.getFullYear() === currentYear
         && (b.status === 'CONFIRMED' || b.status === 'COMPLETED')
     })
-    .reduce((sum, b) => sum + (b.totalAmount || 0), 0)
+    .reduce((sum, b) => sum + b.totalAmount, 0)
 
   return [
     {
@@ -118,7 +117,8 @@ const bookingColumns = [
       const time = row.original.tourStartTime
       if (!date) return ''
       const formattedDate = formatDate(date as string)
-      return `${formattedDate}${time ? ` - ${time.slice(0, 5)}` : ''}`
+      const timeStr = formatLocalTime(time)
+      return `${formattedDate}${timeStr ? ` - ${timeStr}` : ''}`
     }
   },
   { accessorKey: 'userFullName', header: 'Cliente' },
@@ -204,7 +204,7 @@ function getStatusColor(status: string): BadgeColor {
             >
               {{ format(new Date(row.original.tourDate), 'EEEE, dd MMMM yyyy') }}
               <span v-if="row.original.tourStartTime">
-                - {{ row.original.tourStartTime }}
+                - {{ formatLocalTime(row.original.tourStartTime) }}
               </span>
             </span>
           </div>

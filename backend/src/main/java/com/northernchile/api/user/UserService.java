@@ -56,17 +56,17 @@ public class UserService {
 
     @Transactional
     public UserRes createUser(UserCreateReq req) {
-        if (userRepository.findByEmail(req.getEmail()).isPresent()) {
-            throw new IllegalStateException("Email already exists: " + req.getEmail());
+        if (userRepository.findByEmail(req.email()).isPresent()) {
+            throw new IllegalStateException("Email already exists: " + req.email());
         }
 
         User user = new User();
-        user.setEmail(req.getEmail());
-        user.setFullName(req.getFullName());
-        user.setPasswordHash(passwordEncoder.encode(req.getPassword()));
-        user.setRole(req.getRole());
-        user.setNationality(req.getNationality());
-        user.setPhoneNumber(req.getPhoneNumber());
+        user.setEmail(req.email());
+        user.setFullName(req.fullName());
+        user.setPasswordHash(passwordEncoder.encode(req.password()));
+        user.setRole(req.role());
+        user.setNationality(req.nationality());
+        user.setPhoneNumber(req.phoneNumber());
         user.setAuthProvider("LOCAL");
 
         User savedUser = userRepository.save(user);
@@ -98,20 +98,20 @@ public class UserService {
             "nationality", user.getNationality() != null ? user.getNationality() : ""
         );
 
-        if (req.getFullName() != null) {
-            user.setFullName(req.getFullName());
+        if (req.fullName() != null) {
+            user.setFullName(req.fullName());
         }
-        if (req.getRole() != null) {
-            user.setRole(req.getRole());
+        if (req.role() != null) {
+            user.setRole(req.role());
         }
-        if (req.getNationality() != null) {
-            user.setNationality(req.getNationality());
+        if (req.nationality() != null) {
+            user.setNationality(req.nationality());
         }
-        if (req.getPhoneNumber() != null) {
-            user.setPhoneNumber(req.getPhoneNumber());
+        if (req.phoneNumber() != null) {
+            user.setPhoneNumber(req.phoneNumber());
         }
-        if (req.getDateOfBirth() != null) {
-            user.setDateOfBirth(req.getDateOfBirth());
+        if (req.dateOfBirth() != null) {
+            user.setDateOfBirth(req.dateOfBirth());
         }
 
         User updatedUser = userRepository.save(user);
@@ -213,17 +213,17 @@ public class UserService {
             "dateOfBirth", currentUser.getDateOfBirth() != null ? currentUser.getDateOfBirth().toString() : ""
         );
 
-        if (req.getFullName() != null) {
-            currentUser.setFullName(req.getFullName());
+        if (req.fullName() != null) {
+            currentUser.setFullName(req.fullName());
         }
-        if (req.getNationality() != null) {
-            currentUser.setNationality(req.getNationality());
+        if (req.nationality() != null) {
+            currentUser.setNationality(req.nationality());
         }
-        if (req.getPhoneNumber() != null) {
-            currentUser.setPhoneNumber(req.getPhoneNumber());
+        if (req.phoneNumber() != null) {
+            currentUser.setPhoneNumber(req.phoneNumber());
         }
-        if (req.getDateOfBirth() != null) {
-            currentUser.setDateOfBirth(req.getDateOfBirth());
+        if (req.dateOfBirth() != null) {
+            currentUser.setDateOfBirth(req.dateOfBirth());
         }
 
         User updatedUser = userRepository.save(currentUser);

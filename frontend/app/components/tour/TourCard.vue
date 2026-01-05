@@ -39,11 +39,11 @@
           </div>
 
           <div
-            v-if="showSensitivityBadges && (tour.moonSensitive || tour.windSensitive)"
+            v-if="showSensitivityBadges && (tour.isMoonSensitive || tour.isWindSensitive)"
             class="flex gap-1"
           >
             <UTooltip
-              v-if="tour.moonSensitive"
+              v-if="tour.isMoonSensitive"
               :text="$t('tours.sensitive.moon')"
             >
               <UBadge
@@ -59,7 +59,7 @@
               </UBadge>
             </UTooltip>
             <UTooltip
-              v-if="tour.windSensitive"
+              v-if="tour.isWindSensitive"
               :text="$t('tours.sensitive.wind')"
             >
               <UBadge

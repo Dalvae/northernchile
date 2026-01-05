@@ -63,12 +63,12 @@ public class WeatherService {
                 return createEmptyForecast();
             }
 
-            if (response.list == null) {
+            if (response.list() == null) {
                 log.error("Weather API response.list is null");
                 return createEmptyForecast();
             }
 
-            log.info("Received {} forecast items from Weather API", response.list.size());
+            log.info("Received {} forecast items from Weather API", response.list().size());
 
             // Agrupar por día y procesar
             Map<String, Object> result = processForecastData(response);
@@ -85,9 +85,9 @@ public class WeatherService {
      */
     private Map<String, Object> processForecastData(FiveDayForecastResponse response) {
         // Agrupar items por fecha
-        Map<LocalDate, List<FiveDayForecastResponse.ForecastItem>> byDay = response.list.stream()
+        Map<LocalDate, List<FiveDayForecastResponse.ForecastItem>> byDay = response.list().stream()
                 .collect(Collectors.groupingBy(item ->
-                    Instant.ofEpochSecond(item.dt).atZone(ZONE_ID).toLocalDate()
+                    Instant.ofEpochSecond(item.dt()).atZone(ZONE_ID).toLocalDate()
                 ));
 
         // Convertir a formato que espera el frontend
@@ -98,33 +98,33 @@ public class WeatherService {
                     List<FiveDayForecastResponse.ForecastItem> items = entry.getValue();
 
                     // Calcular máximos y mínimos del día
-                    double tempMax = items.stream().mapToDouble(i -> i.main.tempMax).max().orElse(0);
-                    double tempMin = items.stream().mapToDouble(i -> i.main.tempMin).min().orElse(0);
-                    double tempDay = items.stream().mapToDouble(i -> i.main.temp).average().orElse(0);
+                    double tempMax = items.stream().mapToDouble(i -> i.main().tempMax()).max().orElse(0);
+                    double tempMin = items.stream().mapToDouble(i -> i.main().tempMin()).min().orElse(0);
+                    double tempDay = items.stream().mapToDouble(i -> i.main().temp()).average().orElse(0);
 
                     // Viento máximo del día
-                    double windSpeed = items.stream().mapToDouble(i -> i.wind.speed).max().orElse(0);
-                    double windGust = items.stream().mapToDouble(i -> i.wind.gust).max().orElse(0);
+                    double windSpeed = items.stream().mapToDouble(i -> i.wind().speed()).max().orElse(0);
+                    double windGust = items.stream().mapToDouble(i -> i.wind().gust()).max().orElse(0);
 
                     // Promedio de nubes
-                    double clouds = items.stream().mapToDouble(i -> i.clouds.all).average().orElse(0);
+                    double clouds = items.stream().mapToDouble(i -> i.clouds().all()).average().orElse(0);
 
                     // Probabilidad máxima de precipitación
-                    double pop = items.stream().mapToDouble(i -> i.pop).max().orElse(0);
+                    double pop = items.stream().mapToDouble(i -> i.pop()).max().orElse(0);
 
                     // Condición climática más frecuente
                     Map.Entry<String, Long> mostFrequentWeather = items.stream()
-                            .flatMap(i -> i.weather.stream())
-                            .collect(Collectors.groupingBy(w -> w.main, Collectors.counting()))
+                            .flatMap(i -> i.weather().stream())
+                            .collect(Collectors.groupingBy(w -> w.main(), Collectors.counting()))
                             .entrySet().stream()
                             .max(Map.Entry.comparingByValue())
                             .orElse(null);
 
-                    FiveDayForecastResponse.Weather representativeWeather = items.get(0).weather.get(0);
+                    FiveDayForecastResponse.Weather representativeWeather = items.get(0).weather().get(0);
                     if (mostFrequentWeather != null) {
                         representativeWeather = items.stream()
-                                .flatMap(i -> i.weather.stream())
-                                .filter(w -> w.main.equals(mostFrequentWeather.getKey()))
+                                .flatMap(i -> i.weather().stream())
+                                .filter(w -> w.main().equals(mostFrequentWeather.getKey()))
                                 .findFirst()
                                 .orElse(representativeWeather);
                     }
@@ -132,12 +132,12 @@ public class WeatherService {
                     // Timestamp del mediodía (para dt)
                     long dt = items.stream()
                             .filter(i -> {
-                                int hour = Instant.ofEpochSecond(i.dt).atZone(ZONE_ID).getHour();
+                                int hour = Instant.ofEpochSecond(i.dt()).atZone(ZONE_ID).getHour();
                                 return hour >= 12 && hour <= 15;
                             })
                             .findFirst()
-                            .map(i -> i.dt)
-                            .orElse(items.get(0).dt);
+                            .map(i -> i.dt())
+                            .orElse(items.get(0).dt());
 
                     Map<String, Object> dayForecast = new HashMap<>();
                     dayForecast.put("dt", dt);
@@ -151,10 +151,10 @@ public class WeatherService {
                     dayForecast.put("clouds", (int) clouds);
                     dayForecast.put("pop", pop);
                     dayForecast.put("weather", List.of(Map.of(
-                            "id", representativeWeather.id,
-                            "main", representativeWeather.main,
-                            "description", representativeWeather.description,
-                            "icon", representativeWeather.icon
+                            "id", representativeWeather.id(),
+                            "main", representativeWeather.main(),
+                            "description", representativeWeather.description(),
+                            "icon", representativeWeather.icon()
                     )));
 
                     return dayForecast;
@@ -267,12 +267,33 @@ public class WeatherService {
         }
 
         // Convertir Map a DailyForecast
-        DailyForecast dailyForecast = new DailyForecast();
-        dailyForecast.dt = ((Number) dayData.get("dt")).longValue();
-        dailyForecast.windSpeed = ((Number) dayData.get("windSpeed")).doubleValue();
-        dailyForecast.windGust = ((Number) dayData.get("windGust")).doubleValue();
-        dailyForecast.clouds = ((Number) dayData.get("clouds")).intValue();
+        long dt = ((Number) dayData.get("dt")).longValue();
+        double windSpeed = ((Number) dayData.get("windSpeed")).doubleValue();
+        Double windGust = ((Number) dayData.get("windGust")).doubleValue();
+        int clouds = ((Number) dayData.get("clouds")).intValue();
 
-        return dailyForecast;
+        return new DailyForecast(
+                dt,
+                0L, // sunrise - not available from 5-day API
+                0L, // sunset - not available from 5-day API
+                0L, // moonrise - not available from 5-day API
+                0L, // moonset - not available from 5-day API
+                0.0, // moonPhase - not available from 5-day API
+                null, // summary - not available from 5-day API
+                null, // temp - not used in this context
+                null, // feelsLike - not used in this context
+                0, // pressure - not used in this context
+                0, // humidity - not used in this context
+                0.0, // dewPoint - not used in this context
+                windSpeed,
+                0, // windDeg - not used in this context
+                windGust,
+                null, // weather - not used in this context
+                clouds,
+                0.0, // pop - not used in this context
+                null, // rain - not used in this context
+                null, // snow - not used in this context
+                0.0 // uvi - not used in this context
+        );
     }
 }

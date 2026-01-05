@@ -53,7 +53,7 @@
           :label="t('booking.nationality')"
           :placeholder="t('booking.nationality_placeholder')"
           size="lg"
-          @update:model-value="handleNationalityChange($event)"
+          @update:model-value="handleNationalityChange($event || undefined)"
         />
       </div>
 

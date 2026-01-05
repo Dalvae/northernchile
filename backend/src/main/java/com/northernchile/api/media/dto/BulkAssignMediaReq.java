@@ -1,5 +1,6 @@
 package com.northernchile.api.media.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
@@ -9,35 +10,12 @@ import java.util.UUID;
 /**
  * Request DTO for bulk assigning media to a tour or schedule.
  */
-public class BulkAssignMediaReq {
-
+public record BulkAssignMediaReq(
     @NotNull(message = "Target ID (tour or schedule) is required")
-    private UUID targetId;
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    UUID targetId,
 
     @NotEmpty(message = "At least one media ID is required")
-    private List<UUID> mediaIds;
-
-    public BulkAssignMediaReq() {
-    }
-
-    public BulkAssignMediaReq(UUID targetId, List<UUID> mediaIds) {
-        this.targetId = targetId;
-        this.mediaIds = mediaIds;
-    }
-
-    public UUID getTargetId() {
-        return targetId;
-    }
-
-    public void setTargetId(UUID targetId) {
-        this.targetId = targetId;
-    }
-
-    public List<UUID> getMediaIds() {
-        return mediaIds;
-    }
-
-    public void setMediaIds(List<UUID> mediaIds) {
-        this.mediaIds = mediaIds;
-    }
-}
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+    List<UUID> mediaIds
+) {}

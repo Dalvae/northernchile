@@ -1,37 +1,14 @@
 import { jsPDF } from 'jspdf'
 import { parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
 import { getLocaleCode } from '~/utils/localeUtils'
-
-interface BookingParticipant {
-  id: string
-  fullName: string
-  documentId: string
-  nationality?: string
-  pickupAddress?: string
-  specialRequirements?: string
-}
-
-interface BookingData {
-  id: string
-  tourName: string
-  tourDate: string
-  tourStartTime: string
-  status: string
-  subtotal: number | string
-  taxAmount: number | string
-  totalAmount: number | string
-  participants?: BookingParticipant[]
-  languageCode?: string
-  specialRequests?: string
-  createdAt?: string
-}
+import type { BookingRes } from 'api-client'
 
 export const useBookingPdf = () => {
   const { t, locale } = useI18n()
   const { formatPrice } = useCurrency()
   const { getCountryLabel } = useCountries()
 
-  const formatDateTime = (dateString: string, timeString: string): string => {
+  const formatDateTime = (dateString?: string, timeString?: string): string => {
     if (!dateString) return '-'
 
     // Parse date-only strings correctly (avoid UTC interpretation)
@@ -52,7 +29,8 @@ export const useBookingPdf = () => {
     return dateFormatted
   }
 
-  const getStatusLabel = (status: string): string => {
+  const getStatusLabel = (status?: string): string => {
+    if (!status) return '-'
     const statusLabels: Record<string, Record<string, string>> = {
       CONFIRMED: { es: 'Confirmada', en: 'Confirmed', pt: 'Confirmada' },
       PENDING: { es: 'Pendiente', en: 'Pending', pt: 'Pendente' },
@@ -62,7 +40,7 @@ export const useBookingPdf = () => {
     return statusLabels[status]?.[locale.value] || status
   }
 
-  const generateBookingPdf = async (booking: BookingData): Promise<void> => {
+  const generateBookingPdf = async (booking: BookingRes): Promise<void> => {
     const doc = new jsPDF()
     const pageWidth = doc.internal.pageSize.getWidth()
     let yPosition = 20
@@ -81,7 +59,8 @@ export const useBookingPdf = () => {
     yPosition += 15
     doc.setFontSize(10)
     doc.setTextColor(100, 100, 100)
-    doc.text(`${t('profile.booking_reference')}: #${booking.id.substring(0, 8).toUpperCase()}`, pageWidth / 2, yPosition, { align: 'center' })
+    const bookingId = booking.id || 'UNKNOWN'
+    doc.text(`${t('profile.booking_reference')}: #${bookingId.substring(0, 8).toUpperCase()}`, pageWidth / 2, yPosition, { align: 'center' })
     doc.setTextColor(0, 0, 0)
 
     // Divider
@@ -101,12 +80,13 @@ export const useBookingPdf = () => {
 
     // Tour name
     doc.setFont('helvetica', 'bold')
-    doc.text(booking.tourName, 20, yPosition)
+    doc.text(booking.tourName || '-', 20, yPosition)
     doc.setFont('helvetica', 'normal')
 
     // Date and time
     yPosition += 8
-    doc.text(`${t('booking.date')}: ${formatDateTime(booking.tourDate, booking.tourStartTime)}`, 20, yPosition)
+    // tourStartTime is LocalTime (string) in API
+    doc.text(`${t('booking.date')}: ${formatDateTime(booking.tourDate, booking.tourStartTime as string)}`, 20, yPosition)
 
     // Status
     yPosition += 8
@@ -136,7 +116,7 @@ export const useBookingPdf = () => {
 
         yPosition += 8
         doc.setFont('helvetica', 'bold')
-        doc.text(`${index + 1}. ${participant.fullName}`, 25, yPosition)
+        doc.text(`${index + 1}. ${participant.fullName || '-'}`, 25, yPosition)
         doc.setFont('helvetica', 'normal')
 
         yPosition += 6
@@ -228,7 +208,7 @@ export const useBookingPdf = () => {
     doc.text('www.northernchiletours.com', pageWidth / 2, yPosition, { align: 'center' })
 
     // Download the PDF
-    const fileName = `booking-${booking.id.substring(0, 8)}.pdf`
+    const fileName = `booking-${(booking.id || 'unknown').substring(0, 8)}.pdf`
     doc.save(fileName)
   }
 

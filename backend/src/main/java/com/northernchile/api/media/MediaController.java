@@ -123,7 +123,7 @@ public class MediaController {
     public ResponseEntity<Void> assignMediaToTour(@PathVariable UUID tourId,
                                                   @Valid @RequestBody BulkAssignMediaReq req,
                                                   @CurrentUser User currentUser) {
-        mediaService.assignMediaToTour(tourId, req.getMediaIds(), currentUser.getId());
+        mediaService.assignMediaToTour(tourId, req.mediaIds(), currentUser.getId());
         return ResponseEntity.ok().build();
     }
 
@@ -194,7 +194,7 @@ public class MediaController {
     public ResponseEntity<Void> assignMediaToSchedule(@PathVariable UUID scheduleId,
                                                       @Valid @RequestBody BulkAssignMediaReq req,
                                                       @CurrentUser User currentUser) {
-        mediaService.assignMediaToSchedule(scheduleId, req.getMediaIds(), currentUser.getId());
+        mediaService.assignMediaToSchedule(scheduleId, req.mediaIds(), currentUser.getId());
         return ResponseEntity.ok().build();
     }
 

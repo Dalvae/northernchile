@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BookingRes } from 'api-client'
 
-const props = defineProps<{
+defineProps<{
   booking: BookingRes
 }>()
 
@@ -111,7 +111,7 @@ function getStatusLabel(status: string): string {
                 Fecha del Tour
               </label>
               <p class="mt-1 text-default">
-                {{ formatDate(booking.tourDate || '') }}
+                {{ formatDate(booking.tourDate) }}
               </p>
             </div>
           </div>
@@ -129,7 +129,7 @@ function getStatusLabel(status: string): string {
           <!-- Participants -->
           <div>
             <label class="text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2 block">
-              Participantes ({{ booking.participants?.length || 0 }})
+              Participantes ({{ booking.participants.length }})
             </label>
             <div class="space-y-3">
               <div

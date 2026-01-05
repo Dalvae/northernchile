@@ -9,11 +9,9 @@ const toast = useToast()
 const cartStore = useCartStore()
 
 const { data: allTours } = await useFetch<TourRes[]>('/api/tours', {
-  transform: (tours) => {
+  transform: (tours: TourRes[]) => {
     return tours.map(tour => ({
-      id: tour.id,
-      slug: tour.slug,
-      nameTranslations: tour.nameTranslations,
+      ...tour,
       // Pass hero, featured, or first image - need flags for image selection
       images: tour.images
         ? (() => {
@@ -21,21 +19,12 @@ const { data: allTours } = await useFetch<TourRes[]>('/api/tours', {
             const featured = tour.images.find(img => img.isFeatured)
             const first = tour.images[0]
             // Return unique images in priority order
-            return [hero, featured, first].filter((img, idx, arr) =>
-              img && arr.findIndex(i => i?.imageUrl === img.imageUrl) === idx
+            const candidates = [hero, featured, first].filter((img): img is TourImageRes => !!img)
+            return candidates.filter((img, idx, arr) =>
+              arr.findIndex(i => i.imageUrl === img.imageUrl) === idx
             )
           })()
-        : [],
-      category: tour.category,
-      price: tour.price,
-      durationHours: tour.durationHours,
-
-      defaultMaxParticipants: tour.defaultMaxParticipants,
-      moonSensitive: tour.moonSensitive,
-      windSensitive: tour.windSensitive,
-      status: tour.status,
-
-      descriptionBlocksTranslations: tour.descriptionBlocksTranslations
+        : []
     }))
   }
 })
@@ -55,24 +44,22 @@ useIntersectionObserver(
 )
 
 const sortedTours = computed(() => {
-  return (allTours.value || [])
-    .filter(t => t.status === 'PUBLISHED')
-    .sort((a, b) => (a.price || 0) - (b.price || 0))
+  const tours = allTours.value || []
+  return tours
+    .filter((t: TourRes) => t.status === 'PUBLISHED')
+    .sort((a: TourRes, b: TourRes) => a.price - b.price)
 })
 
 // ===== BOOKING MODAL =====
-interface ScheduleWithTour extends TourScheduleRes {
-  tour?: TourRes
-}
-
-const selectedSchedule = ref<ScheduleWithTour | null>(null)
+const selectedSchedule = ref<TourScheduleRes | null>(null)
 const selectedTour = ref<TourRes | null>(null)
 const participantCount = ref(1)
 const showParticipantModal = ref(false)
 
-function handleScheduleClick(schedule: TourScheduleRes, tour: TourRes) {
-  selectedSchedule.value = { ...schedule, tour }
-  selectedTour.value = tour
+// Handle schedule click from calendar - tour may be undefined if not found in props.tours
+function handleScheduleClick(schedule: TourScheduleRes, tour: TourRes | undefined) {
+  selectedSchedule.value = schedule
+  selectedTour.value = tour ?? null
   participantCount.value = 1
   showParticipantModal.value = true
 }
@@ -258,7 +245,7 @@ useSeoMeta({
                 {{ t(`tours.category.${tour.category}`) || tour.category }}
               </UBadge>
               <div
-                v-if="tour.moonSensitive"
+                v-if="tour.isMoonSensitive"
                 class="flex items-center gap-1 text-xs text-tertiary-400"
               >
                 <UIcon

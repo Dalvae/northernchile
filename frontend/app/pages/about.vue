@@ -171,63 +171,22 @@ const values = [
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div class="atacama-card p-6 rounded-xl hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-colors group">
+          <div
+            v-for="value in values"
+            :key="value.title"
+            class="atacama-card p-6 rounded-xl hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-colors group"
+          >
             <div class="w-14 h-14 rounded-full bg-primary-500/10 dark:bg-primary-500/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
               <UIcon
-                name="i-lucide-sparkles"
+                :name="value.icon"
                 class="w-7 h-7 text-primary-500 dark:text-primary-400"
               />
             </div>
             <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
-              {{ t("about.values.experience_title") }}
+              {{ value.title }}
             </h3>
             <p class="text-neutral-300 dark:text-neutral-300 text-sm">
-              {{ t("about.values.experience_description") }}
-            </p>
-          </div>
-
-          <div class="atacama-card p-6 rounded-xl hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-colors group">
-            <div class="w-14 h-14 rounded-full bg-primary-500/10 dark:bg-primary-500/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
-              <UIcon
-                name="i-lucide-telescope"
-                class="w-7 h-7 text-primary-500 dark:text-primary-400"
-              />
-            </div>
-            <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
-              {{ t("about.values.equipment_title") }}
-            </h3>
-            <p class="text-neutral-300 dark:text-neutral-300 text-sm">
-              {{ t("about.values.equipment_description") }}
-            </p>
-          </div>
-
-          <div class="atacama-card p-6 rounded-xl hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-colors group">
-            <div class="w-14 h-14 rounded-full bg-primary-500/10 dark:bg-primary-500/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
-              <UIcon
-                name="i-lucide-award"
-                class="w-7 h-7 text-primary-500 dark:text-primary-400"
-              />
-            </div>
-            <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
-              {{ t("about.values.quality_title") }}
-            </h3>
-            <p class="text-neutral-300 dark:text-neutral-300 text-sm">
-              {{ t("about.values.quality_description") }}
-            </p>
-          </div>
-
-          <div class="atacama-card p-6 rounded-xl hover:bg-neutral-100/5 dark:hover:bg-neutral-100/5 transition-colors group">
-            <div class="w-14 h-14 rounded-full bg-primary-500/10 dark:bg-primary-500/10 flex items-center justify-center mb-6 cobre-glow group-hover:scale-110 transition-transform">
-              <UIcon
-                name="i-lucide-mountain"
-                class="w-7 h-7 text-primary-500 dark:text-primary-400"
-              />
-            </div>
-            <h3 class="text-lg font-bold text-neutral-50 dark:text-neutral-50 mb-3">
-              {{ t("about.values.auditorium_title") }}
-            </h3>
-            <p class="text-neutral-300 dark:text-neutral-300 text-sm">
-              {{ t("about.values.auditorium_description") }}
+              {{ value.description }}
             </p>
           </div>
         </div>

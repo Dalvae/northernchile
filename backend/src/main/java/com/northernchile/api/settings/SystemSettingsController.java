@@ -1,12 +1,11 @@
 package com.northernchile.api.settings;
 
+import com.northernchile.api.settings.dto.SystemSettingsRes;
 import com.northernchile.api.settings.dto.SystemSettingsUpdateReq;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/settings")
@@ -24,7 +23,7 @@ public class SystemSettingsController {
      * Obtiene las configuraciones del sistema
      */
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getSettings() {
+    public ResponseEntity<SystemSettingsRes> getSettings() {
         return ResponseEntity.ok(settingsService.getCurrentSettings());
     }
 
@@ -36,8 +35,8 @@ public class SystemSettingsController {
      * En producción, esto debería persistir en base de datos.
      */
     @PutMapping
-    public ResponseEntity<Map<String, Object>> updateSettings(@Valid @RequestBody SystemSettingsUpdateReq settings) {
-        Map<String, Object> updatedSettings = settingsService.updateSettings(settings);
+    public ResponseEntity<SystemSettingsRes> updateSettings(@Valid @RequestBody SystemSettingsUpdateReq settings) {
+        SystemSettingsRes updatedSettings = settingsService.updateSettings(settings);
         return ResponseEntity.ok(updatedSettings);
     }
 }

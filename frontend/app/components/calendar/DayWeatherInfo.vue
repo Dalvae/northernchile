@@ -73,18 +73,13 @@
 </template>
 
 <script setup lang="ts">
-import type { MoonPhase, DailyWeather } from '~/composables/useCalendarData'
+import type { MoonPhase, DailyWeather, WeatherConditions } from '~/composables/useCalendarData'
 
-const props = defineProps<{
+defineProps<{
   date: string
   moonPhase?: MoonPhase
   weather?: DailyWeather
-  conditions: {
-    hasWind: boolean
-    hasClouds: boolean
-    hasFullMoon: boolean
-    hasRain: boolean
-  }
+  conditions: WeatherConditions
 }>()
 
 const { getWeatherIcon } = useCalendarData()

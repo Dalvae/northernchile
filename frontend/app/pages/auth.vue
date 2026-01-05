@@ -218,7 +218,7 @@
                 :label="t('booking.nationality')"
                 :placeholder="t('booking.nationality_placeholder')"
                 size="lg"
-                @update:model-value="handleNationalityChange($event)"
+                @update:model-value="handleNationalityChange($event || '')"
               />
 
               <UFormField
@@ -492,8 +492,8 @@ const schema = computed(() => {
         dateOfBirth: z.string().optional(),
         password: z.string().min(8, t('auth.password_min')),
         confirmPassword: z.string(),
-        acceptTerms: z.literal(true, {
-          errorMap: () => ({ message: t('auth.accept_terms_required') })
+        acceptTerms: z.boolean().refine(val => val === true, {
+          message: t('auth.accept_terms_required')
         })
       })
       .refine(data => data.password === data.confirmPassword, {
@@ -579,9 +579,14 @@ async function handleSubmit(_event: FormSubmitEvent<z.infer<typeof schema.value>
 
       // Cambiar a login
       currentView.value = 'login'
-      Object.keys(state).forEach((key) => {
-        state[key as keyof typeof state] = ''
-      })
+      state.email = ''
+      state.password = ''
+      state.confirmPassword = ''
+      state.fullName = ''
+      state.nationality = ''
+      state.phoneNumber = ''
+      state.dateOfBirth = ''
+      state.acceptTerms = false
     }
   } catch (error: unknown) {
     console.error('Error en auth:', error)
@@ -614,7 +619,6 @@ async function handleForgotPassword(_event: FormSubmitEvent<z.infer<typeof forgo
     currentView.value = 'login'
     forgotPasswordState.email = ''
   } catch (error: unknown) {
-    const err = error as { data?: { message?: string } }
     console.error('Error en forgot password:', error)
 
     // Siempre mostrar mensaje genérico por seguridad

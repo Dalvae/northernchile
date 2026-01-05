@@ -1,10 +1,8 @@
 package com.northernchile.api.settings;
 
+import com.northernchile.api.settings.dto.SystemSettingsRes;
 import com.northernchile.api.settings.dto.SystemSettingsUpdateReq;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Sistema de configuración en memoria.
@@ -14,107 +12,98 @@ import java.util.Map;
 @Service
 public class SystemSettingsService {
 
-    private Map<String, Object> currentSettings;
+    private SystemSettingsRes currentSettings;
 
     public SystemSettingsService() {
         this.currentSettings = getDefaultSettings();
     }
 
-    public Map<String, Object> getCurrentSettings() {
-        return new HashMap<>(currentSettings);
+    public SystemSettingsRes getCurrentSettings() {
+        return currentSettings;
     }
 
-    public Map<String, Object> updateSettings(SystemSettingsUpdateReq updateReq) {
-        // Update in-memory settings
-        Map<String, Object> newSettings = new HashMap<>();
+    public SystemSettingsRes updateSettings(SystemSettingsUpdateReq updateReq) {
+        // Since Records are immutable, we create a new instance with updated values
+        // Merge with existing settings
+        
+        SystemSettingsRes.WeatherAlertSettingsRes weatherAlerts = updateReq.weatherAlerts() != null
+            ? new SystemSettingsRes.WeatherAlertSettingsRes(
+                updateReq.weatherAlerts().windThreshold(),
+                updateReq.weatherAlerts().cloudCoverThreshold(),
+                updateReq.weatherAlerts().rainProbabilityThreshold(),
+                updateReq.weatherAlerts().checkFrequency()
+            )
+            : currentSettings.weatherAlerts();
 
-        if (updateReq.weatherAlerts() != null) {
-            Map<String, Object> weatherAlerts = new HashMap<>();
-            weatherAlerts.put("windThreshold", updateReq.weatherAlerts().windThreshold());
-            weatherAlerts.put("cloudCoverThreshold", updateReq.weatherAlerts().cloudCoverThreshold());
-            weatherAlerts.put("rainProbabilityThreshold", updateReq.weatherAlerts().rainProbabilityThreshold());
-            weatherAlerts.put("checkFrequency", updateReq.weatherAlerts().checkFrequency());
-            newSettings.put("weatherAlerts", weatherAlerts);
-        }
+        SystemSettingsRes.BookingSettingsRes bookingSettings = updateReq.bookingSettings() != null
+            ? new SystemSettingsRes.BookingSettingsRes(
+                updateReq.bookingSettings().cancellationWindowHours(),
+                updateReq.bookingSettings().maxAdvanceBookingDays(),
+                updateReq.bookingSettings().minAdvanceBookingHours(),
+                updateReq.bookingSettings().autoConfirmBookings()
+            )
+            : currentSettings.bookingSettings();
 
-        if (updateReq.bookingSettings() != null) {
-            Map<String, Object> bookingSettings = new HashMap<>();
-            bookingSettings.put("cancellationWindowHours", updateReq.bookingSettings().cancellationWindowHours());
-            bookingSettings.put("maxAdvanceBookingDays", updateReq.bookingSettings().maxAdvanceBookingDays());
-            bookingSettings.put("minAdvanceBookingHours", updateReq.bookingSettings().minAdvanceBookingHours());
-            bookingSettings.put("autoConfirmBookings", updateReq.bookingSettings().autoConfirmBookings());
-            newSettings.put("bookingSettings", bookingSettings);
-        }
+        SystemSettingsRes.AstronomicalSettingsRes astronomicalTours = updateReq.astronomicalTours() != null
+            ? new SystemSettingsRes.AstronomicalSettingsRes(
+                updateReq.astronomicalTours().moonIlluminationThreshold(),
+                updateReq.astronomicalTours().autoBlockFullMoon(),
+                updateReq.astronomicalTours().scheduleGenerationDaysAhead()
+            )
+            : currentSettings.astronomicalTours();
 
-        if (updateReq.astronomicalTours() != null) {
-            Map<String, Object> astronomicalTours = new HashMap<>();
-            astronomicalTours.put("moonIlluminationThreshold", updateReq.astronomicalTours().moonIlluminationThreshold());
-            astronomicalTours.put("autoBlockFullMoon", updateReq.astronomicalTours().autoBlockFullMoon());
-            astronomicalTours.put("scheduleGenerationDaysAhead", updateReq.astronomicalTours().scheduleGenerationDaysAhead());
-            newSettings.put("astronomicalTours", astronomicalTours);
-        }
+        SystemSettingsRes.NotificationSettingsRes notifications = updateReq.notifications() != null
+            ? new SystemSettingsRes.NotificationSettingsRes(
+                updateReq.notifications().emailEnabled(),
+                updateReq.notifications().smsEnabled(),
+                updateReq.notifications().sendBookingConfirmation(),
+                updateReq.notifications().sendCancellationNotice(),
+                updateReq.notifications().sendWeatherAlerts()
+            )
+            : currentSettings.notifications();
 
-        if (updateReq.notifications() != null) {
-            Map<String, Object> notifications = new HashMap<>();
-            notifications.put("emailEnabled", updateReq.notifications().emailEnabled());
-            notifications.put("smsEnabled", updateReq.notifications().smsEnabled());
-            notifications.put("sendBookingConfirmation", updateReq.notifications().sendBookingConfirmation());
-            notifications.put("sendCancellationNotice", updateReq.notifications().sendCancellationNotice());
-            notifications.put("sendWeatherAlerts", updateReq.notifications().sendWeatherAlerts());
-            newSettings.put("notifications", notifications);
-        }
+        SystemSettingsRes.PaymentSettingsRes payments = updateReq.payments() != null
+            ? new SystemSettingsRes.PaymentSettingsRes(
+                updateReq.payments().mockPaymentMode(),
+                updateReq.payments().currency(),
+                updateReq.payments().taxRate(),
+                updateReq.payments().depositPercentage()
+            )
+            : currentSettings.payments();
 
-        if (updateReq.payments() != null) {
-            Map<String, Object> payments = new HashMap<>();
-            payments.put("mockPaymentMode", updateReq.payments().mockPaymentMode());
-            payments.put("currency", updateReq.payments().currency());
-            payments.put("taxRate", updateReq.payments().taxRate());
-            payments.put("depositPercentage", updateReq.payments().depositPercentage());
-            newSettings.put("payments", payments);
-        }
+        currentSettings = new SystemSettingsRes(
+            weatherAlerts,
+            bookingSettings,
+            astronomicalTours,
+            notifications,
+            payments
+        );
 
-        this.currentSettings = newSettings;
-        return getCurrentSettings();
+        return currentSettings;
     }
 
-    private Map<String, Object> getDefaultSettings() {
-        Map<String, Object> settings = new HashMap<>();
+    private SystemSettingsRes getDefaultSettings() {
+        SystemSettingsRes.WeatherAlertSettingsRes weatherAlerts = 
+            new SystemSettingsRes.WeatherAlertSettingsRes(25, 80, 50, 6);
 
-        Map<String, Object> weatherAlerts = new HashMap<>();
-        weatherAlerts.put("windThreshold", 25);
-        weatherAlerts.put("cloudCoverThreshold", 80);
-        weatherAlerts.put("rainProbabilityThreshold", 50);
-        weatherAlerts.put("checkFrequency", 6);
-        settings.put("weatherAlerts", weatherAlerts);
+        SystemSettingsRes.BookingSettingsRes bookingSettings = 
+            new SystemSettingsRes.BookingSettingsRes(24, 90, 6, false);
 
-        Map<String, Object> bookingSettings = new HashMap<>();
-        bookingSettings.put("cancellationWindowHours", 24);
-        bookingSettings.put("maxAdvanceBookingDays", 90);
-        bookingSettings.put("minAdvanceBookingHours", 6);
-        bookingSettings.put("autoConfirmBookings", false);
-        settings.put("bookingSettings", bookingSettings);
+        SystemSettingsRes.AstronomicalSettingsRes astronomicalTours = 
+            new SystemSettingsRes.AstronomicalSettingsRes(90, true, 90);
 
-        Map<String, Object> astronomicalTours = new HashMap<>();
-        astronomicalTours.put("moonIlluminationThreshold", 90);
-        astronomicalTours.put("autoBlockFullMoon", true);
-        astronomicalTours.put("scheduleGenerationDaysAhead", 90);
-        settings.put("astronomicalTours", astronomicalTours);
+        SystemSettingsRes.NotificationSettingsRes notifications = 
+            new SystemSettingsRes.NotificationSettingsRes(true, false, true, true, true);
 
-        Map<String, Object> notifications = new HashMap<>();
-        notifications.put("emailEnabled", true);
-        notifications.put("smsEnabled", false);
-        notifications.put("sendBookingConfirmation", true);
-        notifications.put("sendCancellationNotice", true);
-        notifications.put("sendWeatherAlerts", true);
-        settings.put("notifications", notifications);
+        SystemSettingsRes.PaymentSettingsRes payments = 
+            new SystemSettingsRes.PaymentSettingsRes(true, "CLP", 19, 0);
 
-        Map<String, Object> payments = new HashMap<>();
-        payments.put("mockPaymentMode", true);
-        payments.put("currency", "CLP");
-        payments.put("taxRate", 19);
-        payments.put("depositPercentage", 0);
-        settings.put("payments", payments);
-
-        return settings;
+        return new SystemSettingsRes(
+            weatherAlerts,
+            bookingSettings,
+            astronomicalTours,
+            notifications,
+            payments
+        );
     }
 }

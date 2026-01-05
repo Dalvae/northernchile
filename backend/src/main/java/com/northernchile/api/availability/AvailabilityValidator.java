@@ -123,54 +123,18 @@ public class AvailabilityValidator {
     /**
      * Result of availability validation.
      */
-    public static class AvailabilityResult {
-        private final boolean available;
-        private final int maxParticipants;
-        private final int bookedParticipants;
-        private final int participantsInCarts;
-        private final int availableSlots;
-        private final int requestedSlots;
-
-        public AvailabilityResult(
-                boolean available,
-                int maxParticipants,
-                int bookedParticipants,
-                int participantsInCarts,
-                int availableSlots,
-                int requestedSlots) {
-            this.available = available;
-            this.maxParticipants = maxParticipants;
-            this.bookedParticipants = bookedParticipants;
-            this.participantsInCarts = participantsInCarts;
-            this.availableSlots = availableSlots;
-            this.requestedSlots = requestedSlots;
-        }
-
-        public boolean isAvailable() {
-            return available;
-        }
-
-        public int getMaxParticipants() {
-            return maxParticipants;
-        }
-
-        public int getBookedParticipants() {
-            return bookedParticipants;
-        }
-
-        public int getParticipantsInCarts() {
-            return participantsInCarts;
-        }
-
-        public int getAvailableSlots() {
-            return availableSlots;
-        }
-
-        public int getRequestedSlots() {
-            return requestedSlots;
-        }
-
-        public String getErrorMessage() {
+    public record AvailabilityResult(
+            boolean available,
+            int maxParticipants,
+            int bookedParticipants,
+            int participantsInCarts,
+            int availableSlots,
+            int requestedSlots
+    ) {
+        /**
+         * Returns error message if not available, null otherwise.
+         */
+        public String errorMessage() {
             if (available) {
                 return null;
             }
@@ -185,37 +149,10 @@ public class AvailabilityValidator {
     /**
      * Current availability status for a schedule.
      */
-    public static class AvailabilityStatus {
-        private final int maxParticipants;
-        private final int bookedParticipants;
-        private final int participantsInCarts;
-        private final int availableSlots;
-
-        public AvailabilityStatus(
-                int maxParticipants,
-                int bookedParticipants,
-                int participantsInCarts,
-                int availableSlots) {
-            this.maxParticipants = maxParticipants;
-            this.bookedParticipants = bookedParticipants;
-            this.participantsInCarts = participantsInCarts;
-            this.availableSlots = availableSlots;
-        }
-
-        public int getMaxParticipants() {
-            return maxParticipants;
-        }
-
-        public int getBookedParticipants() {
-            return bookedParticipants;
-        }
-
-        public int getParticipantsInCarts() {
-            return participantsInCarts;
-        }
-
-        public int getAvailableSlots() {
-            return availableSlots;
-        }
-    }
+    public record AvailabilityStatus(
+            int maxParticipants,
+            int bookedParticipants,
+            int participantsInCarts,
+            int availableSlots
+    ) {}
 }

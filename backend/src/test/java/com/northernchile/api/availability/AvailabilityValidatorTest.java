@@ -52,13 +52,13 @@ class AvailabilityValidatorTest {
         var result = availabilityValidator.validateAvailability(schedule, 5);
 
         // Then
-        assertThat(result.isAvailable()).isTrue();
-        assertThat(result.getMaxParticipants()).isEqualTo(10);
-        assertThat(result.getBookedParticipants()).isEqualTo(0);
-        assertThat(result.getParticipantsInCarts()).isEqualTo(0);
-        assertThat(result.getAvailableSlots()).isEqualTo(10);
-        assertThat(result.getRequestedSlots()).isEqualTo(5);
-        assertThat(result.getErrorMessage()).isNull();
+        assertThat(result.available()).isTrue();
+        assertThat(result.maxParticipants()).isEqualTo(10);
+        assertThat(result.bookedParticipants()).isEqualTo(0);
+        assertThat(result.participantsInCarts()).isEqualTo(0);
+        assertThat(result.availableSlots()).isEqualTo(10);
+        assertThat(result.requestedSlots()).isEqualTo(5);
+        assertThat(result.errorMessage()).isNull();
     }
 
     @Test
@@ -72,11 +72,11 @@ class AvailabilityValidatorTest {
         var result = availabilityValidator.validateAvailability(schedule, 3);
 
         // Then
-        assertThat(result.isAvailable()).isTrue();
-        assertThat(result.getBookedParticipants()).isEqualTo(6);
-        assertThat(result.getParticipantsInCarts()).isEqualTo(0);
-        assertThat(result.getAvailableSlots()).isEqualTo(4); // 10 - 6 = 4
-        assertThat(result.getRequestedSlots()).isEqualTo(3);
+        assertThat(result.available()).isTrue();
+        assertThat(result.bookedParticipants()).isEqualTo(6);
+        assertThat(result.participantsInCarts()).isEqualTo(0);
+        assertThat(result.availableSlots()).isEqualTo(4); // 10 - 6 = 4
+        assertThat(result.requestedSlots()).isEqualTo(3);
     }
 
     @Test
@@ -90,10 +90,10 @@ class AvailabilityValidatorTest {
         var result = availabilityValidator.validateAvailability(schedule, 5);
 
         // Then
-        assertThat(result.isAvailable()).isTrue();
-        assertThat(result.getBookedParticipants()).isEqualTo(0);
-        assertThat(result.getParticipantsInCarts()).isEqualTo(4);
-        assertThat(result.getAvailableSlots()).isEqualTo(6); // 10 - 4 = 6
+        assertThat(result.available()).isTrue();
+        assertThat(result.bookedParticipants()).isEqualTo(0);
+        assertThat(result.participantsInCarts()).isEqualTo(4);
+        assertThat(result.availableSlots()).isEqualTo(6); // 10 - 4 = 6
     }
 
     @Test
@@ -107,11 +107,11 @@ class AvailabilityValidatorTest {
         var result = availabilityValidator.validateAvailability(schedule, 2);
 
         // Then
-        assertThat(result.isAvailable()).isTrue();
-        assertThat(result.getBookedParticipants()).isEqualTo(5);
-        assertThat(result.getParticipantsInCarts()).isEqualTo(3);
-        assertThat(result.getAvailableSlots()).isEqualTo(2); // 10 - 5 - 3 = 2
-        assertThat(result.getRequestedSlots()).isEqualTo(2);
+        assertThat(result.available()).isTrue();
+        assertThat(result.bookedParticipants()).isEqualTo(5);
+        assertThat(result.participantsInCarts()).isEqualTo(3);
+        assertThat(result.availableSlots()).isEqualTo(2); // 10 - 5 - 3 = 2
+        assertThat(result.requestedSlots()).isEqualTo(2);
     }
 
     @Test
@@ -125,13 +125,13 @@ class AvailabilityValidatorTest {
         var result = availabilityValidator.validateAvailability(schedule, 5);
 
         // Then
-        assertThat(result.isAvailable()).isFalse();
-        assertThat(result.getAvailableSlots()).isEqualTo(2);
-        assertThat(result.getRequestedSlots()).isEqualTo(5);
-        assertThat(result.getErrorMessage()).isNotNull();
-        assertThat(result.getErrorMessage()).contains("No hay suficientes cupos disponibles");
-        assertThat(result.getErrorMessage()).contains("Solicitados: 5");
-        assertThat(result.getErrorMessage()).contains("Disponibles: 2");
+        assertThat(result.available()).isFalse();
+        assertThat(result.availableSlots()).isEqualTo(2);
+        assertThat(result.requestedSlots()).isEqualTo(5);
+        assertThat(result.errorMessage()).isNotNull();
+        assertThat(result.errorMessage()).contains("No hay suficientes cupos disponibles");
+        assertThat(result.errorMessage()).contains("Solicitados: 5");
+        assertThat(result.errorMessage()).contains("Disponibles: 2");
     }
 
     @Test
@@ -145,9 +145,9 @@ class AvailabilityValidatorTest {
         var result = availabilityValidator.validateAvailability(schedule, 1);
 
         // Then
-        assertThat(result.isAvailable()).isFalse();
-        assertThat(result.getAvailableSlots()).isEqualTo(0);
-        assertThat(result.getErrorMessage()).contains("Disponibles: 0");
+        assertThat(result.available()).isFalse();
+        assertThat(result.availableSlots()).isEqualTo(0);
+        assertThat(result.errorMessage()).contains("Disponibles: 0");
     }
 
     @Test
@@ -161,9 +161,9 @@ class AvailabilityValidatorTest {
         var result = availabilityValidator.validateAvailability(schedule, 1);
 
         // Then
-        assertThat(result.isAvailable()).isTrue();
-        assertThat(result.getAvailableSlots()).isEqualTo(1);
-        assertThat(result.getRequestedSlots()).isEqualTo(1);
+        assertThat(result.available()).isTrue();
+        assertThat(result.availableSlots()).isEqualTo(1);
+        assertThat(result.requestedSlots()).isEqualTo(1);
     }
 
     @Test
@@ -178,9 +178,9 @@ class AvailabilityValidatorTest {
         var result = availabilityValidator.validateAvailability(schedule, 3, myCartId, null);
 
         // Then - Should be available since we're requesting exactly the available slots
-        assertThat(result.isAvailable()).isTrue();
-        assertThat(result.getAvailableSlots()).isEqualTo(3); // 10 - 5 - 2 = 3
-        assertThat(result.getRequestedSlots()).isEqualTo(3);
+        assertThat(result.available()).isTrue();
+        assertThat(result.availableSlots()).isEqualTo(3); // 10 - 5 - 2 = 3
+        assertThat(result.requestedSlots()).isEqualTo(3);
     }
 
     @Test
@@ -195,9 +195,9 @@ class AvailabilityValidatorTest {
         var result = availabilityValidator.validateAvailability(schedule, 4, myCartId, null);
 
         // Then - Should NOT be available
-        assertThat(result.isAvailable()).isFalse();
-        assertThat(result.getAvailableSlots()).isEqualTo(3); // 10 - 5 - 2 = 3
-        assertThat(result.getRequestedSlots()).isEqualTo(4);
+        assertThat(result.available()).isFalse();
+        assertThat(result.availableSlots()).isEqualTo(3); // 10 - 5 - 2 = 3
+        assertThat(result.requestedSlots()).isEqualTo(4);
     }
 
     @Test
@@ -212,8 +212,8 @@ class AvailabilityValidatorTest {
         var result = availabilityValidator.validateAvailability(schedule, 2, null, userId);
 
         // Then
-        assertThat(result.isAvailable()).isTrue();
-        assertThat(result.getAvailableSlots()).isEqualTo(3); // 10 - 4 - 3 = 3
+        assertThat(result.available()).isTrue();
+        assertThat(result.availableSlots()).isEqualTo(3); // 10 - 4 - 3 = 3
     }
 
     @Test
@@ -227,10 +227,10 @@ class AvailabilityValidatorTest {
         var result = availabilityValidator.validateAvailability(schedule, 5);
 
         // Then - Should treat null as 0
-        assertThat(result.isAvailable()).isTrue();
-        assertThat(result.getBookedParticipants()).isEqualTo(0);
-        assertThat(result.getParticipantsInCarts()).isEqualTo(0);
-        assertThat(result.getAvailableSlots()).isEqualTo(10);
+        assertThat(result.available()).isTrue();
+        assertThat(result.bookedParticipants()).isEqualTo(0);
+        assertThat(result.participantsInCarts()).isEqualTo(0);
+        assertThat(result.availableSlots()).isEqualTo(10);
     }
 
     @Test
@@ -244,10 +244,10 @@ class AvailabilityValidatorTest {
         var status = availabilityValidator.getAvailabilityStatus(scheduleId, MAX_PARTICIPANTS);
 
         // Then
-        assertThat(status.getMaxParticipants()).isEqualTo(10);
-        assertThat(status.getBookedParticipants()).isEqualTo(6);
-        assertThat(status.getParticipantsInCarts()).isEqualTo(2);
-        assertThat(status.getAvailableSlots()).isEqualTo(2);
+        assertThat(status.maxParticipants()).isEqualTo(10);
+        assertThat(status.bookedParticipants()).isEqualTo(6);
+        assertThat(status.participantsInCarts()).isEqualTo(2);
+        assertThat(status.availableSlots()).isEqualTo(2);
     }
 
     @Test
@@ -261,9 +261,9 @@ class AvailabilityValidatorTest {
         var result = availabilityValidator.validateAvailability(schedule, 0);
 
         // Then
-        assertThat(result.isAvailable()).isTrue();
-        assertThat(result.getRequestedSlots()).isEqualTo(0);
-        assertThat(result.getAvailableSlots()).isEqualTo(2);
+        assertThat(result.available()).isTrue();
+        assertThat(result.requestedSlots()).isEqualTo(0);
+        assertThat(result.availableSlots()).isEqualTo(2);
     }
 
     @Test
@@ -277,7 +277,7 @@ class AvailabilityValidatorTest {
         var result = availabilityValidator.validateAvailability(schedule, 5);
 
         // Then
-        assertThat(result.getErrorMessage()).isEqualTo(
+        assertThat(result.errorMessage()).isEqualTo(
                 "No hay suficientes cupos disponibles. Solicitados: 5, Disponibles: 1 " +
                         "(Reservados: 6 confirmados + 3 en carritos)"
         );
@@ -294,8 +294,8 @@ class AvailabilityValidatorTest {
         var result = availabilityValidator.validateAvailability(schedule, 5);
 
         // Then
-        assertThat(result.isAvailable()).isTrue();
-        assertThat(result.getErrorMessage()).isNull();
+        assertThat(result.available()).isTrue();
+        assertThat(result.errorMessage()).isNull();
     }
 
     // Helper method to create mock TourSchedule

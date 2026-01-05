@@ -29,8 +29,8 @@ const emit = defineEmits<{
 
 const paymentOptions: PaymentOption[] = [
   {
-    provider: PaymentProvider.TRANSBANK,
-    method: PaymentMethod.WEBPAY,
+    provider: PaymentProvider.Transbank,
+    method: PaymentMethod.Webpay,
     name: 'Webpay Plus',
     description: t('payment.methods.transbank.description'),
     icon: '/images/payment-methods/webpay.svg',
@@ -38,8 +38,8 @@ const paymentOptions: PaymentOption[] = [
     available: true
   },
   {
-    provider: PaymentProvider.MERCADOPAGO,
-    method: PaymentMethod.CREDIT_CARD,
+    provider: PaymentProvider.Mercadopago,
+    method: PaymentMethod.CreditCard,
     name: 'Mercado Pago',
     description: t('payment.methods.mercadopago.description'),
     icon: '/images/payment-methods/mercadopago.svg',
@@ -167,7 +167,7 @@ function isSelected(option: PaymentOption) {
 
         <!-- Additional Info for Webpay -->
         <div
-          v-if="option.method === PaymentMethod.WEBPAY && isSelected(option)"
+          v-if="option.method === PaymentMethod.Webpay && isSelected(option)"
           class="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700"
         >
           <div class="flex items-start gap-2 text-xs text-neutral-600 dark:text-neutral-300">
@@ -183,7 +183,7 @@ function isSelected(option: PaymentOption) {
 
         <!-- Additional Info for Credit Card (MercadoPago) -->
         <div
-          v-if="option.method === PaymentMethod.CREDIT_CARD && isSelected(option)"
+          v-if="option.method === PaymentMethod.CreditCard && isSelected(option)"
           class="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700"
         >
           <div class="flex items-start gap-2 text-xs text-neutral-600 dark:text-neutral-300">

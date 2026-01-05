@@ -2,6 +2,7 @@ package com.northernchile.api.payment;
 
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.TourSchedule;
+import com.northernchile.api.payment.dto.PaymentRes;
 import com.northernchile.api.payment.dto.PaymentStatusRes;
 import com.northernchile.api.payment.model.Payment;
 import com.northernchile.api.payment.model.PaymentStatus;
@@ -68,9 +69,9 @@ class PaymentServiceTest {
             PaymentStatusRes response = paymentService.getPaymentStatus(paymentId);
 
             // Then
-            assertThat(response.getPaymentId()).isEqualTo(paymentId);
-            assertThat(response.getStatus()).isEqualTo(PaymentStatus.COMPLETED);
-            assertThat(response.getAmount()).isEqualByComparingTo(new BigDecimal("50000"));
+            assertThat(response.paymentId()).isEqualTo(paymentId);
+            assertThat(response.status()).isEqualTo(PaymentStatus.COMPLETED);
+            assertThat(response.amount()).isEqualByComparingTo(new BigDecimal("50000"));
         }
 
         @Test
@@ -114,7 +115,7 @@ class PaymentServiceTest {
             PaymentStatusRes response = paymentService.refundPayment(paymentId, null);
 
             // Then
-            assertThat(response.getStatus()).isEqualTo(PaymentStatus.REFUNDED);
+            assertThat(response.status()).isEqualTo(PaymentStatus.REFUNDED);
             verify(paymentRepository).save(argThat(p -> p.getStatus() == PaymentStatus.REFUNDED));
         }
 
@@ -179,7 +180,7 @@ class PaymentServiceTest {
             when(paymentRepository.findByIsTest(true)).thenReturn(List.of(testPayment1, testPayment2));
 
             // When
-            List<Payment> testPayments = paymentService.getTestPayments();
+            List<PaymentRes> testPayments = paymentService.getTestPayments();
 
             // Then
             assertThat(testPayments).hasSize(2);
@@ -235,7 +236,7 @@ class PaymentServiceTest {
             when(paymentRepository.findByBookingId(bookingId)).thenReturn(List.of(payment1, payment2));
 
             // When
-            List<Payment> payments = paymentService.getBookingPayments(bookingId);
+            List<PaymentRes> payments = paymentService.getBookingPayments(bookingId);
 
             // Then
             assertThat(payments).hasSize(2);

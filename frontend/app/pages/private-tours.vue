@@ -3,7 +3,6 @@ import { getTodayString } from '~/utils/dateUtils'
 
 const { t } = useI18n()
 const toast = useToast()
-const config = useRuntimeConfig()
 
 useSeoMeta({
   title: t('privateTours.seo.title'),
@@ -84,7 +83,7 @@ const benefits = [
 async function submitRequest() {
   state.loading = true
   try {
-    const response = await $fetch(
+    await $fetch(
       '/api/private-tours/requests',
       {
         method: 'POST',
@@ -116,7 +115,7 @@ async function submitRequest() {
     state.preferredTime = 'evening'
     state.tourType = 'ASTRONOMICAL'
     state.specialRequests = ''
-  } catch (error) {
+  } catch {
     toast.add({
       title: t('privateTours.form.toast.error_title'),
       description: t('privateTours.form.toast.error_description'),

@@ -100,11 +100,8 @@ class TourServiceTest {
         testTour.setStatus("PUBLISHED");
         testTour.setSlug("tour-astronomico");
 
-        // Set up test tour response
-        testTourRes = new TourRes();
-        testTourRes.setId(testTour.getId());
-        testTourRes.setNameTranslations(testTour.getNameTranslations());
-        testTourRes.setSlug(testTour.getSlug());
+        // Set up test tour response using record constructor
+        testTourRes = createMockTourRes(testTour.getId(), testTour.getSlug(), testTour.getNameTranslations());
     }
 
     @Nested
@@ -164,7 +161,7 @@ class TourServiceTest {
 
             // Then
             assertThat(result).isNotNull();
-            assertThat(result.getSlug()).isEqualTo(slug);
+            assertThat(result.slug()).isEqualTo(slug);
         }
 
         @Test
@@ -189,14 +186,25 @@ class TourServiceTest {
         @Test
         @DisplayName("Should create tour successfully")
         void shouldCreateTourSuccessfully() {
-            // Given
-            TourCreateReq createReq = new TourCreateReq();
-            createReq.setNameTranslations(Map.of("es", "Nuevo Tour", "en", "New Tour"));
-            createReq.setCategory("adventure");
-            createReq.setPrice(new BigDecimal("60000"));
-            createReq.setDefaultMaxParticipants(8);
-            createReq.setDurationHours(4);
-            createReq.setStatus("DRAFT");
+            // Given - using record constructor
+            TourCreateReq createReq = new TourCreateReq(
+                Map.of("es", "Nuevo Tour", "en", "New Tour"), // nameTranslations
+                Map.of(),  // descriptionBlocksTranslations
+                false,     // isWindSensitive
+                false,     // isMoonSensitive
+                false,     // isCloudSensitive
+                "adventure", // category
+                new BigDecimal("60000"), // price
+                8,         // defaultMaxParticipants
+                4,         // durationHours
+                null,      // defaultStartTime
+                "DRAFT",   // status
+                "content-key", // contentKey
+                null,      // guideName
+                null,      // itineraryTranslations
+                null,      // equipmentTranslations
+                null       // additionalInfoTranslations
+            );
 
             when(slugGenerator.generateSlug("Nuevo Tour")).thenReturn("nuevo-tour");
             when(tourRepository.findBySlug("nuevo-tour")).thenReturn(Optional.empty());
@@ -205,7 +213,7 @@ class TourServiceTest {
                 tour.setId(UUID.randomUUID());
                 return tour;
             });
-            when(tourMapper.toTourRes(any(Tour.class))).thenReturn(new TourRes());
+            when(tourMapper.toTourRes(any(Tour.class))).thenReturn(createMockTourRes(UUID.randomUUID(), "nuevo-tour", createReq.nameTranslations()));
 
             // When
             TourRes result = tourService.createTour(createReq, adminUser);
@@ -219,14 +227,13 @@ class TourServiceTest {
         @Test
         @DisplayName("Should generate unique slug when duplicate exists")
         void shouldGenerateUniqueSlugWhenDuplicateExists() {
-            // Given
-            TourCreateReq createReq = new TourCreateReq();
-            createReq.setNameTranslations(Map.of("es", "Tour Astronómico"));
-            createReq.setCategory("astronomy");
-            createReq.setPrice(new BigDecimal("60000"));
-            createReq.setDefaultMaxParticipants(8);
-            createReq.setDurationHours(4);
-            createReq.setStatus("DRAFT");
+            // Given - using record constructor
+            TourCreateReq createReq = new TourCreateReq(
+                Map.of("es", "Tour Astronómico"), // nameTranslations
+                Map.of(),  // descriptionBlocksTranslations
+                false, false, false, // sensitivity flags
+                "astronomy", new BigDecimal("60000"), 8, 4, null, "DRAFT", "content-key", null, null, null, null
+            );
 
             when(slugGenerator.generateSlug("Tour Astronómico")).thenReturn("tour-astronomico");
             // First slug exists
@@ -240,7 +247,7 @@ class TourServiceTest {
                 tour.setId(UUID.randomUUID());
                 return tour;
             });
-            when(tourMapper.toTourRes(any(Tour.class))).thenReturn(new TourRes());
+            when(tourMapper.toTourRes(any(Tour.class))).thenReturn(createMockTourRes(UUID.randomUUID(), "tour-astronomico-1", createReq.nameTranslations()));
 
             // When
             tourService.createTour(createReq, adminUser);
@@ -253,14 +260,11 @@ class TourServiceTest {
         @Test
         @DisplayName("Should set owner to current user")
         void shouldSetOwnerToCurrentUser() {
-            // Given
-            TourCreateReq createReq = new TourCreateReq();
-            createReq.setNameTranslations(Map.of("es", "Mi Tour"));
-            createReq.setCategory("nature");
-            createReq.setPrice(new BigDecimal("50000"));
-            createReq.setDefaultMaxParticipants(10);
-            createReq.setDurationHours(2);
-            createReq.setStatus("DRAFT");
+            // Given - using record constructor
+            TourCreateReq createReq = new TourCreateReq(
+                Map.of("es", "Mi Tour"), Map.of(), false, false, false,
+                "nature", new BigDecimal("50000"), 10, 2, null, "DRAFT", "content-key", null, null, null, null
+            );
 
             when(slugGenerator.generateSlug("Mi Tour")).thenReturn("mi-tour");
             when(tourRepository.findBySlug("mi-tour")).thenReturn(Optional.empty());
@@ -271,7 +275,7 @@ class TourServiceTest {
                 tour.setId(UUID.randomUUID());
                 return tour;
             });
-            when(tourMapper.toTourRes(any(Tour.class))).thenReturn(new TourRes());
+            when(tourMapper.toTourRes(any(Tour.class))).thenReturn(createMockTourRes(UUID.randomUUID(), "mi-tour", createReq.nameTranslations()));
 
             // When
             tourService.createTour(createReq, partnerAdmin);
@@ -289,14 +293,12 @@ class TourServiceTest {
         @Test
         @DisplayName("Should update tour successfully")
         void shouldUpdateTourSuccessfully() {
-            // Given
-            TourUpdateReq updateReq = new TourUpdateReq();
-            updateReq.setNameTranslations(Map.of("es", "Tour Astronómico Premium", "en", "Premium Astronomy Tour"));
-            updateReq.setCategory("astronomy");
-            updateReq.setPrice(new BigDecimal("90000"));
-            updateReq.setDefaultMaxParticipants(10);
-            updateReq.setDurationHours(4);
-            updateReq.setStatus("PUBLISHED");
+            // Given - using record constructor
+            TourUpdateReq updateReq = new TourUpdateReq(
+                Map.of("es", "Tour Astronómico Premium", "en", "Premium Astronomy Tour"),
+                Map.of(), false, false, false, "astronomy",
+                new BigDecimal("90000"), 10, 4, null, "PUBLISHED", null, null, null, null, null
+            );
 
             when(tourRepository.findByIdNotDeleted(testTour.getId()))
                     .thenReturn(Optional.of(testTour));
@@ -318,8 +320,10 @@ class TourServiceTest {
         void shouldThrowExceptionWhenTourNotFound() {
             // Given
             UUID nonExistentId = UUID.randomUUID();
-            TourUpdateReq updateReq = new TourUpdateReq();
-            updateReq.setNameTranslations(Map.of("es", "Test"));
+            TourUpdateReq updateReq = new TourUpdateReq(
+                Map.of("es", "Test"), null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null
+            );
 
             when(tourRepository.findByIdNotDeleted(nonExistentId))
                     .thenReturn(Optional.empty());
@@ -425,7 +429,7 @@ class TourServiceTest {
 
             // Then
             assertThat(result).isNotNull();
-            assertThat(result.getId()).isEqualTo(testTour.getId());
+            assertThat(result.id()).isEqualTo(testTour.getId());
         }
 
         @Test
@@ -440,5 +444,35 @@ class TourServiceTest {
             assertThatThrownBy(() -> tourService.getTourById(nonExistentId, adminUser))
                     .isInstanceOf(EntityNotFoundException.class);
         }
+    }
+
+    // Helper method to create mock TourRes for tests
+    private TourRes createMockTourRes(UUID id, String slug, Map<String, String> nameTranslations) {
+        return new TourRes(
+            id,
+            slug,
+            nameTranslations,
+            "astronomy",        // category
+            new BigDecimal("75000"), // price
+            12,                 // defaultMaxParticipants
+            3,                  // durationHours
+            null,               // defaultStartTime
+            "PUBLISHED",        // status
+            List.of(),          // images
+            false,              // isMoonSensitive
+            false,              // isWindSensitive
+            false,              // isCloudSensitive
+            java.time.Instant.now(), // createdAt
+            java.time.Instant.now(), // updatedAt
+            "content-key",      // contentKey
+            null,               // guideName
+            List.of(),          // itinerary
+            List.of(),          // equipment
+            List.of(),          // additionalInfo
+            Map.of(),           // itineraryTranslations
+            Map.of(),           // equipmentTranslations
+            Map.of(),           // additionalInfoTranslations
+            Map.of()            // descriptionBlocksTranslations
+        );
     }
 }

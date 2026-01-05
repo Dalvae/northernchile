@@ -77,7 +77,7 @@ public class UserController {
             @Valid @RequestBody AdminPasswordChangeReq req,
             @CurrentUser User currentUser) {
         try {
-            userService.adminResetUserPassword(currentUser, userId, req.getNewPassword());
+            userService.adminResetUserPassword(currentUser, userId, req.newPassword());
             return ResponseEntity.ok(Map.of("message", "Contraseña del usuario actualizada correctamente."));
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));

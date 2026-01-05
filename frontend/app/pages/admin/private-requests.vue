@@ -1,6 +1,6 @@
+```
 <script setup lang="ts">
 import type { PrivateTourRequest } from 'api-client'
-import { parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
 import { PRIVATE_REQUEST_STATUS_OPTIONS, getStatusColor as getAdminStatusColor } from '~/utils/adminOptions'
 
 definePageMeta({
@@ -55,9 +55,9 @@ const filteredRequests = computed(() => {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(
       r =>
-        r.customerName.toLowerCase().includes(query)
-        || r.customerEmail.toLowerCase().includes(query)
-        || r.requestedTourType.toLowerCase().includes(query)
+        (r.customerName?.toLowerCase().includes(query) || false)
+        || (r.customerEmail?.toLowerCase().includes(query) || false)
+        || (r.requestedTourType?.toLowerCase().includes(query) || false)
     )
   }
 
@@ -86,7 +86,7 @@ const stats = computed(() => {
 
 // Modal state
 const showDetailsModal = ref(false)
-const selectedRequest = ref<any>(null)
+const selectedRequest = ref<PrivateTourRequest | null>(null)
 const updatingStatus = ref(false)
 const statusForm = ref({
   status: '',
@@ -100,7 +100,7 @@ const statusOptions = PRIVATE_REQUEST_STATUS_OPTIONS
 const openDetailsModal = (request: PrivateTourRequest) => {
   selectedRequest.value = request
   statusForm.value = {
-    status: request.status,
+    status: request.status || 'PENDING',
     quotedPrice: request.quotedPrice?.toString() || ''
   }
   showDetailsModal.value = true
@@ -267,7 +267,7 @@ const formatCurrency = (value: number | null | undefined) => value != null ? for
           />
           <USelect
             v-model="filterByStatus"
-            :items="statusOptions"
+            :items="statusOptions as any"
             option-attribute="label"
             value-attribute="value"
             placeholder="Filtrar por estado"
@@ -333,36 +333,35 @@ const formatCurrency = (value: number | null | undefined) => value != null ? for
                     <div
                       class="text-sm font-medium text-default"
                     >
-                      {{ request.customerName }}
+                      {{ request.customerName || '-' }}
                     </div>
                     <div class="text-sm text-muted">
-                      {{ request.customerEmail }}
+                      {{ request.customerEmail || '-' }}
                     </div>
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
                   <div class="text-sm text-default">
-                    {{ request.requestedTourType }}
+                    {{ request.requestedTourType || '-' }}
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
                   <div class="text-sm text-default">
-                    {{ formatDateTime(request.requestedDatetime) }}
+                    {{ request.requestedDatetime ? formatDateTime(request.requestedDatetime) : '-' }}
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
                   <div class="text-sm text-default">
-                    {{ request.numAdults }} adultos,
-                    {{ request.numChildren }} niños
+                    {{ request.numParticipants }} personas
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
                   <UBadge
-                    :color="getStatusColor(request.status)"
+                    :color="getStatusColor(request.status || 'PENDING')"
                     variant="soft"
                     size="sm"
                   >
-                    {{ request.status }}
+                    {{ request.status || 'PENDING' }}
                   </UBadge>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
@@ -485,20 +484,14 @@ const formatCurrency = (value: number | null | undefined) => value != null ? for
                   <span
                     class="text-sm font-medium text-default"
                   >{{
-                    formatDateTime(selectedRequest.requestedDatetime)
+                    formatDateTime(selectedRequest?.requestedDatetime || '')
                   }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-muted">Adultos:</span>
+                  <span class="text-sm text-muted">Participantes:</span>
                   <span
                     class="text-sm font-medium text-default"
-                  >{{ selectedRequest.numAdults }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-sm text-muted">Niños:</span>
-                  <span
-                    class="text-sm font-medium text-default"
-                  >{{ selectedRequest.numChildren }}</span>
+                  >{{ selectedRequest.numParticipants }}</span>
                 </div>
               </div>
             </div>
@@ -527,7 +520,7 @@ const formatCurrency = (value: number | null | undefined) => value != null ? for
               <div class="space-y-3">
                 <USelect
                   v-model="statusForm.status"
-                  :items="statusOptions"
+                  :items="statusOptions as any"
                   option-attribute="label"
                   value-attribute="value"
                   placeholder="Seleccionar estado"

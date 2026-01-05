@@ -20,6 +20,9 @@ const isEditing = computed(() => !!props.tour)
 const { state, schema, loading, formErrors, onSubmit, onError }
   = useAdminTourForm(props, emit)
 
+provide('tour-form-state', state)
+provide('tour-form-errors', formErrors)
+
 const isOpen = computed({
   get: () => props.open ?? false,
   set: value => emit('update:open', value)
@@ -51,12 +54,9 @@ const handleSubmit = () => {
           @submit="onSubmit"
           @error="onError"
         >
-          <TourFormGeneral
-            :state="state"
-            :errors="formErrors"
-          />
+          <TourFormGeneral />
           <UDivider />
-          <TourFormContent :state="state" />
+          <TourFormContent />
         </UForm>
       </div>
     </template>

@@ -68,6 +68,13 @@ function onScheduleSelect(schedule: MediaHierarchyNode) {
 function clearScheduleSelection() {
   router.push({ query: {} })
 }
+
+const selectedScheduleLabel = computed(() => {
+  if (!selectedScheduleId.value) return 'Fecha'
+  // Cast to simpler type to avoid TS2589 (TreeItem recursive type depth issue)
+  const list = schedules.value as Array<{ scheduleId?: string, label: string }>
+  return list.find(s => s.scheduleId === selectedScheduleId.value)?.label || 'Fecha'
+})
 </script>
 
 <template>
@@ -173,7 +180,7 @@ function clearScheduleSelection() {
                 :key="schedule.id"
                 class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-left"
                 :class="selectedScheduleId === schedule.scheduleId ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400' : 'text-neutral-700 dark:text-neutral-200'"
-                @click="onScheduleSelect(schedule)"
+                @click="onScheduleSelect(schedule as any)"
               >
                 <UIcon
                   name="i-lucide-calendar"
@@ -208,7 +215,7 @@ function clearScheduleSelection() {
               <div>
                 <h2 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
                   <template v-if="selectedScheduleId">
-                    {{ schedules.find((s) => s.scheduleId === selectedScheduleId)?.label || 'Fecha' }}
+                    {{ selectedScheduleLabel }}
                   </template>
                   <template v-else>
                     Galería Principal

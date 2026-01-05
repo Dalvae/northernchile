@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { UserRes, UserUpdateReq, AdminPasswordChangeReq } from 'api-client'
+import type { UserRes, UserUpdateReq } from 'api-client'
 import { z } from 'zod'
 import { USER_ROLE_OPTIONS } from '~/utils/adminOptions'
 
@@ -13,16 +13,15 @@ const emit = defineEmits<{
 
 const { updateAdminUser, resetAdminUserPassword } = useAdminData()
 const toast = useToast()
-const { countries } = useCountries()
 
 const isOpen = ref(false)
 
 // Form state - initialize with user data
 const state = reactive<UserUpdateReq>({
-  fullName: props.user.fullName || '',
-  role: props.user.role || 'ROLE_CLIENT',
-  nationality: props.user.nationality || '',
-  phoneNumber: props.user.phoneNumber || ''
+  fullName: props.user.fullName,
+  role: props.user.role,
+  nationality: props.user.nationality ?? '',
+  phoneNumber: props.user.phoneNumber ?? ''
 })
 
 // Validation schema
@@ -208,7 +207,7 @@ async function handleSubmit() {
           >
             <USelect
               v-model="state.role"
-              :items="USER_ROLE_OPTIONS"
+              :items="[...USER_ROLE_OPTIONS] as { label: string, value: string }[]"
               option-attribute="label"
               value-attribute="value"
               placeholder="Selecciona un rol"

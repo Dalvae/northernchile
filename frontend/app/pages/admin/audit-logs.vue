@@ -184,10 +184,10 @@
               <!-- Icon -->
               <div class="flex-shrink-0">
                 <div
-                  :class="['p-3 rounded-lg', getActionColorClass(log.action)]"
+                  :class="['p-3 rounded-lg', getActionColorClass(log.action || '')]"
                 >
                   <UIcon
-                    :name="getActionIcon(log.action)"
+                    :name="getActionIcon(log.action || '')"
                     class="w-5 h-5"
                   />
                 </div>
@@ -199,7 +199,7 @@
                   <div class="flex-1">
                     <div class="flex items-center gap-2 mb-1">
                       <UBadge
-                        :color="getActionColor(log.action)"
+                        :color="getActionColor(log.action || '')"
                         :label="log.action"
                         size="sm"
                       />
@@ -222,10 +222,10 @@
 
                   <div class="text-right flex-shrink-0">
                     <p class="text-sm text-muted">
-                      {{ formatDate(log.createdAt) }}
+                      {{ formatDate(log.createdAt || '') }}
                     </p>
                     <p class="text-xs text-neutral-500 dark:text-neutral-500">
-                      {{ formatTime(log.createdAt) }}
+                      {{ formatTime(log.createdAt || '') }}
                     </p>
                   </div>
                 </div>

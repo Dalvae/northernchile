@@ -14,6 +14,7 @@ import {
   toInputDateFormat,
   CHILE_TIMEZONE
 } from '~/utils/dateUtils'
+import type { LocalTime } from 'api-client'
 
 /**
  * Composable for date/time formatting and manipulation.
@@ -74,6 +75,22 @@ export function useDateTime() {
   }
 
   /**
+   * Format a LocalTime object or string (HH:mm).
+   */
+  const formatLocalTime = (value: LocalTime | string | null | undefined): string => {
+    if (!value) return ''
+    if (typeof value === 'string') {
+      return value.slice(0, 5)
+    }
+    if (typeof value === 'object' && 'hour' in value && 'minute' in value) {
+      const h = String(value.hour).padStart(2, '0')
+      const m = String(value.minute).padStart(2, '0')
+      return `${h}:${m}`
+    }
+    return ''
+  }
+
+  /**
    * Format a date for localized display based on current locale.
    * Falls back to Chilean format.
    */
@@ -107,6 +124,7 @@ export function useDateTime() {
     formatDateLong,
     formatDateTime,
     formatTime,
+    formatLocalTime,
     formatLocalized,
 
     // Re-export utilities for convenience

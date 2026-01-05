@@ -47,7 +47,7 @@ public class ProfileController {
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Usuario no encontrado"));
 
         try {
-            userService.changeUserPassword(currentUser, req.getCurrentPassword(), req.getNewPassword());
+            userService.changeUserPassword(currentUser, req.currentPassword(), req.newPassword());
             return ResponseEntity.ok(Map.of("message", "Contraseña actualizada correctamente."));
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

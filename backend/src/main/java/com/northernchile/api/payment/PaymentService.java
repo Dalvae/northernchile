@@ -1,5 +1,6 @@
 package com.northernchile.api.payment;
 
+import com.northernchile.api.payment.dto.PaymentRes;
 import com.northernchile.api.payment.dto.PaymentStatusRes;
 import com.northernchile.api.payment.model.Payment;
 import com.northernchile.api.payment.model.PaymentStatus;
@@ -14,6 +15,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Payment service for managing Payment entities.
@@ -46,9 +48,11 @@ public class PaymentService {
     /**
      * Get all payments for a booking.
      */
-    public List<Payment> getBookingPayments(UUID bookingId) {
+    public List<PaymentRes> getBookingPayments(UUID bookingId) {
         log.info("Getting payments for booking: {}", bookingId);
-        return paymentRepository.findByBookingId(bookingId);
+        return paymentRepository.findByBookingId(bookingId).stream()
+                .map(this::toPaymentRes)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -77,9 +81,11 @@ public class PaymentService {
     /**
      * Get all test payments (for admin review/cleanup).
      */
-    public List<Payment> getTestPayments() {
+    public List<PaymentRes> getTestPayments() {
         log.info("Retrieving all test payments");
-        return paymentRepository.findByIsTest(true);
+        return paymentRepository.findByIsTest(true).stream()
+                .map(this::toPaymentRes)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -104,14 +110,40 @@ public class PaymentService {
     }
 
     private PaymentStatusRes buildStatusResponse(Payment payment) {
-        PaymentStatusRes response = new PaymentStatusRes();
-        response.setPaymentId(payment.getId());
-        response.setExternalPaymentId(payment.getExternalPaymentId());
-        response.setStatus(payment.getStatus());
-        response.setAmount(payment.getAmount());
-        response.setCurrency(payment.getCurrency());
-        response.setUpdatedAt(payment.getUpdatedAt());
-        return response;
+        return new PaymentStatusRes(
+            payment.getId(),
+            payment.getExternalPaymentId(),
+            payment.getStatus(),
+            payment.getAmount(),
+            payment.getCurrency(),
+            payment.getErrorMessage(),
+            payment.getUpdatedAt(),
+            payment.isTest()
+        );
+    }
+
+    private PaymentRes toPaymentRes(Payment payment) {
+        return new PaymentRes(
+            payment.getId(),
+            payment.getBooking() != null ? payment.getBooking().getId() : null,
+            payment.getPaymentSession() != null ? payment.getPaymentSession().getId() : null,
+            payment.getProvider(),
+            payment.getPaymentMethod(),
+            payment.getExternalPaymentId(),
+            payment.getStatus(),
+            payment.getAmount(),
+            payment.getCurrency(),
+            payment.getPaymentUrl(),
+            payment.getDetailsUrl(),
+            payment.getQrCode(),
+            payment.getPixCode(),
+            payment.getToken(),
+            payment.getExpiresAt(),
+            payment.getErrorMessage(),
+            payment.isTest(),
+            payment.getCreatedAt(),
+            payment.getUpdatedAt()
+        );
     }
 
     private void validateRefund(Payment payment) {

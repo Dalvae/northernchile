@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +71,7 @@ public class PaymentSessionService {
      */
     @Transactional
     public PaymentSessionRes createSession(PaymentSessionReq request, User user) {
-        log.info("Creating payment session for user: {} with {} items", user.getId(), request.getItems().size());
+        log.info("Creating payment session for user: {} with {} items", user.getId(), request.items().size());
 
         // Validate all schedules exist and have availability
         validateAvailability(request);
@@ -78,13 +79,13 @@ public class PaymentSessionService {
         // Calculate total from schedule prices (don't trust client amounts)
         BigDecimal trustedTotal = calculateTrustedTotal(request);
         
-        if (request.getTotalAmount().compareTo(trustedTotal) != 0) {
+        if (request.totalAmount().compareTo(trustedTotal) != 0) {
             log.warn("SECURITY: Client total ({}) differs from calculated total ({}). Using calculated.",
-                request.getTotalAmount(), trustedTotal);
+                request.totalAmount(), trustedTotal);
         }
 
         // Convert request items to session items
-        List<PaymentSessionItem> sessionItems = request.getItems().stream()
+        List<PaymentSessionItem> sessionItems = request.items().stream()
             .map(this::convertToSessionItem)
             .collect(Collectors.toList());
 
@@ -94,13 +95,13 @@ public class PaymentSessionService {
         session.setStatus(PaymentSessionStatus.PENDING);
         session.setItems(sessionItems);
         session.setTotalAmount(trustedTotal);
-        session.setCurrency(request.getCurrency() != null ? request.getCurrency() : "CLP");
-        session.setLanguageCode(request.getLanguageCode() != null ? request.getLanguageCode() : "es");
-        session.setUserEmail(request.getUserEmail());
-        session.setProvider(request.getProvider());
-        session.setPaymentMethod(request.getPaymentMethod());
-        session.setReturnUrl(request.getReturnUrl());
-        session.setCancelUrl(request.getCancelUrl());
+        session.setCurrency(request.currency() != null ? request.currency() : "CLP");
+        session.setLanguageCode(request.languageCode() != null ? request.languageCode() : "es");
+        session.setUserEmail(request.userEmail());
+        session.setProvider(request.provider());
+        session.setPaymentMethod(request.paymentMethod());
+        session.setReturnUrl(request.returnUrl());
+        session.setCancelUrl(request.cancelUrl());
         session.setExpiresAt(Instant.now().plus(SESSION_EXPIRATION_MINUTES, ChronoUnit.MINUTES));
         session.setTest(testMode);
 
@@ -112,19 +113,14 @@ public class PaymentSessionService {
             PaymentSessionRes response = paymentAdapter.initializePayment(session, request);
             
             // Update session with payment details
-            session.setToken(response.getToken());
-            session.setPaymentUrl(response.getPaymentUrl());
-            session.setQrCode(response.getQrCode());
-            session.setPixCode(response.getPixCode());
-            session.setExternalPaymentId(response.getSessionId() != null ? response.getSessionId().toString() : null);
+            session.setToken(response.token());
+            session.setPaymentUrl(response.paymentUrl());
+            session.setQrCode(response.qrCode());
+            session.setPixCode(response.pixCode());
+            session.setExternalPaymentId(response.sessionId() != null ? response.sessionId().toString() : null);
             sessionRepository.save(session);
 
-            // Return response with session ID
-            response.setSessionId(session.getId());
-            response.setStatus(session.getStatus());
-            response.setExpiresAt(session.getExpiresAt());
-            response.setTest(session.isTest());
-
+            // Adapter already returns complete response, just return it
             return response;
 
         } catch (Exception e) {
@@ -134,11 +130,31 @@ public class PaymentSessionService {
             sessionRepository.save(session);
             throw new PaymentProviderException(
                 "Failed to initialize payment",
-                request.getProvider().name(),
+                request.provider().name(),
                 e.getMessage(),
                 e
             );
         }
+    }
+
+    /**
+     * Get payment session status.
+     */
+    public PaymentSessionRes getSessionStatus(UUID sessionId) {
+        PaymentSession session = sessionRepository.findById(sessionId)
+            .orElseThrow(() -> new IllegalArgumentException("Payment session not found: " + sessionId));
+
+        return new PaymentSessionRes(
+            session.getId(),
+            session.getStatus(),
+            session.getPaymentUrl(),
+            session.getToken(),
+            session.getQrCode(),
+            session.getPixCode(),
+            session.getExpiresAt(),
+            session.isTest(),
+            null
+        );
     }
 
     /**
@@ -170,7 +186,7 @@ public class PaymentSessionService {
         // Confirm with payment provider
         PaymentSessionRes providerResult = paymentAdapter.confirmPayment(session);
 
-        if (providerResult.getStatus() == PaymentSessionStatus.CANCELLED) {
+        if (providerResult.status() == PaymentSessionStatus.CANCELLED) {
             // User cancelled the payment
             session.setStatus(PaymentSessionStatus.CANCELLED);
             session.setErrorMessage("Payment cancelled by user");
@@ -178,21 +194,35 @@ public class PaymentSessionService {
             
             log.info("Payment session {} cancelled by user", session.getId());
             
-            PaymentSessionRes response = new PaymentSessionRes();
-            response.setSessionId(session.getId());
-            response.setStatus(PaymentSessionStatus.CANCELLED);
-            return response;
+            return new PaymentSessionRes(
+                session.getId(),
+                PaymentSessionStatus.CANCELLED,
+                null,
+                null,
+                null,
+                null,
+                session.getExpiresAt(),
+                session.isTest(),
+                null
+            );
         }
 
-        if (providerResult.getStatus() != PaymentSessionStatus.COMPLETED) {
+        if (providerResult.status() != PaymentSessionStatus.COMPLETED) {
             session.setStatus(PaymentSessionStatus.FAILED);
             session.setErrorMessage("Payment not completed by provider");
             sessionRepository.save(session);
             
-            PaymentSessionRes response = new PaymentSessionRes();
-            response.setSessionId(session.getId());
-            response.setStatus(session.getStatus());
-            return response;
+            return new PaymentSessionRes(
+                session.getId(),
+                session.getStatus(),
+                null,
+                null,
+                null,
+                null,
+                session.getExpiresAt(),
+                session.isTest(),
+                null
+            );
         }
 
         // Payment successful - create bookings
@@ -210,11 +240,17 @@ public class PaymentSessionService {
             });
 
         // Build response
-        PaymentSessionRes response = new PaymentSessionRes();
-        response.setSessionId(session.getId());
-        response.setStatus(PaymentSessionStatus.COMPLETED);
-        response.setBookingIds(bookingIds);
-        response.setTest(session.isTest());
+        PaymentSessionRes response = new PaymentSessionRes(
+            session.getId(),
+            PaymentSessionStatus.COMPLETED,
+            null,
+            null,
+            null,
+            null,
+            session.getExpiresAt(),
+            session.isTest(),
+            bookingIds
+        );
 
         log.info("Payment session {} completed with {} bookings", session.getId(), bookingIds.size());
         return response;
@@ -255,7 +291,7 @@ public class PaymentSessionService {
         // Confirm with MercadoPago
         PaymentSessionRes providerResult = paymentAdapter.confirmMercadoPagoPayment(session, lookupId, mpPaymentId);
 
-        if (providerResult.getStatus() != PaymentSessionStatus.COMPLETED) {
+        if (providerResult.status() != PaymentSessionStatus.COMPLETED) {
             session.setStatus(PaymentSessionStatus.FAILED);
             sessionRepository.save(session);
             return providerResult;
@@ -271,11 +307,17 @@ public class PaymentSessionService {
         cartRepository.findByUserId(session.getUser().getId())
             .ifPresent(cartRepository::delete);
 
-        PaymentSessionRes response = new PaymentSessionRes();
-        response.setSessionId(session.getId());
-        response.setStatus(PaymentSessionStatus.COMPLETED);
-        response.setBookingIds(bookingIds);
-        response.setTest(session.isTest());
+        PaymentSessionRes response = new PaymentSessionRes(
+            session.getId(),
+            PaymentSessionStatus.COMPLETED,
+            null,
+            null,
+            null,
+            null,
+            session.getExpiresAt(),
+            session.isTest(),
+            bookingIds
+        );
 
         return response;
     }
@@ -308,74 +350,75 @@ public class PaymentSessionService {
     // === Private helper methods ===
 
     private void validateAvailability(PaymentSessionReq request) {
-        for (var item : request.getItems()) {
-            TourSchedule schedule = scheduleRepository.findById(item.getScheduleId())
-                .orElseThrow(() -> new IllegalArgumentException("Schedule not found: " + item.getScheduleId()));
+        for (var item : request.items()) {
+            TourSchedule schedule = scheduleRepository.findById(item.scheduleId())
+                .orElseThrow(() -> new IllegalArgumentException("Schedule not found: " + item.scheduleId()));
 
             // Check if schedule is bookable (must be OPEN)
             if (!"OPEN".equals(schedule.getStatus())) {
-                throw new IllegalStateException("Schedule is not available for booking: " + item.getScheduleId());
+                throw new IllegalStateException("Schedule is not available for booking: " + item.scheduleId());
             }
 
             // Check capacity (including reserved slots from pending sessions)
-            int bookedSlots = bookingRepository.countConfirmedParticipantsByScheduleId(item.getScheduleId());
-            int reservedSlots = getReservedSlots(item.getScheduleId());
+            int bookedSlots = bookingRepository.countConfirmedParticipantsByScheduleId(item.scheduleId());
+            int reservedSlots = getReservedSlots(item.scheduleId());
             int availableSlots = schedule.getMaxParticipants() - bookedSlots - reservedSlots;
 
-            if (item.getNumParticipants() > availableSlots) {
+            if (item.numParticipants() > availableSlots) {
                 throw new IllegalStateException(
                     String.format("Not enough availability for schedule %s. Requested: %d, Available: %d",
-                        item.getScheduleId(), item.getNumParticipants(), availableSlots));
+                        item.scheduleId(), item.numParticipants(), availableSlots));
             }
         }
     }
 
     private BigDecimal calculateTrustedTotal(PaymentSessionReq request) {
         BigDecimal total = BigDecimal.ZERO;
-        for (var item : request.getItems()) {
-            TourSchedule schedule = scheduleRepository.findById(item.getScheduleId())
+        for (var item : request.items()) {
+            TourSchedule schedule = scheduleRepository.findById(item.scheduleId())
                 .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
             
             BigDecimal itemTotal = schedule.getTour().getPrice()
-                .multiply(BigDecimal.valueOf(item.getNumParticipants()));
+                .multiply(BigDecimal.valueOf(item.numParticipants()));
             total = total.add(itemTotal);
         }
         return total;
     }
 
     private PaymentSessionItem convertToSessionItem(PaymentSessionReq.PaymentSessionItemReq reqItem) {
-        TourSchedule schedule = scheduleRepository.findById(reqItem.getScheduleId())
+        TourSchedule schedule = scheduleRepository.findById(reqItem.scheduleId())
             .orElseThrow(() -> new IllegalArgumentException("Schedule not found"));
 
-        PaymentSessionItem item = new PaymentSessionItem();
-        item.setScheduleId(reqItem.getScheduleId());
         // Get tour name using centralized utility
         String tourName = TourUtils.getTourName(schedule.getTour());
-        item.setTourName(tourName);
-        item.setTourDate(schedule.getStartDatetime().atZone(java.time.ZoneId.systemDefault()).toLocalDate());
-        item.setNumParticipants(reqItem.getNumParticipants());
-        item.setPricePerPerson(schedule.getTour().getPrice());
-        item.setItemTotal(schedule.getTour().getPrice().multiply(BigDecimal.valueOf(reqItem.getNumParticipants())));
-        item.setSpecialRequests(reqItem.getSpecialRequests());
+        LocalDate tourDate = schedule.getStartDatetime().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+        BigDecimal pricePerPerson = schedule.getTour().getPrice();
+        BigDecimal itemTotal = pricePerPerson.multiply(BigDecimal.valueOf(reqItem.numParticipants()));
 
-        // Convert participants
-        List<PaymentSessionItem.ParticipantData> participants = reqItem.getParticipants().stream()
-            .map(p -> {
-                PaymentSessionItem.ParticipantData pd = new PaymentSessionItem.ParticipantData();
-                pd.setFullName(p.getFullName());
-                pd.setDocumentId(p.getDocumentId());
-                pd.setNationality(p.getNationality());
-                pd.setDateOfBirth(p.getDateOfBirth());
-                pd.setPickupAddress(p.getPickupAddress());
-                pd.setSpecialRequirements(p.getSpecialRequirements());
-                pd.setPhoneNumber(p.getPhoneNumber());
-                pd.setEmail(p.getEmail());
-                return pd;
-            })
+        // Convert participants to record instances
+        List<PaymentSessionItem.ParticipantData> participants = reqItem.participants().stream()
+            .map(p -> new PaymentSessionItem.ParticipantData(
+                p.fullName(),
+                p.documentId(),
+                p.nationality(),
+                p.dateOfBirth(),
+                p.pickupAddress(),
+                p.specialRequirements(),
+                p.phoneNumber(),
+                p.email()
+            ))
             .collect(Collectors.toList());
-        item.setParticipants(participants);
 
-        return item;
+        return new PaymentSessionItem(
+            reqItem.scheduleId(),
+            tourName,
+            tourDate,
+            reqItem.numParticipants(),
+            pricePerPerson,
+            itemTotal,
+            reqItem.specialRequests(),
+            participants
+        );
     }
 
     private List<UUID> createBookingsFromSession(PaymentSession session) {
@@ -383,34 +426,34 @@ public class PaymentSessionService {
         User user = session.getUser();
 
         for (PaymentSessionItem item : session.getItems()) {
-            TourSchedule schedule = scheduleRepository.findById(item.getScheduleId())
-                .orElseThrow(() -> new IllegalStateException("Schedule not found: " + item.getScheduleId()));
+            TourSchedule schedule = scheduleRepository.findById(item.scheduleId())
+                .orElseThrow(() -> new IllegalStateException("Schedule not found: " + item.scheduleId()));
 
             // Create booking
             Booking booking = new Booking();
             booking.setUser(user);
             booking.setSchedule(schedule);
-            booking.setTourDate(item.getTourDate());
+            booking.setTourDate(item.tourDate());
             booking.setStatus("CONFIRMED"); // Already paid!
-            booking.setSubtotal(item.getItemTotal());
+            booking.setSubtotal(item.itemTotal());
             booking.setTaxAmount(BigDecimal.ZERO);
-            booking.setTotalAmount(item.getItemTotal());
+            booking.setTotalAmount(item.itemTotal());
             booking.setLanguageCode(session.getLanguageCode());
-            booking.setSpecialRequests(item.getSpecialRequests());
+            booking.setSpecialRequests(item.specialRequests());
 
             // Create participants
             List<Participant> participants = new ArrayList<>();
-            for (PaymentSessionItem.ParticipantData pd : item.getParticipants()) {
+            for (PaymentSessionItem.ParticipantData pd : item.participants()) {
                 Participant participant = new Participant();
                 participant.setBooking(booking);
-                participant.setFullName(pd.getFullName());
-                participant.setDocumentId(pd.getDocumentId());
-                participant.setNationality(pd.getNationality());
-                participant.setDateOfBirth(pd.getDateOfBirth());
-                participant.setPickupAddress(pd.getPickupAddress());
-                participant.setSpecialRequirements(pd.getSpecialRequirements());
-                participant.setPhoneNumber(pd.getPhoneNumber());
-                participant.setEmail(pd.getEmail());
+                participant.setFullName(pd.fullName());
+                participant.setDocumentId(pd.documentId());
+                participant.setNationality(pd.nationality());
+                participant.setDateOfBirth(pd.dateOfBirth());
+                participant.setPickupAddress(pd.pickupAddress());
+                participant.setSpecialRequirements(pd.specialRequirements());
+                participant.setPhoneNumber(pd.phoneNumber());
+                participant.setEmail(pd.email());
                 participants.add(participant);
             }
             booking.setParticipants(participants);
@@ -434,10 +477,16 @@ public class PaymentSessionService {
     private PaymentSessionRes buildCompletedResponse(PaymentSession session) {
         // Find bookings created from this session (by user and time)
         // For now, return empty list - bookings are tracked by the caller
-        PaymentSessionRes response = new PaymentSessionRes();
-        response.setSessionId(session.getId());
-        response.setStatus(session.getStatus());
-        response.setTest(session.isTest());
-        return response;
+        return new PaymentSessionRes(
+            session.getId(),
+            session.getStatus(),
+            null,
+            null,
+            null,
+            null,
+            session.getExpiresAt(),
+            session.isTest(),
+            null
+        );
     }
 }

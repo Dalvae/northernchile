@@ -7,24 +7,9 @@ import type { CalendarOptions, EventClickArg } from '@fullcalendar/core'
 import esLocale from '@fullcalendar/core/locales/es'
 import ptLocale from '@fullcalendar/core/locales/pt'
 import enLocale from '@fullcalendar/core/locales/en-gb'
-import type { TourRes } from 'api-client'
+import type { TourRes, TourScheduleRes } from 'api-client'
 import { getLocalDateString, unixToDateString } from '~/utils/dateUtils'
-
-interface TourSchedule {
-  id: string
-  startDatetime: string
-  maxParticipants: number
-  availableSpots?: number
-  bookedParticipants?: number
-  status: string
-  tour: TourRes
-}
-
-interface LunarPhase {
-  date: string
-  phaseName: string
-  illumination: number
-}
+import type { MoonPhase } from '~/composables/useCalendarData'
 
 interface WeatherDay {
   date: string
@@ -38,7 +23,7 @@ interface Props {
   showLegend?: boolean
   height?: string
   initialView?: string
-  preloadedSchedules?: TourSchedule[]
+  preloadedSchedules?: TourScheduleRes[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -48,16 +33,16 @@ const props = withDefaults(defineProps<Props>(), {
   preloadedSchedules: undefined
 })
 
+// Emit schedule and optional tour (lookup from props.tours by tourId)
 const emit = defineEmits<{
-  scheduleClick: [schedule: TourSchedule, tour: TourRes]
+  scheduleClick: [schedule: TourScheduleRes, tour: TourRes | undefined]
 }>()
 
 const _router = useRouter()
 const { locale, t } = useI18n()
-const config = useRuntimeConfig()
 
-const schedules = ref<TourSchedule[]>([])
-const lunarData = ref<LunarPhase[]>([])
+const schedules = ref<TourScheduleRes[]>([])
+const lunarData = ref<MoonPhase[]>([])
 const weatherData = ref<WeatherDay[]>([])
 const loading = ref(false)
 
@@ -79,7 +64,7 @@ interface WeatherDayData {
 }
 
 const weatherMap = ref(new Map<string, WeatherDayData>())
-const lunarMap = ref(new Map<string, LunarPhase>())
+const lunarMap = ref(new Map<string, MoonPhase>())
 
 // Detect mobile
 const isMobile = ref(false)
@@ -112,10 +97,11 @@ async function fetchSchedules() {
     const end = new Date()
     end.setDate(end.getDate() + 90)
 
+    // Fetch schedules for all tours - TourScheduleRes already contains tourId/tourName
     const allSchedules = await Promise.all(
       props.tours.map(async (tour) => {
         try {
-          const response = await $fetch<Array<Omit<TourSchedule, 'tour'>>>(
+          const response = await $fetch<TourScheduleRes[]>(
             `/api/tours/${tour.id}/schedules`,
             {
               params: {
@@ -124,7 +110,7 @@ async function fetchSchedules() {
               }
             }
           )
-          return response.map(s => ({ ...s, tour }))
+          return response
         } catch {
           return []
         }
@@ -146,7 +132,7 @@ async function fetchLunarData() {
     const end = new Date()
     end.setDate(end.getDate() + 90)
 
-    const response = await $fetch<LunarPhase[]>(
+    const response = await $fetch<MoonPhase[]>(
       '/api/lunar/calendar',
       {
         params: {
@@ -159,7 +145,11 @@ async function fetchLunarData() {
     lunarData.value = response
 
     lunarMap.value.clear()
-    response.forEach(phase => lunarMap.value.set(phase.date, phase))
+    response.forEach((phase) => {
+      if (phase.date) {
+        lunarMap.value.set(phase.date, phase)
+      }
+    })
   } catch (e) {
     console.error('Failed to fetch lunar data', e)
     lunarData.value = []
@@ -282,9 +272,11 @@ const calendarEvents = computed(() => {
 
   schedules.value.forEach((schedule) => {
     const startDate = new Date(schedule.startDatetime)
+    // Use tourNameTranslations from TourScheduleRes directly (no need for tour.nameTranslations)
     const tourName
-      = schedule.tour?.nameTranslations?.[locale.value]
-        || schedule.tour?.nameTranslations?.es
+      = schedule.tourNameTranslations?.[locale.value]
+        || schedule.tourNameTranslations?.es
+        || schedule.tourName
         || 'Tour'
 
     events.push({
@@ -295,15 +287,15 @@ const calendarEvents = computed(() => {
       })}`,
       start: schedule.startDatetime,
       allDay: false,
-      backgroundColor: getTourColor(schedule.tour?.id || ''),
-      borderColor: getTourColor(schedule.tour?.id || ''),
+      backgroundColor: getTourColor(schedule.tourId),
+      borderColor: getTourColor(schedule.tourId),
       textColor: 'var(--color-atacama-oxide-50)',
       extendedProps: {
         type: 'schedule',
         schedule: schedule,
-        tour: schedule.tour,
+        tourId: schedule.tourId, // Pass tourId instead of full tour object
         availableSpots: schedule.availableSpots || schedule.maxParticipants,
-        bookedParticipants: schedule.bookedParticipants || 0,
+        bookedParticipants: schedule.bookedParticipants,
         maxParticipants: schedule.maxParticipants,
         status: schedule.status
       }
@@ -312,8 +304,8 @@ const calendarEvents = computed(() => {
 
   lunarData.value.forEach((lunar) => {
     events.push({
-      title: getMoonEmoji(lunar.phaseName),
-      start: lunar.date,
+      title: getMoonEmoji(lunar.phaseName || ''),
+      start: lunar.date || '',
       allDay: true,
       display: 'background',
       backgroundColor: 'transparent',
@@ -427,7 +419,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 
       weatherDiv.innerHTML = `
         <span>${icon}</span>
-        <span class="font-mono">${Math.round(wData.temp.day)}°</span>
+        <span class="font-mono">${Math.round(wData.temp?.day || 0)}°</span>
       `
       infoBox.appendChild(weatherDiv)
     }
@@ -436,7 +428,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
       const moonDiv = document.createElement('div')
       moonDiv.className = 'text-xs text-neutral-500 flex flex-col items-end'
       moonDiv.innerHTML = `
-        <span class="text-base">${getMoonEmoji(moon.phaseName)}</span>
+        <span class="text-base">${getMoonEmoji(moon.phaseName || '')}</span>
         <span class="scale-75 origin-right">${moon.illumination}%</span>
       `
       infoBox.appendChild(moonDiv)
@@ -533,8 +525,9 @@ function handleEventClick(info: EventClickArg) {
   const eventType = info.event.extendedProps.type
 
   if (eventType === 'schedule') {
-    const schedule = info.event.extendedProps.schedule
-    const tour = info.event.extendedProps.tour
+    const schedule = info.event.extendedProps.schedule as TourScheduleRes
+    // Lookup full tour by tourId from props.tours (if needed by consumer)
+    const tour = props.tours.find(t => t.id === schedule.tourId)
     emit('scheduleClick', schedule, tour)
   }
 }

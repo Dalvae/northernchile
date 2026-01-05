@@ -47,31 +47,31 @@ public class TourService {
     public TourRes createTour(TourCreateReq tourCreateReq, User currentUser) {
         Tour tour = new Tour();
         tour.setOwner(currentUser);
-        tour.setNameTranslations(tourCreateReq.getNameTranslations());
-        tour.setDescriptionBlocksTranslations(tourCreateReq.getDescriptionBlocksTranslations());
+        tour.setNameTranslations(tourCreateReq.nameTranslations());
+        tour.setDescriptionBlocksTranslations(tourCreateReq.descriptionBlocksTranslations());
         tour.setWindSensitive(tourCreateReq.isWindSensitive() != null && tourCreateReq.isWindSensitive());
         tour.setMoonSensitive(tourCreateReq.isMoonSensitive() != null && tourCreateReq.isMoonSensitive());
         tour.setCloudSensitive(tourCreateReq.isCloudSensitive() != null && tourCreateReq.isCloudSensitive());
-        tour.setCategory(tourCreateReq.getCategory());
-        tour.setPrice(tourCreateReq.getPrice());
-        tour.setDefaultMaxParticipants(tourCreateReq.getDefaultMaxParticipants());
-        tour.setDurationHours(tourCreateReq.getDurationHours());
-        tour.setDefaultStartTime(tourCreateReq.getDefaultStartTime());
-        tour.setStatus(tourCreateReq.getStatus());
+        tour.setCategory(tourCreateReq.category());
+        tour.setPrice(tourCreateReq.price());
+        tour.setDefaultMaxParticipants(tourCreateReq.defaultMaxParticipants());
+        tour.setDurationHours(tourCreateReq.durationHours());
+        tour.setDefaultStartTime(tourCreateReq.defaultStartTime());
+        tour.setStatus(tourCreateReq.status());
 
         // Set structured content fields
-        tour.setGuideName(tourCreateReq.getGuideName());
-        if (tourCreateReq.getItineraryTranslations() != null) {
-            tour.setItineraryTranslations(new HashMap<>(tourCreateReq.getItineraryTranslations()));
+        tour.setGuideName(tourCreateReq.guideName());
+        if (tourCreateReq.itineraryTranslations() != null) {
+            tour.setItineraryTranslations(new HashMap<>(tourCreateReq.itineraryTranslations()));
         }
-        if (tourCreateReq.getEquipmentTranslations() != null) {
-            tour.setEquipmentTranslations(new HashMap<>(tourCreateReq.getEquipmentTranslations()));
+        if (tourCreateReq.equipmentTranslations() != null) {
+            tour.setEquipmentTranslations(new HashMap<>(tourCreateReq.equipmentTranslations()));
         }
-        if (tourCreateReq.getAdditionalInfoTranslations() != null) {
-            tour.setAdditionalInfoTranslations(new HashMap<>(tourCreateReq.getAdditionalInfoTranslations()));
+        if (tourCreateReq.additionalInfoTranslations() != null) {
+            tour.setAdditionalInfoTranslations(new HashMap<>(tourCreateReq.additionalInfoTranslations()));
         }
 
-        String baseName = tourCreateReq.getNameTranslations().getOrDefault("es", "tour");
+        String baseName = tourCreateReq.nameTranslations().getOrDefault("es", "tour");
         tour.setSlug(generateUniqueSlug(baseName));
 
         Tour savedTour = tourRepository.save(tour);
@@ -93,10 +93,8 @@ public class TourService {
         // Use EntityGraph to eagerly fetch images and owner - avoids N+1 query
         List<TourRes> tours = tourRepository.findByStatusNotDeletedWithImages("PUBLISHED").stream()
                 .map(tourMapper::toTourRes)
+                .map(this::populateImages)
                 .collect(Collectors.toList());
-
-        // Populate images for each tour (images already loaded from EntityGraph)
-        tours.forEach(this::populateImages);
 
         return tours;
     }
@@ -106,10 +104,8 @@ public class TourService {
         // Use EntityGraph to eagerly fetch images and owner - avoids N+1 query
         List<TourRes> tours = tourRepository.findAllNotDeletedWithImages().stream()
                 .map(tourMapper::toTourRes)
+                .map(this::populateImages)
                 .collect(Collectors.toList());
-
-        // Populate images for each tour (images already loaded from EntityGraph)
-        tours.forEach(this::populateImages);
 
         return tours;
     }
@@ -119,10 +115,8 @@ public class TourService {
         // Use EntityGraph to eagerly fetch images and owner - avoids N+1 query
         List<TourRes> tours = tourRepository.findByOwnerIdNotDeletedWithImages(owner.getId()).stream()
                 .map(tourMapper::toTourRes)
+                .map(this::populateImages)
                 .collect(Collectors.toList());
-
-        // Populate images for each tour (images already loaded from EntityGraph)
-        tours.forEach(this::populateImages);
 
         return tours;
     }
@@ -134,9 +128,7 @@ public class TourService {
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + id));
 
         TourRes tourRes = tourMapper.toTourRes(tour);
-        populateImages(tourRes);
-
-        return tourRes;
+        return populateImages(tourRes);
     }
 
     @Transactional
@@ -154,31 +146,31 @@ public class TourService {
             "price", tour.getPrice().toString()
         );
 
-        tour.setNameTranslations(tourUpdateReq.getNameTranslations());
-        tour.setDescriptionBlocksTranslations(tourUpdateReq.getDescriptionBlocksTranslations());
+        tour.setNameTranslations(tourUpdateReq.nameTranslations());
+        tour.setDescriptionBlocksTranslations(tourUpdateReq.descriptionBlocksTranslations());
         tour.setWindSensitive(tourUpdateReq.isWindSensitive() != null && tourUpdateReq.isWindSensitive());
         tour.setMoonSensitive(tourUpdateReq.isMoonSensitive() != null && tourUpdateReq.isMoonSensitive());
         tour.setCloudSensitive(tourUpdateReq.isCloudSensitive() != null && tourUpdateReq.isCloudSensitive());
-        tour.setCategory(tourUpdateReq.getCategory());
-        tour.setPrice(tourUpdateReq.getPrice());
-        tour.setDefaultMaxParticipants(tourUpdateReq.getDefaultMaxParticipants());
-        tour.setDurationHours(tourUpdateReq.getDurationHours());
-        tour.setDefaultStartTime(tourUpdateReq.getDefaultStartTime());
-        tour.setStatus(tourUpdateReq.getStatus());
+        tour.setCategory(tourUpdateReq.category());
+        tour.setPrice(tourUpdateReq.price());
+        tour.setDefaultMaxParticipants(tourUpdateReq.defaultMaxParticipants());
+        tour.setDurationHours(tourUpdateReq.durationHours());
+        tour.setDefaultStartTime(tourUpdateReq.defaultStartTime());
+        tour.setStatus(tourUpdateReq.status());
 
         // Update structured content fields
-        tour.setGuideName(tourUpdateReq.getGuideName());
-        if (tourUpdateReq.getItineraryTranslations() != null) {
-            tour.setItineraryTranslations(new HashMap<>(tourUpdateReq.getItineraryTranslations()));
+        tour.setGuideName(tourUpdateReq.guideName());
+        if (tourUpdateReq.itineraryTranslations() != null) {
+            tour.setItineraryTranslations(new HashMap<>(tourUpdateReq.itineraryTranslations()));
         }
-        if (tourUpdateReq.getEquipmentTranslations() != null) {
-            tour.setEquipmentTranslations(new HashMap<>(tourUpdateReq.getEquipmentTranslations()));
+        if (tourUpdateReq.equipmentTranslations() != null) {
+            tour.setEquipmentTranslations(new HashMap<>(tourUpdateReq.equipmentTranslations()));
         }
-        if (tourUpdateReq.getAdditionalInfoTranslations() != null) {
-            tour.setAdditionalInfoTranslations(new HashMap<>(tourUpdateReq.getAdditionalInfoTranslations()));
+        if (tourUpdateReq.additionalInfoTranslations() != null) {
+            tour.setAdditionalInfoTranslations(new HashMap<>(tourUpdateReq.additionalInfoTranslations()));
         }
 
-        String newBaseName = tourUpdateReq.getNameTranslations().getOrDefault("es", "tour");
+        String newBaseName = tourUpdateReq.nameTranslations().getOrDefault("es", "tour");
         String currentSlug = tour.getSlug();
         String expectedSlug = slugGenerator.generateSlug(newBaseName);
         if (currentSlug == null || !currentSlug.startsWith(expectedSlug)) {
@@ -225,9 +217,7 @@ public class TourService {
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found with slug: " + slug));
 
         TourRes tourRes = tourMapper.toTourRes(tour);
-        populateImages(tourRes);
-
-        return tourRes;
+        return populateImages(tourRes);
     }
 
     private String generateUniqueSlug(String baseName) {
@@ -256,18 +246,44 @@ public class TourService {
 
     /**
      * Populate images from media table into TourRes
+     * Returns a new TourRes with images populated (records are immutable)
      */
-    private void populateImages(TourRes tourRes) {
-        if (tourRes == null || tourRes.getId() == null) {
-            return;
+    private TourRes populateImages(TourRes tourRes) {
+        if (tourRes == null || tourRes.id() == null) {
+            return tourRes;
         }
 
         List<TourImageRes> images = mediaRepository
-                .findByTourIdOrderByDisplayOrderAsc(tourRes.getId())
+                .findByTourIdOrderByDisplayOrderAsc(tourRes.id())
                 .stream()
                 .map(tourMapper::toTourImageRes)
                 .collect(Collectors.toList());
 
-        tourRes.setImages(images);
+        return new TourRes(
+                tourRes.id(),
+                tourRes.slug(),
+                tourRes.nameTranslations(),
+                tourRes.category(),
+                tourRes.price(),
+                tourRes.defaultMaxParticipants(),
+                tourRes.durationHours(),
+                tourRes.defaultStartTime(),
+                tourRes.status(),
+                images,
+                tourRes.isMoonSensitive(),
+                tourRes.isWindSensitive(),
+                tourRes.isCloudSensitive(),
+                tourRes.createdAt(),
+                tourRes.updatedAt(),
+                tourRes.contentKey(),
+                tourRes.guideName(),
+                tourRes.itinerary(),
+                tourRes.equipment(),
+                tourRes.additionalInfo(),
+                tourRes.itineraryTranslations(),
+                tourRes.equipmentTranslations(),
+                tourRes.additionalInfoTranslations(),
+                tourRes.descriptionBlocksTranslations()
+        );
     }
 }

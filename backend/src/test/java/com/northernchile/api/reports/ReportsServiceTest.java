@@ -100,15 +100,15 @@ class ReportsServiceTest {
 
         // Then
         assertThat(report).isNotNull();
-        assertThat(report.getTotalBookings()).isEqualTo(4);
-        assertThat(report.getConfirmedBookings()).isEqualTo(2);
-        assertThat(report.getCancelledBookings()).isEqualTo(1);
-        assertThat(report.getTotalRevenue()).isEqualByComparingTo(new BigDecimal("300.00"));
-        assertThat(report.getTotalParticipants()).isEqualTo(4);
-        assertThat(report.getConversionRate()).isEqualTo(50.0); // 2/4 * 100
-        assertThat(report.getTotalUsers()).isEqualTo(100L);
-        assertThat(report.getTotalTours()).isEqualTo(20L);
-        assertThat(report.getTotalSchedules()).isEqualTo(150L);
+        assertThat(report.totalBookings()).isEqualTo(4);
+        assertThat(report.confirmedBookings()).isEqualTo(2);
+        assertThat(report.cancelledBookings()).isEqualTo(1);
+        assertThat(report.totalRevenue()).isEqualByComparingTo(new BigDecimal("300.00"));
+        assertThat(report.totalParticipants()).isEqualTo(4);
+        assertThat(report.conversionRate()).isEqualTo(50.0); // 2/4 * 100
+        assertThat(report.totalUsers()).isEqualTo(100L);
+        assertThat(report.totalTours()).isEqualTo(20L);
+        assertThat(report.totalSchedules()).isEqualTo(150L);
     }
 
     @Test
@@ -125,7 +125,7 @@ class ReportsServiceTest {
 
         // Then
         // Total revenue = 300 (only confirmed bookings), Confirmed bookings = 2, Average = 150
-        assertThat(report.getAverageBookingValue()).isEqualByComparingTo(new BigDecimal("150.00"));
+        assertThat(report.averageBookingValue()).isEqualByComparingTo(new BigDecimal("150.00"));
     }
 
     @Test
@@ -141,11 +141,11 @@ class ReportsServiceTest {
         OverviewReport report = reportsService.getOverview(start, end);
 
         // Then
-        assertThat(report.getTotalBookings()).isZero();
-        assertThat(report.getConfirmedBookings()).isZero();
-        assertThat(report.getTotalRevenue()).isEqualByComparingTo(BigDecimal.ZERO);
-        assertThat(report.getAverageBookingValue()).isEqualByComparingTo(BigDecimal.ZERO);
-        assertThat(report.getConversionRate()).isZero();
+        assertThat(report.totalBookings()).isZero();
+        assertThat(report.confirmedBookings()).isZero();
+        assertThat(report.totalRevenue()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(report.averageBookingValue()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(report.conversionRate()).isZero();
     }
 
     @Test
@@ -163,8 +163,8 @@ class ReportsServiceTest {
 
         // Verify reports are sorted by date
         for (int i = 0; i < report.size() - 1; i++) {
-            assertThat(report.get(i).getDate())
-                .isBeforeOrEqualTo(report.get(i + 1).getDate());
+            assertThat(report.get(i).date())
+                .isBeforeOrEqualTo(report.get(i + 1).date());
         }
     }
 
@@ -180,9 +180,9 @@ class ReportsServiceTest {
         // Then
         assertThat(report).isNotEmpty();
         report.forEach(dayReport -> {
-            assertThat(dayReport.getDate()).isNotNull();
-            assertThat(dayReport.getCount()).isPositive();
-            assertThat(dayReport.getRevenue()).isNotNull();
+            assertThat(dayReport.date()).isNotNull();
+            assertThat(dayReport.count()).isPositive();
+            assertThat(dayReport.revenue()).isNotNull();
         });
     }
 
@@ -200,8 +200,8 @@ class ReportsServiceTest {
 
         // Verify sorting (descending by bookings count)
         for (int i = 0; i < report.size() - 1; i++) {
-            assertThat(report.get(i).getBookingsCount())
-                .isGreaterThanOrEqualTo(report.get(i + 1).getBookingsCount());
+            assertThat(report.get(i).bookingsCount())
+                .isGreaterThanOrEqualTo(report.get(i + 1).bookingsCount());
         }
     }
 
@@ -234,10 +234,10 @@ class ReportsServiceTest {
         // Then
         assertThat(report).isNotEmpty();
         report.forEach(tourReport -> {
-            assertThat(tourReport.getTourName()).isNotBlank();
-            assertThat(tourReport.getBookingsCount()).isPositive();
-            assertThat(tourReport.getRevenue()).isNotNull();
-            assertThat(tourReport.getParticipants()).isNotNegative();
+            assertThat(tourReport.tourName()).isNotBlank();
+            assertThat(tourReport.bookingsCount()).isPositive();
+            assertThat(tourReport.revenue()).isNotNull();
+            assertThat(tourReport.participants()).isNotNegative();
         });
     }
 
@@ -363,10 +363,10 @@ class ReportsServiceTest {
 
             // Then
             assertThat(report).isNotNull();
-            assertThat(report.getMpGrossAmount()).isEqualByComparingTo(new BigDecimal("100000"));
-            assertThat(report.getMpNetReceived()).isEqualByComparingTo(new BigDecimal("95500"));
-            assertThat(report.getMpGatewayFees()).isEqualByComparingTo(new BigDecimal("4500"));
-            assertThat(report.getMpTransactionCount()).isEqualTo(1);
+            assertThat(report.mpGrossAmount()).isEqualByComparingTo(new BigDecimal("100000"));
+            assertThat(report.mpNetReceived()).isEqualByComparingTo(new BigDecimal("95500"));
+            assertThat(report.mpGatewayFees()).isEqualByComparingTo(new BigDecimal("4500"));
+            assertThat(report.mpTransactionCount()).isEqualTo(1);
         }
 
         @Test
@@ -390,10 +390,10 @@ class ReportsServiceTest {
 
             // Then
             assertThat(report).isNotNull();
-            assertThat(report.getTbGrossAmount()).isEqualByComparingTo(new BigDecimal("100000"));
-            assertThat(report.getTbTransactionCount()).isEqualTo(1);
+            assertThat(report.tbGrossAmount()).isEqualByComparingTo(new BigDecimal("100000"));
+            assertThat(report.tbTransactionCount()).isEqualTo(1);
             // Fee should be 1.77% for debit = 1770
-            assertThat(report.getTbEstimatedFees()).isEqualByComparingTo(new BigDecimal("1770"));
+            assertThat(report.tbEstimatedFees()).isEqualByComparingTo(new BigDecimal("1770"));
         }
 
         @Test
@@ -421,10 +421,10 @@ class ReportsServiceTest {
             FinancialReport report = reportsService.getFinancialReport(start, end);
 
             // Then
-            assertThat(report.getMpTransactionCount()).isEqualTo(1);
-            assertThat(report.getTbTransactionCount()).isEqualTo(1);
-            assertThat(report.getMpGrossAmount()).isEqualByComparingTo(new BigDecimal("50000"));
-            assertThat(report.getTbGrossAmount()).isEqualByComparingTo(new BigDecimal("75000"));
+            assertThat(report.mpTransactionCount()).isEqualTo(1);
+            assertThat(report.tbTransactionCount()).isEqualTo(1);
+            assertThat(report.mpGrossAmount()).isEqualByComparingTo(new BigDecimal("50000"));
+            assertThat(report.tbGrossAmount()).isEqualByComparingTo(new BigDecimal("75000"));
         }
 
         @Test
@@ -449,7 +449,7 @@ class ReportsServiceTest {
             FinancialReport report = reportsService.getFinancialReport(start, end);
 
             // Then
-            assertThat(report.getTotalTaxCollected()).isEqualByComparingTo(new BigDecimal("15966"));
+            assertThat(report.totalTaxCollected()).isEqualByComparingTo(new BigDecimal("15966"));
         }
 
         @Test
@@ -463,9 +463,9 @@ class ReportsServiceTest {
 
             // Then
             assertThat(report).isNotNull();
-            assertThat(report.getMpGrossAmount()).isEqualByComparingTo(BigDecimal.ZERO);
-            assertThat(report.getTbGrossAmount()).isEqualByComparingTo(BigDecimal.ZERO);
-            assertThat(report.getTotalTaxCollected()).isEqualByComparingTo(BigDecimal.ZERO);
+            assertThat(report.mpGrossAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+            assertThat(report.tbGrossAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+            assertThat(report.totalTaxCollected()).isEqualByComparingTo(BigDecimal.ZERO);
         }
     }
 }

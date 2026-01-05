@@ -41,34 +41,36 @@ public class PricingController {
         List<PricingCalculationRes.PricingLineItem> lineItems = new ArrayList<>();
         List<PricingService.LineItem> pricingItems = new ArrayList<>();
 
-        for (var item : request.getItems()) {
-            var schedule = tourScheduleRepository.findById(item.getScheduleId())
-                .orElseThrow(() -> new ResourceNotFoundException("TourSchedule", item.getScheduleId()));
+        for (var item : request.items()) {
+            var schedule = tourScheduleRepository.findById(item.scheduleId())
+                .orElseThrow(() -> new ResourceNotFoundException("TourSchedule", item.scheduleId()));
 
             var tour = schedule.getTour();
             BigDecimal pricePerParticipant = tour.getPrice();
-            BigDecimal lineTotal = pricePerParticipant.multiply(BigDecimal.valueOf(item.getNumParticipants()));
+            BigDecimal lineTotal = pricePerParticipant.multiply(BigDecimal.valueOf(item.numParticipants()));
 
-            var lineItem = new PricingCalculationRes.PricingLineItem();
-            lineItem.setScheduleId(schedule.getId());
-            lineItem.setTourId(tour.getId());
-            lineItem.setTourName(tour.getNameTranslations().get("es"));
-            lineItem.setNumParticipants(item.getNumParticipants());
-            lineItem.setPricePerParticipant(pricePerParticipant);
-            lineItem.setLineTotal(lineTotal);
+            var lineItem = new PricingCalculationRes.PricingLineItem(
+                schedule.getId(),
+                tour.getId(),
+                tour.getNameTranslations().get("es"),
+                item.numParticipants(),
+                pricePerParticipant,
+                lineTotal
+            );
             lineItems.add(lineItem);
 
-            pricingItems.add(new PricingService.LineItem(pricePerParticipant, item.getNumParticipants()));
+            pricingItems.add(new PricingService.LineItem(pricePerParticipant, item.numParticipants()));
         }
 
         var pricing = pricingService.calculateMultipleItems(pricingItems);
 
-        var response = new PricingCalculationRes();
-        response.setItems(lineItems);
-        response.setSubtotal(pricing.subtotal());
-        response.setTaxAmount(pricing.taxAmount());
-        response.setTaxRate(pricing.taxRate());
-        response.setTotalAmount(pricing.totalAmount());
+        var response = new PricingCalculationRes(
+            lineItems,
+            pricing.subtotal(),
+            pricing.taxAmount(),
+            pricing.taxRate(),
+            pricing.totalAmount()
+        );
 
         return ResponseEntity.ok(response);
     }

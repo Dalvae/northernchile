@@ -1,29 +1,5 @@
 import { defineStore } from 'pinia'
-
-interface AddCartItemRequest {
-  scheduleId: string
-  numParticipants: number
-}
-
-interface CartItem {
-  itemId?: string
-  scheduleId: string
-  numParticipants: number
-  tourName?: string
-  pricePerParticipant?: number
-  itemTotal?: number
-  startDatetime?: string
-  durationHours?: number
-}
-
-interface Cart {
-  cartId: string | null
-  items: CartItem[]
-  subtotal: number
-  taxAmount: number
-  taxRate: number
-  cartTotal: number
-}
+import type { CartRes, CartItemReq, CartItemRes } from 'api-client'
 
 declare global {
   interface Window {
@@ -35,8 +11,8 @@ export const useCartStore = defineStore('cart', () => {
   const { showErrorToast, showSuccessToast, isScheduleFullError, parseError } = useApiError()
   const { t } = useI18n()
 
-  const defaultCart: Cart = {
-    cartId: null,
+  const defaultCart: CartRes = {
+    cartId: '',
     items: [],
     subtotal: 0,
     taxAmount: 0,
@@ -44,24 +20,22 @@ export const useCartStore = defineStore('cart', () => {
     cartTotal: 0
   }
 
-  const cart = ref<Cart>(defaultCart)
+  const cart = ref<CartRes>(defaultCart)
 
   const isLoading = ref(false)
 
   const totalItems = computed(() => {
-    if (!cart.value || !cart.value.items) return 0
     return cart.value.items.reduce((sum, item) => sum + item.numParticipants, 0)
   })
 
   const totalPrice = computed(() => {
-    if (!cart.value) return 0
-    return cart.value.cartTotal || 0
+    return cart.value.cartTotal
   })
 
   async function fetchCart() {
     isLoading.value = true
     try {
-      const response = await $fetch<Cart>('/api/cart', {
+      const response = await $fetch<CartRes>('/api/cart', {
         credentials: 'include'
       })
       cart.value = response
@@ -77,14 +51,18 @@ export const useCartStore = defineStore('cart', () => {
    * Add item to cart with optimistic UI update.
    * Updates UI immediately, then syncs with backend. Reverts on failure.
    */
-  async function addItem(itemData: AddCartItemRequest) {
-    const previousCart = JSON.parse(JSON.stringify(cart.value)) as Cart
+  async function addItem(itemData: CartItemReq) {
+    const previousCart = JSON.parse(JSON.stringify(cart.value)) as CartRes
 
     // Optimistic update: add item immediately
-    const optimisticItem: CartItem = {
+    // We cast to CartItemRes because we don't have all fields yet
+    const optimisticItem = {
       scheduleId: itemData.scheduleId,
-      numParticipants: itemData.numParticipants
-    }
+      numParticipants: itemData.numParticipants,
+      // Default values for other fields to satisfy UI
+      itemTotal: 0,
+      pricePerParticipant: 0
+    } as unknown as CartItemRes
 
     const existingIndex = cart.value.items.findIndex(
       item => item.scheduleId === itemData.scheduleId
@@ -93,7 +71,7 @@ export const useCartStore = defineStore('cart', () => {
     if (existingIndex >= 0) {
       const existing = cart.value.items[existingIndex]
       if (existing) {
-        existing.numParticipants += itemData.numParticipants
+        existing.numParticipants = existing.numParticipants + itemData.numParticipants
       }
     } else {
       cart.value.items.push(optimisticItem)
@@ -101,7 +79,7 @@ export const useCartStore = defineStore('cart', () => {
 
     isLoading.value = true
     try {
-      const response = await $fetch<Cart>('/api/cart/items', {
+      const response = await $fetch<CartRes>('/api/cart/items', {
         method: 'POST',
         credentials: 'include',
         body: itemData
@@ -149,14 +127,14 @@ export const useCartStore = defineStore('cart', () => {
    * Removes from UI immediately, then syncs with backend. Reverts on failure.
    */
   async function removeItem(itemId: string) {
-    const previousCart = JSON.parse(JSON.stringify(cart.value)) as Cart
+    const previousCart = JSON.parse(JSON.stringify(cart.value)) as CartRes
 
     // Optimistic update: remove item immediately
     cart.value.items = cart.value.items.filter(item => item.itemId !== itemId && item.scheduleId !== itemId)
 
     isLoading.value = true
     try {
-      const response = await $fetch<Cart>(`/api/cart/items/${itemId}`, {
+      const response = await $fetch<CartRes>(`/api/cart/items/${itemId}`, {
         method: 'DELETE',
         credentials: 'include'
       })
@@ -181,7 +159,7 @@ export const useCartStore = defineStore('cart', () => {
 
   function clearCart() {
     cart.value = {
-      cartId: null,
+      cartId: '',
       items: [],
       subtotal: 0,
       taxAmount: 0,

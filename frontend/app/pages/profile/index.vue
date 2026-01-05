@@ -294,6 +294,7 @@
 
 <script setup lang="ts">
 import { getTodayString, parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
+import type { ProfileUpdateReq, PasswordChangeReq } from 'api-client'
 
 const { t, locale } = useI18n()
 const authStore = useAuthStore()
@@ -346,11 +347,11 @@ onMounted(async () => {
 
   // Update form with user data
   if (authStore.user) {
-    profileForm.fullName = authStore.user.fullName || ''
-    profileForm.email = authStore.user.email || ''
-    profileForm.nationality = authStore.user.nationality || ''
-    profileForm.dateOfBirth = authStore.user.dateOfBirth || ''
-    profileForm.phoneNumber = authStore.user.phoneNumber || ''
+    profileForm.fullName = authStore.user.fullName
+    profileForm.email = authStore.user.email
+    profileForm.nationality = authStore.user.nationality ?? ''
+    profileForm.dateOfBirth = authStore.user.dateOfBirth ?? ''
+    profileForm.phoneNumber = authStore.user.phoneNumber ?? ''
   }
 
   isLoading.value = false
@@ -383,10 +384,7 @@ async function saveProfile() {
   isSaving.value = true
 
   try {
-    const config = useRuntimeConfig()
-    const apiBase = config.public.apiBase
-
-    await $fetch(`${apiBase}/api/profile/me`, {
+    await $fetch('/api/profile/me', {
       method: 'PUT',
       credentials: 'include',
       body: {
@@ -394,7 +392,7 @@ async function saveProfile() {
         nationality: profileForm.nationality || null,
         phoneNumber: profileForm.phoneNumber || null,
         dateOfBirth: profileForm.dateOfBirth || null
-      }
+      } as ProfileUpdateReq
     })
 
     // Update auth store
@@ -452,7 +450,7 @@ async function changePassword() {
       body: {
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword
-      }
+      } as PasswordChangeReq
     })
 
     toast.add({

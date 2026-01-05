@@ -59,6 +59,20 @@ public class PaymentSessionController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{id}/status")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get session status", description = "Get the current status of a payment session")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Session status retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Session not found")
+    })
+    public ResponseEntity<PaymentSessionRes> getSessionStatus(@PathVariable("id") java.util.UUID sessionId) {
+        log.info("Session status request for: {}", sessionId);
+        PaymentSessionRes response = sessionService.getSessionStatus(sessionId);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/confirm")
     @Operation(summary = "Confirm payment (Transbank)", description = "Confirm a Transbank payment after redirect")
     @ApiResponses(value = {

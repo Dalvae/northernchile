@@ -44,19 +44,19 @@ public class TourScheduleService {
 
     @Transactional
     public TourScheduleRes createScheduledTour(TourScheduleCreateReq req, User currentUser) {
-        Tour tour = tourRepository.findByIdNotDeleted(req.getTourId())
-                .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + req.getTourId()));
+        Tour tour = tourRepository.findByIdNotDeleted(req.tourId())
+                .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + req.tourId()));
 
         // Check ownership for non-super-admins
         SecurityUtils.validateOwnership(currentUser, tour, "You do not have permission to create schedules for this tour.");
 
-        var guide = req.getAssignedGuideId() != null ? userRepository.findById(req.getAssignedGuideId())
-                .orElseThrow(() -> new EntityNotFoundException("Guide not found with id: " + req.getAssignedGuideId())) : null;
+        var guide = req.assignedGuideId() != null ? userRepository.findById(req.assignedGuideId())
+                .orElseThrow(() -> new EntityNotFoundException("Guide not found with id: " + req.assignedGuideId())) : null;
 
         TourSchedule schedule = new TourSchedule();
         schedule.setTour(tour);
-        schedule.setStartDatetime(req.getStartDatetime());
-        schedule.setMaxParticipants(req.getMaxParticipants());
+        schedule.setStartDatetime(req.resolvedStartDatetime());
+        schedule.setMaxParticipants(req.maxParticipants());
         schedule.setAssignedGuide(guide);
         schedule.setStatus("OPEN");
 
@@ -95,14 +95,14 @@ public class TourScheduleService {
         );
 
         // Update fields
-        if (req.getStartDatetime() != null) {
-            schedule.setStartDatetime(req.getStartDatetime());
+        if (req.startDatetime() != null || (req.date() != null && req.time() != null)) {
+            schedule.setStartDatetime(req.resolvedStartDatetime());
         }
-        if (req.getMaxParticipants() != null) {
-            schedule.setMaxParticipants(req.getMaxParticipants());
+        if (req.maxParticipants() != null) {
+            schedule.setMaxParticipants(req.maxParticipants());
         }
-        if (req.getStatus() != null) {
-            schedule.setStatus(req.getStatus());
+        if (req.status() != null) {
+            schedule.setStatus(req.status());
         }
 
         TourSchedule savedSchedule = tourScheduleRepository.save(schedule);
@@ -187,30 +187,27 @@ public class TourScheduleService {
     }
 
     private TourScheduleRes toTourScheduleRes(TourSchedule schedule) {
-        TourScheduleRes res = new TourScheduleRes();
-        res.setId(schedule.getId());
-        res.setTourId(schedule.getTour().getId());
-        res.setTourName(schedule.getTour().getNameTranslations().get("es"));
-        res.setTourNameTranslations(schedule.getTour().getNameTranslations());
-        res.setTourDurationHours(schedule.getTour().getDurationHours());
-        res.setStartDatetime(schedule.getStartDatetime());
-        res.setMaxParticipants(schedule.getMaxParticipants());
-
         // Get availability status (accounts for both confirmed bookings and cart reservations)
         var availabilityStatus = availabilityValidator.getAvailabilityStatus(
                 schedule.getId(),
                 schedule.getMaxParticipants()
         );
-        int totalReserved = schedule.getMaxParticipants() - availabilityStatus.getAvailableSlots();
-        res.setBookedParticipants(totalReserved);
-        res.setAvailableSpots(availabilityStatus.getAvailableSlots());
+        int totalReserved = schedule.getMaxParticipants() - availabilityStatus.availableSlots();
 
-        res.setStatus(schedule.getStatus());
-        if (schedule.getAssignedGuide() != null) {
-            res.setAssignedGuideId(schedule.getAssignedGuide().getId());
-            res.setAssignedGuideName(schedule.getAssignedGuide().getFullName());
-        }
-        res.setCreatedAt(schedule.getCreatedAt());
-        return res;
+        return new TourScheduleRes(
+            schedule.getId(),
+            schedule.getTour().getId(),
+            schedule.getTour().getNameTranslations().get("es"),
+            schedule.getTour().getNameTranslations(),
+            schedule.getTour().getDurationHours(),
+            schedule.getStartDatetime(),
+            schedule.getMaxParticipants(),
+            totalReserved,  // bookedParticipants
+            availabilityStatus.availableSlots(),
+            schedule.getStatus(),
+            schedule.getAssignedGuide() != null ? schedule.getAssignedGuide().getId() : null,
+            schedule.getAssignedGuide() != null ? schedule.getAssignedGuide().getFullName() : null,
+            schedule.getCreatedAt()
+        );
     }
 }

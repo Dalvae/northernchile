@@ -39,18 +39,16 @@ public class AvailabilityService {
         this.lunarService = lunarService;
     }
 
-    // This DTO should be in its own file in a real application
-    public static class DayAvailability {
-        public String status;
-        public Integer availableSlots;
-        public Double moonIllumination;
-
-        public DayAvailability(String status, Integer availableSlots, Double moonIllumination) {
-            this.status = status;
-            this.availableSlots = availableSlots;
-            this.moonIllumination = moonIllumination;
-        }
-    }
+    /**
+     * DTO representing availability status for a specific day.
+     * Contains status (AVAILABLE, SOLD_OUT, FEW_SLOTS_LEFT, UNAVAILABLE_MOON, UNAVAILABLE_WIND),
+     * the number of available slots, and moon illumination percentage.
+     */
+    public record DayAvailability(
+            String status,
+            Integer availableSlots,
+            Double moonIllumination
+    ) {}
 
     public Map<LocalDate, DayAvailability> getAvailabilityForMonth(UUID tourId, int year, int month) {
         YearMonth yearMonth = YearMonth.of(year, month);
@@ -89,7 +87,7 @@ public class AvailabilityService {
                 schedule.getId(),
                 schedule.getMaxParticipants()
         );
-        Integer availableSlots = availabilityStatus.getAvailableSlots();
+        Integer availableSlots = availabilityStatus.availableSlots();
 
         String status = "AVAILABLE";
         if (availableSlots <= 0) {
