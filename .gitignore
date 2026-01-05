@@ -1,3 +1,130 @@
-
-.aider*
+# ======================
+# Environment & Secrets
+# ======================
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# ======================
+# AI/Coding Assistants
+# ======================
+.aider*
+.claude*
+.cursor/
+.copilot/
+
+# ======================
+# IDE & Editors
+# ======================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.iml
+*.iws
+*.ipr
+
+# ======================
+# OS Generated
+# ======================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ======================
+# Node.js / Frontend
+# ======================
+node_modules/
+.pnpm-store/
+.npm/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Nuxt specific
+.nuxt/
+.output/
+.data/
+.nitro/
+.cache/
+dist/
+
+# Generated API client
+frontend/lib/api-client/
+
+# ======================
+# Java / Backend
+# ======================
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# Maven wrapper jar (properties file is ok)
+.mvn/wrapper/maven-wrapper.jar
+
+# ======================
+# Testing
+# ======================
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.playwright-mcp/
+
+# Coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# ======================
+# Docker
+# ======================
+# Don't ignore docker-compose files, but ignore local overrides if sensitive
+# docker-compose.override.yml is already tracked, keep it
+
+# ======================
+# Logs & Temp Files
+# ======================
+logs/
+*.log
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# ======================
+# Build artifacts
+# ======================
+build/
+out/
+*.min.js
+*.min.css
+
+# ======================
+# Misc
+# ======================
+.fleet/
+*.local
+openapi.json

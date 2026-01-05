@@ -4,6 +4,7 @@ import com.northernchile.api.media.model.Media;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -82,4 +83,33 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
      * Delete all media for a schedule
      */
     void deleteByScheduleId(UUID scheduleId);
+
+    /**
+     * Find media by tour ordered by display order
+     */
+    List<Media> findByTourIdOrderByDisplayOrderAsc(UUID tourId);
+
+    /**
+     * Find media by schedule ordered by display order
+     */
+    List<Media> findByScheduleIdOrderByDisplayOrderAsc(UUID scheduleId);
+
+    /**
+     * Get max display order for a tour's media
+     */
+    @Query("SELECT MAX(m.displayOrder) FROM Media m WHERE m.tour.id = :tourId")
+    Integer getMaxDisplayOrderByTour(@Param("tourId") UUID tourId);
+
+    /**
+     * Get max display order for a schedule's media
+     */
+    @Query("SELECT MAX(m.displayOrder) FROM Media m WHERE m.schedule.id = :scheduleId")
+    Integer getMaxDisplayOrderBySchedule(@Param("scheduleId") UUID scheduleId);
+
+    /**
+     * Unset hero image for all media in a tour
+     */
+    @Modifying
+    @Query("UPDATE Media m SET m.isHero = false WHERE m.tour.id = :tourId AND m.isHero = true")
+    void unsetHeroByTour(@Param("tourId") UUID tourId);
 }

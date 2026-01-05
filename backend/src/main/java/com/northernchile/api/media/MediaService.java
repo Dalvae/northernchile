@@ -3,11 +3,7 @@ package com.northernchile.api.media;
 import com.northernchile.api.media.dto.*;
 import com.northernchile.api.media.mapper.MediaMapper;
 import com.northernchile.api.media.model.Media;
-import com.northernchile.api.media.model.ScheduleMedia;
-import com.northernchile.api.media.model.TourMedia;
 import com.northernchile.api.media.repository.MediaRepository;
-import com.northernchile.api.media.repository.ScheduleMediaRepository;
-import com.northernchile.api.media.repository.TourMediaRepository;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.User;
@@ -33,6 +29,7 @@ import java.util.UUID;
 
 /**
  * Service for managing media (photos) for tours and schedules.
+ * Simplified architecture: media directly references tour/schedule via FK.
  */
 @Service
 public class MediaService {
@@ -40,8 +37,6 @@ public class MediaService {
     private static final Logger log = LoggerFactory.getLogger(MediaService.class);
 
     private final MediaRepository mediaRepository;
-    private final TourMediaRepository tourMediaRepository;
-    private final ScheduleMediaRepository scheduleMediaRepository;
     private final TourRepository tourRepository;
     private final TourScheduleRepository scheduleRepository;
     private final UserRepository userRepository;
@@ -49,16 +44,12 @@ public class MediaService {
     private final MediaMapper mediaMapper;
 
     public MediaService(MediaRepository mediaRepository,
-                       TourMediaRepository tourMediaRepository,
-                       ScheduleMediaRepository scheduleMediaRepository,
                        TourRepository tourRepository,
                        TourScheduleRepository scheduleRepository,
                        UserRepository userRepository,
                        S3StorageService s3StorageService,
                        MediaMapper mediaMapper) {
         this.mediaRepository = mediaRepository;
-        this.tourMediaRepository = tourMediaRepository;
-        this.scheduleMediaRepository = scheduleMediaRepository;
         this.tourRepository = tourRepository;
         this.scheduleRepository = scheduleRepository;
         this.userRepository = userRepository;
@@ -171,88 +162,27 @@ public class MediaService {
             media.setCaptionTranslations(captionTranslations);
         }
 
-        Tour tour = null;
-        TourSchedule schedule = null;
-
-        // Verify access if uploading for a specific tour/schedule
-        // But DON'T set tour_id/schedule_id on Media - use join tables only
+        // Set tour/schedule directly on media
         if (tourId != null) {
-            tour = tourRepository.findById(tourId)
+            Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
-
             verifyTourAccess(owner, tour);
-            // DO NOT: media.setTour(tour) - relationship goes in tour_media table only
+            media.setTour(tour);
+            
+            // Get next display order for this tour
+            Integer maxOrder = mediaRepository.getMaxDisplayOrderByTour(tourId);
+            media.setDisplayOrder(maxOrder != null ? maxOrder + 1 : 0);
         }
 
         if (scheduleId != null) {
-            schedule = scheduleRepository.findById(scheduleId)
+            TourSchedule schedule = scheduleRepository.findById(scheduleId)
                     .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
-
-            verifyScheduleAccess(owner, schedule);
-            // DO NOT: media.setSchedule(schedule) - relationship goes in schedule_media table only
-        }
-
-        Media saved = mediaRepository.save(media);
-        log.info("Media created with ID: {}", saved.getId());
-
-        // Create join table entries for tour/schedule galleries
-        if (tour != null) {
-            // Get next display order
-            Integer maxOrder = tourMediaRepository.getMaxDisplayOrder(tourId);
-
-            // Use constructor that properly initializes the composite ID
-            TourMedia tourMedia = new TourMedia(tour, saved);
-            tourMedia.setDisplayOrder(maxOrder + 1);
-            tourMedia.setIsHero(false);
-            tourMedia.setIsFeatured(false);
-            tourMediaRepository.save(tourMedia);
-
-            log.info("Created TourMedia entry for tour: {}, media: {}", tourId, saved.getId());
-        }
-
-        if (schedule != null) {
-            // Get next display order
-            Integer maxOrder = scheduleMediaRepository.getMaxDisplayOrder(scheduleId);
-
-            // Use constructor that properly initializes the composite ID
-            ScheduleMedia scheduleMedia = new ScheduleMedia(schedule, saved);
-            scheduleMedia.setDisplayOrder(maxOrder + 1);
-            scheduleMediaRepository.save(scheduleMedia);
-
-            log.info("Created ScheduleMedia entry for schedule: {}, media: {}", scheduleId, saved.getId());
-        }
-
-        return mediaMapper.toMediaRes(saved);
-    }
-
-    /**
-     * Create new media record from existing S3 file (deprecated - use uploadAndCreateMedia instead).
-     */
-    @Transactional
-    @Deprecated
-    public MediaRes createMedia(MediaCreateReq req, UUID ownerId) {
-        log.info("Creating media for owner: {}", ownerId);
-
-        User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + ownerId));
-
-        Media media = mediaMapper.toMedia(req);
-        media.setOwner(owner);
-
-        if (req.getTourId() != null) {
-            Tour tour = tourRepository.findById(req.getTourId())
-                    .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + req.getTourId()));
-
-            verifyTourAccess(owner, tour);
-            media.setTour(tour);
-        }
-
-        if (req.getScheduleId() != null) {
-            TourSchedule schedule = scheduleRepository.findById(req.getScheduleId())
-                    .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + req.getScheduleId()));
-
             verifyScheduleAccess(owner, schedule);
             media.setSchedule(schedule);
+            
+            // Get next display order for this schedule
+            Integer maxOrder = mediaRepository.getMaxDisplayOrderBySchedule(scheduleId);
+            media.setDisplayOrder(maxOrder != null ? maxOrder + 1 : 0);
         }
 
         Media saved = mediaRepository.save(media);
@@ -314,21 +244,9 @@ public class MediaService {
                 default -> mediaRepository.findByOwnerId(requesterId, pageable);
             };
         } else if (search != null && !search.isBlank()) {
-            // For search: SUPER_ADMIN can search all media, PARTNER_ADMIN only their own
-            if (isSuperAdmin) {
-                // TODO: Need a repository method for global search - for now, search by owner
-                mediaPage = mediaRepository.searchByFilename(requesterId, search, pageable);
-            } else {
-                mediaPage = mediaRepository.searchByFilename(requesterId, search, pageable);
-            }
+            mediaPage = mediaRepository.searchByFilename(requesterId, search, pageable);
         } else {
-            // For general listing: SUPER_ADMIN sees all, PARTNER_ADMIN sees only their own
-            if (isSuperAdmin) {
-                // TODO: Need a repository method to find all media - for now, filter by owner
-                mediaPage = mediaRepository.findByOwnerId(requesterId, pageable);
-            } else {
-                mediaPage = mediaRepository.findByOwnerId(requesterId, pageable);
-            }
+            mediaPage = mediaRepository.findByOwnerId(requesterId, pageable);
         }
 
         return mediaPage.map(mediaMapper::toMediaRes);
@@ -415,7 +333,7 @@ public class MediaService {
 
         verifyTourAccess(requester, tour);
 
-        Integer maxOrder = tourMediaRepository.getMaxDisplayOrder(tourId);
+        Integer maxOrder = mediaRepository.getMaxDisplayOrderByTour(tourId);
         int currentOrder = maxOrder != null ? maxOrder : -1;
 
         for (UUID mediaId : mediaIds) {
@@ -424,15 +342,16 @@ public class MediaService {
 
             verifyMediaAccess(requester, media);
 
-            TourMedia.TourMediaId id = new TourMedia.TourMediaId(tourId, mediaId);
-            if (tourMediaRepository.existsById(id)) {
+            // Check if already assigned
+            if (media.getTour() != null && media.getTour().getId().equals(tourId)) {
                 log.warn("Media {} already assigned to tour {}, skipping", mediaId, tourId);
                 continue;
             }
 
-            TourMedia tourMedia = new TourMedia(tour, media);
-            tourMedia.setDisplayOrder(++currentOrder);
-            tourMediaRepository.save(tourMedia);
+            media.setTour(tour);
+            media.setSchedule(null); // Clear schedule when assigning to tour
+            media.setDisplayOrder(++currentOrder);
+            mediaRepository.save(media);
         }
 
         log.info("Successfully assigned media to tour: {}", tourId);
@@ -457,25 +376,27 @@ public class MediaService {
         int tempOffset = 10000;
         for (int i = 0; i < orders.size(); i++) {
             MediaOrderReq order = orders.get(i);
-            TourMedia.TourMediaId id = new TourMedia.TourMediaId(tourId, order.getMediaId());
-            TourMedia tourMedia = tourMediaRepository.findById(id)
-                    .orElseThrow(() -> new EntityNotFoundException("TourMedia not found"));
+            Media media = mediaRepository.findById(order.getMediaId())
+                    .orElseThrow(() -> new EntityNotFoundException("Media not found: " + order.getMediaId()));
 
-            tourMedia.setDisplayOrder(tempOffset + i);
-            tourMediaRepository.save(tourMedia);
+            if (media.getTour() == null || !media.getTour().getId().equals(tourId)) {
+                throw new IllegalArgumentException("Media " + order.getMediaId() + " is not assigned to tour " + tourId);
+            }
+
+            media.setDisplayOrder(tempOffset + i);
+            mediaRepository.save(media);
         }
 
         // Step 2: Flush changes to database
-        tourMediaRepository.flush();
+        mediaRepository.flush();
 
         // Step 3: Set final display orders
         for (MediaOrderReq order : orders) {
-            TourMedia.TourMediaId id = new TourMedia.TourMediaId(tourId, order.getMediaId());
-            TourMedia tourMedia = tourMediaRepository.findById(id)
-                    .orElseThrow(() -> new EntityNotFoundException("TourMedia not found"));
+            Media media = mediaRepository.findById(order.getMediaId())
+                    .orElseThrow(() -> new EntityNotFoundException("Media not found: " + order.getMediaId()));
 
-            tourMedia.setDisplayOrder(order.getDisplayOrder());
-            tourMediaRepository.save(tourMedia);
+            media.setDisplayOrder(order.getDisplayOrder());
+            mediaRepository.save(media);
         }
 
         log.info("Successfully reordered media for tour: {}", tourId);
@@ -496,14 +417,19 @@ public class MediaService {
 
         verifyTourAccess(requester, tour);
 
-        TourMedia.TourMediaId id = new TourMedia.TourMediaId(tourId, mediaId);
-        TourMedia tourMedia = tourMediaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Media not assigned to this tour"));
+        Media media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new EntityNotFoundException("Media not found: " + mediaId));
 
-        tourMediaRepository.unsetHeroImage(tourId);
+        if (media.getTour() == null || !media.getTour().getId().equals(tourId)) {
+            throw new IllegalArgumentException("Media not assigned to this tour");
+        }
 
-        tourMedia.setIsHero(true);
-        tourMediaRepository.save(tourMedia);
+        // Unset current hero
+        mediaRepository.unsetHeroByTour(tourId);
+
+        // Set new hero
+        media.setIsHero(true);
+        mediaRepository.save(media);
 
         log.info("Successfully set hero image for tour: {}", tourId);
     }
@@ -524,13 +450,16 @@ public class MediaService {
 
         verifyTourAccess(requester, tour);
 
-        TourMedia.TourMediaId id = new TourMedia.TourMediaId(tourId, mediaId);
-        TourMedia tourMedia = tourMediaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Media not assigned to this tour"));
+        Media media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new EntityNotFoundException("Media not found: " + mediaId));
+
+        if (media.getTour() == null || !media.getTour().getId().equals(tourId)) {
+            throw new IllegalArgumentException("Media not assigned to this tour");
+        }
 
         // Toggle the featured status
-        tourMedia.setIsFeatured(!tourMedia.getIsFeatured());
-        tourMediaRepository.save(tourMedia);
+        media.setIsFeatured(!Boolean.TRUE.equals(media.getIsFeatured()));
+        mediaRepository.save(media);
 
         log.info("Successfully toggled featured status for tour: {}", tourId);
     }
@@ -549,17 +478,10 @@ public class MediaService {
 
         verifyTourAccess(requester, tour);
 
-        // Use fetch join to avoid LazyInitializationException
-        List<TourMedia> tourMediaList = tourMediaRepository.findByTourIdWithMediaOrderByDisplayOrderAsc(tourId);
+        List<Media> mediaList = mediaRepository.findByTourIdOrderByDisplayOrderAsc(tourId);
 
-        return tourMediaList.stream()
-                .map(tm -> {
-                    MediaRes res = mediaMapper.toMediaRes(tm.getMedia());
-                    res.setDisplayOrder(tm.getDisplayOrder());
-                    res.setIsHero(tm.getIsHero());
-                    res.setIsFeatured(tm.getIsFeatured());
-                    return res;
-                })
+        return mediaList.stream()
+                .map(mediaMapper::toMediaRes)
                 .toList();
     }
 
@@ -578,7 +500,7 @@ public class MediaService {
 
         verifyScheduleAccess(requester, schedule);
 
-        Integer maxOrder = scheduleMediaRepository.getMaxDisplayOrder(scheduleId);
+        Integer maxOrder = mediaRepository.getMaxDisplayOrderBySchedule(scheduleId);
         int currentOrder = maxOrder != null ? maxOrder : -1;
 
         for (UUID mediaId : mediaIds) {
@@ -587,15 +509,16 @@ public class MediaService {
 
             verifyMediaAccess(requester, media);
 
-            ScheduleMedia.ScheduleMediaId id = new ScheduleMedia.ScheduleMediaId(scheduleId, mediaId);
-            if (scheduleMediaRepository.existsById(id)) {
+            // Check if already assigned
+            if (media.getSchedule() != null && media.getSchedule().getId().equals(scheduleId)) {
                 log.warn("Media {} already assigned to schedule {}, skipping", mediaId, scheduleId);
                 continue;
             }
 
-            ScheduleMedia scheduleMedia = new ScheduleMedia(schedule, media);
-            scheduleMedia.setDisplayOrder(++currentOrder);
-            scheduleMediaRepository.save(scheduleMedia);
+            media.setSchedule(schedule);
+            media.setTour(null); // Clear tour when assigning to schedule
+            media.setDisplayOrder(++currentOrder);
+            mediaRepository.save(media);
         }
 
         log.info("Successfully assigned media to schedule: {}", scheduleId);
@@ -617,12 +540,15 @@ public class MediaService {
         verifyScheduleAccess(requester, schedule);
 
         for (MediaOrderReq order : orders) {
-            ScheduleMedia.ScheduleMediaId id = new ScheduleMedia.ScheduleMediaId(scheduleId, order.getMediaId());
-            ScheduleMedia scheduleMedia = scheduleMediaRepository.findById(id)
-                    .orElseThrow(() -> new EntityNotFoundException("ScheduleMedia not found"));
+            Media media = mediaRepository.findById(order.getMediaId())
+                    .orElseThrow(() -> new EntityNotFoundException("Media not found: " + order.getMediaId()));
 
-            scheduleMedia.setDisplayOrder(order.getDisplayOrder());
-            scheduleMediaRepository.save(scheduleMedia);
+            if (media.getSchedule() == null || !media.getSchedule().getId().equals(scheduleId)) {
+                throw new IllegalArgumentException("Media " + order.getMediaId() + " is not assigned to schedule " + scheduleId);
+            }
+
+            media.setDisplayOrder(order.getDisplayOrder());
+            mediaRepository.save(media);
         }
 
         log.info("Successfully reordered media for schedule: {}", scheduleId);
@@ -645,24 +571,21 @@ public class MediaService {
 
         List<MediaRes> result = new java.util.ArrayList<>();
 
+        // Get inherited media from parent tour
         UUID tourId = schedule.getTour().getId();
-        // Use fetch join to avoid LazyInitializationException
-        List<TourMedia> tourMediaList = tourMediaRepository.findByTourIdWithMediaOrderByDisplayOrderAsc(tourId);
+        List<Media> tourMediaList = mediaRepository.findByTourIdOrderByDisplayOrderAsc(tourId);
 
-        for (TourMedia tm : tourMediaList) {
-            MediaRes res = mediaMapper.toMediaRes(tm.getMedia());
-            res.setDisplayOrder(tm.getDisplayOrder());
-            res.setIsHero(tm.getIsHero());
+        for (Media m : tourMediaList) {
+            MediaRes res = mediaMapper.toMediaRes(m);
             res.setIsInherited(true); // Mark as inherited from tour
             result.add(res);
         }
 
-        // Use fetch join to avoid LazyInitializationException
-        List<ScheduleMedia> scheduleMediaList = scheduleMediaRepository.findByScheduleIdWithMediaOrderByDisplayOrderAsc(scheduleId);
+        // Get schedule-specific media
+        List<Media> scheduleMediaList = mediaRepository.findByScheduleIdOrderByDisplayOrderAsc(scheduleId);
 
-        for (ScheduleMedia sm : scheduleMediaList) {
-            MediaRes res = mediaMapper.toMediaRes(sm.getMedia());
-            res.setDisplayOrder(sm.getDisplayOrder());
+        for (Media m : scheduleMediaList) {
+            MediaRes res = mediaMapper.toMediaRes(m);
             res.setIsInherited(false); // Mark as schedule-specific
             result.add(res);
         }

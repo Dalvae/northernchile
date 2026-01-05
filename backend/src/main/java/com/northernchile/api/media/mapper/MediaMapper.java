@@ -22,8 +22,7 @@ public abstract class MediaMapper {
             @Mapping(target = "scheduleId", source = "schedule.id"),
             @Mapping(target = "type", expression = "java(media.getType())"),
             @Mapping(target = "url", expression = "java(generateFreshUrl(media))"),
-            @Mapping(target = "displayOrder", ignore = true),  // Will be set from join table
-            @Mapping(target = "isHero", ignore = true)  // Will be set from join table
+            @Mapping(target = "isInherited", ignore = true)  // Set manually in service for schedule galleries
     })
     public abstract MediaRes toMediaRes(Media media);
 
@@ -43,8 +42,9 @@ public abstract class MediaMapper {
             @Mapping(target = "tour", ignore = true),  // Set manually in service
             @Mapping(target = "schedule", ignore = true),  // Set manually in service
             @Mapping(target = "uploadedAt", ignore = true),  // Auto-generated
-            @Mapping(target = "tourMediaAssignments", ignore = true),
-            @Mapping(target = "scheduleMediaAssignments", ignore = true)
+            @Mapping(target = "displayOrder", ignore = true),
+            @Mapping(target = "isHero", ignore = true),
+            @Mapping(target = "isFeatured", ignore = true)
     })
     public abstract Media toMedia(MediaCreateReq req);
 
@@ -65,8 +65,9 @@ public abstract class MediaMapper {
             @Mapping(target = "variants", ignore = true),
             @Mapping(target = "exifData", ignore = true),
             @Mapping(target = "uploadedAt", ignore = true),
-            @Mapping(target = "tourMediaAssignments", ignore = true),
-            @Mapping(target = "scheduleMediaAssignments", ignore = true)
+            @Mapping(target = "displayOrder", ignore = true),
+            @Mapping(target = "isHero", ignore = true),
+            @Mapping(target = "isFeatured", ignore = true)
     })
     public abstract void updateMediaFromReq(com.northernchile.api.media.dto.MediaUpdateReq req, @MappingTarget Media media);
 }

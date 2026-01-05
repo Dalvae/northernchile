@@ -1,7 +1,7 @@
 package com.northernchile.api.tour;
 
 import com.northernchile.api.audit.AuditLogService;
-import com.northernchile.api.media.repository.TourMediaRepository;
+import com.northernchile.api.media.repository.MediaRepository;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.User;
 import com.northernchile.api.tour.dto.TourCreateReq;
@@ -48,7 +48,7 @@ class TourServiceTest {
     private TourMapper tourMapper;
 
     @Mock
-    private TourMediaRepository tourMediaRepository;
+    private MediaRepository mediaRepository;
 
     @InjectMocks
     private TourService tourService;
@@ -118,7 +118,7 @@ class TourServiceTest {
             when(tourRepository.findByStatusNotDeletedWithImages("PUBLISHED"))
                     .thenReturn(List.of(testTour));
             when(tourMapper.toTourRes(testTour)).thenReturn(testTourRes);
-            when(tourMediaRepository.findByTourIdWithMediaOrderByDisplayOrderAsc(any()))
+            when(mediaRepository.findByTourIdOrderByDisplayOrderAsc(any()))
                     .thenReturn(List.of());
 
             // When
@@ -156,7 +156,7 @@ class TourServiceTest {
             when(tourRepository.findBySlugPublished(slug))
                     .thenReturn(Optional.of(testTour));
             when(tourMapper.toTourRes(testTour)).thenReturn(testTourRes);
-            when(tourMediaRepository.findByTourIdWithMediaOrderByDisplayOrderAsc(any()))
+            when(mediaRepository.findByTourIdOrderByDisplayOrderAsc(any()))
                     .thenReturn(List.of());
 
             // When
@@ -376,7 +376,7 @@ class TourServiceTest {
             when(tourRepository.findAllNotDeletedWithImages())
                     .thenReturn(List.of(testTour));
             when(tourMapper.toTourRes(any())).thenReturn(testTourRes);
-            when(tourMediaRepository.findByTourIdWithMediaOrderByDisplayOrderAsc(any()))
+            when(mediaRepository.findByTourIdOrderByDisplayOrderAsc(any()))
                     .thenReturn(List.of());
 
             // When
@@ -394,7 +394,7 @@ class TourServiceTest {
             when(tourRepository.findByOwnerIdNotDeletedWithImages(partnerAdmin.getId()))
                     .thenReturn(List.of(testTour));
             when(tourMapper.toTourRes(any())).thenReturn(testTourRes);
-            when(tourMediaRepository.findByTourIdWithMediaOrderByDisplayOrderAsc(any()))
+            when(mediaRepository.findByTourIdOrderByDisplayOrderAsc(any()))
                     .thenReturn(List.of());
 
             // When
@@ -417,7 +417,7 @@ class TourServiceTest {
             when(tourRepository.findByIdNotDeleted(testTour.getId()))
                     .thenReturn(Optional.of(testTour));
             when(tourMapper.toTourRes(testTour)).thenReturn(testTourRes);
-            when(tourMediaRepository.findByTourIdWithMediaOrderByDisplayOrderAsc(any()))
+            when(mediaRepository.findByTourIdOrderByDisplayOrderAsc(any()))
                     .thenReturn(List.of());
 
             // When

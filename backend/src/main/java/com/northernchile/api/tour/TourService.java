@@ -1,7 +1,7 @@
 package com.northernchile.api.tour;
 
 import com.northernchile.api.audit.AuditLogService;
-import com.northernchile.api.media.repository.TourMediaRepository;
+import com.northernchile.api.media.repository.MediaRepository;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.User;
 import com.northernchile.api.tour.dto.TourCreateReq;
@@ -29,19 +29,19 @@ public class TourService {
     private final AuditLogService auditLogService;
     private final SlugGenerator slugGenerator;
     private final TourMapper tourMapper;
-    private final TourMediaRepository tourMediaRepository;
+    private final MediaRepository mediaRepository;
 
     public TourService(
             TourRepository tourRepository,
             AuditLogService auditLogService,
             SlugGenerator slugGenerator,
             TourMapper tourMapper,
-            TourMediaRepository tourMediaRepository) {
+            MediaRepository mediaRepository) {
         this.tourRepository = tourRepository;
         this.auditLogService = auditLogService;
         this.slugGenerator = slugGenerator;
         this.tourMapper = tourMapper;
-        this.tourMediaRepository = tourMediaRepository;
+        this.mediaRepository = mediaRepository;
     }
 
     public TourRes createTour(TourCreateReq tourCreateReq, User currentUser) {
@@ -255,15 +255,15 @@ public class TourService {
     }
 
     /**
-     * Populate images from tour_media join table into TourRes
+     * Populate images from media table into TourRes
      */
     private void populateImages(TourRes tourRes) {
         if (tourRes == null || tourRes.getId() == null) {
             return;
         }
 
-        List<TourImageRes> images = tourMediaRepository
-                .findByTourIdWithMediaOrderByDisplayOrderAsc(tourRes.getId())
+        List<TourImageRes> images = mediaRepository
+                .findByTourIdOrderByDisplayOrderAsc(tourRes.getId())
                 .stream()
                 .map(tourMapper::toTourImageRes)
                 .collect(Collectors.toList());

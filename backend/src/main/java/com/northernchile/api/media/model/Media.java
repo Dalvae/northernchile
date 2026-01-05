@@ -9,8 +9,6 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -85,11 +83,14 @@ public class Media {
     @Column(name = "taken_at")
     private Instant takenAt;
 
-    @OneToMany(mappedBy = "media", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TourMedia> tourMediaAssignments = new ArrayList<>();
+    @Column(name = "display_order")
+    private Integer displayOrder = 0;
 
-    @OneToMany(mappedBy = "media", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ScheduleMedia> scheduleMediaAssignments = new ArrayList<>();
+    @Column(name = "is_hero")
+    private Boolean isHero = false;
+
+    @Column(name = "is_featured")
+    private Boolean isFeatured = false;
 
     // Constructors
     public Media() {
@@ -224,20 +225,28 @@ public class Media {
         this.takenAt = takenAt;
     }
 
-    public List<TourMedia> getTourMediaAssignments() {
-        return tourMediaAssignments;
+    public Integer getDisplayOrder() {
+        return displayOrder;
     }
 
-    public void setTourMediaAssignments(List<TourMedia> tourMediaAssignments) {
-        this.tourMediaAssignments = tourMediaAssignments;
+    public void setDisplayOrder(Integer displayOrder) {
+        this.displayOrder = displayOrder;
     }
 
-    public List<ScheduleMedia> getScheduleMediaAssignments() {
-        return scheduleMediaAssignments;
+    public Boolean getIsHero() {
+        return isHero;
     }
 
-    public void setScheduleMediaAssignments(List<ScheduleMedia> scheduleMediaAssignments) {
-        this.scheduleMediaAssignments = scheduleMediaAssignments;
+    public void setIsHero(Boolean isHero) {
+        this.isHero = isHero;
+    }
+
+    public Boolean getIsFeatured() {
+        return isFeatured;
+    }
+
+    public void setIsFeatured(Boolean isFeatured) {
+        this.isFeatured = isFeatured;
     }
 
     /**

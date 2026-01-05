@@ -1,7 +1,7 @@
 package com.northernchile.api.tour;
 
 import com.northernchile.api.model.Tour;
-import com.northernchile.api.media.model.TourMedia;
+import com.northernchile.api.media.model.Media;
 import com.northernchile.api.tour.dto.TourImageRes;
 import com.northernchile.api.tour.dto.TourRes;
 import com.northernchile.api.tour.dto.ItineraryItem;
@@ -142,15 +142,15 @@ public interface TourMapper {
 
     List<TourRes> toTourResList(List<Tour> tours);
 
-    // Map TourMedia (join table) to TourImageRes
+    // Map Media entity to TourImageRes
     @Mappings({
-            @Mapping(source = "media.id", target = "id"),
-            @Mapping(source = "media.url", target = "imageUrl"),
-            @Mapping(source = "media.variants", target = "variants"),
+            @Mapping(source = "id", target = "id"),
+            @Mapping(source = "url", target = "imageUrl"),
+            @Mapping(source = "variants", target = "variants"),
             @Mapping(source = "isHero", target = "isHeroImage"),
             @Mapping(source = "isFeatured", target = "isFeatured"),
             @Mapping(source = "displayOrder", target = "displayOrder")
     })
-    TourImageRes toTourImageRes(TourMedia tourMedia);
+    TourImageRes toTourImageRes(Media media);
 
 }

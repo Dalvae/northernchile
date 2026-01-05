@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * DTO for tour images - mapped from Media + TourMedia relationship
+ * DTO for tour images - mapped from Media entity
  */
 public class TourImageRes {
     private UUID id; // Media ID
