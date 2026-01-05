@@ -143,7 +143,7 @@
       "conditions": "Condições",
       "info_text": "Clique em um evento para reservar. Os filtros afetam quais tours são exibidos no calendário."
     },
-    "seo_description": "Explore nossa seleção completa de tours astronômicos e experiências únicas em San Pedro de Atacama.",
+    "seo_description": "Tours em San Pedro de Atacama: tour astronômico, lagoas altiplânicas, Gêiseres do Tatio e expedições no deserto. Reserve online com cancelamento grátis.",
     "subtitle": "Descubra nossas experiências exclusivas sob os céus mais limpos do mundo.",
     "calendar_subtitle": "Planeje sua visita. Verifique as datas disponíveis para todas as nossas experiências.",
     "loading_availability": "Carregando disponibilidade...",
@@ -384,10 +384,10 @@
   },
   "home": {
     "meta": {
-      "title": "Northern Chile - Tours Astronômicos em San Pedro de Atacama",
-      "description": "Descubra as estrelas do Deserto do Atacama com nossos tours astronômicos guiados. Experiências únicas sob o céu mais claro do mundo.",
-      "og_title": "Northern Chile - Tours Astronômicos em San Pedro de Atacama",
-      "og_description": "Descubra as estrelas do Deserto do Atacama com nossos tours astronômicos guiados",
+      "title": "Tours San Pedro de Atacama | Tour Astronômico e Expedições | Northern Chile",
+      "description": "Os melhores tours em San Pedro de Atacama: tour astronômico, lagoas altiplânicas, Gêiseres do Tatio, Vale da Lua. Guias especializados, cancelamento grátis. Reserve online.",
+      "og_title": "Tours San Pedro de Atacama - Tour Astronômico e Expedições no Deserto",
+      "og_description": "Descubra o deserto do Atacama com tours astronômicos, expedições e experiências únicas sob os céus mais claros do mundo.",
       "og_category": "San Pedro de Atacama"
     },
     "hero": {

@@ -143,7 +143,7 @@
       "conditions": "Conditions",
       "info_text": "Click on an event to book. Filters affect which tours are shown in the calendar."
     },
-    "seo_description": "Explore our complete selection of astronomical tours and unique experiences in San Pedro de Atacama.",
+    "seo_description": "Tours in San Pedro de Atacama: stargazing, astronomical tours, Altiplanic lagoons, Tatio geysers and desert expeditions. Book online with free cancellation.",
     "subtitle": "Discover our exclusive experiences under the clearest skies in the world.",
     "calendar_subtitle": "Plan your visit. Check available dates for all our experiences.",
     "loading_availability": "Loading availability...",
@@ -384,10 +384,10 @@
   },
   "home": {
     "meta": {
-      "title": "Northern Chile - Astronomical Tours in San Pedro de Atacama",
-      "description": "Discover the stars of the Atacama Desert with our guided astronomical tours. Unique experiences under the clearest sky in the world.",
-      "og_title": "Northern Chile - Astronomical Tours in San Pedro de Atacama",
-      "og_description": "Discover the stars of the Atacama Desert with our guided astronomical tours",
+      "title": "San Pedro de Atacama Tours | Stargazing & Desert Expeditions | Northern Chile",
+      "description": "Best tours in San Pedro de Atacama: stargazing, Altiplanic lagoons, Tatio Geysers, Moon Valley. Expert guides, free cancellation. Book online.",
+      "og_title": "San Pedro de Atacama Tours - Stargazing & Desert Expeditions",
+      "og_description": "Discover the Atacama Desert with astronomical tours, expeditions and unique experiences under the clearest skies in the world.",
       "og_category": "San Pedro de Atacama"
     },
     "hero": {

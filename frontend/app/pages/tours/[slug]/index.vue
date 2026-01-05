@@ -156,19 +156,19 @@ defineOgImageComponent('Tour', computed(() => ({
 })))
 
 useSeoMeta({
-  title: () => `${translatedName.value} - Northern Chile Tours`,
+  title: () => `${translatedName.value} | Tour San Pedro de Atacama`,
   description: seoDescription,
-  ogTitle: () => `${translatedName.value} - Northern Chile`,
+  ogTitle: () => `${translatedName.value} - Tour San Pedro de Atacama`,
   ogDescription: seoDescription,
   ogType: 'website',
   twitterCard: 'summary_large_image',
-  twitterTitle: () => `${translatedName.value} - Northern Chile Tours`,
+  twitterTitle: () => `${translatedName.value} | Northern Chile Tours`,
   twitterDescription: seoDescription,
   ogImageWidth: 1200,
   ogImageHeight: 630
 })
 
-// JSON-LD Structured Data for SEO (Schema.org Product)
+// JSON-LD Structured Data for SEO (Schema.org TouristTrip + Product)
 useHead({
   script: [
     {
@@ -176,10 +176,11 @@ useHead({
       innerHTML: computed(() =>
         JSON.stringify({
           '@context': 'https://schema.org',
-          '@type': 'Product',
+          '@type': ['TouristTrip', 'Product'],
           'name': translatedName.value,
           'description': seoDescription.value,
           'image': heroImage.value,
+          'touristType': tour.value?.category === 'ASTRONOMICAL' ? 'Stargazing enthusiasts' : 'Adventure travelers',
           'brand': {
             '@type': 'Brand',
             'name': 'Northern Chile Tours'
@@ -192,8 +193,9 @@ useHead({
             'url': `https://www.northernchile.com/tours/${tourSlug}`,
             'priceValidUntil': getLocalDateString(new Date(new Date().getFullYear() + 1, 11, 31)),
             'seller': {
-              '@type': 'Organization',
-              'name': 'Northern Chile Tours'
+              '@type': 'TravelAgency',
+              'name': 'Northern Chile Tours',
+              'url': 'https://www.northernchile.com'
             }
           },
           'aggregateRating': {
@@ -203,10 +205,19 @@ useHead({
             'bestRating': '5',
             'worstRating': '1'
           },
-          'category': tour.value?.category || 'Astronomical Tour',
-          'provider': {
-            '@type': 'Organization',
-            'name': 'Northern Chile Tours',
+          'itinerary': {
+            '@type': 'ItemList',
+            'numberOfItems': translatedItinerary.value?.length || 0,
+            'itemListElement': translatedItinerary.value?.map((step: string, idx: number) => ({
+              '@type': 'ListItem',
+              'position': idx + 1,
+              'name': step
+            })) || []
+          },
+          'touristAttraction': {
+            '@type': 'TouristAttraction',
+            'name': 'San Pedro de Atacama',
+            'description': 'Desert town in northern Chile, gateway to the Atacama Desert and world-renowned stargazing destination',
             'address': {
               '@type': 'PostalAddress',
               'addressLocality': 'San Pedro de Atacama',
@@ -214,8 +225,24 @@ useHead({
               'addressCountry': 'CL'
             }
           },
+          'provider': {
+            '@type': 'TravelAgency',
+            'name': 'Northern Chile Tours',
+            'url': 'https://www.northernchile.com',
+            'address': {
+              '@type': 'PostalAddress',
+              'addressLocality': 'San Pedro de Atacama',
+              'addressRegion': 'Región de Antofagasta',
+              'addressCountry': 'CL'
+            },
+            'geo': {
+              '@type': 'GeoCoordinates',
+              'latitude': -22.9087,
+              'longitude': -68.1997
+            }
+          },
           'duration': `PT${tour.value?.durationHours || 0}H`,
-          'tourBookingPage': `https://www.northernchile.com/tours/${tourSlug}/schedule`
+          'maximumAttendeeCapacity': tour.value?.defaultMaxParticipants || 12
         })
       )
     }

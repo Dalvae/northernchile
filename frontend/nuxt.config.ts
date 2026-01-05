@@ -32,7 +32,7 @@ export default defineNuxtConfig({
   site: {
     url: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.com',
     name: 'Northern Chile Tours',
-    description: 'Tours astronómicos y expediciones en San Pedro de Atacama.',
+    description: 'Tours astronómicos en San Pedro de Atacama, Chile. Stargazing, expediciones al desierto de Atacama, lagunas altiplánicas y más. Reserva online.',
     defaultLocale: 'es'
   },
 
