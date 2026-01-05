@@ -1,0 +1,54 @@
+# --- Dependencias y Lock Files (Los mayores culpables) ---
+# Estos archivos son gigantes y no aportan lógica de negocio
+**/pnpm-lock.yaml
+**/package-lock.json
+**/yarn.lock
+**/node_modules/**
+
+# --- Archivos Binarios y Assets Estáticos ---
+# Las imágenes y SVGs consumen muchísimos tokens y el LLM no puede "verlos"
+**/*.svg
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.gif
+**/*.ico
+**/*.webp
+**/*.pdf
+**/*.woff
+**/*.woff2
+**/*.ttf
+frontend/public/**
+
+# --- Código Autogenerado (Redundante) ---
+# El cliente API se genera desde el Backend. Teniendo el Backend, esto es ruido.
+frontend/lib/api-client/**
+frontend/.nuxt/**
+frontend/.output/**
+frontend/dist/**
+
+# --- Backend: Build y Wrappers ---
+backend/target/**
+backend/.mvn/wrapper/**
+backend/mvnw
+backend/mvnw.cmd
+backend/HELP.md
+
+# --- Datos de Seeding Grandes ---
+# El archivo content.sql es puro texto de relleno para la BD
+content.sql
+backend/src/main/resources/db/migration/** 
+# (Opcional: Dejar las migraciones si quieres auditar el esquema de BD, 
+# pero V1__initial_schema.sql suele ser suficiente)
+
+# --- Tests (Opcional pero Recomendado para Auditoría de Arquitectura) ---
+# Si quieres que el AI audite la lógica, los tests unitarios suelen duplicar el contexto.
+# Descomenta las siguientes líneas si NO necesitas que revise tus tests.
+# backend/src/test/**
+# frontend/tests/**
+
+# --- Configuración de IDEs y Logs ---
+.idea/**
+.vscode/**
+**/*.log
+logs/**

@@ -5,8 +5,9 @@
 services:
   # Base de datos accesible desde localhost para desarrollo
   database:
+    command: ["postgres", "-p", "5433"]
     ports:
-      - "5432:5432"
+      - "5433:5433"
 
   # Backend en modo desarrollo con hot-reload
   backend:
