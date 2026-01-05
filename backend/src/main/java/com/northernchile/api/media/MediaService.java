@@ -358,6 +358,41 @@ public class MediaService {
     }
 
     /**
+     * Unassign media from a tour gallery (makes it LOOSE).
+     */
+    @Transactional
+    public void unassignMediaFromTour(UUID tourId, UUID mediaId, UUID requesterId) {
+        log.info("Unassigning media {} from tour: {}", mediaId, tourId);
+
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
+
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+
+        verifyTourAccess(requester, tour);
+
+        Media media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new EntityNotFoundException("Media not found: " + mediaId));
+
+        // Verify media belongs to this tour
+        if (media.getTour() == null || !media.getTour().getId().equals(tourId)) {
+            throw new IllegalArgumentException("Media " + mediaId + " is not assigned to tour " + tourId);
+        }
+
+        verifyMediaAccess(requester, media);
+
+        // Unassign by clearing tour reference
+        media.setTour(null);
+        media.setDisplayOrder(0);
+        media.setIsHero(false);
+        media.setIsFeatured(false);
+        mediaRepository.save(media);
+
+        log.info("Successfully unassigned media {} from tour: {}", mediaId, tourId);
+    }
+
+    /**
      * Reorder media in a tour gallery.
      */
     @Transactional
@@ -522,6 +557,39 @@ public class MediaService {
         }
 
         log.info("Successfully assigned media to schedule: {}", scheduleId);
+    }
+
+    /**
+     * Unassign media from a schedule gallery (makes it LOOSE).
+     */
+    @Transactional
+    public void unassignMediaFromSchedule(UUID scheduleId, UUID mediaId, UUID requesterId) {
+        log.info("Unassigning media {} from schedule: {}", mediaId, scheduleId);
+
+        TourSchedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
+
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+
+        verifyScheduleAccess(requester, schedule);
+
+        Media media = mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new EntityNotFoundException("Media not found: " + mediaId));
+
+        // Verify media belongs to this schedule
+        if (media.getSchedule() == null || !media.getSchedule().getId().equals(scheduleId)) {
+            throw new IllegalArgumentException("Media " + mediaId + " is not assigned to schedule " + scheduleId);
+        }
+
+        verifyMediaAccess(requester, media);
+
+        // Unassign by clearing schedule reference
+        media.setSchedule(null);
+        media.setDisplayOrder(0);
+        mediaRepository.save(media);
+
+        log.info("Successfully unassigned media {} from schedule: {}", mediaId, scheduleId);
     }
 
     /**

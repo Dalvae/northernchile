@@ -128,6 +128,18 @@ public class MediaController {
     }
 
     /**
+     * Unassign media from a tour gallery (makes it LOOSE).
+     * DELETE /api/admin/media/tour/{tourId}/media/{mediaId}
+     */
+    @DeleteMapping("/tour/{tourId}/media/{mediaId}")
+    public ResponseEntity<Void> unassignMediaFromTour(@PathVariable UUID tourId,
+                                                      @PathVariable UUID mediaId,
+                                                      @CurrentUser User currentUser) {
+        mediaService.unassignMediaFromTour(tourId, mediaId, currentUser.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * Reorder media in a tour gallery.
      * PUT /api/admin/media/tour/{tourId}/reorder
      */
@@ -184,6 +196,18 @@ public class MediaController {
                                                       @CurrentUser User currentUser) {
         mediaService.assignMediaToSchedule(scheduleId, req.getMediaIds(), currentUser.getId());
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Unassign media from a schedule gallery (makes it LOOSE).
+     * DELETE /api/admin/media/schedule/{scheduleId}/media/{mediaId}
+     */
+    @DeleteMapping("/schedule/{scheduleId}/media/{mediaId}")
+    public ResponseEntity<Void> unassignMediaFromSchedule(@PathVariable UUID scheduleId,
+                                                          @PathVariable UUID mediaId,
+                                                          @CurrentUser User currentUser) {
+        mediaService.unassignMediaFromSchedule(scheduleId, mediaId, currentUser.getId());
+        return ResponseEntity.noContent().build();
     }
 
     /**

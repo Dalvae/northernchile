@@ -201,6 +201,16 @@ export const useAdminData = () => {
         headers: jsonHeaders,
         ...baseFetchOptions
       }),
+    unassignMediaFromTour: (tourId: string, mediaId: string) =>
+      $fetch<void>(`/api/admin/media/tour/${tourId}/media/${mediaId}`, {
+        method: 'DELETE',
+        ...baseFetchOptions
+      }),
+    unassignMediaFromSchedule: (scheduleId: string, mediaId: string) =>
+      $fetch<void>(`/api/admin/media/schedule/${scheduleId}/media/${mediaId}`, {
+        method: 'DELETE',
+        ...baseFetchOptions
+      }),
     // Refund operations
     refundBooking: (bookingId: string, adminOverride: boolean = false) =>
       $fetch<{

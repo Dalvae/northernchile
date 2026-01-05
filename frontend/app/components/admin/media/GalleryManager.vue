@@ -18,7 +18,10 @@ const {
   assignMediaToTour,
   assignMediaToSchedule,
   reorderTourGallery,
-  reorderScheduleGallery
+  reorderScheduleGallery,
+  unassignMediaFromTour,
+  unassignMediaFromSchedule,
+  deleteAdminMedia
 } = useAdminData()
 
 // State
@@ -26,6 +29,10 @@ const gallery = ref<MediaRes[]>([])
 const loading = ref(false)
 const selectorModalOpen = ref(false)
 const uploadModalOpen = ref(false)
+
+// Lightbox state
+const lightboxOpen = ref(false)
+const lightboxIndex = ref(0)
 
 // Invalidate public cache after updates
 async function invalidatePublicCache() {
@@ -54,15 +61,48 @@ async function removeFromGallery(mediaId: string) {
   if (!confirm('¿Quitar esta foto de la galería?')) return
 
   try {
-    // Remove from join table (backend cascade will handle it)
+    // Call backend to unassign media
+    if (props.tourId) {
+      await unassignMediaFromTour(props.tourId, mediaId)
+    } else if (props.scheduleId) {
+      await unassignMediaFromSchedule(props.scheduleId, mediaId)
+    }
+
+    // Update local state
     gallery.value = gallery.value.filter(m => m.id !== mediaId)
     toast.add({ color: 'success', title: 'Foto eliminada de la galería' })
+    await invalidatePublicCache()
     emit('update')
   } catch (error) {
     console.error('Error removing media:', error)
     toast.add({ color: 'error', title: 'Error al eliminar' })
-    await fetchGallery() // Reload
+    await fetchGallery() // Reload on error
   }
+}
+
+// Delete media permanently (from S3 and database)
+async function deleteMediaPermanently(mediaId: string) {
+  if (!confirm('¿Borrar esta foto permanentemente? Se eliminará del servidor y no se puede recuperar.')) return
+
+  try {
+    await deleteAdminMedia(mediaId)
+
+    // Update local state
+    gallery.value = gallery.value.filter(m => m.id !== mediaId)
+    toast.add({ color: 'success', title: 'Foto borrada permanentemente' })
+    await invalidatePublicCache()
+    emit('update')
+  } catch (error) {
+    console.error('Error deleting media:', error)
+    toast.add({ color: 'error', title: 'Error al borrar foto' })
+    await fetchGallery() // Reload on error
+  }
+}
+
+// Open lightbox at specific index
+function openLightbox(index: number) {
+  lightboxIndex.value = index
+  lightboxOpen.value = true
 }
 
 // Set hero image
@@ -286,21 +326,22 @@ watch(() => [props.tourId, props.scheduleId], () => {
     <!-- Gallery grid -->
     <div
       v-else
-      class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
     >
       <div
         v-for="(item, index) in gallery"
         :key="item.id"
         class="relative group"
       >
-        <!-- Image -->
+        <!-- Image (clickable for lightbox) -->
         <NuxtImg
           :src="item.url"
           :alt="item.altTranslations?.es || item.originalFilename"
-          class="w-full h-40 object-cover rounded-lg shadow-sm"
+          class="w-full h-52 object-cover rounded-lg shadow-sm cursor-pointer"
           format="webp"
           loading="lazy"
           placeholder
+          @click="openLightbox(index)"
         />
 
         <!-- Hero badge -->
@@ -355,7 +396,7 @@ watch(() => [props.tourId, props.scheduleId], () => {
               icon="i-heroicons-arrow-up"
               size="sm"
               color="neutral"
-              @click="moveUp(index)"
+              @click.stop="moveUp(index)"
             />
 
             <!-- Move down -->
@@ -364,7 +405,7 @@ watch(() => [props.tourId, props.scheduleId], () => {
               icon="i-heroicons-arrow-down"
               size="sm"
               color="neutral"
-              @click="moveDown(index)"
+              @click.stop="moveDown(index)"
             />
 
             <!-- Set hero (only for tours) -->
@@ -373,7 +414,7 @@ watch(() => [props.tourId, props.scheduleId], () => {
               icon="i-heroicons-star"
               size="sm"
               color="primary"
-              @click="item.id && setHero(item.id)"
+              @click.stop="item.id && setHero(item.id)"
             />
 
             <!-- Toggle featured (only for tours) -->
@@ -382,15 +423,25 @@ watch(() => [props.tourId, props.scheduleId], () => {
               :icon="item.isFeatured ? 'i-heroicons-heart-solid' : 'i-heroicons-heart'"
               size="sm"
               :color="item.isFeatured ? 'error' : 'neutral'"
-              @click="item.id && toggleFeatured(item.id)"
+              @click.stop="item.id && toggleFeatured(item.id)"
             />
 
-            <!-- Remove -->
+            <!-- Unassign from gallery (keeps file in S3) -->
+            <UButton
+              icon="i-heroicons-x-circle"
+              size="sm"
+              color="warning"
+              title="Quitar de la galería"
+              @click.stop="item.id && removeFromGallery(item.id)"
+            />
+
+            <!-- Delete permanently (removes from S3) -->
             <UButton
               icon="i-heroicons-trash"
               size="sm"
               color="error"
-              @click="item.id && removeFromGallery(item.id)"
+              title="Borrar permanentemente"
+              @click.stop="item.id && deleteMediaPermanently(item.id)"
             />
           </template>
 
@@ -422,6 +473,13 @@ watch(() => [props.tourId, props.scheduleId], () => {
       :tour-id="tourId"
       :schedule-id="scheduleId"
       @success="fetchGallery"
+    />
+
+    <!-- Lightbox -->
+    <AdminMediaLightbox
+      v-model="lightboxOpen"
+      :media="gallery"
+      :initial-index="lightboxIndex"
     />
   </div>
 </template>
