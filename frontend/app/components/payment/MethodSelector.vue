@@ -33,7 +33,7 @@ const paymentOptions: PaymentOption[] = [
     method: PaymentMethod.Webpay,
     name: 'Webpay Plus',
     description: t('payment.methods.transbank.description'),
-    icon: '/images/payment-methods/webpay.svg',
+    icon: '/images/payment-methods/webpay-official.png',
     country: 'Chile',
     available: true
   },
