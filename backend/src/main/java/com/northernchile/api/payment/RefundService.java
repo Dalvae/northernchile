@@ -51,6 +51,9 @@ public class RefundService {
     @Value("${mercadopago.access-token:}")
     private String mercadoPagoAccessToken;
 
+    @Value("${refund.retention.percentage:5}")
+    private int retentionPercentage;
+
     public RefundService(
             BookingRepository bookingRepository,
             PaymentSessionRepository paymentSessionRepository,
@@ -61,16 +64,26 @@ public class RefundService {
     }
 
     /**
+     * Process a refund for a booking (full refund).
+     */
+    @Transactional
+    public RefundRes refundBooking(UUID bookingId, boolean isAdminOverride) {
+        return refundBooking(bookingId, isAdminOverride, null);
+    }
+
+    /**
      * Process a refund for a booking.
      * Validates the 24-hour policy, calls the payment provider, and updates statuses.
      *
      * @param bookingId The booking to refund
      * @param isAdminOverride If true, bypasses the 24-hour policy (admin only)
+     * @param amount Optional: specific amount to refund (null = full refund)
      * @return RefundRes with refund details
      */
     @Transactional
-    public RefundRes refundBooking(UUID bookingId, boolean isAdminOverride) {
-        log.info("Processing refund for booking: {} (admin override: {})", bookingId, isAdminOverride);
+    public RefundRes refundBooking(UUID bookingId, boolean isAdminOverride, BigDecimal amount) {
+        log.info("Processing refund for booking: {} (admin override: {}, amount: {})", 
+            bookingId, isAdminOverride, amount != null ? amount : "FULL");
 
         // Load booking with schedule
         Booking booking = bookingRepository.findByIdWithDetails(bookingId)
@@ -87,8 +100,33 @@ public class RefundService {
             return cancelBookingWithoutProviderRefund(booking, "No payment record found");
         }
 
+        // Determine refund amount
+        BigDecimal refundAmount;
+        BigDecimal retentionAmount = BigDecimal.ZERO;
+        
+        if (amount != null) {
+            // Admin specified exact amount - use it directly (no retention applied)
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RefundException("Refund amount must be greater than 0");
+            }
+            if (amount.compareTo(booking.getTotalAmount()) > 0) {
+                throw new RefundException("Refund amount cannot exceed booking total: " + booking.getTotalAmount());
+            }
+            refundAmount = amount;
+            log.info("Processing PARTIAL refund (admin specified): {} of {} total", amount, booking.getTotalAmount());
+        } else {
+            // Full refund - apply retention percentage to cover transaction fees
+            BigDecimal totalAmount = booking.getTotalAmount();
+            BigDecimal retentionRate = BigDecimal.valueOf(retentionPercentage).divide(BigDecimal.valueOf(100));
+            retentionAmount = totalAmount.multiply(retentionRate).setScale(0, java.math.RoundingMode.UP);
+            refundAmount = totalAmount.subtract(retentionAmount);
+            
+            log.info("Processing FULL refund with {}% retention: total={}, retention={}, refund={}", 
+                retentionPercentage, totalAmount, retentionAmount, refundAmount);
+        }
+        
         // Process refund with payment provider
-        RefundRes providerResult = processProviderRefund(paymentSession, booking.getTotalAmount());
+        RefundRes providerResult = processProviderRefund(paymentSession, refundAmount);
 
         // Update booking status
         booking.setStatus("CANCELLED");
@@ -195,6 +233,9 @@ public class RefundService {
 
     private RefundRes processTransbankRefund(PaymentSession session, BigDecimal amount) {
         log.info("Processing Transbank refund for session: {}, amount: {}", session.getId(), amount);
+        
+        // Log token for Transbank validation process
+        log.info("=== TRANSBANK REFUND TOKEN === {} === (amount: {})", session.getToken(), amount);
 
         try {
             WebpayPlus.Transaction transaction = getTransbankTransaction();
@@ -205,7 +246,8 @@ public class RefundService {
                 amount.doubleValue()
             );
 
-            log.info("Transbank refund successful: authCode={}", response.getAuthorizationCode());
+            log.info("Transbank refund successful: authCode={}, type={}", 
+                response.getAuthorizationCode(), response.getType());
             
             return new RefundRes(
                 null,                              // bookingId (set by caller)

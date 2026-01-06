@@ -966,7 +966,7 @@
       "summary": {
         "more_than_24h": {
           "title": "Más de 24 horas",
-          "description": "Reembolso del 100% o reagendamiento gratuito. Sin preguntas."
+          "description": "Reembolso del 95% o reagendamiento gratuito. Se retiene 5% por costos de procesamiento."
         },
         "less_than_24h": {
           "title": "Menos de 24 horas",
@@ -976,14 +976,18 @@
       "sections": [
         {
           "title": "1. Cancelación por parte del Cliente (Regla 24h)",
-          "content": "Reembolso del 100%: Si cancela con MÁS de 24 horas de antelación al inicio del tour. Sin Reembolso: Si cancela con MENOS de 24 horas o no se presenta (No-Show), ya que los cupos y logística ya fueron pagados."
+          "content": "Reembolso del 95%: Si cancela con MÁS de 24 horas de antelación al inicio del tour, se reembolsará el 95% del monto pagado. El 5% restante cubre los costos de procesamiento de pago (comisiones Transbank/MercadoPago + IVA). Sin Reembolso: Si cancela con MENOS de 24 horas o no se presenta (No-Show), ya que los cupos y logística ya fueron pagados."
         },
         {
           "title": "2. Cancelación por Fuerza Mayor (Clima/Autoridad)",
-          "content": "Si Northern Chile debe cancelar por clima adverso (viento >25 nudos, nubosidad total en astronomía) o cierre de parques, el cliente tiene derecho a: a) Reagendar sin costo, o b) Reembolso total (100%) del dinero pagado."
+          "content": "Si Northern Chile debe cancelar por clima adverso (viento >25 nudos, nubosidad total en astronomía) o cierre de parques, el cliente tiene derecho a: a) Reagendar sin costo (opción recomendada), o b) Reembolso del 100% del dinero pagado (sin retención, ya que la cancelación no fue iniciada por el cliente)."
         },
         {
-          "title": "3. Plazos de Devolución",
+          "title": "3. Retención por Costos de Procesamiento",
+          "content": "En cancelaciones iniciadas por el cliente, se retiene un 5% del monto para cubrir las comisiones irrecuperables cobradas por los procesadores de pago (Transbank, MercadoPago) incluyendo IVA. Esta retención NO aplica cuando Northern Chile cancela el tour por fuerza mayor."
+        },
+        {
+          "title": "4. Plazos de Devolución",
           "content": "Los reembolsos aprobados se procesan internamente en 24 horas hábiles. Dependiendo de su banco o método de pago (Webpay/Mercado Pago), el dinero puede tardar entre 5 a 10 días hábiles en reflejarse en su cuenta."
         }
       ]

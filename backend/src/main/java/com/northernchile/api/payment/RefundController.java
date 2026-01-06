@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
@@ -34,10 +35,11 @@ public class RefundController {
     /**
      * Process a refund for a booking (admin only).
      * Admins can override the 24-hour cancellation policy.
+     * Supports partial refunds by specifying an amount less than the total.
      */
     @PostMapping("/booking/{bookingId}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'PARTNER_ADMIN')")
-    @Operation(summary = "Refund a booking", description = "Process a refund for a booking (admin only)")
+    @Operation(summary = "Refund a booking", description = "Process a full or partial refund for a booking (admin only)")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Refund processed successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid request or refund not possible"),
@@ -47,11 +49,13 @@ public class RefundController {
     })
     public ResponseEntity<RefundRes> refundBooking(
             @PathVariable("bookingId") UUID bookingId,
-            @RequestParam(value = "adminOverride", defaultValue = "false") boolean adminOverride) {
+            @RequestParam(value = "adminOverride", defaultValue = "false") boolean adminOverride,
+            @RequestParam(value = "amount", required = false) BigDecimal amount) {
 
-        log.info("Admin refund request for booking: {} (override: {})", bookingId, adminOverride);
+        log.info("Admin refund request for booking: {} (override: {}, amount: {})", 
+            bookingId, adminOverride, amount != null ? amount : "FULL");
         
-        RefundRes result = refundService.refundBooking(bookingId, adminOverride);
+        RefundRes result = refundService.refundBooking(bookingId, adminOverride, amount);
         
         return ResponseEntity.ok(result);
     }

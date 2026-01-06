@@ -966,7 +966,7 @@
       "summary": {
         "more_than_24h": {
           "title": "More than 24 hours",
-          "description": "100% refund or free rescheduling. No questions asked."
+          "description": "95% refund or free rescheduling. 5% retained for processing fees."
         },
         "less_than_24h": {
           "title": "Less than 24 hours",
@@ -976,14 +976,18 @@
       "sections": [
         {
           "title": "1. Cancellation by the Client (24h Rule)",
-          "content": "100% Refund: If you cancel MORE than 24 hours before the tour starts. No Refund: If you cancel LESS than 24 hours before or do not show up (No-Show), as spots and logistics have already been paid for."
+          "content": "95% Refund: If you cancel MORE than 24 hours before the tour starts, 95% of the amount paid will be refunded. The remaining 5% covers payment processing costs (Transbank/MercadoPago commissions + VAT). No Refund: If you cancel LESS than 24 hours before or do not show up (No-Show), as spots and logistics have already been paid for."
         },
         {
           "title": "2. Cancellation due to Force Majeure (Weather/Authority)",
-          "content": "If Northern Chile must cancel due to adverse weather (wind >25 knots, total cloud cover in astronomy) or park closures, the client is entitled to: a) Reschedule at no cost, or b) Total refund (100%) of the money paid."
+          "content": "If Northern Chile must cancel due to adverse weather (wind >25 knots, total cloud cover in astronomy) or park closures, the client is entitled to: a) Reschedule at no cost (recommended option), or b) 100% refund of the money paid (no retention, as the cancellation was not initiated by the client)."
         },
         {
-          "title": "3. Refund Timeframes",
+          "title": "3. Processing Fee Retention",
+          "content": "For client-initiated cancellations, 5% of the amount is retained to cover non-recoverable commissions charged by payment processors (Transbank, MercadoPago) including VAT. This retention does NOT apply when Northern Chile cancels the tour due to force majeure."
+        },
+        {
+          "title": "4. Refund Timeframes",
           "content": "Approved refunds are processed internally within 24 business hours. Depending on your bank or payment method (Webpay/Mercado Pago), the money may take between 5 to 10 business days to reflect in your account."
         }
       ]
