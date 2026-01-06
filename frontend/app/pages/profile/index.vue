@@ -170,7 +170,7 @@
                 <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2">
                   {{ t("profile.date_of_birth") }}
                 </label>
-                <DateInput
+                <UiDateInput
                   v-if="isEditing"
                   v-model="profileForm.dateOfBirth"
                   size="lg"

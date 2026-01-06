@@ -256,7 +256,7 @@
                 :label="t('booking.date_of_birth')"
                 name="dateOfBirth"
               >
-                <DateInput
+                <UiDateInput
                   v-model="state.dateOfBirth"
                   size="lg"
                   class="w-full"
@@ -401,6 +401,7 @@ const localePath = useLocalePath()
 const toast = useToast()
 const config = useRuntimeConfig()
 const { phoneCodes, getPhoneCodeByCountry, getCountryFlag } = useCountries()
+const { showErrorToast } = useApiError()
 
 type AuthView = 'login' | 'register' | 'forgot-password' | 'reset-password'
 
@@ -590,7 +591,6 @@ async function handleSubmit(_event: FormSubmitEvent<z.infer<typeof schema.value>
     }
   } catch (error: unknown) {
     console.error('Error en auth:', error)
-    const { showErrorToast } = useApiError()
     showErrorToast(error)
   } finally {
     loading.value = false
@@ -666,7 +666,6 @@ async function handleResetPassword(_event: FormSubmitEvent<z.infer<typeof resetP
     await router.replace(localePath('/auth'))
   } catch (error: unknown) {
     console.error('Error en reset password:', error)
-    const { showErrorToast } = useApiError()
     showErrorToast(error, t('auth.reset_password_error'))
   } finally {
     loading.value = false

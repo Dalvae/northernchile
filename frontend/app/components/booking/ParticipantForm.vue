@@ -63,7 +63,7 @@
         name="dateOfBirth"
         :help="t('booking.date_of_birth_help')"
       >
-        <DateInput
+        <UiDateInput
           :model-value="participant.dateOfBirth || null"
           size="lg"
           :max="getTodayString()"
