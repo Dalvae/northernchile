@@ -27,17 +27,14 @@ public record TourRes(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Instant createdAt,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Instant updatedAt,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String contentKey,
-    // Structured content (already translated to requested language)
     String guideName,
     List<ItineraryItem> itinerary,
     List<String> equipment,
     List<String> additionalInfo,
-    // Full translations for admin editing
     Map<String, List<ItineraryItem>> itineraryTranslations,
     Map<String, List<String>> equipmentTranslations,
     Map<String, List<String>> additionalInfoTranslations,
     Map<String, List<ContentBlock>> descriptionBlocksTranslations,
-    // Owner info for admin visibility
     UUID ownerId,
     String ownerName,
     String ownerEmail

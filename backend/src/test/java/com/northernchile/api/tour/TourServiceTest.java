@@ -472,7 +472,10 @@ class TourServiceTest {
             Map.of(),           // itineraryTranslations
             Map.of(),           // equipmentTranslations
             Map.of(),           // additionalInfoTranslations
-            Map.of()            // descriptionBlocksTranslations
+            Map.of(),           // descriptionBlocksTranslations
+            null,               // ownerId
+            null,               // ownerName
+            null                // ownerEmail
         );
     }
 }
