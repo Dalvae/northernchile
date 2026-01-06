@@ -1,5 +1,6 @@
 package com.northernchile.api.tour;
 
+import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.tour.dto.TourScheduleRes;
 import com.northernchile.api.util.DateTimeUtils;
@@ -19,9 +20,13 @@ import java.util.stream.Collectors;
 public class TourSchedulePublicController {
 
     private final TourScheduleRepository tourScheduleRepository;
+    private final BookingRepository bookingRepository;
 
-    public TourSchedulePublicController(TourScheduleRepository tourScheduleRepository) {
+    public TourSchedulePublicController(
+            TourScheduleRepository tourScheduleRepository,
+            BookingRepository bookingRepository) {
         this.tourScheduleRepository = tourScheduleRepository;
+        this.bookingRepository = bookingRepository;
     }
 
     /**
@@ -64,6 +69,13 @@ public class TourSchedulePublicController {
             assignedGuideName = schedule.getAssignedGuide().getFullName();
         }
 
+        // Calculate actual availability
+        Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(schedule.getId());
+        if (bookedParticipants == null) {
+            bookedParticipants = 0;
+        }
+        int availableSpots = Math.max(0, schedule.getMaxParticipants() - bookedParticipants);
+
         return new TourScheduleRes(
                 schedule.getId(),
                 schedule.getTour().getId(),
@@ -72,8 +84,8 @@ public class TourSchedulePublicController {
                 schedule.getTour().getDurationHours(),
                 schedule.getStartDatetime(),
                 schedule.getMaxParticipants(),
-                0, // bookedParticipants - will be calculated elsewhere if needed
-                schedule.getMaxParticipants(), // availableSpots - will be calculated elsewhere if needed
+                bookedParticipants,
+                availableSpots,
                 schedule.getStatus(),
                 assignedGuideId,
                 assignedGuideName,
@@ -81,3 +93,4 @@ public class TourSchedulePublicController {
         );
     }
 }
+

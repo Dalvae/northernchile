@@ -226,6 +226,13 @@ public class TourScheduleAdminController {
             assignedGuideName = schedule.getAssignedGuide().getFullName();
         }
 
+        // Calculate actual availability
+        Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(schedule.getId());
+        if (bookedParticipants == null) {
+            bookedParticipants = 0;
+        }
+        int availableSpots = Math.max(0, schedule.getMaxParticipants() - bookedParticipants);
+
         return new TourScheduleRes(
                 schedule.getId(),
                 tourId,
@@ -234,8 +241,8 @@ public class TourScheduleAdminController {
                 tourDurationHours,
                 schedule.getStartDatetime(),
                 schedule.getMaxParticipants(),
-                0, // bookedParticipants - will be calculated elsewhere if needed
-                schedule.getMaxParticipants(), // availableSpots - will be calculated elsewhere if needed
+                bookedParticipants,
+                availableSpots,
                 schedule.getStatus(),
                 assignedGuideId,
                 assignedGuideName,
