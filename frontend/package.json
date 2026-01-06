@@ -10,7 +10,7 @@
     "dev": "nuxt dev",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "vercel-build": "NODE_ENV=production nuxt build",
+    "vercel-build": "pnpm generate:api && NODE_ENV=production nuxt build",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
     "test:e2e": "playwright test",
