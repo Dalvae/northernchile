@@ -4,7 +4,7 @@ export default defineSitemapEventHandler(async () => {
   const locales = ['es', 'en', 'pt']
 
   try {
-    const tours = await $fetch<Array<{ slug: string, updatedAt?: string }>>(`${apiBaseUrl}/api/tours/published`)
+    const tours = await $fetch<Array<{ slug: string, updatedAt?: string }>>(`${apiBaseUrl}/api/tours`)
 
     const staticPages = [
       '/',

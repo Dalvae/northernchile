@@ -258,21 +258,46 @@ public class PaymentSessionService {
 
     /**
      * Confirm a MercadoPago payment session.
-     * @param lookupId Can be either preference_id (stored in externalPaymentId) or session UUID (external_reference)
-     * @param mpPaymentId The MercadoPago payment ID
+     * The webhook sends payment_id in data.id, so we need to fetch the payment
+     * to get the external_reference (our session ID).
+     * 
+     * @param mpPaymentId The MercadoPago payment ID (data.id from webhook)
+     * @param rawDataId Same as mpPaymentId, kept for API compatibility
      */
     @Transactional
-    public PaymentSessionRes confirmMercadoPagoSession(String lookupId, String mpPaymentId) {
-        log.info("Confirming MercadoPago payment session - lookupId: {}, payment: {}", lookupId, mpPaymentId);
+    public PaymentSessionRes confirmMercadoPagoSession(String mpPaymentId, String rawDataId) {
+        log.info("Confirming MercadoPago payment session - mpPaymentId: {}", mpPaymentId);
 
-        // Try to find by externalPaymentId (preference_id) first
-        PaymentSession session = sessionRepository.findByExternalPaymentId(lookupId)
-            .orElse(null);
+        PaymentSession session = null;
         
-        // If not found, try to find by session UUID (external_reference)
+        // First, try to get the session by fetching the MercadoPago payment
+        // and extracting the external_reference (our session UUID)
+        if (mpPaymentId != null && !mpPaymentId.isEmpty()) {
+            try {
+                String externalReference = paymentAdapter.getExternalReferenceFromPayment(mpPaymentId);
+                if (externalReference != null) {
+                    log.info("Found external_reference from MP payment: {}", externalReference);
+                    try {
+                        UUID sessionId = UUID.fromString(externalReference);
+                        session = sessionRepository.findById(sessionId).orElse(null);
+                    } catch (IllegalArgumentException e) {
+                        log.warn("external_reference is not a valid UUID: {}", externalReference);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Could not fetch MercadoPago payment {}: {}", mpPaymentId, e.getMessage());
+            }
+        }
+        
+        // Fallback: try to find by externalPaymentId (preference_id)
+        if (session == null) {
+            session = sessionRepository.findByExternalPaymentId(mpPaymentId).orElse(null);
+        }
+        
+        // Final fallback: try as session UUID directly (for legacy compatibility)
         if (session == null) {
             try {
-                UUID sessionId = UUID.fromString(lookupId);
+                UUID sessionId = UUID.fromString(mpPaymentId);
                 session = sessionRepository.findById(sessionId).orElse(null);
             } catch (IllegalArgumentException e) {
                 // Not a valid UUID, ignore
@@ -280,7 +305,7 @@ public class PaymentSessionService {
         }
         
         if (session == null) {
-            throw new IllegalArgumentException("Payment session not found for: " + lookupId);
+            throw new IllegalArgumentException("Payment session not found for MercadoPago payment: " + mpPaymentId);
         }
 
         if (session.getStatus() == PaymentSessionStatus.COMPLETED) {
@@ -288,8 +313,8 @@ public class PaymentSessionService {
             return buildCompletedResponse(session);
         }
 
-        // Confirm with MercadoPago
-        PaymentSessionRes providerResult = paymentAdapter.confirmMercadoPagoPayment(session, lookupId, mpPaymentId);
+        // Confirm with MercadoPago using the payment ID
+        PaymentSessionRes providerResult = paymentAdapter.confirmMercadoPagoPayment(session, null, mpPaymentId);
 
         if (providerResult.status() != PaymentSessionStatus.COMPLETED) {
             session.setStatus(PaymentSessionStatus.FAILED);
@@ -319,6 +344,7 @@ public class PaymentSessionService {
             bookingIds
         );
 
+        log.info("MercadoPago payment confirmed for session {} with {} bookings", session.getId(), bookingIds.size());
         return response;
     }
 

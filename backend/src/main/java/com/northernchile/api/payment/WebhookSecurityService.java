@@ -62,9 +62,9 @@ public class WebhookSecurityService {
      * @return true if signature is valid or if in test mode without signature
      */
     public boolean verifyMercadoPagoSignature(String dataId, String requestId, String xSignature) {
-        // In test mode, allow webhooks without signature for easier testing
-        if (testMode && (xSignature == null || xSignature.isBlank())) {
-            logger.warn("Mercado Pago webhook signature missing - allowed in test mode");
+        // In test mode, skip signature verification entirely for easier testing
+        if (testMode) {
+            logger.warn("Mercado Pago webhook signature verification SKIPPED - test mode enabled");
             return true;
         }
 

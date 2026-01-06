@@ -77,6 +77,29 @@ public class PaymentSessionPaymentAdapter {
         return confirmMercadoPagoCheckout(session, preferenceId, mpPaymentId);
     }
 
+    /**
+     * Get the external_reference from a MercadoPago payment.
+     * This is our session UUID that we set when creating the preference.
+     */
+    public String getExternalReferenceFromPayment(String mpPaymentId) {
+        log.info("Fetching external_reference from MercadoPago payment: {}", mpPaymentId);
+        
+        try {
+            MercadoPagoConfig.setAccessToken(mercadoPagoAccessToken);
+            
+            com.mercadopago.client.payment.PaymentClient paymentClient = new com.mercadopago.client.payment.PaymentClient();
+            com.mercadopago.resources.payment.Payment payment = paymentClient.get(Long.parseLong(mpPaymentId));
+            
+            String externalReference = payment.getExternalReference();
+            log.info("MercadoPago payment {} has external_reference: {}", mpPaymentId, externalReference);
+            
+            return externalReference;
+        } catch (Exception e) {
+            log.error("Error fetching MercadoPago payment {}", mpPaymentId, e);
+            throw new RuntimeException("Failed to fetch MercadoPago payment: " + e.getMessage(), e);
+        }
+    }
+
     // === Transbank ===
 
     private PaymentSessionRes initializeTransbankPayment(PaymentSession session, PaymentSessionReq request) {
