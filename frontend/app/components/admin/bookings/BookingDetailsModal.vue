@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { BookingRes } from 'api-client'
+import { getStatusColor, getBookingStatusLabel } from '~/utils/adminOptions'
 
 defineProps<{
   booking: BookingRes
@@ -16,33 +17,10 @@ function formatDate(dateString: string): string {
   return formatDateTime(dateString)
 }
 
-type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
-
-function getStatusBadgeColor(status: string): BadgeColor {
-  switch (status) {
-    case 'CONFIRMED':
-      return 'success'
-    case 'PENDING':
-      return 'warning'
-    case 'CANCELLED':
-      return 'error'
-    default:
-      return 'neutral'
-  }
-}
-
-function getStatusLabel(status: string): string {
-  switch (status) {
-    case 'CONFIRMED':
-      return 'Confirmada'
-    case 'PENDING':
-      return 'Pendiente'
-    case 'CANCELLED':
-      return 'Cancelada'
-    default:
-      return status
-  }
-}
+// Status helpers imported from ~/utils/adminOptions
+// Use getStatusColor as getStatusBadgeColor and getBookingStatusLabel as getStatusLabel
+const getStatusBadgeColor = getStatusColor
+const getStatusLabel = getBookingStatusLabel
 </script>
 
 <template>

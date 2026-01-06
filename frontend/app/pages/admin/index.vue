@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
 import type { BookingRes } from 'api-client'
+import { getStatusColor } from '~/utils/adminOptions'
 
 definePageMeta({
   layout: 'admin'
@@ -127,17 +128,7 @@ const bookingColumns = [
   { id: 'actions', header: '' }
 ]
 
-type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
-
-function getStatusColor(status: string): BadgeColor {
-  const colors: Record<string, BadgeColor> = {
-    CONFIRMED: 'success',
-    PENDING: 'warning',
-    CANCELLED: 'error',
-    COMPLETED: 'info'
-  }
-  return colors[status] || 'neutral'
-}
+// Status color imported from ~/utils/adminOptions
 </script>
 
 <template>

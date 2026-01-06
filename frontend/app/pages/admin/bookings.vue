@@ -3,6 +3,7 @@ import { h, resolveComponent } from 'vue'
 import type { BookingRes, LocalTime } from 'api-client'
 import { getGroupedRowModel } from '@tanstack/vue-table'
 import type { GroupingOptions } from '@tanstack/vue-table'
+import { getStatusColor, getBookingStatusLabel } from '~/utils/adminOptions'
 
 import AdminCountryCell from '~/components/admin/CountryCell.vue'
 
@@ -266,31 +267,7 @@ function formatTourDateTime(dateString: string, timeValue?: LocalTime | string |
   return formattedDate
 }
 
-function getStatusColor(status: string): 'success' | 'warning' | 'error' | 'info' | 'neutral' {
-  switch (status) {
-    case 'CONFIRMED':
-      return 'success'
-    case 'PENDING':
-      return 'warning'
-    case 'CANCELLED':
-      return 'error'
-    default:
-      return 'neutral'
-  }
-}
-
-function getStatusLabel(status: string): string {
-  switch (status) {
-    case 'CONFIRMED':
-      return 'Confirmada'
-    case 'PENDING':
-      return 'Pendiente'
-    case 'CANCELLED':
-      return 'Cancelada'
-    default:
-      return status
-  }
-}
+// Status helpers imported from ~/utils/adminOptions
 
 function openRefundModal(booking: BookingRes) {
   selectedBooking.value = booking
@@ -601,7 +578,7 @@ function isWithin24Hours(tourDate: string, tourTime?: LocalTime | string | null)
 
           <template #status-cell="{ row }">
             <UBadge
-              :label="getStatusLabel(row.original.status)"
+              :label="getBookingStatusLabel(row.original.status)"
               :color="getStatusColor(row.original.status)"
               variant="soft"
             />

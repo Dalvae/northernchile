@@ -437,6 +437,7 @@
 
 <script setup lang="ts">
 import type { WeatherAlert } from 'api-client'
+import { getStatusColor } from '~/utils/adminOptions'
 
 definePageMeta({
   layout: 'admin'
@@ -686,15 +687,7 @@ function getTypeLabel(type: string): string {
   return labels[type] || type
 }
 
-function getStatusColor(status: string): BadgeColor {
-  const colors: Record<string, BadgeColor> = {
-    PENDING: 'warning',
-    KEPT: 'success',
-    CANCELLED: 'error',
-    RESCHEDULED: 'info'
-  }
-  return colors[status] || 'neutral'
-}
+// getStatusColor imported from ~/utils/adminOptions
 
 function getResolutionColor(resolution: string): BadgeColor {
   const colors: Record<string, BadgeColor> = {

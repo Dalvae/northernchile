@@ -86,6 +86,8 @@ const STATUS_COLORS: Record<string, BadgeColor> = {
   // Alert status
   ACKNOWLEDGED: 'info',
   RESOLVED: 'success',
+  KEPT: 'success',
+  RESCHEDULED: 'info',
   // User roles
   ROLE_CLIENT: 'neutral',
   ROLE_PARTNER_ADMIN: 'info',

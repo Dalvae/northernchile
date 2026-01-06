@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { BookingRes, LocalTime } from 'api-client'
 import { parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
+import { getStatusColor } from '~/utils/adminOptions'
 
 const { locale, t } = useI18n()
 const authStore = useAuthStore()
@@ -69,19 +70,7 @@ function formatDateTime(dateString?: string, timeString?: LocalTime | string | n
   return dateFormatted
 }
 
-// Badge color type
-type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
-
-// Status colors
-function getStatusColor(status: string): BadgeColor {
-  const colors: Record<string, BadgeColor> = {
-    CONFIRMED: 'success',
-    PENDING: 'warning',
-    CANCELLED: 'error',
-    COMPLETED: 'info'
-  }
-  return colors[status] || 'neutral'
-}
+// getStatusColor imported from ~/utils/adminOptions
 
 // Status labels
 function getStatusLabel(status: string) {
