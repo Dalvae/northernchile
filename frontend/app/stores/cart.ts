@@ -20,17 +20,33 @@ export const useCartStore = defineStore('cart', () => {
     cartTotal: 0
   }
 
-  const cart = ref<CartRes>(defaultCart)
+  // Internal cart state - always initialized with default
+  const _cart = ref<CartRes>({ ...defaultCart })
 
   const isLoading = ref(false)
 
+  // Safe cart getter - always returns a valid cart object (never undefined)
+  // This prevents "can't access property 'items'" errors during hydration
+  const cart = computed(() => {
+    return _cart.value ?? defaultCart
+  })
+
+  // Safe items getter for direct access
+  const items = computed(() => {
+    return _cart.value?.items ?? []
+  })
+
   // Safe accessors with optional chaining to prevent errors during hydration
   const totalItems = computed(() => {
-    return cart.value?.items?.reduce((sum, item) => sum + item.numParticipants, 0) ?? 0
+    return _cart.value?.items?.reduce((sum, item) => sum + item.numParticipants, 0) ?? 0
   })
 
   const totalPrice = computed(() => {
-    return cart.value?.cartTotal ?? 0
+    return _cart.value?.cartTotal ?? 0
+  })
+
+  const cartTotal = computed(() => {
+    return _cart.value?.cartTotal ?? 0
   })
 
   async function fetchCart() {
@@ -39,7 +55,7 @@ export const useCartStore = defineStore('cart', () => {
       const response = await $fetch<CartRes>('/api/cart', {
         credentials: 'include'
       })
-      cart.value = response
+      _cart.value = response
     } catch (error) {
       console.error('Error fetching cart:', error)
       clearCart()
@@ -53,7 +69,7 @@ export const useCartStore = defineStore('cart', () => {
    * Updates UI immediately, then syncs with backend. Reverts on failure.
    */
   async function addItem(itemData: CartItemReq) {
-    const previousCart = JSON.parse(JSON.stringify(cart.value)) as CartRes
+    const previousCart = JSON.parse(JSON.stringify(_cart.value)) as CartRes
 
     // Optimistic update: add item immediately
     // We cast to CartItemRes because we don't have all fields yet
@@ -65,17 +81,22 @@ export const useCartStore = defineStore('cart', () => {
       pricePerParticipant: 0
     } as unknown as CartItemRes
 
-    const existingIndex = cart.value.items.findIndex(
+    // Ensure items array exists before modifying
+    if (!_cart.value.items) {
+      _cart.value.items = []
+    }
+
+    const existingIndex = _cart.value.items.findIndex(
       item => item.scheduleId === itemData.scheduleId
     )
 
     if (existingIndex >= 0) {
-      const existing = cart.value.items[existingIndex]
+      const existing = _cart.value.items[existingIndex]
       if (existing) {
         existing.numParticipants = existing.numParticipants + itemData.numParticipants
       }
     } else {
-      cart.value.items.push(optimisticItem)
+      _cart.value.items.push(optimisticItem)
     }
 
     isLoading.value = true
@@ -85,8 +106,9 @@ export const useCartStore = defineStore('cart', () => {
         credentials: 'include',
         body: itemData
       })
-      cart.value = response
+      _cart.value = response
 
+      // Google Analytics tracking
       if (typeof window !== 'undefined' && window.gtag) {
         const addedItem = response.items.find(item => item.scheduleId === itemData.scheduleId)
         if (addedItem) {
@@ -103,12 +125,12 @@ export const useCartStore = defineStore('cart', () => {
         }
       }
 
-      showSuccessToast(t('cart.added_to_cart', 'Agregado al carrito'))
+      // Note: Toast is shown by the calling component (has more context like tour name)
       return true
     } catch (error) {
       console.error('Error adding item to cart:', error)
       // Revert to previous state
-      cart.value = previousCart
+      _cart.value = previousCart
 
       // Use useApiError to show appropriate message based on error code
       if (isScheduleFullError(error)) {
@@ -128,10 +150,12 @@ export const useCartStore = defineStore('cart', () => {
    * Removes from UI immediately, then syncs with backend. Reverts on failure.
    */
   async function removeItem(itemId: string) {
-    const previousCart = JSON.parse(JSON.stringify(cart.value)) as CartRes
+    const previousCart = JSON.parse(JSON.stringify(_cart.value)) as CartRes
 
-    // Optimistic update: remove item immediately
-    cart.value.items = cart.value.items.filter(item => item.itemId !== itemId && item.scheduleId !== itemId)
+    // Optimistic update: remove item immediately (with safety check)
+    if (_cart.value.items) {
+      _cart.value.items = _cart.value.items.filter(item => item.itemId !== itemId && item.scheduleId !== itemId)
+    }
 
     isLoading.value = true
     try {
@@ -139,7 +163,7 @@ export const useCartStore = defineStore('cart', () => {
         method: 'DELETE',
         credentials: 'include'
       })
-      cart.value = response
+      _cart.value = response
 
       showSuccessToast(
         t('cart.removed', 'Eliminado'),
@@ -150,7 +174,7 @@ export const useCartStore = defineStore('cart', () => {
     } catch (error) {
       console.error('Error removing item from cart:', error)
       // Revert to previous state
-      cart.value = previousCart
+      _cart.value = previousCart
       showErrorToast(error, t('cart.error_removing', 'Error al eliminar del carrito'))
       return false
     } finally {
@@ -164,14 +188,7 @@ export const useCartStore = defineStore('cart', () => {
    */
   async function clearCart() {
     // Clear local state immediately
-    cart.value = {
-      cartId: '',
-      items: [],
-      subtotal: 0,
-      taxAmount: 0,
-      taxRate: 0.19,
-      cartTotal: 0
-    }
+    _cart.value = { ...defaultCart }
 
     // Also clear on the backend (fire and forget - don't block UI)
     try {
@@ -186,10 +203,15 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   return {
-    cart,
+    // Safe getters (computed, always return valid values)
+    cart,          // Always returns a valid CartRes object
+    items,         // Always returns an array (never undefined)
+    totalItems,    // Always returns a number
+    totalPrice,    // Always returns a number
+    cartTotal,     // Alias for totalPrice
+    // State
     isLoading,
-    totalItems,
-    totalPrice,
+    // Actions
     fetchCart,
     addItem,
     removeItem,

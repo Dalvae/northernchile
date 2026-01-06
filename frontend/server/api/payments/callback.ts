@@ -15,22 +15,42 @@ export default defineEventHandler(async (event) => {
   let tokenWs: string | undefined
   let tbkToken: string | undefined
   let tbkOrdenCompra: string | undefined
+  let tbkIdSesion: string | undefined
 
   if (method === 'POST') {
     const body = await readBody(event)
     tokenWs = body?.token_ws
     tbkToken = body?.TBK_TOKEN
     tbkOrdenCompra = body?.TBK_ORDEN_COMPRA
+    tbkIdSesion = body?.TBK_ID_SESION
   } else {
     const query = getQuery(event)
     tokenWs = query.token_ws as string
     tbkToken = query.TBK_TOKEN as string
     tbkOrdenCompra = query.TBK_ORDEN_COMPRA as string
+    tbkIdSesion = query.TBK_ID_SESION as string
   }
 
   // Case 1: User cancelled or timeout - TBK_TOKEN is sent
+  // Forward to backend to log and handle properly (don't call commit!)
   if (tbkToken) {
-    console.log('Transbank payment cancelled by user - TBK_TOKEN:', tbkToken, 'Order:', tbkOrdenCompra)
+    console.log('Transbank payment cancelled - TBK_TOKEN:', tbkToken, 'Session:', tbkIdSesion, 'Order:', tbkOrdenCompra)
+    
+    try {
+      // Call backend to mark session as cancelled and log the values
+      await $fetch(`${backendUrl}/api/payment-sessions/confirm`, {
+        method: 'GET',
+        query: { 
+          TBK_TOKEN: tbkToken,
+          TBK_ID_SESION: tbkIdSesion,
+          TBK_ORDEN_COMPRA: tbkOrdenCompra
+        }
+      })
+    } catch (error) {
+      // Backend handles cancellation - ignore errors here
+      console.log('Backend handled Transbank abort')
+    }
+    
     return sendRedirect(event, '/payment/callback?status=cancelled&message=Pago cancelado por el usuario', 302)
   }
 
