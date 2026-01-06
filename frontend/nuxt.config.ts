@@ -153,6 +153,11 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [viteTsconfigPaths()],
+    resolve: {
+      alias: {
+        'api-client': fileURLToPath(new URL('./lib/api-client', import.meta.url))
+      }
+    },
     build: {
       chunkSizeWarningLimit: 1000,
       sourcemap: process.env.NODE_ENV === 'production' ? 'hidden' : true,
