@@ -103,29 +103,29 @@ export default defineNuxtConfig({
         'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
         'Content-Security-Policy': isDev
           ? [
-              'default-src \'self\'',
-              'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://www.googletagmanager.com https://www.google-analytics.com',
-              'style-src \'self\' \'unsafe-inline\'',
-              'font-src \'self\' data:',
-              'img-src \'self\' data: https: blob: http://localhost:3000 https://www.google-analytics.com',
-              `connect-src 'self' ${apiBaseUrl} ws://localhost:* http://localhost:* https://api.openweathermap.org https://api.iconify.design https://www.google-analytics.com https://analytics.google.com`,
-              'frame-ancestors \'self\'',
-              'base-uri \'self\'',
-              'form-action \'self\' https://webpay3gint.transbank.cl https://webpay3g.transbank.cl https://www.mercadopago.cl https://www.mercadopago.com.br',
-              'object-src \'none\''
-            ].join('; ')
+            'default-src \'self\'',
+            'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://www.googletagmanager.com https://www.google-analytics.com',
+            'style-src \'self\' \'unsafe-inline\'',
+            'font-src \'self\' data:',
+            'img-src \'self\' data: https: blob: http://localhost:3000 https://www.google-analytics.com',
+            `connect-src 'self' ${apiBaseUrl} ws://localhost:* http://localhost:* https://api.openweathermap.org https://api.iconify.design https://www.google-analytics.com https://analytics.google.com`,
+            'frame-ancestors \'self\'',
+            'base-uri \'self\'',
+            'form-action \'self\' https://webpay3gint.transbank.cl https://webpay3g.transbank.cl https://www.mercadopago.cl https://www.mercadopago.com.br',
+            'object-src \'none\''
+          ].join('; ')
           : [
-              'default-src \'self\'',
-              'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://www.googletagmanager.com https://www.google-analytics.com',
-              'style-src \'self\' \'unsafe-inline\'',
-              'font-src \'self\' data:',
-              'img-src \'self\' data: https: blob: https://www.google-analytics.com',
-              `connect-src 'self' ${apiBaseUrl} https://api.openweathermap.org https://api.iconify.design https://www.google-analytics.com https://analytics.google.com`,
-              'frame-ancestors \'self\'',
-              'base-uri \'self\'',
-              'form-action \'self\' https://webpay3gint.transbank.cl https://webpay3g.transbank.cl https://www.mercadopago.cl https://www.mercadopago.com.br',
-              'object-src \'none\''
-            ].join('; ')
+            'default-src \'self\'',
+            'script-src \'self\' \'unsafe-inline\' \'unsafe-eval\' https://www.googletagmanager.com https://www.google-analytics.com',
+            'style-src \'self\' \'unsafe-inline\'',
+            'font-src \'self\' data:',
+            'img-src \'self\' data: https: blob: https://www.google-analytics.com',
+            `connect-src 'self' ${apiBaseUrl} https://api.openweathermap.org https://api.iconify.design https://www.google-analytics.com https://analytics.google.com`,
+            'frame-ancestors \'self\'',
+            'base-uri \'self\'',
+            'form-action \'self\' https://webpay3gint.transbank.cl https://webpay3g.transbank.cl https://www.mercadopago.cl https://www.mercadopago.com.br',
+            'object-src \'none\''
+          ].join('; ')
       }
     }
   },
@@ -346,7 +346,22 @@ export default defineNuxtConfig({
         addressCountry: 'CL'
       },
       telephone: '+56942693271',
-      priceRange: '$$'
+      priceRange: '$$',
+      openingHoursSpecification: [
+        {
+          dayOfWeek: [
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+            'Sunday'
+          ],
+          opens: '00:00',
+          closes: '23:59'
+        }
+      ]
     }
   },
 
