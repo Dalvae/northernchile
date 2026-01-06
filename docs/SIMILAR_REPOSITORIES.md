@@ -376,25 +376,27 @@ This document catalogs open-source repositories that combine Vue/Nuxt frontend w
 
 ## 10. Recommended Study Path
 
-### Phase 1: Understand Current Patterns
-1. Study JHipster generated app (most comprehensive)
-2. Review Spring Security official samples
-3. Examine our current implementation
+### Phase 1: Understand Current Patterns (Time: 4-6 hours)
+1. Study JHipster generated app (most comprehensive) - **2-3 hours**
+2. Review Spring Security official samples - **1-2 hours**
+3. Examine our current implementation - **1 hour**
 
-### Phase 2: Permission Systems
-1. Study RuoYi-Vue permission system (most detailed)
-2. Review Broadleaf Commerce role hierarchy
-3. Examine Halo blog permission patterns
+### Phase 2: Permission Systems (Time: 6-8 hours)
+1. Study RuoYi-Vue permission system (most detailed) - **3-4 hours**
+2. Review Broadleaf Commerce role hierarchy - **2 hours**
+3. Examine Halo blog permission patterns - **1-2 hours**
 
-### Phase 3: Multi-Tenancy
-1. Study Baeldung multi-tenancy guide
-2. Review Shopizer multi-store patterns
-3. Examine row-level security implementations
+### Phase 3: Multi-Tenancy (Time: 4-5 hours)
+1. Study Baeldung multi-tenancy guide - **2 hours**
+2. Review Shopizer multi-store patterns - **1-2 hours**
+3. Examine row-level security implementations - **1 hour**
 
-### Phase 4: Frontend Integration
-1. Study vue-element-admin role-based UI
-2. Review Nuxt auth module patterns
-3. Examine JHipster frontend security
+### Phase 4: Frontend Integration (Time: 4-6 hours)
+1. Study vue-element-admin role-based UI - **2-3 hours**
+2. Review Nuxt auth module patterns - **1-2 hours**
+3. Examine JHipster frontend security - **1 hour**
+
+**Total Estimated Study Time: 18-25 hours** (can be spread over 1-2 weeks)
 
 ## 11. Code Pattern Library
 
