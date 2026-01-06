@@ -108,8 +108,12 @@ public class PaymentSessionPaymentAdapter {
         try {
             WebpayPlus.Transaction transaction = getTransbankTransaction();
 
-            String buyOrder = "SESSION-" + session.getId().toString().substring(0, 8);
-            String sessionId = "SID-" + System.currentTimeMillis();
+            // Transbank limits: buy_order max 26 chars, session_id max 61 chars
+            // Use our session UUID (without dashes) for buy_order (32 chars -> truncate to 26)
+            // Use full session UUID for session_id (so we can recover on timeout)
+            String uuidNoDashes = session.getId().toString().replace("-", "");
+            String buyOrder = uuidNoDashes.substring(0, 26);  // First 26 chars for buy_order
+            String sessionId = session.getId().toString();     // Full UUID for session_id (36 chars, fits in 61)
             double amount = session.getTotalAmount().doubleValue();
 
             WebpayPlusTransactionCreateResponse response = transaction.create(

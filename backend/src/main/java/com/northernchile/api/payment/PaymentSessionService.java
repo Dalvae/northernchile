@@ -262,6 +262,111 @@ public class PaymentSessionService {
     }
 
     /**
+     * Handle Transbank payment abort (user clicked "cancel" in Webpay form).
+     * TBK_TOKEN contains the transaction token.
+     */
+    @Transactional
+    public PaymentSessionRes handleTransbankAbort(String tbkToken, String tbkSessionId) {
+        log.info("Handling Transbank abort - token: {}, sessionId: {}", tbkToken, tbkSessionId);
+
+        // Try to find session by token first
+        PaymentSession session = sessionRepository.findByToken(tbkToken).orElse(null);
+        
+        // Fallback: try to find by session ID (TBK_ID_SESION might contain our session UUID)
+        if (session == null && tbkSessionId != null) {
+            try {
+                UUID sessionId = UUID.fromString(tbkSessionId);
+                session = sessionRepository.findById(sessionId).orElse(null);
+            } catch (IllegalArgumentException e) {
+                // Not a valid UUID, ignore
+            }
+        }
+
+        if (session == null) {
+            log.warn("Could not find session for Transbank abort - token: {}, sessionId: {}", tbkToken, tbkSessionId);
+            // Return a cancelled response even if we can't find the session
+            return new PaymentSessionRes(
+                null,
+                PaymentSessionStatus.CANCELLED,
+                null, null, null, null, null, false, null
+            );
+        }
+
+        // Mark as cancelled
+        session.setStatus(PaymentSessionStatus.CANCELLED);
+        session.setErrorMessage("Payment aborted by user");
+        sessionRepository.save(session);
+
+        log.info("Transbank payment session {} marked as cancelled (user abort)", session.getId());
+
+        return new PaymentSessionRes(
+            session.getId(),
+            PaymentSessionStatus.CANCELLED,
+            null, null, null, null,
+            session.getExpiresAt(),
+            session.isTest(),
+            null
+        );
+    }
+
+    /**
+     * Handle Transbank timeout (user took too long in Webpay form).
+     * Only TBK_ID_SESION and TBK_ORDEN_COMPRA are received, no token.
+     */
+    @Transactional
+    public PaymentSessionRes handleTransbankTimeout(String tbkSessionId, String tbkOrderId) {
+        log.info("Handling Transbank timeout - sessionId: {}, orderId: {}", tbkSessionId, tbkOrderId);
+
+        PaymentSession session = null;
+        
+        // Try to find by session ID (might contain our session UUID)
+        if (tbkSessionId != null) {
+            try {
+                UUID sessionId = UUID.fromString(tbkSessionId);
+                session = sessionRepository.findById(sessionId).orElse(null);
+            } catch (IllegalArgumentException e) {
+                // Not a valid UUID, ignore
+            }
+        }
+        
+        // Fallback: try to find by order ID
+        if (session == null && tbkOrderId != null) {
+            // TBK_ORDEN_COMPRA might be our session ID
+            try {
+                UUID sessionId = UUID.fromString(tbkOrderId);
+                session = sessionRepository.findById(sessionId).orElse(null);
+            } catch (IllegalArgumentException e) {
+                // Not a valid UUID, ignore
+            }
+        }
+
+        if (session == null) {
+            log.warn("Could not find session for Transbank timeout - sessionId: {}, orderId: {}", tbkSessionId, tbkOrderId);
+            return new PaymentSessionRes(
+                null,
+                PaymentSessionStatus.EXPIRED,
+                null, null, null, null, null, false, null
+            );
+        }
+
+        // Mark as expired
+        session.setStatus(PaymentSessionStatus.EXPIRED);
+        session.setErrorMessage("Payment form timeout");
+        sessionRepository.save(session);
+
+        log.info("Transbank payment session {} marked as expired (timeout)", session.getId());
+
+        return new PaymentSessionRes(
+            session.getId(),
+            PaymentSessionStatus.EXPIRED,
+            null, null, null, null,
+            session.getExpiresAt(),
+            session.isTest(),
+            null
+        );
+    }
+
+    /**
      * Confirm a MercadoPago payment session.
      * The webhook sends payment_id in data.id, so we need to fetch the payment
      * to get the external_reference (our session ID).

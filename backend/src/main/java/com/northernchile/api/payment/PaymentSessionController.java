@@ -73,6 +73,15 @@ public class PaymentSessionController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Confirm a Transbank Webpay Plus payment after redirect.
+     * 
+     * Transbank has 4 different callback scenarios:
+     * 1. Normal (success/reject): token_ws only
+     * 2. Timeout: TBK_ID_SESION + TBK_ORDEN_COMPRA (no token)
+     * 3. User aborted: TBK_TOKEN + TBK_ID_SESION + TBK_ORDEN_COMPRA
+     * 4. Form error: token_ws + TBK_TOKEN + TBK_ID_SESION + TBK_ORDEN_COMPRA
+     */
     @GetMapping("/confirm")
     @Operation(summary = "Confirm payment (Transbank)", description = "Confirm a Transbank payment after redirect")
     @ApiResponses(value = {
@@ -82,17 +91,44 @@ public class PaymentSessionController {
     })
     public ResponseEntity<PaymentSessionRes> confirmPayment(
             @RequestParam(value = "token_ws", required = false) String webpayToken,
-            @RequestParam(value = "token", required = false) String genericToken) {
+            @RequestParam(value = "token", required = false) String genericToken,
+            @RequestParam(value = "TBK_TOKEN", required = false) String tbkToken,
+            @RequestParam(value = "TBK_ID_SESION", required = false) String tbkSessionId,
+            @RequestParam(value = "TBK_ORDEN_COMPRA", required = false) String tbkOrderId) {
 
+        // Case 1: Normal flow - token_ws present (success or rejection from Transbank)
         String token = webpayToken != null ? webpayToken : genericToken;
-
-        if (token == null || token.isBlank()) {
-            return ResponseEntity.badRequest().build();
+        
+        if (token != null && !token.isBlank()) {
+            // If we also have TBK_TOKEN, it means there was an error in the form
+            // but user clicked "return to site" - still try to confirm
+            if (tbkToken != null) {
+                log.warn("Transbank callback with both token_ws and TBK_TOKEN - form error scenario");
+            }
+            log.info("Confirming Transbank payment with token");
+            PaymentSessionRes response = sessionService.confirmSession(token);
+            return ResponseEntity.ok(response);
+        }
+        
+        // Case 2: User aborted - TBK_TOKEN present (different from token_ws!)
+        if (tbkToken != null && !tbkToken.isBlank()) {
+            log.info("Transbank payment aborted by user - TBK_TOKEN: {}, session: {}, order: {}", 
+                tbkToken, tbkSessionId, tbkOrderId);
+            // Mark session as cancelled
+            PaymentSessionRes response = sessionService.handleTransbankAbort(tbkToken, tbkSessionId);
+            return ResponseEntity.ok(response);
+        }
+        
+        // Case 3: Timeout - only TBK_ID_SESION and TBK_ORDEN_COMPRA, no tokens
+        if (tbkSessionId != null && !tbkSessionId.isBlank()) {
+            log.info("Transbank payment timeout - session: {}, order: {}", tbkSessionId, tbkOrderId);
+            // Mark session as expired/failed
+            PaymentSessionRes response = sessionService.handleTransbankTimeout(tbkSessionId, tbkOrderId);
+            return ResponseEntity.ok(response);
         }
 
-        log.info("Confirming payment session with token");
-        PaymentSessionRes response = sessionService.confirmSession(token);
-        return ResponseEntity.ok(response);
+        log.warn("Transbank callback without any valid parameters");
+        return ResponseEntity.badRequest().build();
     }
 
     @GetMapping("/confirm/mercadopago")
