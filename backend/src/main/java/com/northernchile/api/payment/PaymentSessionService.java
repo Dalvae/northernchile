@@ -14,6 +14,8 @@ import com.northernchile.api.payment.model.*;
 import com.northernchile.api.payment.repository.PaymentSessionRepository;
 import com.northernchile.api.tour.TourScheduleRepository;
 import com.northernchile.api.tour.TourUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +41,9 @@ public class PaymentSessionService {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentSessionService.class);
     private static final int SESSION_EXPIRATION_MINUTES = 30;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private final PaymentSessionRepository sessionRepository;
     private final TourScheduleRepository scheduleRepository;
@@ -470,6 +475,9 @@ public class PaymentSessionService {
             booking.setTotalAmount(item.itemTotal());
             booking.setLanguageCode(session.getLanguageCode());
             booking.setSpecialRequests(item.specialRequests());
+            // Set createdAt manually to ensure it's available for async email
+            // (Hibernate's @CreationTimestamp only populates during flush)
+            booking.setCreatedAt(java.time.Instant.now());
 
             // Create participants
             List<Participant> participants = new ArrayList<>();
@@ -488,16 +496,22 @@ public class PaymentSessionService {
             }
             booking.setParticipants(participants);
 
-            booking = bookingRepository.save(booking);
+            booking = bookingRepository.saveAndFlush(booking);
             bookingIds.add(booking.getId());
 
             log.info("Created booking {} from payment session {}", booking.getId(), session.getId());
 
-            // Send confirmation email
+            // Detach entity from persistence context to force fresh load with all relations
+            // This ensures lazy associations are properly loaded for async email processing
+            UUID bookingId = booking.getId();
+            entityManager.detach(booking);
+
             try {
-                bookingService.sendBookingConfirmationNotifications(booking);
+                Booking reloadedBooking = bookingRepository.findByIdWithDetails(bookingId)
+                    .orElseThrow(() -> new IllegalStateException("Booking not found after save: " + bookingId));
+                bookingService.sendBookingConfirmationNotifications(reloadedBooking);
             } catch (Exception e) {
-                log.error("Failed to send confirmation email for booking {}", booking.getId(), e);
+                log.error("Failed to send confirmation email for booking {}", bookingId, e);
             }
         }
 

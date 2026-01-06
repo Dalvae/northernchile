@@ -26,6 +26,11 @@ public class WeatherService {
     private static final Logger log = LoggerFactory.getLogger(WeatherService.class);
     private static final ZoneId ZONE_ID = ZoneId.of("America/Santiago");
 
+    // Self-injection to allow internal calls to pass through the Spring proxy (for @Cacheable)
+    @org.springframework.context.annotation.Lazy
+    @org.springframework.beans.factory.annotation.Autowired
+    private WeatherService self;
+
     @Value("${weather.api.key:dummy}")
     private String apiKey;
 
@@ -183,7 +188,7 @@ public class WeatherService {
         // 1 nudo = 0.514444 m/s
         double thresholdMs = thresholdKnots * 0.514444;
 
-        Map<String, Object> forecast = getForecast();
+        Map<String, Object> forecast = self.getForecast();
         if (forecast == null || !forecast.containsKey("daily")) {
             return false; // Sin datos, asumir OK
         }
@@ -215,7 +220,7 @@ public class WeatherService {
      * @return true si está muy nublado
      */
     public boolean isCloudyDay(LocalDate date) {
-        Map<String, Object> forecast = getForecast();
+        Map<String, Object> forecast = self.getForecast();
         if (forecast == null || !forecast.containsKey("daily")) {
             return false;
         }
@@ -243,7 +248,7 @@ public class WeatherService {
      * Obtiene el pronóstico diario para una fecha específica
      */
     public DailyForecast getDailyForecast(LocalDate date) {
-        Map<String, Object> forecast = getForecast();
+        Map<String, Object> forecast = self.getForecast();
         if (forecast == null || !forecast.containsKey("daily")) {
             return null;
         }
