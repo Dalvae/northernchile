@@ -223,6 +223,28 @@ public class CartService {
     }
 
     /**
+     * Clear (delete) the user's cart completely.
+     * Called after successful payment to remove all items.
+     */
+    @Transactional
+    public void clearCart(Optional<User> user, Optional<UUID> cartId) {
+        Optional<Cart> cartOpt = Optional.empty();
+        
+        // Try to find cart by user ID first
+        if (user.isPresent()) {
+            cartOpt = cartRepository.findByUserId(user.get().getId());
+        }
+        
+        // Fall back to cartId cookie
+        if (cartOpt.isEmpty() && cartId.isPresent()) {
+            cartOpt = cartRepository.findById(cartId.get());
+        }
+        
+        // Delete the cart if found
+        cartOpt.ifPresent(cartRepository::delete);
+    }
+
+    /**
      * Scheduled task to delete expired carts.
      * Runs every 15 minutes to cleanup carts that have passed their expiration time.
      * Interval increased from 5 min to reduce database compute costs on Neon.

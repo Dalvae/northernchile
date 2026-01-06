@@ -24,12 +24,13 @@ export const useCartStore = defineStore('cart', () => {
 
   const isLoading = ref(false)
 
+  // Safe accessors with optional chaining to prevent errors during hydration
   const totalItems = computed(() => {
-    return cart.value.items.reduce((sum, item) => sum + item.numParticipants, 0)
+    return cart.value?.items?.reduce((sum, item) => sum + item.numParticipants, 0) ?? 0
   })
 
   const totalPrice = computed(() => {
-    return cart.value.cartTotal
+    return cart.value?.cartTotal ?? 0
   })
 
   async function fetchCart() {
@@ -157,7 +158,12 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
-  function clearCart() {
+  /**
+   * Clear cart both locally and on the backend.
+   * Called after successful payment to ensure cart is empty.
+   */
+  async function clearCart() {
+    // Clear local state immediately
     cart.value = {
       cartId: '',
       items: [],
@@ -165,6 +171,17 @@ export const useCartStore = defineStore('cart', () => {
       taxAmount: 0,
       taxRate: 0.19,
       cartTotal: 0
+    }
+
+    // Also clear on the backend (fire and forget - don't block UI)
+    try {
+      await $fetch('/api/cart', {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+    } catch (error) {
+      // Silently ignore - cart is already cleared locally
+      console.warn('Could not clear cart on backend:', error)
     }
   }
 

@@ -112,9 +112,9 @@ function isSelected(option: PaymentOption) {
         @keydown.space.prevent="selectMethod(option)"
       >
         <div class="flex items-start gap-4">
-          <!-- Logo -->
+          <!-- Logo - always light background for better contrast with payment provider logos -->
           <div
-            class="flex-shrink-0 w-16 h-12 rounded-lg flex items-center justify-center overflow-hidden bg-white dark:bg-neutral-800 p-2"
+            class="flex-shrink-0 w-16 h-12 rounded-lg flex items-center justify-center overflow-hidden bg-white p-2"
           >
             <img
               :src="option.icon"

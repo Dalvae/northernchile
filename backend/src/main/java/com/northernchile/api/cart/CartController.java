@@ -62,6 +62,19 @@ public class CartController {
         return ResponseEntity.ok(cartService.toCartRes(updatedCart));
     }
 
+    /**
+     * Clear the entire cart (used after successful payment).
+     */
+    @DeleteMapping
+    public ResponseEntity<Void> clearCart(
+            @CookieValue(name = "cartId", required = false) String cartId,
+            HttpServletResponse response) {
+        cartService.clearCart(getCurrentUser(), getCartId(cartId));
+        // Clear the cart cookie
+        clearCartIdCookie(response);
+        return ResponseEntity.noContent().build();
+    }
+
     private Optional<User> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
@@ -88,6 +101,21 @@ public class CartController {
                 .sameSite("Lax");
 
         // Set domain for cross-subdomain cookie sharing
+        if (cookieDomain != null && !cookieDomain.isEmpty()) {
+            cookieBuilder.domain(cookieDomain);
+        }
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookieBuilder.build().toString());
+    }
+
+    private void clearCartIdCookie(HttpServletResponse response) {
+        ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("cartId", "")
+                .httpOnly(true)
+                .secure(!cookieInsecure)
+                .path("/")
+                .maxAge(Duration.ZERO) // Expire immediately
+                .sameSite("Lax");
+
         if (cookieDomain != null && !cookieDomain.isEmpty()) {
             cookieBuilder.domain(cookieDomain);
         }

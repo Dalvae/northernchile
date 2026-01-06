@@ -123,6 +123,10 @@ public class PaymentSessionPaymentAdapter {
                 request.returnUrl()
             );
 
+            // Log token for Transbank validation process
+            log.info("=== TRANSBANK TOKEN === {} === (buy_order: {}, amount: {})", 
+                response.getToken(), buyOrder, amount);
+
             return new PaymentSessionRes(
                 session.getId(),
                 PaymentSessionStatus.PENDING,
