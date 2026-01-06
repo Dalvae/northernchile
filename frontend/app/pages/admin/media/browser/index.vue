@@ -4,21 +4,14 @@ definePageMeta({
   middleware: 'auth-admin'
 })
 
-const { fetchAdminTours } = useAdminData()
+const adminStore = useAdminStore()
 
 // Fetch all tours
 const {
-  data: tours,
   pending: loading
-} = useAsyncData(
-  'admin-media-tours',
-  () => fetchAdminTours(),
-  {
-    server: false,
-    lazy: true,
-    default: () => []
-  }
-)
+} = useAdminToursData()
+
+const tours = computed(() => adminStore.tours)
 
 // Computed: Published tours count
 const publishedCount = computed(() => tours.value.filter(t => t.status === 'PUBLISHED').length)

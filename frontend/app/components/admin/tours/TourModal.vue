@@ -55,7 +55,7 @@ const handleSubmit = () => {
           @error="onError"
         >
           <TourFormGeneral />
-          <UDivider />
+          <USeparator />
           <TourFormContent />
         </UForm>
       </div>

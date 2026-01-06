@@ -134,7 +134,7 @@
                     )
                   }}</span>
                 </div>
-                <UDivider />
+                <USeparator />
                 <div
                   class="flex justify-between text-lg font-semibold text-neutral-900 dark:text-white"
                 >
@@ -208,7 +208,7 @@
                     )
                   }}</span>
                 </div>
-                <UDivider />
+                <USeparator />
                 <div
                   class="flex justify-between text-lg font-semibold text-neutral-900 dark:text-white"
                 >

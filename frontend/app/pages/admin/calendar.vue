@@ -287,7 +287,6 @@ const toast = useToast()
 const { fetchCalendarData, hasAdverseConditions, getWeatherIcon }
   = useCalendarData()
 
-const { fetchAdminTours } = useAdminData()
 const { formatLocalTime } = useDateTime()
 
 // Calendar data interface
@@ -319,14 +318,7 @@ const scheduleForm = ref({
 const formErrors = ref<Record<string, string>>({})
 
 // Tours and guides data
-const { data: toursData } = await useAsyncData(
-  'admin-tours-for-schedule',
-  () => fetchAdminTours(),
-  {
-    server: false,
-    lazy: true
-  }
-)
+const { data: toursData } = useAdminToursData()
 
 // Computed options for selects
 const tourOptions = computed(() => {

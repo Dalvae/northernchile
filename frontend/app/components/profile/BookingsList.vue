@@ -309,7 +309,7 @@ async function handleBookingSaved() {
           </div>
 
           <!-- Total -->
-          <UDivider />
+          <USeparator />
           <div class="space-y-2">
             <div
               class="flex justify-between text-lg font-bold text-neutral-900 dark:text-white"

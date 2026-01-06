@@ -284,7 +284,7 @@ function retryPayment() {
                 </div>
               </div>
 
-              <UDivider />
+              <USeparator />
 
               <div class="space-y-3">
                 <div class="flex items-start gap-2 text-sm">

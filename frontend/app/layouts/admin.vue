@@ -2,60 +2,12 @@
 import type { TourRes } from 'api-client'
 import { useAuthStore } from '~/stores/auth'
 
-definePageMeta({
-  middleware: 'auth-admin'
-})
-
 const authStore = useAuthStore()
 const route = useRoute()
-const { fetchAdminAlertsCount, fetchAdminTours } = useAdminData()
+const { fetchAdminAlertsCount } = useAdminData()
 
 // Sidebar state (mobile)
 const sidebarOpen = ref(false)
-
-// Close sidebar on route change (mobile)
-watch(
-  () => route.path,
-  () => {
-    sidebarOpen.value = false
-  }
-)
-
-// Fetch pending alerts count
-const { data: alertsCount, refresh: refreshAlertsCount } = await useAsyncData(
-  'pending-alerts-count',
-  async () => {
-    try {
-      const response = await fetchAdminAlertsCount()
-      return response.pending || 0
-    } catch (error) {
-      console.error('Error fetching alerts count:', error)
-      return 0
-    }
-  },
-  {
-    server: false,
-    lazy: true
-  }
-)
-
-// Fetch tours for Media accordion
-const { data: tours } = await useAsyncData(
-  'admin-sidebar-tours',
-  async () => {
-    try {
-      return await fetchAdminTours()
-    } catch (error) {
-      console.error('Error fetching tours:', error)
-      return []
-    }
-  },
-  {
-    server: false,
-    lazy: true,
-    default: () => []
-  }
-)
 
 // Refresh alerts count every 15 minutes
 let alertsRefreshInterval: ReturnType<typeof setInterval> | null = null
@@ -72,6 +24,39 @@ onUnmounted(() => {
     clearInterval(alertsRefreshInterval)
   }
 })
+
+// Close sidebar on route change (mobile)
+watch(
+  () => route.path,
+  () => {
+    sidebarOpen.value = false
+  }
+)
+
+const adminStore = useAdminStore()
+
+// Fetch tours for Media accordion
+useAdminToursData()
+
+const tours = computed(() => adminStore.tours)
+
+// Fetch pending alerts count
+const { data: alertsCount, refresh: refreshAlertsCount } = useAsyncData(
+  'pending-alerts-count',
+  async () => {
+    try {
+      const response = await fetchAdminAlertsCount()
+      return response.pending || 0
+    } catch (error) {
+      console.error('Error fetching alerts count:', error)
+      return 0
+    }
+  },
+  {
+    server: false,
+    lazy: true
+  }
+)
 
 // Navigation links - computed to include dynamic tours
 const navigationLinks = computed(() => {

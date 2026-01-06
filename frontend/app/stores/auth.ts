@@ -18,6 +18,9 @@ export const useAuthStore = defineStore('auth', {
         state.user.role === 'ROLE_SUPER_ADMIN'
         || state.user.role === 'ROLE_PARTNER_ADMIN'
       )
+    },
+    isSuperAdmin(state): boolean {
+      return state.user?.role === 'ROLE_SUPER_ADMIN'
     }
   },
 

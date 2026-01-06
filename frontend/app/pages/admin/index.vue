@@ -11,18 +11,20 @@ useHead({
   title: 'Dashboard - Admin - Northern Chile'
 })
 
-const { fetchAdminBookings, fetchAdminTours, fetchAdminAlertsCount } = useAdminData()
+const { fetchAdminBookings, fetchAdminAlertsCount } = useAdminData()
 const { formatPrice: formatCurrency } = useCurrency()
 const { formatDate, formatLocalTime } = useDateTime()
+
+const adminStore = useAdminStore()
 
 const { data: bookingsData, pending: pendingBookings } = await useAsyncData(
   'admin-bookings-dashboard',
   () => fetchAdminBookings(),
   { server: false, lazy: true, default: () => [] }
 )
-const { data: tours, pending: pendingTours } = await useAsyncData('tours', () =>
-  fetchAdminTours()
-)
+const { pending: pendingTours } = useAdminToursData()
+
+const tours = computed(() => adminStore.tours)
 
 // Fetch alerts count (reuse admin data + proxy)
 const { data: alertsCount } = await useAsyncData(

@@ -122,7 +122,7 @@ async function saveChanges() {
             />
           </div>
 
-          <UDivider />
+          <USeparator />
 
           <!-- Participants -->
           <div>

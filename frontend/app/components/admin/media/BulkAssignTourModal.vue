@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { TourRes } from 'api-client'
-
 const props = defineProps<{
   modelValue: boolean
   mediaIds: string[]
@@ -9,7 +7,7 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue', 'success'])
 
 const toast = useToast()
-const { fetchAdminTours, assignMediaToTour } = useAdminData()
+const { assignMediaToTour } = useAdminData()
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -20,16 +18,12 @@ const isOpen = computed({
 const selectedTourId = ref<string | undefined>(undefined)
 const saving = ref(false)
 
+const adminStore = useAdminStore()
+
 // Fetch tours
-const { data: tours, status } = useAsyncData<TourRes[]>(
-  'tours-for-bulk-assign',
-  () => fetchAdminTours(),
-  {
-    server: false,
-    lazy: true,
-    default: () => []
-  }
-)
+const { status } = useAdminToursData()
+
+const tours = computed(() => adminStore.tours)
 
 const tourOptions = computed(() =>
   tours.value?.map(t => ({

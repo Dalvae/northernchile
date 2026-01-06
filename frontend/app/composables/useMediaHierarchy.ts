@@ -15,7 +15,7 @@ export interface MediaHierarchyNode extends TreeItem {
 }
 
 export function useMediaHierarchy() {
-  const { fetchAdminTours, fetchAdminSchedules } = useAdminData()
+  const { fetchAdminSchedules } = useAdminData()
 
   const loading = ref(false)
   const tours = ref<TourRes[]>([])
@@ -25,10 +25,11 @@ export function useMediaHierarchy() {
    * Load tours (paginated)
    */
   async function loadTours() {
+    const adminStore = useAdminStore()
     loading.value = true
     try {
       // Fetch all tours (no pagination for hierarchy - adjust if you have many tours)
-      tours.value = await fetchAdminTours()
+      tours.value = await adminStore.fetchTours()
     } catch (error) {
       console.error('Error loading tours:', error)
       tours.value = []

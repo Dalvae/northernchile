@@ -10,7 +10,7 @@
 import { getLocaleCode } from '~/utils/localeUtils'
 
 export const useCurrency = () => {
-  const { locale } = useI18n()
+  const { t, locale } = useI18n()
 
   /**
    * Formats a price string or number for display in Chilean Pesos (CLP)
@@ -98,7 +98,6 @@ export const useCurrency = () => {
     price: string | number,
     currency: string = 'CLP'
   ): string => {
-    const { t } = useI18n()
     return `${t('tours.price_from')} ${formatPrice(price, currency)}`
   }
 

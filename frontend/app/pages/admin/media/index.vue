@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
-import type { MediaRes, PageMediaRes, TourRes } from 'api-client'
+import type { MediaRes, PageMediaRes } from 'api-client'
 import { formatFileSize, formatDate, getMediaTypeLabel, getMediaTypeBadgeColor } from '~/utils/media'
 
 definePageMeta({
@@ -10,7 +10,7 @@ definePageMeta({
 })
 
 const toast = useToast()
-const { fetchAdminMedia, deleteAdminMedia, fetchAdminTours } = useAdminData()
+const { fetchAdminMedia, deleteAdminMedia } = useAdminData()
 
 // Resolve components for use in h()
 const UCheckbox = resolveComponent('UCheckbox')
@@ -57,15 +57,7 @@ const typeOptions = [
 ]
 
 // Fetch tours for filter dropdown
-const { data: tours } = useAsyncData<TourRes[]>(
-  'tours-for-media-filter',
-  () => fetchAdminTours(),
-  {
-    server: false,
-    lazy: true,
-    default: () => []
-  }
-)
+const { data: tours } = useAdminToursData()
 
 const tourOptions = computed(() => [
   { label: 'Todos los tours', value: undefined },

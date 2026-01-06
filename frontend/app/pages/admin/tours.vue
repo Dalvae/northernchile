@@ -11,56 +11,97 @@ useHead({
   title: 'Tours - Admin - Northern Chile'
 })
 
-const { fetchAdminTours, deleteAdminTour } = useAdminData()
+const { deleteAdminTour } = useAdminData()
 const { formatPrice } = useCurrency()
+const authStore = useAuthStore()
+
+const adminStore = useAdminStore()
 
 const {
-  data: tours,
   pending,
   refresh
-} = useAsyncData<TourRes[]>('admin-tours', () => fetchAdminTours(), {
-  server: false,
-  lazy: true,
-  default: () => []
-})
+} = useAdminToursData()
+
+const tours = computed(() => adminStore.tours)
 
 // ✅ Variables para controlar los modales
 const isCreateModalOpen = ref(false)
 const isEditModalOpen = ref(false)
 const selectedTour = ref<TourRes | null>(null)
 const q = ref('')
+const columns = computed(() => {
+  const baseColumns = [
+    {
+      id: 'name',
+      accessorKey: 'nameTranslations.es',
+      header: 'Nombre',
+      cell: ({ row }: { row: { original: TourRes } }) =>
+        h('span', { class: 'font-medium' }, row.original.nameTranslations?.es || 'Sin nombre')
+    },
+    {
+      id: 'price',
+      accessorKey: 'price',
+      header: 'Precio',
+      cell: ({ row }: { row: { original: TourRes } }) =>
+        h('span', { class: 'font-semibold' }, formatPrice(row.original.price))
+    },
+    {
+      id: 'status',
+      accessorKey: 'status',
+      header: 'Estado',
+      cell: ({ row }: { row: { original: TourRes } }) =>
+        h(AdminStatusBadge, {
+          type: 'tour',
+          status: row.original.status || 'DRAFT'
+        })
+    },
+    {
+      id: 'actions',
+      header: 'Acciones',
+      cell: ({ row }: { row: { original: TourRes } }) =>
+        h('div', { class: 'flex items-center gap-2' }, [
+          h(resolveComponent('UButton'), {
+            'icon': 'i-lucide-pencil',
+            'color': 'neutral',
+            'variant': 'ghost',
+            'size': 'sm',
+            'aria-label': 'Editar tour',
+            'onClick': () => openEditModal(row.original)
+          }),
+          h(resolveComponent('UButton'), {
+            'icon': 'i-lucide-trash-2',
+            'color': 'error',
+            'variant': 'ghost',
+            'size': 'sm',
+            'aria-label': 'Eliminar tour',
+            'onClick': () => handleDelete(row.original)
+          })
+        ])
+    }
+  ]
 
-const columns = [
-  {
-    id: 'name',
-    accessorKey: 'nameTranslations.es',
-    header: 'Nombre'
-  },
-  {
-    id: 'description',
-    accessorKey: 'descriptionTranslations.es',
-    header: 'Descripción'
-  },
-  {
-    id: 'price',
-    accessorKey: 'price',
-    header: 'Precio'
-  },
-  {
-    id: 'status',
-    accessorKey: 'status',
-    header: 'Estado',
-    cell: ({ row }: { row: { original: TourRes } }) =>
-      h(AdminStatusBadge, {
-        type: 'tour',
-        status: row.original.status || 'DRAFT'
-      })
-  },
-  {
-    id: 'actions',
-    header: 'Acciones'
+  // Insert Owner or Description at index 1
+  if (authStore.isSuperAdmin) {
+    baseColumns.splice(1, 0, {
+      id: 'owner',
+      header: 'Dueño',
+      cell: ({ row }: { row: { original: TourRes } }) =>
+        h('div', { class: 'flex flex-col' }, [
+          h('span', { class: 'text-sm font-medium text-default' }, row.original.ownerName || 'Sin dueño'),
+          h('span', { class: 'text-xs text-muted' }, row.original.ownerEmail)
+        ])
+    })
+  } else {
+    baseColumns.splice(1, 0, {
+      id: 'description',
+      header: 'Descripción',
+      cell: ({ row }: { row: { original: TourRes } }) =>
+        h('span', { class: 'text-sm text-default line-clamp-2' }, row.original.descriptionBlocksTranslations?.es?.[0]?.content || 'Sin descripción')
+    })
   }
-]
+
+  return baseColumns
+})
 
 const filteredRows = computed(() => {
   if (!tours.value || tours.value.length === 0) return []
@@ -71,6 +112,8 @@ const filteredRows = computed(() => {
     const query = q.value.toLowerCase()
     rows = rows.filter(tour =>
       tour.nameTranslations?.es?.toLowerCase().includes(query)
+      || tour.ownerName?.toLowerCase().includes(query)
+      || tour.ownerEmail?.toLowerCase().includes(query)
     )
   }
 
@@ -172,50 +215,7 @@ async function handleDelete(tour: TourRes) {
             icon: 'i-lucide-map',
             label: 'No hay tours creados.'
           }"
-        >
-          <template #name-data="{ row }">
-            <span class="font-medium">
-              {{ row.getValue("name") || "Sin nombre" }}
-            </span>
-          </template>
-
-          <template #description-data="{ row }">
-            <span
-              class="text-sm text-default line-clamp-2"
-            >
-              {{ row.getValue("description") || "Sin descripción" }}
-            </span>
-          </template>
-
-          <template #price-data="{ row }">
-            <span class="font-semibold">
-              {{ formatPrice(row.getValue("price")) }}
-            </span>
-          </template>
-
-          <!-- ✅ Acciones con dos botones separados -->
-          <template #actions-cell="{ row }">
-            <div class="flex items-center gap-2">
-              <UButton
-                icon="i-lucide-pencil"
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                aria-label="Editar tour"
-                @click="openEditModal(row.original)"
-              />
-
-              <UButton
-                icon="i-lucide-trash-2"
-                color="error"
-                variant="ghost"
-                size="sm"
-                aria-label="Eliminar tour"
-                @click="handleDelete(row.original)"
-              />
-            </div>
-          </template>
-        </UTable>
+        />
       </div>
     </div>
 

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { TourRes } from 'api-client'
 import type { MediaHierarchyNode } from '~/composables/useMediaHierarchy'
 
 definePageMeta({
@@ -11,7 +10,6 @@ const route = useRoute()
 const router = useRouter()
 const slug = computed(() => route.params.slug as string)
 
-const { fetchAdminTours } = useAdminData()
 const { buildScheduleNodes } = useMediaHierarchy()
 
 // Schedules tree for this tour
@@ -21,16 +19,27 @@ const _expandedSchedules = ref<string[]>([])
 // Selected schedule (from query param)
 const selectedScheduleId = computed(() => route.query.schedule as string | undefined)
 
-// Load tour by slug with useAsyncData
+const adminStore = useAdminStore()
+
+// Fetch all tours (shared key for deduplication)
+const {
+  pending: toursLoading
+} = useAdminToursData()
+
+// Load tour by slug (depends on tours being loaded)
 const {
   data: tour,
-  pending: loading,
+  pending: tourLoading,
   refresh: _refresh
 } = useAsyncData(
   `media-tour-${slug.value}`,
   async () => {
-    const tours = await fetchAdminTours()
-    const foundTour = tours.find((t: TourRes) => t.slug === slug.value)
+    // Ensure tours are loaded in store
+    if (!adminStore.initialized) {
+      await adminStore.fetchTours()
+    }
+
+    const foundTour = adminStore.getTourBySlug(slug.value)
 
     if (!foundTour) {
       // Redirect to media list if tour not found
@@ -51,9 +60,11 @@ const {
   },
   {
     server: false,
-    watch: [slug]
+    watch: [slug, () => adminStore.initialized]
   }
 )
+
+const loading = computed(() => toursLoading.value || tourLoading.value)
 
 // Handle schedule selection
 function onScheduleSelect(schedule: MediaHierarchyNode) {

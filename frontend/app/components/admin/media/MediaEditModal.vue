@@ -26,9 +26,11 @@ const state = ref({
   scheduleId: undefined as string | undefined
 })
 
+const adminStore = useAdminStore()
+
 // Fetch tours for assignment
-const { fetchAdminTours, fetchAdminSchedules, updateAdminMedia } = useAdminData()
-const { data: tours } = useAsyncData('tours-for-media', () => fetchAdminTours(), {
+const { fetchAdminSchedules, updateAdminMedia } = useAdminData()
+const { data: tours } = useAsyncData('admin-tours-data', () => adminStore.fetchTours(), {
   server: false,
   lazy: true,
   default: () => []
