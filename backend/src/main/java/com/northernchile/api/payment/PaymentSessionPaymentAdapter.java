@@ -46,6 +46,9 @@ public class PaymentSessionPaymentAdapter {
     @Value("${payment.test-mode:false}")
     private boolean testMode;
 
+    @Value("${app.base-url:http://localhost:8080}")
+    private String appBaseUrl;
+
     /**
      * Initialize payment with the appropriate provider.
      */
@@ -240,11 +243,16 @@ public class PaymentSessionPaymentAdapter {
                 .failure(request.cancelUrl())
                 .build();
 
+            // Build notification URL for webhook
+            String notificationUrl = appBaseUrl + "/api/webhooks/mercadopago";
+            log.info("Setting MercadoPago notification URL: {}", notificationUrl);
+
             // Build preference
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                 .items(items)
                 .payer(payer)
                 .backUrls(backUrls)
+                .notificationUrl(notificationUrl)
                 .autoReturn("approved")
                 .externalReference(session.getId().toString())
                 .build();

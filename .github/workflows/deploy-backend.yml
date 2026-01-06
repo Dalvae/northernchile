@@ -81,6 +81,9 @@ jobs:
           # Frontend URL (for email links)
           NUXT_PUBLIC_BASE_URL=https://www.northernchile.com
 
+          # Backend Base URL (for webhooks, API callbacks, etc.)
+          APP_BASE_URL=https://${{ env.VPS_HOST }}
+
           # Email Configuration (uses AWS credentials above for SES)
           MAIL_ENABLED=${{ secrets.MAIL_ENABLED }}
           MAIL_FROM_EMAIL=${{ secrets.MAIL_FROM_EMAIL }}
