@@ -208,6 +208,7 @@ public class MediaService {
 
     /**
      * List all media with pagination and filtering.
+     * SUPER_ADMIN sees all media, PARTNER_ADMIN sees only their own.
      */
     public Page<MediaRes> listMedia(UUID requesterId, UUID tourId, UUID scheduleId, String type, String search, Pageable pageable) {
         log.info("Listing media for requester: {}, tour: {}, schedule: {}, type: {}, search: {}", requesterId, tourId, scheduleId, type, search);
@@ -238,15 +239,27 @@ public class MediaService {
         } else if (type != null && !type.isBlank()) {
             // Filter by type (TOUR, SCHEDULE, LOOSE)
             mediaPage = switch (type.toUpperCase()) {
-                case "TOUR" -> mediaRepository.findTourMediaByOwner(requesterId, pageable);
-                case "SCHEDULE" -> mediaRepository.findScheduleMediaByOwner(requesterId, pageable);
-                case "LOOSE" -> mediaRepository.findLooseMediaByOwner(requesterId, pageable);
-                default -> mediaRepository.findByOwnerId(requesterId, pageable);
+                case "TOUR" -> isSuperAdmin 
+                        ? mediaRepository.findTourMedia(pageable)
+                        : mediaRepository.findTourMediaByOwner(requesterId, pageable);
+                case "SCHEDULE" -> isSuperAdmin
+                        ? mediaRepository.findScheduleMedia(pageable)
+                        : mediaRepository.findScheduleMediaByOwner(requesterId, pageable);
+                case "LOOSE" -> isSuperAdmin
+                        ? mediaRepository.findLooseMedia(pageable)
+                        : mediaRepository.findLooseMediaByOwner(requesterId, pageable);
+                default -> isSuperAdmin
+                        ? mediaRepository.findAll(pageable)
+                        : mediaRepository.findByOwnerId(requesterId, pageable);
             };
         } else if (search != null && !search.isBlank()) {
-            mediaPage = mediaRepository.searchByFilename(requesterId, search, pageable);
+            mediaPage = isSuperAdmin
+                    ? mediaRepository.searchByFilename(search, pageable)
+                    : mediaRepository.searchByFilename(requesterId, search, pageable);
         } else {
-            mediaPage = mediaRepository.findByOwnerId(requesterId, pageable);
+            mediaPage = isSuperAdmin
+                    ? mediaRepository.findAll(pageable)
+                    : mediaRepository.findByOwnerId(requesterId, pageable);
         }
 
         return mediaPage.map(mediaMapper::toMediaRes);

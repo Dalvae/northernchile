@@ -30,6 +30,11 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
     Page<Media> findByOwnerId(UUID ownerId, Pageable pageable);
 
     /**
+     * Find all media (for SUPER_ADMIN)
+     */
+    Page<Media> findAll(Pageable pageable);
+
+    /**
      * Find all media by tour
      */
     List<Media> findByTourId(UUID tourId);
@@ -46,16 +51,34 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
     Page<Media> findLooseMediaByOwner(@Param("ownerId") UUID ownerId, Pageable pageable);
 
     /**
+     * Find all loose media (for SUPER_ADMIN)
+     */
+    @Query("SELECT m FROM Media m WHERE m.tour IS NULL AND m.schedule IS NULL")
+    Page<Media> findLooseMedia(Pageable pageable);
+
+    /**
      * Find media assigned to any tour (tour IS NOT NULL)
      */
     @Query("SELECT m FROM Media m WHERE m.tour IS NOT NULL AND m.schedule IS NULL AND m.owner.id = :ownerId")
     Page<Media> findTourMediaByOwner(@Param("ownerId") UUID ownerId, Pageable pageable);
 
     /**
+     * Find all media assigned to any tour (for SUPER_ADMIN)
+     */
+    @Query("SELECT m FROM Media m WHERE m.tour IS NOT NULL AND m.schedule IS NULL")
+    Page<Media> findTourMedia(Pageable pageable);
+
+    /**
      * Find media assigned to any schedule (schedule IS NOT NULL)
      */
     @Query("SELECT m FROM Media m WHERE m.schedule IS NOT NULL AND m.owner.id = :ownerId")
     Page<Media> findScheduleMediaByOwner(@Param("ownerId") UUID ownerId, Pageable pageable);
+
+    /**
+     * Find all media assigned to any schedule (for SUPER_ADMIN)
+     */
+    @Query("SELECT m FROM Media m WHERE m.schedule IS NOT NULL")
+    Page<Media> findScheduleMedia(Pageable pageable);
 
     /**
      * Search media by tags (contains any of the given tags)
@@ -73,6 +96,12 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
     Page<Media> searchByFilename(@Param("ownerId") UUID ownerId,
                                   @Param("query") String query,
                                   Pageable pageable);
+
+    /**
+     * Search all media by filename (for SUPER_ADMIN)
+     */
+    @Query("SELECT m FROM Media m WHERE LOWER(m.originalFilename) LIKE LOWER(CONCAT('%', :query, '%'))")
+    Page<Media> searchByFilename(@Param("query") String query, Pageable pageable);
 
     /**
      * Delete all media for a tour
