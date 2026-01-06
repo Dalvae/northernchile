@@ -1,9 +1,11 @@
 package com.northernchile.api.payment;
 
+import com.northernchile.api.availability.AvailabilityValidator;
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.booking.BookingService;
 import com.northernchile.api.cart.CartRepository;
 import com.northernchile.api.exception.PaymentProviderException;
+import com.northernchile.api.exception.ScheduleFullException;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.Participant;
 import com.northernchile.api.model.TourSchedule;
@@ -51,6 +53,7 @@ public class PaymentSessionService {
     private final BookingService bookingService;
     private final CartRepository cartRepository;
     private final PaymentSessionPaymentAdapter paymentAdapter;
+    private final AvailabilityValidator availabilityValidator;
 
     @Value("${payment.test-mode:false}")
     private boolean testMode;
@@ -61,13 +64,15 @@ public class PaymentSessionService {
             BookingRepository bookingRepository,
             @Lazy BookingService bookingService,
             CartRepository cartRepository,
-            PaymentSessionPaymentAdapter paymentAdapter) {
+            PaymentSessionPaymentAdapter paymentAdapter,
+            AvailabilityValidator availabilityValidator) {
         this.sessionRepository = sessionRepository;
         this.scheduleRepository = scheduleRepository;
         this.bookingRepository = bookingRepository;
         this.bookingService = bookingService;
         this.cartRepository = cartRepository;
         this.paymentAdapter = paymentAdapter;
+        this.availabilityValidator = availabilityValidator;
     }
 
     /**
@@ -573,8 +578,23 @@ public class PaymentSessionService {
         User user = session.getUser();
 
         for (PaymentSessionItem item : session.getItems()) {
-            TourSchedule schedule = scheduleRepository.findById(item.scheduleId())
+            // Use pessimistic lock to prevent overbooking race conditions
+            TourSchedule schedule = scheduleRepository.findByIdWithLock(item.scheduleId())
                 .orElseThrow(() -> new IllegalStateException("Schedule not found: " + item.scheduleId()));
+
+            // Re-validate availability with lock held (critical for preventing overbooking!)
+            // Exclude this user's cart since it's being converted to booking
+            var availability = availabilityValidator.validateAvailability(
+                schedule, item.numParticipants(), null, user.getId());
+            
+            if (!availability.available()) {
+                log.error("Overbooking prevented! Session {} item for schedule {} - {}", 
+                    session.getId(), schedule.getId(), availability.errorMessage());
+                throw new ScheduleFullException(
+                    "No hay suficientes cupos disponibles para " + item.tourName() + 
+                    ". Disponibles: " + availability.availableSlots() + 
+                    ", Solicitados: " + item.numParticipants());
+            }
 
             // Create booking
             Booking booking = new Booking();
