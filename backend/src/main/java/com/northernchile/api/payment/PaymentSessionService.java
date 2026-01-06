@@ -266,55 +266,62 @@ public class PaymentSessionService {
      * The webhook sends payment_id in data.id, so we need to fetch the payment
      * to get the external_reference (our session ID).
      * 
-     * @param mpPaymentId The MercadoPago payment ID (data.id from webhook)
-     * @param rawDataId Same as mpPaymentId, kept for API compatibility
+     * @param mpPaymentId The MercadoPago payment ID (payment_id from redirect or data.id from webhook)
+     * @param externalReference Our session UUID (external_reference from redirect callback)
      */
     @Transactional
-    public PaymentSessionRes confirmMercadoPagoSession(String mpPaymentId, String rawDataId) {
-        log.info("Confirming MercadoPago payment session - mpPaymentId: {}", mpPaymentId);
+    public PaymentSessionRes confirmMercadoPagoSession(String mpPaymentId, String externalReference) {
+        log.info("Confirming MercadoPago payment session - mpPaymentId: {}, externalReference: {}", 
+            mpPaymentId, externalReference);
 
-        // Early validation - reject if no payment ID provided
-        if (mpPaymentId == null || mpPaymentId.isEmpty()) {
-            log.warn("MercadoPago webhook received without payment ID - ignoring");
-            throw new IllegalArgumentException("MercadoPago payment ID is required");
+        // Validate we have at least one identifier
+        if ((mpPaymentId == null || mpPaymentId.isEmpty()) && 
+            (externalReference == null || externalReference.isEmpty())) {
+            log.warn("MercadoPago confirmation without payment_id or external_reference - rejecting");
+            throw new IllegalArgumentException("MercadoPago payment_id or external_reference is required");
         }
 
         PaymentSession session = null;
         
-        // First, try to get the session by fetching the MercadoPago payment
-        // and extracting the external_reference (our session UUID)
-        try {
-            String externalReference = paymentAdapter.getExternalReferenceFromPayment(mpPaymentId);
-            if (externalReference != null) {
-                log.info("Found external_reference from MP payment: {}", externalReference);
-                try {
-                    UUID sessionId = UUID.fromString(externalReference);
-                    session = sessionRepository.findById(sessionId).orElse(null);
-                } catch (IllegalArgumentException e) {
-                    log.warn("external_reference is not a valid UUID: {}", externalReference);
+        // Strategy 1: If we have externalReference (our session UUID), use it directly
+        if (externalReference != null && !externalReference.isEmpty()) {
+            try {
+                UUID sessionId = UUID.fromString(externalReference);
+                session = sessionRepository.findById(sessionId).orElse(null);
+                if (session != null) {
+                    log.info("Found session from external_reference: {}", sessionId);
                 }
+            } catch (IllegalArgumentException e) {
+                log.warn("external_reference is not a valid UUID: {}", externalReference);
             }
-        } catch (Exception e) {
-            log.warn("Could not fetch MercadoPago payment {}: {}", mpPaymentId, e.getMessage());
         }
         
-        // Fallback: try to find by externalPaymentId (preference_id)
-        if (session == null) {
+        // Strategy 2: If we have mpPaymentId, fetch payment from MercadoPago API to get external_reference
+        if (session == null && mpPaymentId != null && !mpPaymentId.isEmpty()) {
+            try {
+                String mpExternalRef = paymentAdapter.getExternalReferenceFromPayment(mpPaymentId);
+                if (mpExternalRef != null) {
+                    log.info("Found external_reference from MP payment API: {}", mpExternalRef);
+                    try {
+                        UUID sessionId = UUID.fromString(mpExternalRef);
+                        session = sessionRepository.findById(sessionId).orElse(null);
+                    } catch (IllegalArgumentException e) {
+                        log.warn("MP external_reference is not a valid UUID: {}", mpExternalRef);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Could not fetch MercadoPago payment {}: {}", mpPaymentId, e.getMessage());
+            }
+        }
+        
+        // Strategy 3: Try to find by externalPaymentId (preference_id stored when creating session)
+        if (session == null && mpPaymentId != null) {
             session = sessionRepository.findByExternalPaymentId(mpPaymentId).orElse(null);
         }
         
-        // Final fallback: try as session UUID directly (for legacy compatibility)
         if (session == null) {
-            try {
-                UUID sessionId = UUID.fromString(mpPaymentId);
-                session = sessionRepository.findById(sessionId).orElse(null);
-            } catch (IllegalArgumentException e) {
-                // Not a valid UUID, ignore
-            }
-        }
-        
-        if (session == null) {
-            throw new IllegalArgumentException("Payment session not found for MercadoPago payment: " + mpPaymentId);
+            String lookupInfo = mpPaymentId != null ? mpPaymentId : externalReference;
+            throw new IllegalArgumentException("Payment session not found for MercadoPago: " + lookupInfo);
         }
 
         if (session.getStatus() == PaymentSessionStatus.COMPLETED) {

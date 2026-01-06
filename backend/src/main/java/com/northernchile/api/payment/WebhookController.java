@@ -99,12 +99,21 @@ public class WebhookController {
                 }
             }
 
-            // 6. Process webhook - confirm the payment session
-            String lookupId = dataId; // data.id from MP notification
-            PaymentSessionRes response = paymentSessionService.confirmMercadoPagoSession(lookupId, dataId);
+            // 6. Check if we have a valid data.id (payment ID) to process
+            if (dataId == null || dataId.isEmpty()) {
+                // MercadoPago sends various webhook types (e.g., "test", "created" notifications)
+                // that don't have payment data - acknowledge them without processing
+                String action = payload.get("action") != null ? payload.get("action").toString() : "unknown";
+                String type = payload.get("type") != null ? payload.get("type").toString() : "unknown";
+                log.info("MercadoPago webhook without payment ID - type: {}, action: {} - acknowledging", type, action);
+                return ResponseEntity.ok(Map.of("status", "acknowledged", "reason", "no_payment_id"));
+            }
+
+            // 7. Process webhook - confirm the payment session
+            PaymentSessionRes response = paymentSessionService.confirmMercadoPagoSession(dataId, dataId);
             log.info("Mercado Pago webhook processed successfully: {}", response.sessionId());
 
-            // 7. Mark request as processed
+            // 8. Mark request as processed
             if (requestId != null) {
                 webhookSecurityService.markRequestAsProcessed(requestId);
             }

@@ -99,7 +99,7 @@ public class PaymentSessionController {
     @Operation(summary = "Confirm payment (MercadoPago)", description = "Confirm a MercadoPago payment after redirect")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Payment confirmed, bookings created"),
-        @ApiResponse(responseCode = "400", description = "Missing preference_id"),
+        @ApiResponse(responseCode = "400", description = "Missing payment_id or external_reference"),
         @ApiResponse(responseCode = "404", description = "Session not found")
     })
     public ResponseEntity<PaymentSessionRes> confirmMercadoPagoPayment(
@@ -108,17 +108,18 @@ public class PaymentSessionController {
             @RequestParam(value = "collection_status", required = false) String collectionStatus,
             @RequestParam(value = "external_reference", required = false) String externalReference) {
 
-        log.info("Confirming MercadoPago session - preference: {}, payment: {}, status: {}",
-            preferenceId, mpPaymentId, collectionStatus);
+        log.info("Confirming MercadoPago session - preference: {}, payment: {}, status: {}, external_ref: {}",
+            preferenceId, mpPaymentId, collectionStatus, externalReference);
 
-        if (preferenceId == null && externalReference == null) {
+        // We need payment_id to verify with MercadoPago API, or external_reference to find session directly
+        if (mpPaymentId == null && externalReference == null) {
+            log.warn("MercadoPago callback without payment_id or external_reference");
             return ResponseEntity.badRequest().build();
         }
 
-        // Use preference_id or fall back to external_reference (which is our session ID)
-        String lookupId = preferenceId != null ? preferenceId : externalReference;
-
-        PaymentSessionRes response = sessionService.confirmMercadoPagoSession(lookupId, mpPaymentId);
+        // Pass mpPaymentId as first argument - confirmMercadoPagoSession uses it to verify with MP API
+        // and extract external_reference (our session ID) from the payment
+        PaymentSessionRes response = sessionService.confirmMercadoPagoSession(mpPaymentId, externalReference);
         return ResponseEntity.ok(response);
     }
 }
