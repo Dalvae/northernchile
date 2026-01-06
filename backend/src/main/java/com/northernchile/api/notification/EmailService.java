@@ -126,12 +126,27 @@ public class EmailService {
             String customerName = (booking.getUser() != null) ? booking.getUser().getFullName() : "Cliente desconocido";
             String customerEmail = (booking.getUser() != null) ? booking.getUser().getEmail() : "";
 
+            // Format tour date safely
+            String formattedTourDate = "No disponible";
+            if (booking.getTourDate() != null) {
+                formattedTourDate = DateTimeUtils.formatForDisplay(
+                        DateTimeUtils.toInstantStartOfDay(booking.getTourDate()), "dd/MM/yyyy");
+            } else if (booking.getSchedule() != null && booking.getSchedule().getStartDatetime() != null) {
+                formattedTourDate = DateTimeUtils.formatForDisplay(
+                        booking.getSchedule().getStartDatetime(), "dd/MM/yyyy");
+            }
+
+            // Format created date safely
+            String formattedCreatedAt = "No disponible";
+            if (booking.getCreatedAt() != null) {
+                formattedCreatedAt = DateTimeUtils.formatForDisplay(booking.getCreatedAt(), "dd/MM/yyyy HH:mm");
+            }
+
             Context context = new Context(Locale.forLanguageTag("es"));
             context.setVariable("bookingId", booking.getId().toString());
             context.setVariable("status", booking.getStatus().toString());
             context.setVariable("tourName", tourName);
-            context.setVariable("tourDate", DateTimeUtils.formatForDisplay(
-                    DateTimeUtils.toInstantStartOfDay(booking.getTourDate()), "dd/MM/yyyy"));
+            context.setVariable("tourDate", formattedTourDate);
             context.setVariable("customerName", customerName);
             context.setVariable("customerEmail", customerEmail);
             context.setVariable("participantCount", (booking.getParticipants() != null) ? booking.getParticipants().size() : 0);
@@ -139,7 +154,7 @@ public class EmailService {
             context.setVariable("taxAmount", String.format("$%,.0f", booking.getTaxAmount()));
             context.setVariable("totalAmount", String.format("$%,.0f", booking.getTotalAmount()));
             context.setVariable("specialRequests", booking.getSpecialRequests());
-            context.setVariable("createdAt", DateTimeUtils.formatForDisplay(booking.getCreatedAt(), "dd/MM/yyyy HH:mm"));
+            context.setVariable("createdAt", formattedCreatedAt);
 
             sendHtmlEmail(adminEmail, "Nueva Reserva - Northern Chile", "email/admin-new-booking", context, Locale.forLanguageTag("es"));
         } catch (Exception e) {

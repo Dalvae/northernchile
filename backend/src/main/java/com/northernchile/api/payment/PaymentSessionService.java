@@ -268,25 +268,29 @@ public class PaymentSessionService {
     public PaymentSessionRes confirmMercadoPagoSession(String mpPaymentId, String rawDataId) {
         log.info("Confirming MercadoPago payment session - mpPaymentId: {}", mpPaymentId);
 
+        // Early validation - reject if no payment ID provided
+        if (mpPaymentId == null || mpPaymentId.isEmpty()) {
+            log.warn("MercadoPago webhook received without payment ID - ignoring");
+            throw new IllegalArgumentException("MercadoPago payment ID is required");
+        }
+
         PaymentSession session = null;
         
         // First, try to get the session by fetching the MercadoPago payment
         // and extracting the external_reference (our session UUID)
-        if (mpPaymentId != null && !mpPaymentId.isEmpty()) {
-            try {
-                String externalReference = paymentAdapter.getExternalReferenceFromPayment(mpPaymentId);
-                if (externalReference != null) {
-                    log.info("Found external_reference from MP payment: {}", externalReference);
-                    try {
-                        UUID sessionId = UUID.fromString(externalReference);
-                        session = sessionRepository.findById(sessionId).orElse(null);
-                    } catch (IllegalArgumentException e) {
-                        log.warn("external_reference is not a valid UUID: {}", externalReference);
-                    }
+        try {
+            String externalReference = paymentAdapter.getExternalReferenceFromPayment(mpPaymentId);
+            if (externalReference != null) {
+                log.info("Found external_reference from MP payment: {}", externalReference);
+                try {
+                    UUID sessionId = UUID.fromString(externalReference);
+                    session = sessionRepository.findById(sessionId).orElse(null);
+                } catch (IllegalArgumentException e) {
+                    log.warn("external_reference is not a valid UUID: {}", externalReference);
                 }
-            } catch (Exception e) {
-                log.warn("Could not fetch MercadoPago payment {}: {}", mpPaymentId, e.getMessage());
             }
+        } catch (Exception e) {
+            log.warn("Could not fetch MercadoPago payment {}: {}", mpPaymentId, e.getMessage());
         }
         
         // Fallback: try to find by externalPaymentId (preference_id)
