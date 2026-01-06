@@ -3,6 +3,12 @@
 ## General
 - [DATE_TIME_HANDLING.md](./DATE_TIME_HANDLING.md) - Date/time handling across frontend and backend
 
+## Security & Authentication
+- [README_SECURITY.md](./README_SECURITY.md) - 🆕 **Executive summary** - Spring Security research and recommendations (Spanish)
+- [SPRING_SECURITY_MODULE.md](./SPRING_SECURITY_MODULE.md) - 🆕 Complete guide to Spring Security module (Spanish)
+- [SECURITY_RESEARCH.md](./SECURITY_RESEARCH.md) - 🆕 Technical security enhancement options (English)
+- [SIMILAR_REPOSITORIES.md](./SIMILAR_REPOSITORIES.md) - 🆕 Catalog of Nuxt+SpringBoot repositories (English)
+
 ## Frontend (`docs/frontend/`)
 - [THEMING.md](./frontend/THEMING.md) - Semantic color system and theming guide
 - [NUXT_UI_UPDATES.md](./frontend/NUXT_UI_UPDATES.md) - Nuxt UI v4 component changes
