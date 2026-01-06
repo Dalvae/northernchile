@@ -8,6 +8,9 @@ import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.Participant;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.User;
+import com.northernchile.api.security.AuthorizationService;
+import com.northernchile.api.security.Permission;
+import com.northernchile.api.security.annotations.RequiresPermission;
 import com.northernchile.api.tour.TourScheduleGeneratorService;
 import com.northernchile.api.tour.TourScheduleRepository;
 import com.northernchile.api.tour.TourScheduleService;
@@ -17,7 +20,6 @@ import com.northernchile.api.user.UserRepository;
 import com.northernchile.api.util.DateTimeUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +34,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin/schedules")
-@PreAuthorize("hasAnyRole('SUPER_ADMIN', 'PARTNER_ADMIN')")
+@RequiresPermission(Permission.VIEW_SCHEDULE)
 public class TourScheduleAdminController {
 
     private final TourScheduleRepository tourScheduleRepository;
@@ -40,18 +42,21 @@ public class TourScheduleAdminController {
     private final TourScheduleGeneratorService generatorService;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final AuthorizationService authorizationService;
 
     public TourScheduleAdminController(
             TourScheduleRepository tourScheduleRepository,
             TourScheduleService tourScheduleService,
             TourScheduleGeneratorService generatorService,
             UserRepository userRepository,
-            BookingRepository bookingRepository) {
+            BookingRepository bookingRepository,
+            AuthorizationService authorizationService) {
         this.tourScheduleRepository = tourScheduleRepository;
         this.tourScheduleService = tourScheduleService;
         this.generatorService = generatorService;
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
+        this.authorizationService = authorizationService;
     }
 
     /**
@@ -91,7 +96,8 @@ public class TourScheduleAdminController {
                 endInstant
         );
 
-        if (currentUser.getRole().equals("ROLE_PARTNER_ADMIN")) {
+        // Filter by ownership for Partner Admins
+        if (authorizationService.isPartnerAdmin()) {
             schedules = schedules.stream()
                     .filter(schedule -> schedule.getTour() != null
                             && schedule.getTour().getOwner() != null
@@ -111,6 +117,7 @@ public class TourScheduleAdminController {
      * Crea un schedule manualmente (para David y casos especiales)
      */
     @PostMapping
+    @RequiresPermission(Permission.CREATE_SCHEDULE)
     public ResponseEntity<TourScheduleRes> createSchedule(@jakarta.validation.Valid @RequestBody TourScheduleCreateReq request,
                                                           @CurrentUser User currentUser) {
         TourScheduleRes created = tourScheduleService.createScheduledTour(request, currentUser);
@@ -122,6 +129,7 @@ public class TourScheduleAdminController {
      * Edita un schedule existente (cambiar hora, cupos, status, etc.)
      */
     @PatchMapping("/{id}")
+    @RequiresPermission(value = Permission.EDIT_SCHEDULE, resourceIdParam = "id", resourceType = RequiresPermission.ResourceType.SCHEDULE)
     public ResponseEntity<TourScheduleRes> updateSchedule(
             @PathVariable String id,
             @RequestBody TourScheduleCreateReq request,
@@ -135,6 +143,7 @@ public class TourScheduleAdminController {
      * Cancela un schedule (cambia status a CANCELLED)
      */
     @DeleteMapping("/{id}")
+    @RequiresPermission(value = Permission.DELETE_SCHEDULE, resourceIdParam = "id", resourceType = RequiresPermission.ResourceType.SCHEDULE)
     public ResponseEntity<TourScheduleRes> cancelSchedule(
             @PathVariable String id,
             @CurrentUser User currentUser) {
@@ -147,6 +156,7 @@ public class TourScheduleAdminController {
      * Trigger manual del generador automático (útil para testing)
      */
     @PostMapping("/generate")
+    @RequiresPermission(Permission.CREATE_SCHEDULE)
     public ResponseEntity<String> generateSchedules() {
         generatorService.generateSchedulesManually();
         return ResponseEntity.ok("Schedule generation triggered successfully");
@@ -157,6 +167,7 @@ public class TourScheduleAdminController {
      * Obtiene todos los participantes de un schedule específico (incluye tours pasados)
      */
     @GetMapping("/{id}/participants")
+    @RequiresPermission(value = Permission.VIEW_BOOKING, resourceIdParam = "id", resourceType = RequiresPermission.ResourceType.SCHEDULE)
     public ResponseEntity<Map<String, Object>> getScheduleParticipants(@PathVariable String id) {
         TourSchedule schedule = tourScheduleRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Schedule not found with id: " + id));

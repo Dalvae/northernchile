@@ -4,6 +4,7 @@ import com.northernchile.api.audit.AuditLogService;
 import com.northernchile.api.media.repository.MediaRepository;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.User;
+import com.northernchile.api.security.Role;
 import com.northernchile.api.tour.dto.TourCreateReq;
 import com.northernchile.api.tour.dto.TourImageRes;
 import com.northernchile.api.tour.dto.TourRes;
@@ -122,7 +123,6 @@ public class TourService {
     }
 
     @Transactional(readOnly = true)
-    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @tourSecurityService.isOwner(authentication, #id)")
     public TourRes getTourById(UUID id, User currentUser) {
         Tour tour = tourRepository.findByIdNotDeleted(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + id));
@@ -132,7 +132,6 @@ public class TourService {
     }
 
     @Transactional
-    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @tourSecurityService.isOwner(authentication, #id)")
     @CacheEvict(value = {"tour-detail", "tour-list"}, allEntries = true)
     public TourRes updateTour(UUID id, TourUpdateReq tourUpdateReq, User currentUser) {
         Tour tour = tourRepository.findByIdNotDeleted(id)
@@ -192,7 +191,6 @@ public class TourService {
     }
 
     @Transactional
-    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @tourSecurityService.isOwner(authentication, #id)")
     @CacheEvict(value = {"tour-detail", "tour-list"}, allEntries = true)
     public void deleteTour(UUID id, User currentUser) {
         Tour tour = tourRepository.findByIdNotDeleted(id)
@@ -283,7 +281,10 @@ public class TourService {
                 tourRes.itineraryTranslations(),
                 tourRes.equipmentTranslations(),
                 tourRes.additionalInfoTranslations(),
-                tourRes.descriptionBlocksTranslations()
+                tourRes.descriptionBlocksTranslations(),
+                tourRes.ownerId(),
+                tourRes.ownerName(),
+                tourRes.ownerEmail()
         );
     }
 }

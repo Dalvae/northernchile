@@ -3,6 +3,7 @@ package com.northernchile.api.config;
 import com.northernchile.api.config.security.JsonAccessDeniedHandler;
 import com.northernchile.api.config.security.JsonAuthenticationEntryPoint;
 import com.northernchile.api.config.security.JwtAuthenticationFilter;
+import com.northernchile.api.security.Role;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -78,11 +79,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/lunar/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/weather/**").permitAll()
                         // Proteger operaciones de storage (solo admins)
-                        .requestMatchers("/api/storage/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_PARTNER_ADMIN")
+                        .requestMatchers("/api/storage/**").hasAnyAuthority(Role.SUPER_ADMIN.getRoleName(), Role.PARTNER_ADMIN.getRoleName())
                         // Proteger las operaciones de escritura en tours
-                        .requestMatchers(HttpMethod.POST, "/api/tours/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_PARTNER_ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/tours/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_PARTNER_ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/tours/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_PARTNER_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/tours/**").hasAnyAuthority(Role.SUPER_ADMIN.getRoleName(), Role.PARTNER_ADMIN.getRoleName())
+                        .requestMatchers(HttpMethod.PUT, "/api/tours/**").hasAnyAuthority(Role.SUPER_ADMIN.getRoleName(), Role.PARTNER_ADMIN.getRoleName())
+                        .requestMatchers(HttpMethod.DELETE, "/api/tours/**").hasAnyAuthority(Role.SUPER_ADMIN.getRoleName(), Role.PARTNER_ADMIN.getRoleName())
                         // Permitir rutas de autenticación y documentación
                         .requestMatchers(
                                 "/api/auth/**",
@@ -102,7 +103,7 @@ public class SecurityConfig {
                         // Permitir confirmación de pagos (callbacks de Transbank/MercadoPago)
                         .requestMatchers(HttpMethod.GET, "/api/payment-sessions/confirm/**").permitAll()
                         // Proteger todas las rutas de administración
-                        .requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_PARTNER_ADMIN")
+                        .requestMatchers("/api/admin/**").hasAnyAuthority(Role.SUPER_ADMIN.getRoleName(), Role.PARTNER_ADMIN.getRoleName())
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

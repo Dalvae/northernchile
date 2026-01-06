@@ -2,16 +2,16 @@ package com.northernchile.api.user;
 
 import com.northernchile.api.config.security.annotation.CurrentUser;
 import com.northernchile.api.model.User;
+import com.northernchile.api.security.Permission;
+import com.northernchile.api.security.annotations.RequiresPermission;
 import com.northernchile.api.user.dto.AdminPasswordChangeReq;
 import com.northernchile.api.user.dto.UserCreateReq;
 import com.northernchile.api.user.dto.UserRes;
 import com.northernchile.api.user.dto.UserUpdateReq;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +20,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin/users")
+@RequiresPermission(Permission.MANAGE_USERS) // Super Admin only
 public class UserController {
 
     private final UserService userService;
@@ -30,14 +31,12 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @GetMapping
     public ResponseEntity<List<UserRes>> getAllUsers() {
         List<UserRes> users = userService.getAllUsers();
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @GetMapping("/{userId}")
     public ResponseEntity<UserRes> getUserById(@PathVariable UUID userId) {
         return userService.getUserById(userId)
@@ -45,15 +44,15 @@ public class UserController {
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PostMapping
+    @RequiresPermission(Permission.CREATE_USER)
     public ResponseEntity<UserRes> createUser(@Valid @RequestBody UserCreateReq req) {
         UserRes createdUser = userService.createUser(req);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PutMapping("/{userId}")
+    @RequiresPermission(Permission.EDIT_USER)
     public ResponseEntity<UserRes> updateUser(
             @PathVariable UUID userId,
             @Valid @RequestBody UserUpdateReq req,
@@ -62,16 +61,16 @@ public class UserController {
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @DeleteMapping("/{userId}")
+    @RequiresPermission(Permission.DELETE_USER)
     public ResponseEntity<Void> deleteUser(@PathVariable UUID userId,
                                            @CurrentUser User currentUser) {
         userService.deleteUser(userId, currentUser);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PutMapping("/{userId}/password")
+    @RequiresPermission(Permission.MANAGE_USERS)
     public ResponseEntity<Map<String, String>> adminChangePassword(
             @PathVariable UUID userId,
             @Valid @RequestBody AdminPasswordChangeReq req,

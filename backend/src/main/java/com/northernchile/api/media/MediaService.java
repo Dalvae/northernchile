@@ -7,6 +7,7 @@ import com.northernchile.api.media.repository.MediaRepository;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.User;
+import com.northernchile.api.security.Role;
 import com.northernchile.api.storage.S3StorageService;
 import com.northernchile.api.tour.TourRepository;
 import com.northernchile.api.tour.TourScheduleRepository;
@@ -62,7 +63,7 @@ public class MediaService {
      * SUPER_ADMIN can access any tour, PARTNER_ADMIN only their own tours.
      */
     private void verifyTourAccess(User requester, Tour tour) {
-        boolean isSuperAdmin = requester.getRole().equals("ROLE_SUPER_ADMIN");
+        boolean isSuperAdmin = requester.getRole().equals(Role.SUPER_ADMIN.getRoleName());
         boolean isOwner = tour.getOwner().getId().equals(requester.getId());
 
         if (!isSuperAdmin && !isOwner) {
@@ -75,7 +76,7 @@ public class MediaService {
      * SUPER_ADMIN can access any schedule, PARTNER_ADMIN only their own schedules.
      */
     private void verifyScheduleAccess(User requester, TourSchedule schedule) {
-        boolean isSuperAdmin = requester.getRole().equals("ROLE_SUPER_ADMIN");
+        boolean isSuperAdmin = requester.getRole().equals(Role.SUPER_ADMIN.getRoleName());
         boolean isOwner = schedule.getTour().getOwner().getId().equals(requester.getId());
 
         if (!isSuperAdmin && !isOwner) {
@@ -88,7 +89,7 @@ public class MediaService {
      * SUPER_ADMIN can access any media, PARTNER_ADMIN only their own media.
      */
     private void verifyMediaAccess(User requester, Media media) {
-        boolean isSuperAdmin = requester.getRole().equals("ROLE_SUPER_ADMIN");
+        boolean isSuperAdmin = requester.getRole().equals(Role.SUPER_ADMIN.getRoleName());
         boolean isOwner = media.getOwner().getId().equals(requester.getId());
 
         if (!isSuperAdmin && !isOwner) {
@@ -100,7 +101,7 @@ public class MediaService {
      * Check if the requester is a SUPER_ADMIN.
      */
     private boolean isSuperAdmin(User user) {
-        return user.getRole().equals("ROLE_SUPER_ADMIN");
+        return user.getRole().equals(Role.SUPER_ADMIN.getRoleName());
     }
 
     /**

@@ -12,6 +12,7 @@ import com.northernchile.api.exception.ScheduleFullException;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.Participant;
 import com.northernchile.api.model.User;
+import com.northernchile.api.security.Role;
 import com.northernchile.api.notification.EmailService;
 import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
@@ -231,7 +232,7 @@ public class BookingService {
      */
     @Transactional(readOnly = true)
     public List<BookingRes> getBookingsForAdmin(User admin) {
-        if ("ROLE_SUPER_ADMIN".equals(admin.getRole())) {
+        if (Role.SUPER_ADMIN.getRoleName().equals(admin.getRole())) {
             return getAllBookingsForAdmin();
         } else {
             return getBookingsByTourOwner(admin);
@@ -243,7 +244,6 @@ public class BookingService {
         return getBookingsByUser(user.getId());
     }
 
-    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId) or @bookingSecurityService.isBookingUser(authentication, #bookingId)")
     public Optional<BookingRes> getBookingById(UUID bookingId, User currentUser) {
         Booking booking = bookingRepository.findByIdWithDetails(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", bookingId));
@@ -288,7 +288,6 @@ public class BookingService {
     }
 
     @Transactional
-    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId)")
     public BookingRes updateBookingStatus(UUID bookingId, String newStatus, User currentUser) {
         Booking booking = bookingRepository.findByIdWithDetails(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", bookingId));
@@ -311,7 +310,6 @@ public class BookingService {
     }
 
     @Transactional
-    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or @bookingSecurityService.isOwner(authentication, #bookingId)")
     public void cancelBooking(UUID bookingId, User currentUser) {
         Booking booking = bookingRepository.findByIdWithDetails(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", bookingId));
@@ -339,7 +337,6 @@ public class BookingService {
     }
 
     @Transactional
-    @PreAuthorize("@bookingSecurityService.isBookingUser(authentication, #bookingId)")
     public BookingRes confirmBookingAfterMockPayment(UUID bookingId, User currentUser) {
         Booking booking = bookingRepository.findByIdWithDetails(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", bookingId));

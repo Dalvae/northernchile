@@ -8,7 +8,7 @@ import com.northernchile.api.model.User;
 import com.northernchile.api.tour.dto.TourScheduleCreateReq;
 import com.northernchile.api.tour.dto.TourScheduleRes;
 import com.northernchile.api.user.UserRepository;
-import com.northernchile.api.util.SecurityUtils;
+import com.northernchile.api.security.AuthorizationService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,18 +28,21 @@ public class TourScheduleService {
     private final UserRepository userRepository;
     private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
     private final AuditLogService auditLogService;
+    private final AuthorizationService authorizationService;
 
     public TourScheduleService(
             TourScheduleRepository tourScheduleRepository,
             TourRepository tourRepository,
             UserRepository userRepository,
             com.northernchile.api.availability.AvailabilityValidator availabilityValidator,
-            AuditLogService auditLogService) {
+            AuditLogService auditLogService,
+            AuthorizationService authorizationService) {
         this.tourScheduleRepository = tourScheduleRepository;
         this.tourRepository = tourRepository;
         this.userRepository = userRepository;
         this.availabilityValidator = availabilityValidator;
         this.auditLogService = auditLogService;
+        this.authorizationService = authorizationService;
     }
 
     @Transactional
@@ -48,7 +51,7 @@ public class TourScheduleService {
                 .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + req.tourId()));
 
         // Check ownership for non-super-admins
-        SecurityUtils.validateOwnership(currentUser, tour, "You do not have permission to create schedules for this tour.");
+        authorizationService.checkOwnership(tour, "You do not have permission to create schedules for this tour.");
 
         var guide = req.assignedGuideId() != null ? userRepository.findById(req.assignedGuideId())
                 .orElseThrow(() -> new EntityNotFoundException("Guide not found with id: " + req.assignedGuideId())) : null;
@@ -85,7 +88,7 @@ public class TourScheduleService {
         Tour tour = schedule.getTour();
 
         // Check ownership for non-super-admins
-        SecurityUtils.validateOwnership(currentUser, tour, "You do not have permission to update this schedule.");
+        authorizationService.checkOwnership(tour, "You do not have permission to update this schedule.");
 
         // Capture old values for audit
         Map<String, Object> oldValues = Map.of(
@@ -128,7 +131,7 @@ public class TourScheduleService {
         Tour tour = schedule.getTour();
 
         // Check ownership for non-super-admins
-        SecurityUtils.validateOwnership(currentUser, tour, "You do not have permission to cancel this schedule.");
+        authorizationService.checkOwnership(tour, "You do not have permission to cancel this schedule.");
 
         // Capture old status for audit
         String oldStatus = schedule.getStatus();
@@ -170,7 +173,7 @@ public class TourScheduleService {
         Tour tour = schedule.getTour();
 
         // Check ownership for non-super-admins
-        SecurityUtils.validateOwnership(currentUser, tour, "You do not have permission to delete this schedule.");
+        authorizationService.checkOwnership(tour, "You do not have permission to delete this schedule.");
 
         // Audit log before deletion
         String tourName = tour.getDisplayName();

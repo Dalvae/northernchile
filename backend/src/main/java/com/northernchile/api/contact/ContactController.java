@@ -2,11 +2,12 @@ package com.northernchile.api.contact;
 
 import com.northernchile.api.contact.dto.ContactMessageReq;
 import com.northernchile.api.model.ContactMessage;
+import com.northernchile.api.security.Permission;
+import com.northernchile.api.security.annotations.RequiresPermission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public class ContactController {
      * ADMIN endpoints - Manage contact messages
      */
     @GetMapping("/admin/contact/messages")
-    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
+    @RequiresPermission(Permission.VIEW_CONTACT_MESSAGES)
     @Operation(summary = "Get all contact messages", description = "Get all contact form messages (admin only)")
     public ResponseEntity<List<ContactMessage>> getAllMessages() {
         List<ContactMessage> messages = contactMessageService.getAllMessages();
@@ -47,7 +48,7 @@ public class ContactController {
     }
 
     @GetMapping("/admin/contact/messages/new")
-    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
+    @RequiresPermission(Permission.VIEW_CONTACT_MESSAGES)
     @Operation(summary = "Get new contact messages", description = "Get unread contact messages (admin only)")
     public ResponseEntity<List<ContactMessage>> getNewMessages() {
         List<ContactMessage> messages = contactMessageService.getMessagesByStatus("NEW");
@@ -55,7 +56,7 @@ public class ContactController {
     }
 
     @GetMapping("/admin/contact/messages/count/new")
-    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
+    @RequiresPermission(Permission.VIEW_CONTACT_MESSAGES)
     @Operation(summary = "Count new messages", description = "Get count of unread messages")
     public ResponseEntity<Map<String, Long>> getNewMessagesCount() {
         long count = contactMessageService.getNewMessagesCount();
@@ -63,7 +64,7 @@ public class ContactController {
     }
 
     @PutMapping("/admin/contact/messages/{id}/status")
-    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
+    @RequiresPermission(Permission.MANAGE_CONTACT_MESSAGES)
     @Operation(summary = "Update message status", description = "Mark message as read/replied/archived")
     public ResponseEntity<ContactMessage> updateMessageStatus(
             @PathVariable String id,

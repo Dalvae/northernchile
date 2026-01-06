@@ -3,12 +3,13 @@ package com.northernchile.api.media;
 import com.northernchile.api.config.security.annotation.CurrentUser;
 import com.northernchile.api.media.dto.*;
 import com.northernchile.api.model.User;
+import com.northernchile.api.security.Permission;
+import com.northernchile.api.security.annotations.RequiresPermission;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,7 +22,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/admin/media")
-@PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
+@RequiresPermission(Permission.VIEW_MEDIA) // Class-level permission for all methods
 public class MediaController {
 
     private final MediaService mediaService;
@@ -35,6 +36,7 @@ public class MediaController {
      * POST /api/admin/media
      */
     @PostMapping
+    @RequiresPermission(Permission.UPLOAD_MEDIA)
     public ResponseEntity<MediaRes> createMedia(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "tourId", required = false) UUID tourId,
@@ -97,6 +99,7 @@ public class MediaController {
      * PATCH /api/admin/media/{id}
      */
     @PatchMapping("/{id}")
+    @RequiresPermission(value = Permission.UPLOAD_MEDIA, resourceIdParam = "id", resourceType = RequiresPermission.ResourceType.MEDIA)
     public ResponseEntity<MediaRes> updateMedia(@PathVariable UUID id,
                                                @Valid @RequestBody MediaUpdateReq req,
                                                @CurrentUser User currentUser) {
@@ -109,6 +112,7 @@ public class MediaController {
      * DELETE /api/admin/media/{id}
      */
     @DeleteMapping("/{id}")
+    @RequiresPermission(value = Permission.DELETE_MEDIA, resourceIdParam = "id", resourceType = RequiresPermission.ResourceType.MEDIA)
     public ResponseEntity<Void> deleteMedia(@PathVariable UUID id,
                                            @CurrentUser User currentUser) {
         mediaService.deleteMedia(id, currentUser.getId());
@@ -120,6 +124,7 @@ public class MediaController {
      * POST /api/admin/media/tour/{tourId}/assign
      */
     @PostMapping("/tour/{tourId}/assign")
+    @RequiresPermission(value = Permission.UPLOAD_MEDIA, resourceIdParam = "tourId", resourceType = RequiresPermission.ResourceType.TOUR)
     public ResponseEntity<Void> assignMediaToTour(@PathVariable UUID tourId,
                                                   @Valid @RequestBody BulkAssignMediaReq req,
                                                   @CurrentUser User currentUser) {
@@ -132,6 +137,7 @@ public class MediaController {
      * DELETE /api/admin/media/tour/{tourId}/media/{mediaId}
      */
     @DeleteMapping("/tour/{tourId}/media/{mediaId}")
+    @RequiresPermission(value = Permission.DELETE_MEDIA, resourceIdParam = "tourId", resourceType = RequiresPermission.ResourceType.TOUR)
     public ResponseEntity<Void> unassignMediaFromTour(@PathVariable UUID tourId,
                                                       @PathVariable UUID mediaId,
                                                       @CurrentUser User currentUser) {
@@ -144,6 +150,7 @@ public class MediaController {
      * PUT /api/admin/media/tour/{tourId}/reorder
      */
     @PutMapping("/tour/{tourId}/reorder")
+    @RequiresPermission(value = Permission.UPLOAD_MEDIA, resourceIdParam = "tourId", resourceType = RequiresPermission.ResourceType.TOUR)
     public ResponseEntity<Void> reorderTourMedia(@PathVariable UUID tourId,
                                                 @Valid @RequestBody List<MediaOrderReq> orders,
                                                 @CurrentUser User currentUser) {
@@ -156,6 +163,7 @@ public class MediaController {
      * PUT /api/admin/media/tour/{tourId}/hero/{mediaId}
      */
     @PutMapping("/tour/{tourId}/hero/{mediaId}")
+    @RequiresPermission(value = Permission.UPLOAD_MEDIA, resourceIdParam = "tourId", resourceType = RequiresPermission.ResourceType.TOUR)
     public ResponseEntity<Void> setHeroImage(@PathVariable UUID tourId,
                                             @PathVariable UUID mediaId,
                                             @CurrentUser User currentUser) {
@@ -168,6 +176,7 @@ public class MediaController {
      * PUT /api/admin/media/tour/{tourId}/featured/{mediaId}
      */
     @PutMapping("/tour/{tourId}/featured/{mediaId}")
+    @RequiresPermission(value = Permission.UPLOAD_MEDIA, resourceIdParam = "tourId", resourceType = RequiresPermission.ResourceType.TOUR)
     public ResponseEntity<Void> toggleFeatured(@PathVariable UUID tourId,
                                                @PathVariable UUID mediaId,
                                                @CurrentUser User currentUser) {
@@ -180,6 +189,7 @@ public class MediaController {
      * GET /api/admin/media/tour/{tourId}/gallery
      */
     @GetMapping("/tour/{tourId}/gallery")
+    @RequiresPermission(value = Permission.VIEW_MEDIA, resourceIdParam = "tourId", resourceType = RequiresPermission.ResourceType.TOUR)
     public ResponseEntity<List<MediaRes>> getTourGallery(@PathVariable UUID tourId,
                                                          @CurrentUser User currentUser) {
         List<MediaRes> gallery = mediaService.getTourGallery(tourId, currentUser.getId());
@@ -191,6 +201,7 @@ public class MediaController {
      * POST /api/admin/media/schedule/{scheduleId}/assign
      */
     @PostMapping("/schedule/{scheduleId}/assign")
+    @RequiresPermission(value = Permission.UPLOAD_MEDIA, resourceIdParam = "scheduleId", resourceType = RequiresPermission.ResourceType.SCHEDULE)
     public ResponseEntity<Void> assignMediaToSchedule(@PathVariable UUID scheduleId,
                                                       @Valid @RequestBody BulkAssignMediaReq req,
                                                       @CurrentUser User currentUser) {
@@ -203,6 +214,7 @@ public class MediaController {
      * DELETE /api/admin/media/schedule/{scheduleId}/media/{mediaId}
      */
     @DeleteMapping("/schedule/{scheduleId}/media/{mediaId}")
+    @RequiresPermission(value = Permission.DELETE_MEDIA, resourceIdParam = "scheduleId", resourceType = RequiresPermission.ResourceType.SCHEDULE)
     public ResponseEntity<Void> unassignMediaFromSchedule(@PathVariable UUID scheduleId,
                                                           @PathVariable UUID mediaId,
                                                           @CurrentUser User currentUser) {
@@ -215,6 +227,7 @@ public class MediaController {
      * PUT /api/admin/media/schedule/{scheduleId}/reorder
      */
     @PutMapping("/schedule/{scheduleId}/reorder")
+    @RequiresPermission(value = Permission.UPLOAD_MEDIA, resourceIdParam = "scheduleId", resourceType = RequiresPermission.ResourceType.SCHEDULE)
     public ResponseEntity<Void> reorderScheduleMedia(@PathVariable UUID scheduleId,
                                                      @Valid @RequestBody List<MediaOrderReq> orders,
                                                      @CurrentUser User currentUser) {
@@ -227,6 +240,7 @@ public class MediaController {
      * GET /api/admin/media/schedule/{scheduleId}/gallery
      */
     @GetMapping("/schedule/{scheduleId}/gallery")
+    @RequiresPermission(value = Permission.VIEW_MEDIA, resourceIdParam = "scheduleId", resourceType = RequiresPermission.ResourceType.SCHEDULE)
     public ResponseEntity<List<MediaRes>> getScheduleGallery(@PathVariable UUID scheduleId,
                                                              @CurrentUser User currentUser) {
         List<MediaRes> gallery = mediaService.getScheduleGallery(scheduleId, currentUser.getId());

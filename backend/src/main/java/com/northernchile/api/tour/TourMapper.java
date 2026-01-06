@@ -57,7 +57,10 @@ public abstract class TourMapper {
             @Mapping(target = "additionalInfo", expression = "java(mapStringList(tour.getAdditionalInfoTranslations(), locale))"),
             @Mapping(target = "itineraryTranslations", expression = "java(mapAllItineraryTranslations(tour.getItineraryTranslations()))"),
             @Mapping(target = "equipmentTranslations", expression = "java(mapAllStringListTranslations(tour.getEquipmentTranslations()))"),
-            @Mapping(target = "additionalInfoTranslations", expression = "java(mapAllStringListTranslations(tour.getAdditionalInfoTranslations()))")
+            @Mapping(target = "additionalInfoTranslations", expression = "java(mapAllStringListTranslations(tour.getAdditionalInfoTranslations()))"),
+            @Mapping(target = "ownerId", source = "tour.owner.id"),
+            @Mapping(target = "ownerName", source = "tour.owner.fullName"),
+            @Mapping(target = "ownerEmail", source = "tour.owner.email")
     })
     public abstract TourRes toTourRes(Tour tour, Locale locale);
 

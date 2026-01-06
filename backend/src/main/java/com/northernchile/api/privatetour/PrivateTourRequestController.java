@@ -1,9 +1,9 @@
 package com.northernchile.api.privatetour;
 
 import com.northernchile.api.model.PrivateTourRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.northernchile.api.security.Permission;
+import com.northernchile.api.security.annotations.RequiresPermission;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,24 +27,22 @@ public class PrivateTourRequestController {
     // Endpoint PÚBLICO para que clientes envíen una solicitud
     @PostMapping("/private-tours/requests")
     public ResponseEntity<String> submitRequest(@jakarta.validation.Valid @RequestBody PrivateTourRequest request) {
-        // In a real app, you'd use a DTO here
         privateTourRequestService.createRequest(request);
         return ResponseEntity.ok("Request received. We will contact you shortly.");
     }
 
     // Endpoints de ADMINISTRACIÓN para gestionar las solicitudes
     @GetMapping("/admin/private-tours/requests")
-    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
+    @RequiresPermission(Permission.VIEW_PRIVATE_TOUR_REQUESTS)
     public ResponseEntity<List<PrivateTourRequest>> getAllRequests() {
         return ResponseEntity.ok(privateTourRequestRepository.findAll());
     }
 
     @PutMapping("/admin/private-tours/requests/{id}")
-    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
+    @RequiresPermission(Permission.MANAGE_PRIVATE_TOUR_REQUESTS)
     public ResponseEntity<PrivateTourRequest> updateRequestStatus(@PathVariable UUID id, @RequestBody Map<String, String> statusUpdate) {
         return privateTourRequestRepository.findById(id).map(request -> {
             request.setStatus(statusUpdate.get("status"));
-            // In a real app, you might also set quotedPrice, paymentLinkId, etc.
             return ResponseEntity.ok(privateTourRequestRepository.save(request));
         }).orElse(ResponseEntity.notFound().build());
     }

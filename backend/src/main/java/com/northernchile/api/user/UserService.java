@@ -3,13 +3,14 @@ package com.northernchile.api.user;
 
 import com.northernchile.api.audit.AuditLogService;
 import com.northernchile.api.model.User;
+import com.northernchile.api.security.Role;
 import com.northernchile.api.user.dto.ProfileUpdateReq;
 import com.northernchile.api.user.dto.UserCreateReq;
 import com.northernchile.api.user.dto.UserRes;
 import com.northernchile.api.user.dto.UserUpdateReq;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,7 +84,6 @@ public class UserService {
     }
 
     @Transactional
-    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or #userId.equals(currentUser.id)")
     public UserRes updateUser(UUID userId, UserUpdateReq req, User currentUser) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
@@ -127,7 +127,6 @@ public class UserService {
     }
 
     @Transactional
-    @PreAuthorize("hasAuthority('ROLE_SUPER_ADMIN') or #userId.equals(currentUser.id)")
     public void deleteUser(UUID userId, User currentUser) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));

@@ -1,6 +1,7 @@
 package com.northernchile.api.config.security;
 
 import com.northernchile.api.model.User;
+import com.northernchile.api.security.Role;
 import com.northernchile.api.user.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,7 +105,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User user = new User();
         user.setEmail(email);
         user.setFullName(fullName != null ? fullName : email.split("@")[0]);
-        user.setRole("ROLE_CLIENT");
+        user.setRole(Role.CLIENT.getRoleName());
         user.setAuthProvider(provider.toUpperCase());
         user.setProviderId(providerId);
         user.setEmailVerified(true);

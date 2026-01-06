@@ -8,6 +8,7 @@ import com.northernchile.api.model.EmailVerificationToken;
 import com.northernchile.api.model.PasswordResetToken;
 import com.northernchile.api.model.User;
 import com.northernchile.api.notification.EmailService;
+import com.northernchile.api.security.Role;
 import com.northernchile.api.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,7 +64,7 @@ public class AuthService {
         user.setNationality(registerReq.nationality());
         user.setPhoneNumber(registerReq.phoneNumber());
         user.setDateOfBirth(registerReq.dateOfBirth());
-        user.setRole("ROLE_CLIENT"); // Default role
+        user.setRole(Role.CLIENT.getRoleName()); // Default role
         user.setAuthProvider("LOCAL");
         user.setEmailVerified(false); // Email not verified yet
 

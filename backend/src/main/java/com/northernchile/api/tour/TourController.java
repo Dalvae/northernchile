@@ -3,15 +3,16 @@ package com.northernchile.api.tour;
 import com.northernchile.api.config.security.annotation.CurrentUser;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.User;
+import com.northernchile.api.security.AuthorizationService;
+import com.northernchile.api.security.Permission;
+import com.northernchile.api.security.annotations.RequiresPermission;
 import com.northernchile.api.tour.dto.TourCreateReq;
 import com.northernchile.api.tour.dto.TourRes;
 import com.northernchile.api.tour.dto.TourUpdateReq;
 import com.northernchile.api.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,20 +26,23 @@ public class TourController {
     private final UserRepository userRepository;
     private final TourRepository tourRepository;
     private final TourMapper tourMapper;
+    private final AuthorizationService authorizationService;
 
     public TourController(
             TourService tourService,
             UserRepository userRepository,
             TourRepository tourRepository,
-            TourMapper tourMapper) {
+            TourMapper tourMapper,
+            AuthorizationService authorizationService) {
         this.tourService = tourService;
         this.userRepository = userRepository;
         this.tourRepository = tourRepository;
         this.tourMapper = tourMapper;
+        this.authorizationService = authorizationService;
     }
 
     @PostMapping("/admin/tours")
-    @PreAuthorize("@tourSecurityService.canCreateTour(authentication)")
+    @RequiresPermission(Permission.CREATE_TOUR)
     public ResponseEntity<TourRes> createTour(@jakarta.validation.Valid @RequestBody TourCreateReq tourCreateReq,
                                               @CurrentUser User currentUser) {
         TourRes createdTour = tourService.createTour(tourCreateReq, currentUser);
@@ -52,11 +56,11 @@ public class TourController {
     }
 
     @GetMapping("/admin/tours")
-    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
+    @RequiresPermission(Permission.VIEW_TOUR)
     public ResponseEntity<List<TourRes>> getAllToursForAdmin(@CurrentUser User currentUser) {
-        // SUPER_ADMIN can see all tours, PARTNER_ADMIN can only see their own
+        // Super Admin can see all tours, Partner Admin can only see their own
         List<TourRes> tours;
-        if (currentUser.getRole().equals("ROLE_SUPER_ADMIN")) {
+        if (authorizationService.isSuperAdmin()) {
             tours = tourService.getAllToursForAdmin();
         } else {
             tours = tourService.getToursByOwner(currentUser);
@@ -65,7 +69,7 @@ public class TourController {
     }
 
     @GetMapping("/admin/tours/{id}")
-    @PreAuthorize("@tourSecurityService.canViewTour(authentication, #id)")
+    @RequiresPermission(value = Permission.VIEW_TOUR, resourceIdParam = "id", resourceType = RequiresPermission.ResourceType.TOUR)
     public ResponseEntity<TourRes> getTourByIdAdmin(@PathVariable UUID id,
                                                   @CurrentUser User currentUser) {
         TourRes tour = tourService.getTourById(id, currentUser);
@@ -88,7 +92,7 @@ public class TourController {
     }
 
     @PutMapping("/admin/tours/{id}")
-    @PreAuthorize("@tourSecurityService.canEditTour(authentication, #id)")
+    @RequiresPermission(value = Permission.EDIT_TOUR, resourceIdParam = "id", resourceType = RequiresPermission.ResourceType.TOUR)
     public ResponseEntity<TourRes> updateTour(@PathVariable UUID id, @jakarta.validation.Valid @RequestBody TourUpdateReq tourUpdateReq,
                                               @CurrentUser User currentUser) {
         TourRes updatedTour = tourService.updateTour(id, tourUpdateReq, currentUser);
@@ -96,7 +100,7 @@ public class TourController {
     }
 
     @DeleteMapping("/admin/tours/{id}")
-    @PreAuthorize("@tourSecurityService.canDeleteTour(authentication, #id)")
+    @RequiresPermission(value = Permission.DELETE_TOUR, resourceIdParam = "id", resourceType = RequiresPermission.ResourceType.TOUR)
     public ResponseEntity<Void> deleteTour(@PathVariable UUID id,
                                            @CurrentUser User currentUser) {
         tourService.deleteTour(id, currentUser);

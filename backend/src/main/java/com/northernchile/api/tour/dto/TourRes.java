@@ -36,5 +36,9 @@ public record TourRes(
     Map<String, List<ItineraryItem>> itineraryTranslations,
     Map<String, List<String>> equipmentTranslations,
     Map<String, List<String>> additionalInfoTranslations,
-    Map<String, List<ContentBlock>> descriptionBlocksTranslations
+    Map<String, List<ContentBlock>> descriptionBlocksTranslations,
+    // Owner info for admin visibility
+    UUID ownerId,
+    String ownerName,
+    String ownerEmail
 ) {}

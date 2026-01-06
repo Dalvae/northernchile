@@ -1,11 +1,12 @@
 package com.northernchile.api.storage;
 
+import com.northernchile.api.security.Permission;
+import com.northernchile.api.security.annotations.RequiresPermission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,7 +30,7 @@ public class StorageController {
     }
 
     @PostMapping("/upload")
-    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
+    @RequiresPermission(Permission.UPLOAD_FILE)
     @Operation(summary = "Upload a file to S3", description = "Upload an image or asset file to S3 storage")
     public ResponseEntity<?> uploadFile(
             @RequestParam("file") MultipartFile file,
@@ -67,7 +68,7 @@ public class StorageController {
     }
 
     @DeleteMapping("/{folder}/{filename}")
-    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
+    @RequiresPermission(Permission.DELETE_FILE)
     @Operation(summary = "Delete a file from S3", description = "Delete an uploaded file from S3 storage")
     public ResponseEntity<?> deleteFile(
             @PathVariable String folder,
@@ -91,7 +92,7 @@ public class StorageController {
     }
 
     @GetMapping("/presigned-upload-url")
-    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN', 'ROLE_PARTNER_ADMIN')")
+    @RequiresPermission(Permission.UPLOAD_FILE)
     @Operation(summary = "Get presigned upload URL", description = "Generate a temporary URL for direct client upload to S3")
     public ResponseEntity<?> getPresignedUploadUrl(
             @RequestParam(value = "folder", defaultValue = "general") String folder,
