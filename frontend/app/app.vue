@@ -15,6 +15,15 @@ const ogImageOptions = computed(() => ({
 
 defineOgImageComponent('Tour', ogImageOptions)
 
+// Schema.org WebSite para que Google muestre el nombre del sitio correctamente
+useSchemaOrg([
+  defineWebSite({
+    name: 'Northern Chile Tours',
+    alternateName: 'Northern Chile',
+    url: config.public.baseUrl
+  })
+])
+
 // SEO Meta tags globales
 const seoMetaConfig: Parameters<typeof useSeoMeta>[0] & { fbAppId?: string } = {
   titleTemplate: (titleChunk: string | undefined) => {
