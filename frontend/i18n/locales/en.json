@@ -25,7 +25,7 @@
     "language": "Language",
     "theme": "Theme"
   },
-    "footer": {
+  "footer": {
     "description": "Premium astronomical experiences under the clearest skies on the planet. San Pedro de Atacama, Chile.",
     "legal": {
       "title": "Legal",
@@ -150,7 +150,8 @@
     "images": "photos",
     "view_all_images": "View all {count} photos",
     "itinerary_title": "Itinerary",
-    "highlights_title": "Tour Highlights"
+    "highlights_title": "Tour Highlights",
+    "location_suffix": "in San Pedro de Atacama"
   },
   "booking": {
     "title": "Book Tour",
@@ -384,16 +385,16 @@
   },
   "home": {
     "meta": {
-      "title": "San Pedro de Atacama Tours | Stargazing & Desert Expeditions | Northern Chile",
-      "description": "Best tours in San Pedro de Atacama: stargazing, Altiplanic lagoons, Tatio Geysers, Moon Valley. Expert guides, free cancellation. Book online.",
-      "og_title": "San Pedro de Atacama Tours - Stargazing & Desert Expeditions",
-      "og_description": "Discover the Atacama Desert with astronomical tours, expeditions and unique experiences under the clearest skies in the world.",
+      "title": "Northern Chile Tours | San Pedro de Atacama | Stargazing",
+      "description": "Northern Chile Tours in San Pedro de Atacama: stargazing, Altiplanic lagoons, and desert expeditions. The best experience under the stars. Book online.",
+      "og_title": "Northern Chile Tours - San Pedro de Atacama",
+      "og_description": "Discover San Pedro de Atacama with Northern Chile Tours. Unique astronomical experiences under the clearest skies in the world.",
       "og_category": "San Pedro de Atacama"
     },
     "hero": {
       "badge": "Astronomical tours in the clearest desert in the world",
-      "title_line1": "Discover the Stars",
-      "title_line2": "of the Atacama Desert",
+      "title_line1": "Northern Chile Tours",
+      "title_line2": "San Pedro de Atacama",
       "subtitle": "Live a unique experience observing the universe in one of the clearest skies on the planet",
       "cta_primary": "Explore Tours",
       "cta_secondary": "Contact",

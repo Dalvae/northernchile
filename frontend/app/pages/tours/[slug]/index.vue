@@ -155,9 +155,9 @@ defineOgImageComponent('Tour', computed(() => ({
 })))
 
 useSeoMeta({
-  title: () => `${translatedName.value} | Tour San Pedro de Atacama`,
+  title: () => `${translatedName.value} ${t('tours.location_suffix')}`,
   description: seoDescription,
-  ogTitle: () => `${translatedName.value} - Tour San Pedro de Atacama`,
+  ogTitle: () => `${translatedName.value} ${t('tours.location_suffix')}`,
   ogDescription: seoDescription,
   ogType: 'website',
   twitterCard: 'summary_large_image',

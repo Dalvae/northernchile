@@ -6,8 +6,47 @@ export default defineSitemapEventHandler(async () => {
   try {
     const tours = await $fetch<Array<{ slug: string, updatedAt?: string }>>(`${apiBaseUrl}/api/tours/published`)
 
-    // Generate URLs for each tour in each locale with proper hreflang alternates
-    return tours.flatMap((tour) => {
+    const staticPages = [
+      '/',
+      '/about',
+      '/contact',
+      '/tours',
+      '/private-tours',
+      '/moon-calendar'
+    ]
+
+    const staticUrls = staticPages.flatMap((page) => {
+      return locales.map((locale) => {
+        const path = locale === 'es'
+          ? page
+          : `/${locale}${page === '/' ? '' : page}`
+
+        const alternatives = locales.map((altLocale) => {
+          const altPath = altLocale === 'es'
+            ? page
+            : `/${altLocale}${page === '/' ? '' : page}`
+          return {
+            hreflang: altLocale === 'es' ? 'es-CL' : altLocale === 'en' ? 'en-US' : 'pt-BR',
+            href: `${siteUrl}${altPath}`
+          }
+        })
+
+        alternatives.push({
+          hreflang: 'x-default',
+          href: `${siteUrl}${page}`
+        })
+
+        return {
+          loc: path,
+          changefreq: 'weekly' as const,
+          priority: (page === '/' ? 1.0 : 0.8) as 0.8 | 1.0,
+          lastmod: new Date().toISOString(),
+          alternatives
+        }
+      })
+    })
+
+    const tourUrls = tours.flatMap((tour) => {
       return locales.map((locale) => {
         const path = locale === 'es'
           ? `/tours/${tour.slug}`
@@ -33,12 +72,14 @@ export default defineSitemapEventHandler(async () => {
         return {
           loc: path,
           changefreq: 'weekly' as const,
-          priority: 0.8,
+          priority: 0.8 as const,
           lastmod: tour.updatedAt || new Date().toISOString(),
           alternatives
         }
       })
     })
+
+    return [...staticUrls, ...tourUrls]
   } catch (error) {
     console.error('Error fetching tours for sitemap:', error)
     return []

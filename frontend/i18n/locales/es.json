@@ -25,7 +25,7 @@
     "language": "Idioma",
     "theme": "Tema"
   },
-    "footer": {
+  "footer": {
     "description": "Experiencias astronómicas premium bajo los cielos más claros del planeta. San Pedro de Atacama, Chile.",
     "legal": {
       "title": "Legal",
@@ -150,7 +150,8 @@
     "images": "fotos",
     "view_all_images": "Ver todas las {count} fotos",
     "itinerary_title": "Itinerario",
-    "highlights_title": "Lo Mejor del Tour"
+    "highlights_title": "Lo Mejor del Tour",
+    "location_suffix": "en San Pedro de Atacama"
   },
   "booking": {
     "title": "Reservar Tour",
@@ -384,16 +385,16 @@
   },
   "home": {
     "meta": {
-      "title": "Tours San Pedro de Atacama | Tour Astronómico y Expediciones | Northern Chile",
-      "description": "Los mejores tours en San Pedro de Atacama: tour astronómico, lagunas altiplánicas, Geysers del Tatio, Valle de la Luna. Guías expertos, cancelación gratis. Reserva online.",
-      "og_title": "Tours San Pedro de Atacama - Tour Astronómico y Expediciones al Desierto",
-      "og_description": "Descubre el desierto de Atacama con tours astronómicos, expediciones y experiencias únicas bajo los cielos más claros del mundo.",
+      "title": "Northern Chile Tours | San Pedro de Atacama | Tour Astronómico",
+      "description": "Northern Chile Tours en San Pedro de Atacama: tour astronómico, lagunas altiplánicas y expediciones. La mejor experiencia bajo las estrellas. Reserva online.",
+      "og_title": "Northern Chile Tours - San Pedro de Atacama",
+      "og_description": "Descubre San Pedro de Atacama con Northern Chile Tours. Experiencias astronómicas únicas bajo los cielos más claros del mundo.",
       "og_category": "San Pedro de Atacama"
     },
     "hero": {
       "badge": "Tours astronómicos en el desierto más claro del mundo",
-      "title_line1": "Descubre las Estrellas",
-      "title_line2": "del Desierto de Atacama",
+      "title_line1": "Northern Chile Tours",
+      "title_line2": "San Pedro de Atacama",
       "subtitle": "Vive una experiencia única observando el universo en uno de los cielos más claros del planeta",
       "cta_primary": "Explorar Tours",
       "cta_secondary": "Contactar",

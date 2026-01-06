@@ -25,7 +25,7 @@
     "language": "Idioma",
     "theme": "Tema"
   },
-    "footer": {
+  "footer": {
     "description": "Experiências astronômicas premium sob os céus mais limpos do planeta. San Pedro de Atacama, Chile.",
     "legal": {
       "title": "Legal",
@@ -150,7 +150,8 @@
     "images": "fotos",
     "view_all_images": "Ver todas as {count} fotos",
     "itinerary_title": "Itinerário",
-    "highlights_title": "Destaques do Tour"
+    "highlights_title": "Destaques do Tour",
+    "location_suffix": "em San Pedro de Atacama"
   },
   "booking": {
     "title": "Reservar Tour",
@@ -384,16 +385,16 @@
   },
   "home": {
     "meta": {
-      "title": "Tours San Pedro de Atacama | Tour Astronômico e Expedições | Northern Chile",
-      "description": "Os melhores tours em San Pedro de Atacama: tour astronômico, lagoas altiplânicas, Gêiseres do Tatio, Vale da Lua. Guias especializados, cancelamento grátis. Reserve online.",
-      "og_title": "Tours San Pedro de Atacama - Tour Astronômico e Expedições no Deserto",
-      "og_description": "Descubra o deserto do Atacama com tours astronômicos, expedições e experiências únicas sob os céus mais claros do mundo.",
+      "title": "Northern Chile Tours | San Pedro de Atacama | Tour Astronômico",
+      "description": "Northern Chile Tours em San Pedro de Atacama: tour astronômico, lagoas altiplânicas e expedições. A melhor experiência sob as estrelas. Reserve online.",
+      "og_title": "Northern Chile Tours - San Pedro de Atacama",
+      "og_description": "Descubra San Pedro de Atacama com Northern Chile Tours. Experiências astronômicas únicas sob os céus mais limpos do mundo.",
       "og_category": "San Pedro de Atacama"
     },
     "hero": {
       "badge": "Tours astronômicos no deserto mais claro do mundo",
-      "title_line1": "Descubra as Estrelas",
-      "title_line2": "do Deserto do Atacama",
+      "title_line1": "Northern Chile Tours",
+      "title_line2": "San Pedro de Atacama",
       "subtitle": "Viva uma experiência única observando o universo em um dos céus mais claros do planeta",
       "cta_primary": "Explorar Tours",
       "cta_secondary": "Contato",
