@@ -980,11 +980,11 @@
         },
         {
           "title": "2. Cancelación por Fuerza Mayor (Clima/Autoridad)",
-          "content": "Si Northern Chile debe cancelar por clima adverso (viento >25 nudos, nubosidad total en astronomía) o cierre de parques, el cliente tiene derecho a: a) Reagendar sin costo (opción recomendada), o b) Reembolso del 100% del dinero pagado (sin retención, ya que la cancelación no fue iniciada por el cliente)."
+          "content": "Si Northern Chile debe cancelar por clima adverso (viento >25 nudos, nubosidad total en astronomía) o cierre de parques, el cliente tiene derecho a: a) Reagendar sin costo (opción recomendada), o b) Reembolso del 95% del dinero pagado. La retención del 5% aplica en todos los casos para cubrir comisiones de pago ya cobradas."
         },
         {
           "title": "3. Retención por Costos de Procesamiento",
-          "content": "En cancelaciones iniciadas por el cliente, se retiene un 5% del monto para cubrir las comisiones irrecuperables cobradas por los procesadores de pago (Transbank, MercadoPago) incluyendo IVA. Esta retención NO aplica cuando Northern Chile cancela el tour por fuerza mayor."
+          "content": "En todo reembolso se retiene un 5% del monto para cubrir las comisiones irrecuperables cobradas por los procesadores de pago (Transbank, MercadoPago) incluyendo IVA. Esta retención aplica sin importar el motivo de la cancelación, ya que las comisiones fueron cobradas al momento del pago original."
         },
         {
           "title": "4. Plazos de Devolución",
