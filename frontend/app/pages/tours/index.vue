@@ -93,16 +93,23 @@ const totalPrice = computed(() => {
   return (selectedTour.value?.price || 0) * participantCount.value
 })
 
-// Add to cart
+// Track if adding to cart is in progress for this schedule
+const isAddingToCart = computed(() => {
+  return selectedSchedule.value?.id
+    ? cartStore.isOperationPending(`add:${selectedSchedule.value.id}`)
+    : false
+})
+
+// Add to cart with duplicate-click protection
 async function addToCart() {
   if (!selectedSchedule.value?.id) return
 
-  try {
-    await cartStore.addItem({
-      scheduleId: selectedSchedule.value.id,
-      numParticipants: participantCount.value
-    })
+  const success = await cartStore.addItem({
+    scheduleId: selectedSchedule.value.id,
+    numParticipants: participantCount.value
+  })
 
+  if (success) {
     const tourName = selectedTour.value?.nameTranslations?.[locale.value]
       || selectedTour.value?.nameTranslations?.es
       || 'Tour'
@@ -116,20 +123,9 @@ async function addToCart() {
     showParticipantModal.value = false
     selectedSchedule.value = null
     selectedTour.value = null
-
     router.push('/cart')
-  } catch (e: unknown) {
-    const errorMessage = (e && typeof e === 'object' && 'data' in e
-      && e.data && typeof e.data === 'object' && 'message' in e.data)
-      ? (e.data as { message?: string }).message
-      : undefined
-
-    toast.add({
-      color: 'error',
-      title: t('common.error'),
-      description: errorMessage || t('schedule.error_adding_to_cart')
-    })
   }
+  // Error toast is handled by cartStore.addItem
 }
 
 const getTourName = (tour: TourRes) =>
@@ -461,6 +457,8 @@ useSeoMeta({
               color="primary"
               class="font-bold"
               icon="i-lucide-shopping-cart"
+              :loading="isAddingToCart"
+              :disabled="isAddingToCart"
               @click="addToCart"
             >
               {{ t('schedule.add_to_cart') }}

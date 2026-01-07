@@ -20,13 +20,23 @@ export const useCartStore = defineStore('cart', () => {
     cartTotal: 0
   }
 
+  // === STATE ===
+
   // Internal cart state - always initialized with default
   const _cart = ref<CartRes>({ ...defaultCart })
 
+  // Loading state for UI feedback
   const isLoading = ref(false)
 
+  // Track if cart has been fetched from backend (prevents stale state after redirects)
+  const isInitialized = ref(false)
+
+  // Track pending operations to prevent duplicate requests (key = scheduleId or 'fetch')
+  const pendingOperations = ref<Set<string>>(new Set())
+
+  // === COMPUTED (Safe getters) ===
+
   // Safe cart getter - always returns a valid cart object (never undefined)
-  // This prevents "can't access property 'items'" errors during hydration
   const cart = computed(() => {
     return _cart.value ?? defaultCart
   })
@@ -36,7 +46,6 @@ export const useCartStore = defineStore('cart', () => {
     return _cart.value?.items ?? []
   })
 
-  // Safe accessors with optional chaining to prevent errors during hydration
   const totalItems = computed(() => {
     return _cart.value?.items?.reduce((sum, item) => sum + item.numParticipants, 0) ?? 0
   })
@@ -49,39 +58,80 @@ export const useCartStore = defineStore('cart', () => {
     return _cart.value?.cartTotal ?? 0
   })
 
-  async function fetchCart() {
+  // Check if an operation is in progress for a specific key
+  const isOperationPending = (key: string) => pendingOperations.value.has(key)
+
+  // === HELPERS ===
+
+  function startOperation(key: string): boolean {
+    if (pendingOperations.value.has(key)) {
+      console.warn(`Operation already pending for: ${key}`)
+      return false // Operation already in progress
+    }
+    pendingOperations.value.add(key)
+    return true
+  }
+
+  function endOperation(key: string) {
+    pendingOperations.value.delete(key)
+  }
+
+  // === ACTIONS ===
+
+  /**
+   * Fetch cart from backend.
+   * Prevents duplicate fetches using pendingOperations.
+   */
+  async function fetchCart(): Promise<void> {
+    const operationKey = 'fetch'
+
+    // Prevent duplicate fetch
+    if (!startOperation(operationKey)) {
+      return
+    }
+
     isLoading.value = true
     try {
       const response = await $fetch<CartRes>('/api/cart', {
         credentials: 'include'
       })
       _cart.value = response
+      isInitialized.value = true
     } catch (error) {
       console.error('Error fetching cart:', error)
-      clearCart()
+      // Reset to default on error
+      _cart.value = { ...defaultCart }
+      isInitialized.value = true
     } finally {
       isLoading.value = false
+      endOperation(operationKey)
     }
   }
 
   /**
-   * Add item to cart with optimistic UI update.
-   * Updates UI immediately, then syncs with backend. Reverts on failure.
+   * Add item to cart with duplicate-click protection.
+   * Uses optimistic UI update for fast feedback.
    */
-  async function addItem(itemData: CartItemReq) {
+  async function addItem(itemData: CartItemReq): Promise<boolean> {
+    const operationKey = `add:${itemData.scheduleId}`
+
+    // Prevent duplicate add for same schedule
+    if (!startOperation(operationKey)) {
+      console.warn('Add operation already in progress for this schedule')
+      return false
+    }
+
     const previousCart = JSON.parse(JSON.stringify(_cart.value)) as CartRes
 
-    // Optimistic update: add item immediately
-    // We cast to CartItemRes because we don't have all fields yet
+    // Optimistic update: add item immediately for fast UI feedback
     const optimisticItem = {
       scheduleId: itemData.scheduleId,
       numParticipants: itemData.numParticipants,
-      // Default values for other fields to satisfy UI
       itemTotal: 0,
       pricePerParticipant: 0
     } as unknown as CartItemRes
 
-    // Ensure items array exists before modifying
+    // Ensure items array exists
     if (!_cart.value.items) {
       _cart.value.items = []
     }
@@ -125,14 +175,12 @@ export const useCartStore = defineStore('cart', () => {
         }
       }
 
-      // Note: Toast is shown by the calling component (has more context like tour name)
       return true
     } catch (error) {
       console.error('Error adding item to cart:', error)
-      // Revert to previous state
+      // Revert to previous state on error
       _cart.value = previousCart
 
-      // Use useApiError to show appropriate message based on error code
       if (isScheduleFullError(error)) {
         const apiError = parseError(error)
         showErrorToast(error, t('errors.business.schedule_full', { availableSlots: apiError.availableSlots ?? 0 }))
@@ -142,19 +190,29 @@ export const useCartStore = defineStore('cart', () => {
       return false
     } finally {
       isLoading.value = false
+      endOperation(operationKey)
     }
   }
 
   /**
-   * Remove item from cart with optimistic UI update.
-   * Removes from UI immediately, then syncs with backend. Reverts on failure.
+   * Remove item from cart with duplicate-click protection.
    */
-  async function removeItem(itemId: string) {
+  async function removeItem(itemId: string): Promise<boolean> {
+    const operationKey = `remove:${itemId}`
+
+    // Prevent duplicate remove
+    if (!startOperation(operationKey)) {
+      console.warn('Remove operation already in progress for this item')
+      return false
+    }
+
     const previousCart = JSON.parse(JSON.stringify(_cart.value)) as CartRes
 
-    // Optimistic update: remove item immediately (with safety check)
+    // Optimistic update: remove immediately
     if (_cart.value.items) {
-      _cart.value.items = _cart.value.items.filter(item => item.itemId !== itemId && item.scheduleId !== itemId)
+      _cart.value.items = _cart.value.items.filter(
+        item => item.itemId !== itemId && item.scheduleId !== itemId
+      )
     }
 
     isLoading.value = true
@@ -173,48 +231,76 @@ export const useCartStore = defineStore('cart', () => {
       return true
     } catch (error) {
       console.error('Error removing item from cart:', error)
-      // Revert to previous state
+      // Revert on error
       _cart.value = previousCart
       showErrorToast(error, t('cart.error_removing', 'Error al eliminar del carrito'))
       return false
     } finally {
       isLoading.value = false
+      endOperation(operationKey)
     }
   }
 
   /**
-   * Clear cart both locally and on the backend.
-   * Called after successful payment to ensure cart is empty.
+   * Clear cart completely (local + backend).
+   * Called after successful payment.
    */
-  async function clearCart() {
+  async function clearCart(): Promise<void> {
     // Clear local state immediately
     _cart.value = { ...defaultCart }
+    pendingOperations.value.clear()
+    isInitialized.value = false
 
-    // Also clear on the backend (fire and forget - don't block UI)
+    // Clear on backend (fire and forget)
     try {
       await $fetch('/api/cart', {
         method: 'DELETE',
         credentials: 'include'
       })
     } catch (error) {
-      // Silently ignore - cart is already cleared locally
       console.warn('Could not clear cart on backend:', error)
+    }
+  }
+
+  /**
+   * Reset cart state completely.
+   * Use after payment redirect returns to ensure fresh state.
+   */
+  function resetState(): void {
+    _cart.value = { ...defaultCart }
+    pendingOperations.value.clear()
+    isInitialized.value = false
+    isLoading.value = false
+  }
+
+  /**
+   * Ensure cart is loaded. Call this on pages that need cart data.
+   * Safe to call multiple times - will only fetch once.
+   */
+  async function ensureLoaded(): Promise<void> {
+    if (!isInitialized.value && !isOperationPending('fetch')) {
+      await fetchCart()
     }
   }
 
   return {
     // Safe getters (computed, always return valid values)
-    cart,          // Always returns a valid CartRes object
-    items,         // Always returns an array (never undefined)
-    totalItems,    // Always returns a number
-    totalPrice,    // Always returns a number
-    cartTotal,     // Alias for totalPrice
+    cart,
+    items,
+    totalItems,
+    totalPrice,
+    cartTotal,
     // State
     isLoading,
+    isInitialized,
     // Actions
     fetchCart,
     addItem,
     removeItem,
-    clearCart
+    clearCart,
+    resetState,
+    ensureLoaded,
+    // Utility (for debugging/UI)
+    isOperationPending
   }
 })

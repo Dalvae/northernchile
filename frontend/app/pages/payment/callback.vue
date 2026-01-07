@@ -43,6 +43,9 @@ function clearCheckoutData() {
 
 // Process payment callback on mount
 onMounted(async () => {
+  // Reset cart state on payment callback to prevent stale state from external redirect
+  cartStore.resetState()
+
   try {
     // Case 1: MercadoPago Checkout Pro redirect (MP redirects here with its params)
     if (mpCollectionStatus || mpPaymentId) {

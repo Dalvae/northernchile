@@ -35,22 +35,22 @@ export default defineEventHandler(async (event) => {
   // Forward to backend to log and handle properly (don't call commit!)
   if (tbkToken) {
     console.log('Transbank payment cancelled - TBK_TOKEN:', tbkToken, 'Session:', tbkIdSesion, 'Order:', tbkOrdenCompra)
-    
+
     try {
       // Call backend to mark session as cancelled and log the values
       await $fetch(`${backendUrl}/api/payment-sessions/confirm`, {
         method: 'GET',
-        query: { 
+        query: {
           TBK_TOKEN: tbkToken,
           TBK_ID_SESION: tbkIdSesion,
           TBK_ORDEN_COMPRA: tbkOrdenCompra
         }
       })
-    } catch (error) {
+    } catch {
       // Backend handles cancellation - ignore errors here
       console.log('Backend handled Transbank abort')
     }
-    
+
     return sendRedirect(event, '/payment/callback?status=cancelled&message=Pago cancelado por el usuario', 302)
   }
 

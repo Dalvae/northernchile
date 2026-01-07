@@ -21,4 +21,3 @@ export default defineEventHandler(async (event): Promise<void> => {
   // Return 204 No Content
   setResponseStatus(event, 204)
 })
-
