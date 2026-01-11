@@ -251,7 +251,7 @@ export default defineNuxtConfig({
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'i18n_redirected',
-      redirectOn: 'root',
+      redirectOn: 'no page', // Changed from 'root' to fix SEO indexing - crawlers now see content without redirects
       fallbackLocale: 'en'
     }
   },
