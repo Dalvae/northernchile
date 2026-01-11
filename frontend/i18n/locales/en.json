@@ -90,6 +90,11 @@
     },
     "today": "Today"
   },
+  "language_suggestion": {
+    "message": "Este sitio está disponible en Español",
+    "switch": "Cambiar a Español",
+    "dismiss": "Stay in English"
+  },
   "aria": {
     "search_tours": "Search tours",
     "filter_category": "Filter by category",

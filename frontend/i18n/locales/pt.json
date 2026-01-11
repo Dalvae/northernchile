@@ -90,6 +90,11 @@
     },
     "today": "Hoje"
   },
+  "language_suggestion": {
+    "message": "Este site está disponível em Português",
+    "switch": "Mudar para Português",
+    "dismiss": "Ficar em Português"
+  },
   "aria": {
     "search_tours": "Buscar tours",
     "filter_category": "Filtrar por categoria",
