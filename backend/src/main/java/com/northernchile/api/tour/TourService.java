@@ -90,6 +90,7 @@ public class TourService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "tour-list", key = "'all-published'")
     public List<TourRes> getPublishedTours() {
         // Use EntityGraph to eagerly fetch images and owner - avoids N+1 query
         List<TourRes> tours = tourRepository.findByStatusNotDeletedWithImages("PUBLISHED").stream()
