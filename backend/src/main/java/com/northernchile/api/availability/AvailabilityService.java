@@ -55,7 +55,7 @@ public class AvailabilityService {
         LocalDate startOfMonth = yearMonth.atDay(1);
         LocalDate endOfMonth = yearMonth.atEndOfMonth();
 
-        var schedules = tourScheduleRepository.findByTourIdAndStartDatetimeBetween(
+        var schedules = tourScheduleRepository.findByTourIdAndStartDatetimeBetweenOrderByStartDatetimeDesc(
                 tourId,
                 startOfMonth.atStartOfDay(ZONE_ID).toInstant(),
                 endOfMonth.plusDays(1).atStartOfDay(ZONE_ID).toInstant()

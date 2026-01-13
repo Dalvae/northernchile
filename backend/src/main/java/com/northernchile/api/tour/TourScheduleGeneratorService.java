@@ -203,7 +203,7 @@ public class TourScheduleGeneratorService {
         Instant startInstant = startOfDay.toInstant();
         Instant endInstant = endOfDay.toInstant();
 
-        return !tourScheduleRepository.findByTourIdAndStartDatetimeBetween(
+        return !tourScheduleRepository.findByTourIdAndStartDatetimeBetweenOrderByStartDatetimeDesc(
                 tour.getId(),
                 startInstant,
                 endInstant
