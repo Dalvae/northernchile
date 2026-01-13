@@ -8,8 +8,8 @@ useHead(() => ({
   },
   titleTemplate: (titleChunk: string | undefined) => {
     return titleChunk
-      ? `${titleChunk} | Northern Chile`
-      : 'Northern Chile - Tours Astronómicos en Atacama'
+      ? `${titleChunk} | Northern Chile Tours`
+      : 'Northern Chile Tours - Astronomía y Expediciones en Atacama'
   },
   link: [...(i18nHead.value.link || [])],
   meta: [...(i18nHead.value.meta || [])]
