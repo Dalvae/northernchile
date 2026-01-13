@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const i18nHead = useLocaleHead()
+const { t } = useI18n()
 
 useHead(() => ({
   htmlAttrs: {
@@ -8,8 +9,8 @@ useHead(() => ({
   },
   titleTemplate: (titleChunk: string | undefined) => {
     return titleChunk
-      ? `${titleChunk} | Northern Chile Tours`
-      : 'Northern Chile Tours - Astronomía y Expediciones en Atacama'
+      ? `${titleChunk} | ${t('site.name')}`
+      : t('site.default_title')
   },
   link: [...(i18nHead.value.link || [])],
   meta: [...(i18nHead.value.meta || [])]

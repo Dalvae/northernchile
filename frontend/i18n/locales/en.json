@@ -1,4 +1,8 @@
 {
+  "site": {
+    "name": "Northern Chile Tours",
+    "default_title": "Northern Chile Tours - Stargazing and Expeditions in Atacama"
+  },
   "dev_warning": {
     "title": "Development Site",
     "description": "This site is in integration and testing phase:",

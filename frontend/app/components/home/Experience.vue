@@ -17,7 +17,7 @@ const items = computed(() => [
     description: t('home.experience.geo_desc'),
     icon: 'i-lucide-mountain',
     image:
-      'https:/northern-chile-assets.s3.sa-east-1.amazonaws.com/media/6a20bb52-779b-4316-a89e-596c9b1e2a93.webp',
+      'https://northern-chile-assets.s3.sa-east-1.amazonaws.com/media/6a20bb52-779b-4316-a89e-596c9b1e2a93.webp',
     color: 'text-tertiary-400',
     bg: 'bg-tertiary-500/10'
   }
