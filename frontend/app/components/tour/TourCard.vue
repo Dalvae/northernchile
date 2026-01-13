@@ -205,10 +205,10 @@ type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tert
 
 const categoryColor = computed((): BadgeColor => {
   const map: Record<string, BadgeColor> = {
-    ASTRONOMICAL: 'tertiary',
-    REGULAR: 'primary',
+    ASTRONOMICAL: 'primary',
+    REGULAR: 'secondary',
     SPECIAL: 'warning',
-    PRIVATE: 'secondary'
+    PRIVATE: 'info'
   }
   return map[props.tour.category as string] || 'neutral'
 })
