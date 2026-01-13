@@ -101,7 +101,6 @@ export function useMediaHierarchy() {
 
     return schedules
       .filter(schedule => schedule.id && schedule.startDatetime)
-      .sort((a, b) => new Date(b.startDatetime!).getTime() - new Date(a.startDatetime!).getTime())
       .map(schedule => ({
         id: schedule.id!,
         // startDatetime is an Instant (ISO with Z), so new Date() works correctly
