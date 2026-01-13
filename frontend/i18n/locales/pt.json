@@ -127,6 +127,10 @@
     "max_participants": "Máx {count}",
     "max_participants_label": "Participantes",
     "price_from": "A partir de",
+    "location": "San Pedro de Atacama, Chile",
+    "og": {
+      "default_title": "Tour Astronômico"
+    },
     "duration": "Duração",
     "price_per_person": "Preço por pessoa",
     "calendar_title": "Calendário de Disponibilidade",

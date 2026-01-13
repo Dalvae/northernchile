@@ -4,6 +4,7 @@ import '~/assets/css/main.css'
 const { t } = useI18n()
 const config = useRuntimeConfig()
 
+// OG Image default configuration
 const ogImageOptions = computed(() => ({
   title: t('home.meta.og_title'),
   category: t('home.meta.og_category'),

@@ -17,6 +17,7 @@ export default defineNuxtConfig({
     '@nuxt/image',
     'nuxt-gtag',
     '@nuxtjs/seo',
+    'nuxt-og-image',
     'nuxt-vitalizer'
   ],
 

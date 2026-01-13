@@ -150,11 +150,9 @@ const getTourImage = (tour: TourRes) => {
   return hero || featured || first || '/images/tour-placeholder.svg'
 }
 
-defineOgImageComponent('Tour', {
+defineOgImageComponent('Default', {
   title: t('tours.all'),
-  category: 'Catálogo',
-  image: '/images/catalogo-cover.jpg',
-  price: 'Todos los Tours'
+  description: t('tours.seo_description')
 })
 
 useSeoMeta({
