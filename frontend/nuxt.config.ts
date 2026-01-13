@@ -69,7 +69,8 @@ export default defineNuxtConfig({
     public: {
       apiBase: apiBaseUrl,
       baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.com',
-      fbAppId: process.env.NUXT_PUBLIC_FB_APP_ID || ''
+      fbAppId: process.env.NUXT_PUBLIC_FB_APP_ID || '',
+      paymentTestMode: process.env.NUXT_PUBLIC_PAYMENT_TEST_MODE === 'true'
     }
   },
 

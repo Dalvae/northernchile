@@ -79,12 +79,18 @@
 
 <script setup lang="ts">
 const { t } = useI18n()
+const config = useRuntimeConfig()
 
 const STORAGE_KEY = 'dev_warning_accepted'
 
 const isOpen = ref(false)
 
 onMounted(() => {
+  // Only show if in payment test mode
+  if (!config.public.paymentTestMode) {
+    return
+  }
+
   // Check if user already accepted
   const accepted = localStorage.getItem(STORAGE_KEY)
   if (!accepted) {
