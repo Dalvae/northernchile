@@ -98,8 +98,6 @@ jobs:
           MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
           MERCADOPAGO_PUBLIC_KEY=${{ secrets.MERCADOPAGO_PUBLIC_KEY }}
           MERCADOPAGO_WEBHOOK_SECRET=${{ secrets.MERCADOPAGO_WEBHOOK_SECRET }}
-          MERCADOPAGO_CLIENT_ID=${{ secrets.MERCADOPAGO_CLIENT_ID }}
-          MERCADOPAGO_CLIENT_SECRET=${{ secrets.MERCADOPAGO_CLIENT_SECRET }}
 
           # Security - Allowed redirect domains for payment callbacks
           ALLOWED_REDIRECT_DOMAINS=https://www.northernchile.com,https://northernchile.com
