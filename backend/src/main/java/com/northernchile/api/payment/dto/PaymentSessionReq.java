@@ -1,5 +1,6 @@
 package com.northernchile.api.payment.dto;
 
+import com.northernchile.api.booking.dto.ParticipantReq;
 import com.northernchile.api.payment.model.PaymentMethod;
 import com.northernchile.api.payment.model.PaymentProvider;
 import com.northernchile.api.validation.ValidReturnUrl;
@@ -73,22 +74,5 @@ public record PaymentSessionReq(
         @Valid
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         List<ParticipantReq> participants
-    ) {}
-
-    public record ParticipantReq(
-        @NotNull(message = "Full name is required")
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        String fullName,
-
-        @NotNull(message = "Document ID is required")
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        String documentId,
-
-        String nationality,
-        LocalDate dateOfBirth,
-        String pickupAddress,
-        String specialRequirements,
-        String phoneNumber,
-        String email
     ) {}
 }
