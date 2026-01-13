@@ -1,6 +1,7 @@
 package com.northernchile.api.lunar;
 
 import com.northernchile.api.external.LunarService;
+import com.northernchile.api.lunar.dto.MoonPhaseDTO;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Controlador para API de información lunar
- * Proporciona datos de fase lunar calculados localmente (sin límite de fechas)
+ * Controller for lunar information API.
+ * Provides lunar phase data calculated locally (no date limits).
  */
 @RestController
 @RequestMapping("/api/lunar")
@@ -25,74 +26,39 @@ public class LunarController {
     }
 
     /**
-     * Obtiene el calendario lunar para un rango de fechas
+     * Get lunar calendar for a date range.
      *
-     * Ejemplo:
+     * Example:
      * GET /api/lunar/calendar?startDate=2025-01-01&endDate=2025-01-31
      *
-     * Devuelve información lunar para todo enero 2025 (~30 días en 0.03ms)
+     * Returns lunar information for all of January 2025 (~30 days in 0.03ms)
      */
     @GetMapping("/calendar")
     public List<MoonPhaseDTO> getLunarCalendar(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-
-        List<MoonPhaseDTO> calendar = new ArrayList<>();
-
-        LocalDate current = startDate;
-        while (!current.isAfter(endDate)) {
-            double phase = lunarService.getMoonPhase(current);
-            int illumination = lunarService.getMoonIllumination(current);
-            String phaseName = lunarService.getMoonPhaseName(current);
-            boolean isFullMoon = lunarService.isFullMoon(current);
-
-            calendar.add(new MoonPhaseDTO(
-                    current,
-                    phase,
-                    illumination,
-                    phaseName,
-                    isFullMoon,
-                    lunarService.getMoonIcon(phase)
-            ));
-
-            current = current.plusDays(1);
-        }
-
-        return calendar;
+        return lunarService.getMoonPhasesForRange(startDate, endDate);
     }
 
     /**
-     * Obtiene la fase lunar para una fecha específica
+     * Get lunar phase for a specific date.
      *
-     * Ejemplo:
+     * Example:
      * GET /api/lunar/phase/2025-11-15
      */
     @GetMapping("/phase/{date}")
     public MoonPhaseDTO getMoonPhaseForDate(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-
-        double phase = lunarService.getMoonPhase(date);
-        int illumination = lunarService.getMoonIllumination(date);
-        String phaseName = lunarService.getMoonPhaseName(date);
-        boolean isFullMoon = lunarService.isFullMoon(date);
-
-        return new MoonPhaseDTO(
-                date,
-                phase,
-                illumination,
-                phaseName,
-                isFullMoon,
-                lunarService.getMoonIcon(phase)
-        );
+        return lunarService.getMoonPhaseData(date);
     }
 
     /**
-     * Obtiene las próximas N lunas llenas
+     * Get the next N full moons.
      *
-     * Ejemplo:
+     * Example:
      * GET /api/lunar/next-full-moons?count=3
      *
-     * Devuelve las próximas 3 lunas llenas a partir de hoy
+     * Returns the next 3 full moons starting from today.
      */
     @GetMapping("/next-full-moons")
     public List<MoonPhaseDTO> getNextFullMoons(
@@ -102,23 +68,11 @@ public class LunarController {
         LocalDate current = LocalDate.now();
         int found = 0;
 
-        // Buscar hasta 400 días hacia el futuro (~13 meses)
-        // Cada mes lunar es ~29.5 días, así que 400 días cubre suficiente
+        // Search up to 400 days in the future (~13 months)
+        // Each lunar cycle is ~29.5 days, so 400 days covers enough
         while (found < count && current.isBefore(LocalDate.now().plusDays(400))) {
             if (lunarService.isFullMoon(current)) {
-                double phase = lunarService.getMoonPhase(current);
-                int illumination = lunarService.getMoonIllumination(current);
-                String phaseName = lunarService.getMoonPhaseName(current);
-
-                fullMoons.add(new MoonPhaseDTO(
-                        current,
-                        phase,
-                        illumination,
-                        phaseName,
-                        true,
-                        lunarService.getMoonIcon(phase)
-                ));
-
+                fullMoons.add(lunarService.getMoonPhaseData(current));
                 found++;
                 // Skip at least MIN_DAYS_BETWEEN_FULL_MOONS to avoid finding the same full moon
                 current = current.plusDays(MIN_DAYS_BETWEEN_FULL_MOONS);
@@ -128,17 +82,4 @@ public class LunarController {
 
         return fullMoons;
     }
-
-
-    /**
-     * DTO para respuesta de fase lunar
-     */
-    public record MoonPhaseDTO(
-            LocalDate date,
-            double phase,           // 0.0-1.0
-            int illumination,       // 0-100%
-            String phaseName,       // "Full Moon", "Waxing Crescent", etc.
-            boolean isFullMoon,     // true si es luna llena
-            String icon             // Emoji de la luna
-    ) {}
 }

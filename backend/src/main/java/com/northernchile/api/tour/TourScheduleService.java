@@ -7,6 +7,7 @@ import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.User;
 import com.northernchile.api.tour.dto.TourScheduleCreateReq;
 import com.northernchile.api.tour.dto.TourScheduleRes;
+import com.northernchile.api.tour.mapper.TourScheduleMapper;
 import com.northernchile.api.user.UserRepository;
 import com.northernchile.api.security.AuthorizationService;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,6 +30,7 @@ public class TourScheduleService {
     private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
     private final AuditLogService auditLogService;
     private final AuthorizationService authorizationService;
+    private final TourScheduleMapper tourScheduleMapper;
 
     public TourScheduleService(
             TourScheduleRepository tourScheduleRepository,
@@ -36,13 +38,15 @@ public class TourScheduleService {
             UserRepository userRepository,
             com.northernchile.api.availability.AvailabilityValidator availabilityValidator,
             AuditLogService auditLogService,
-            AuthorizationService authorizationService) {
+            AuthorizationService authorizationService,
+            TourScheduleMapper tourScheduleMapper) {
         this.tourScheduleRepository = tourScheduleRepository;
         this.tourRepository = tourRepository;
         this.userRepository = userRepository;
         this.availabilityValidator = availabilityValidator;
         this.auditLogService = auditLogService;
         this.authorizationService = authorizationService;
+        this.tourScheduleMapper = tourScheduleMapper;
     }
 
     @Transactional
@@ -197,20 +201,6 @@ public class TourScheduleService {
         );
         int totalReserved = schedule.getMaxParticipants() - availabilityStatus.availableSlots();
 
-        return new TourScheduleRes(
-            schedule.getId(),
-            schedule.getTour().getId(),
-            schedule.getTour().getNameTranslations().get("es"),
-            schedule.getTour().getNameTranslations(),
-            schedule.getTour().getDurationHours(),
-            schedule.getStartDatetime(),
-            schedule.getMaxParticipants(),
-            totalReserved,  // bookedParticipants
-            availabilityStatus.availableSlots(),
-            schedule.getStatus(),
-            schedule.getAssignedGuide() != null ? schedule.getAssignedGuide().getId() : null,
-            schedule.getAssignedGuide() != null ? schedule.getAssignedGuide().getFullName() : null,
-            schedule.getCreatedAt()
-        );
+        return tourScheduleMapper.toRes(schedule, totalReserved, availabilityStatus.availableSlots());
     }
 }

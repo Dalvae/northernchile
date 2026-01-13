@@ -9,9 +9,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.northernchile.api.util.DateTimeUtils;
+
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,7 +25,6 @@ import java.util.stream.Collectors;
 public class WeatherService {
 
     private static final Logger log = LoggerFactory.getLogger(WeatherService.class);
-    private static final ZoneId ZONE_ID = ZoneId.of("America/Santiago");
 
     // Self-injection to allow internal calls to pass through the Spring proxy (for @Cacheable)
     @org.springframework.context.annotation.Lazy
@@ -92,7 +92,7 @@ public class WeatherService {
         // Agrupar items por fecha
         Map<LocalDate, List<FiveDayForecastResponse.ForecastItem>> byDay = response.list().stream()
                 .collect(Collectors.groupingBy(item ->
-                    Instant.ofEpochSecond(item.dt()).atZone(ZONE_ID).toLocalDate()
+                    Instant.ofEpochSecond(item.dt()).atZone(DateTimeUtils.CHILE_ZONE).toLocalDate()
                 ));
 
         // Convertir a formato que espera el frontend
@@ -137,7 +137,7 @@ public class WeatherService {
                     // Timestamp del mediodía (para dt)
                     long dt = items.stream()
                             .filter(i -> {
-                                int hour = Instant.ofEpochSecond(i.dt()).atZone(ZONE_ID).getHour();
+                                int hour = Instant.ofEpochSecond(i.dt()).atZone(DateTimeUtils.CHILE_ZONE).getHour();
                                 return hour >= 12 && hour <= 15;
                             })
                             .findFirst()
@@ -200,7 +200,7 @@ public class WeatherService {
                 .filter(day -> {
                     long dt = ((Number) day.get("dt")).longValue();
                     LocalDate forecastDate = Instant.ofEpochSecond(dt)
-                            .atZone(ZONE_ID)
+                            .atZone(DateTimeUtils.CHILE_ZONE)
                             .toLocalDate();
                     return forecastDate.equals(date);
                 })
@@ -232,7 +232,7 @@ public class WeatherService {
                 .filter(day -> {
                     long dt = ((Number) day.get("dt")).longValue();
                     LocalDate forecastDate = Instant.ofEpochSecond(dt)
-                            .atZone(ZONE_ID)
+                            .atZone(DateTimeUtils.CHILE_ZONE)
                             .toLocalDate();
                     return forecastDate.equals(date);
                 })
@@ -260,7 +260,7 @@ public class WeatherService {
                 .filter(day -> {
                     long dt = ((Number) day.get("dt")).longValue();
                     LocalDate forecastDate = Instant.ofEpochSecond(dt)
-                            .atZone(ZONE_ID)
+                            .atZone(DateTimeUtils.CHILE_ZONE)
                             .toLocalDate();
                     return forecastDate.equals(date);
                 })

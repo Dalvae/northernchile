@@ -19,11 +19,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.northernchile.api.util.DateTimeUtils;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,6 @@ import java.util.stream.Collectors;
 public class ReportsService {
 
     private static final Logger log = LoggerFactory.getLogger(ReportsService.class);
-    private static final ZoneId ZONE_ID = ZoneId.of("America/Santiago");
     private static final int DEFAULT_PERIOD_DAYS = 30;
 
     private final BookingRepository bookingRepository;
@@ -111,7 +111,7 @@ public class ReportsService {
         Map<LocalDate, List<Booking>> bookingsByDay = bookings.stream()
                 .filter(this::isConfirmedOrCompleted)
                 .collect(Collectors.groupingBy(b ->
-                        b.getCreatedAt().atZone(ZONE_ID).toLocalDate()
+                        b.getCreatedAt().atZone(DateTimeUtils.CHILE_ZONE).toLocalDate()
                 ));
 
         return bookingsByDay.entrySet().stream()
@@ -255,13 +255,13 @@ public class ReportsService {
 
     public Instant parseStartDate(String startDate) {
         return startDate != null
-                ? LocalDate.parse(startDate).atStartOfDay(ZONE_ID).toInstant()
+                ? LocalDate.parse(startDate).atStartOfDay(DateTimeUtils.CHILE_ZONE).toInstant()
                 : Instant.now().minus(DEFAULT_PERIOD_DAYS, ChronoUnit.DAYS);
     }
 
     public Instant parseEndDate(String endDate) {
         return endDate != null
-                ? LocalDate.parse(endDate).plusDays(1).atStartOfDay(ZONE_ID).toInstant()
+                ? LocalDate.parse(endDate).plusDays(1).atStartOfDay(DateTimeUtils.CHILE_ZONE).toInstant()
                 : Instant.now();
     }
 

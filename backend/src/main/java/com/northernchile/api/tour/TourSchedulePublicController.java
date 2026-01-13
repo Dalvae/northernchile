@@ -3,6 +3,7 @@ package com.northernchile.api.tour;
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.tour.dto.TourScheduleRes;
+import com.northernchile.api.tour.mapper.TourScheduleMapper;
 import com.northernchile.api.util.DateTimeUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -21,12 +22,15 @@ public class TourSchedulePublicController {
 
     private final TourScheduleRepository tourScheduleRepository;
     private final BookingRepository bookingRepository;
+    private final TourScheduleMapper tourScheduleMapper;
 
     public TourSchedulePublicController(
             TourScheduleRepository tourScheduleRepository,
-            BookingRepository bookingRepository) {
+            BookingRepository bookingRepository,
+            TourScheduleMapper tourScheduleMapper) {
         this.tourScheduleRepository = tourScheduleRepository;
         this.bookingRepository = bookingRepository;
+        this.tourScheduleMapper = tourScheduleMapper;
     }
 
     /**
@@ -61,36 +65,14 @@ public class TourSchedulePublicController {
     }
 
     private TourScheduleRes mapToResponse(TourSchedule schedule) {
-        // Assigned guide info (optional)
-        UUID assignedGuideId = null;
-        String assignedGuideName = null;
-        if (schedule.getAssignedGuide() != null) {
-            assignedGuideId = schedule.getAssignedGuide().getId();
-            assignedGuideName = schedule.getAssignedGuide().getFullName();
-        }
-
-        // Calculate actual availability
+        // Calculate actual availability (confirmed bookings only for public view)
         Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(schedule.getId());
         if (bookedParticipants == null) {
             bookedParticipants = 0;
         }
         int availableSpots = Math.max(0, schedule.getMaxParticipants() - bookedParticipants);
 
-        return new TourScheduleRes(
-                schedule.getId(),
-                schedule.getTour().getId(),
-                schedule.getTour().getNameTranslations().get("es"), // Fallback
-                schedule.getTour().getNameTranslations(),
-                schedule.getTour().getDurationHours(),
-                schedule.getStartDatetime(),
-                schedule.getMaxParticipants(),
-                bookedParticipants,
-                availableSpots,
-                schedule.getStatus(),
-                assignedGuideId,
-                assignedGuideName,
-                schedule.getCreatedAt()
-        );
+        return tourScheduleMapper.toRes(schedule, bookedParticipants, availableSpots);
     }
 }
 

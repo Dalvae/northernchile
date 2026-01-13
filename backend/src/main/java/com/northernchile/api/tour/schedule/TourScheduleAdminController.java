@@ -16,6 +16,7 @@ import com.northernchile.api.tour.TourScheduleRepository;
 import com.northernchile.api.tour.TourScheduleService;
 import com.northernchile.api.tour.dto.TourScheduleCreateReq;
 import com.northernchile.api.tour.dto.TourScheduleRes;
+import com.northernchile.api.tour.mapper.TourScheduleMapper;
 import com.northernchile.api.user.UserRepository;
 import com.northernchile.api.util.DateTimeUtils;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -43,6 +44,7 @@ public class TourScheduleAdminController {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final AuthorizationService authorizationService;
+    private final TourScheduleMapper tourScheduleMapper;
 
     public TourScheduleAdminController(
             TourScheduleRepository tourScheduleRepository,
@@ -50,13 +52,15 @@ public class TourScheduleAdminController {
             TourScheduleGeneratorService generatorService,
             UserRepository userRepository,
             BookingRepository bookingRepository,
-            AuthorizationService authorizationService) {
+            AuthorizationService authorizationService,
+            TourScheduleMapper tourScheduleMapper) {
         this.tourScheduleRepository = tourScheduleRepository;
         this.tourScheduleService = tourScheduleService;
         this.generatorService = generatorService;
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
         this.authorizationService = authorizationService;
+        this.tourScheduleMapper = tourScheduleMapper;
     }
 
     /**
@@ -205,48 +209,13 @@ public class TourScheduleAdminController {
     }
 
     private TourScheduleRes mapToResponse(TourSchedule schedule) {
-        UUID tourId = null;
-        String tourName = null;
-        Map<String, String> tourNameTranslations = null;
-        Integer tourDurationHours = null;
-
-        if (schedule.getTour() != null) {
-            tourId = schedule.getTour().getId();
-            tourDurationHours = schedule.getTour().getDurationHours();
-            if (schedule.getTour().getNameTranslations() != null) {
-                tourName = schedule.getTour().getNameTranslations().get("es");
-                tourNameTranslations = schedule.getTour().getNameTranslations();
-            }
-        }
-
-        UUID assignedGuideId = null;
-        String assignedGuideName = null;
-        if (schedule.getAssignedGuide() != null) {
-            assignedGuideId = schedule.getAssignedGuide().getId();
-            assignedGuideName = schedule.getAssignedGuide().getFullName();
-        }
-
-        // Calculate actual availability
+        // Calculate actual availability (confirmed bookings only for admin view)
         Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(schedule.getId());
         if (bookedParticipants == null) {
             bookedParticipants = 0;
         }
         int availableSpots = Math.max(0, schedule.getMaxParticipants() - bookedParticipants);
 
-        return new TourScheduleRes(
-                schedule.getId(),
-                tourId,
-                tourName,
-                tourNameTranslations,
-                tourDurationHours,
-                schedule.getStartDatetime(),
-                schedule.getMaxParticipants(),
-                bookedParticipants,
-                availableSpots,
-                schedule.getStatus(),
-                assignedGuideId,
-                assignedGuideName,
-                schedule.getCreatedAt()
-        );
+        return tourScheduleMapper.toRes(schedule, bookedParticipants, availableSpots);
     }
 }

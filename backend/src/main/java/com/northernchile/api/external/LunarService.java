@@ -1,10 +1,13 @@
 package com.northernchile.api.external;
 
+import com.northernchile.api.lunar.dto.MoonPhaseDTO;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Servicio para calcular fase lunar usando método Julian Date
@@ -131,5 +134,42 @@ public class LunarService {
         if (phase >= 0.72 && phase < 0.78) return "🌗"; // Last Quarter
         if (phase >= 0.78 && phase <= 0.97) return "🌘"; // Waning Crescent
         return "🌑"; // Default to new moon
+    }
+
+    /**
+     * Get moon phase data for a specific date.
+     * Centralizes the logic previously duplicated in controllers.
+     *
+     * @param date The date to get moon phase for
+     * @return MoonPhaseDTO with all lunar information
+     */
+    public MoonPhaseDTO getMoonPhaseData(LocalDate date) {
+        double phase = getMoonPhase(date);
+        return new MoonPhaseDTO(
+                date,
+                phase,
+                getMoonIllumination(date),
+                getMoonPhaseName(date),
+                isFullMoon(date),
+                getMoonIcon(phase)
+        );
+    }
+
+    /**
+     * Get moon phases for a date range.
+     * Centralizes the loop logic previously duplicated in LunarController and CalendarDataController.
+     *
+     * @param startDate Start date (inclusive)
+     * @param endDate End date (inclusive)
+     * @return List of MoonPhaseDTO for each day in the range
+     */
+    public List<MoonPhaseDTO> getMoonPhasesForRange(LocalDate startDate, LocalDate endDate) {
+        List<MoonPhaseDTO> phases = new ArrayList<>();
+        LocalDate current = startDate;
+        while (!current.isAfter(endDate)) {
+            phases.add(getMoonPhaseData(current));
+            current = current.plusDays(1);
+        }
+        return phases;
     }
 }

@@ -5,16 +5,13 @@ import com.northernchile.api.cart.dto.CartRes;
 import com.northernchile.api.model.Cart;
 import com.northernchile.api.model.User;
 import com.northernchile.api.user.UserRepository;
+import com.northernchile.api.util.CookieHelper;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,16 +21,12 @@ public class CartController {
 
     private final CartService cartService;
     private final UserRepository userRepository;
+    private final CookieHelper cookieHelper;
 
-    @Value("${cookie.insecure:false}")
-    private boolean cookieInsecure;
-
-    @Value("${cookie.domain:}")
-    private String cookieDomain;
-
-    public CartController(CartService cartService, UserRepository userRepository) {
+    public CartController(CartService cartService, UserRepository userRepository, CookieHelper cookieHelper) {
         this.cartService = cartService;
         this.userRepository = userRepository;
+        this.cookieHelper = cookieHelper;
     }
 
     @GetMapping
@@ -49,7 +42,7 @@ public class CartController {
             HttpServletResponse response) {
         Cart cart = cartService.getOrCreateCart(getCurrentUser(), getCartId(cartId));
         Cart updatedCart = cartService.addItemToCart(cart, itemReq);
-        setCartIdCookie(response, updatedCart.getId());
+        cookieHelper.setCartIdCookie(response, updatedCart.getId().toString());
         return ResponseEntity.ok(cartService.toCartRes(updatedCart));
     }
 
@@ -70,8 +63,7 @@ public class CartController {
             @CookieValue(name = "cartId", required = false) String cartId,
             HttpServletResponse response) {
         cartService.clearCart(getCurrentUser(), getCartId(cartId));
-        // Clear the cart cookie
-        clearCartIdCookie(response);
+        cookieHelper.clearCartIdCookie(response);
         return ResponseEntity.noContent().build();
     }
 
@@ -90,36 +82,5 @@ public class CartController {
         } catch (Exception e) {
             return Optional.empty();
         }
-    }
-
-    private void setCartIdCookie(HttpServletResponse response, UUID cartId) {
-        ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("cartId", cartId.toString())
-                .httpOnly(true)
-                .secure(!cookieInsecure)
-                .path("/")
-                .maxAge(Duration.ofDays(30))
-                .sameSite("Lax");
-
-        // Set domain for cross-subdomain cookie sharing
-        if (cookieDomain != null && !cookieDomain.isEmpty()) {
-            cookieBuilder.domain(cookieDomain);
-        }
-
-        response.addHeader(HttpHeaders.SET_COOKIE, cookieBuilder.build().toString());
-    }
-
-    private void clearCartIdCookie(HttpServletResponse response) {
-        ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("cartId", "")
-                .httpOnly(true)
-                .secure(!cookieInsecure)
-                .path("/")
-                .maxAge(Duration.ZERO) // Expire immediately
-                .sameSite("Lax");
-
-        if (cookieDomain != null && !cookieDomain.isEmpty()) {
-            cookieBuilder.domain(cookieDomain);
-        }
-
-        response.addHeader(HttpHeaders.SET_COOKIE, cookieBuilder.build().toString());
     }
 }

@@ -11,7 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZoneId;
+import com.northernchile.api.util.DateTimeUtils;
+
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -26,7 +27,6 @@ import java.util.Set;
 public class ManifestService {
 
     private static final Logger log = LoggerFactory.getLogger(ManifestService.class);
-    private static final ZoneId SANTIAGO_ZONE = ZoneId.of("America/Santiago");
 
     private final BookingRepository bookingRepository;
     private final EmailService emailService;
@@ -95,9 +95,9 @@ public class ManifestService {
                 schedule.getTour().getDisplayName());
 
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                .withZone(SANTIAGO_ZONE);
+                .withZone(DateTimeUtils.CHILE_ZONE);
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-                .withZone(SANTIAGO_ZONE);
+                .withZone(DateTimeUtils.CHILE_ZONE);
 
         String tourDate = dateFormatter.format(schedule.getStartDatetime());
         String tourTime = timeFormatter.format(schedule.getStartDatetime());
@@ -127,9 +127,9 @@ public class ManifestService {
         );
 
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                .withZone(SANTIAGO_ZONE);
+                .withZone(DateTimeUtils.CHILE_ZONE);
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-                .withZone(SANTIAGO_ZONE);
+                .withZone(DateTimeUtils.CHILE_ZONE);
 
         String tourDate = dateFormatter.format(schedule.getStartDatetime());
         String tourTime = timeFormatter.format(schedule.getStartDatetime());

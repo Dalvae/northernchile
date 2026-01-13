@@ -2,12 +2,11 @@ package com.northernchile.api.calendar;
 
 import com.northernchile.api.external.LunarService;
 import com.northernchile.api.external.WeatherService;
-import com.northernchile.api.lunar.LunarController.MoonPhaseDTO;
+import com.northernchile.api.lunar.dto.MoonPhaseDTO;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,25 +46,7 @@ public class CalendarDataController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
         // 1. Calcular fases lunares (sin límite, calculado localmente)
-        List<MoonPhaseDTO> moonPhases = new ArrayList<>();
-        LocalDate current = startDate;
-        while (!current.isAfter(endDate)) {
-            double phase = lunarService.getMoonPhase(current);
-            int illumination = lunarService.getMoonIllumination(current);
-            String phaseName = lunarService.getMoonPhaseName(current);
-            boolean isFullMoon = lunarService.isFullMoon(current);
-
-            moonPhases.add(new MoonPhaseDTO(
-                    current,
-                    phase,
-                    illumination,
-                    phaseName,
-                    isFullMoon,
-                    lunarService.getMoonIcon(phase)
-            ));
-
-            current = current.plusDays(1);
-        }
+        List<MoonPhaseDTO> moonPhases = lunarService.getMoonPhasesForRange(startDate, endDate);
 
         // 2. Obtener pronóstico meteorológico (5 días, cacheado 3 horas)
         Map<String, Object> weatherForecast = weatherService.getForecast();
@@ -77,17 +58,4 @@ public class CalendarDataController {
 
         return response;
     }
-
-
-    /**
-     * DTO para respuesta de fase lunar (copiado de LunarController)
-     */
-    public record MoonPhaseDTO(
-            LocalDate date,
-            double phase,           // 0.0-1.0
-            int illumination,       // 0-100%
-            String phaseName,       // "Full Moon", "Waxing Crescent", etc.
-            boolean isFullMoon,     // true si es luna llena
-            String icon             // Emoji de la luna
-    ) {}
 }

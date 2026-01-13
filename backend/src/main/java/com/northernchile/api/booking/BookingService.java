@@ -17,6 +17,7 @@ import com.northernchile.api.notification.EmailService;
 import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
 import com.northernchile.api.tour.TourUtils;
+import com.northernchile.api.util.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -130,7 +131,7 @@ public class BookingService {
         Booking booking = new Booking();
         booking.setUser(currentUser);
         booking.setSchedule(schedule);
-        booking.setTourDate(LocalDate.ofInstant(schedule.getStartDatetime(), java.time.ZoneId.of("America/Santiago")));
+        booking.setTourDate(LocalDate.ofInstant(schedule.getStartDatetime(), DateTimeUtils.CHILE_ZONE));
         booking.setStatus("PENDING");
         booking.setSubtotal(pricing.subtotal());
         booking.setTaxAmount(pricing.taxAmount());
@@ -175,10 +176,10 @@ public class BookingService {
         // Format date and time
         java.time.format.DateTimeFormatter dateFormatter =
                 java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                .withZone(java.time.ZoneId.of("America/Santiago"));
+                .withZone(DateTimeUtils.CHILE_ZONE);
         java.time.format.DateTimeFormatter timeFormatter =
                 java.time.format.DateTimeFormatter.ofPattern("HH:mm")
-                .withZone(java.time.ZoneId.of("America/Santiago"));
+                .withZone(DateTimeUtils.CHILE_ZONE);
 
         String tourDate = dateFormatter.format(schedule.getStartDatetime());
         String tourTime = timeFormatter.format(schedule.getStartDatetime());

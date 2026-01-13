@@ -4,15 +4,12 @@ import com.northernchile.api.auth.dto.LoginReq;
 import com.northernchile.api.auth.dto.PasswordResetReq;
 import com.northernchile.api.auth.dto.PasswordResetRequestReq;
 import com.northernchile.api.auth.dto.RegisterReq;
+import com.northernchile.api.util.CookieHelper;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,41 +18,20 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final CookieHelper cookieHelper;
 
-    @Value("${cookie.insecure:false}")
-    private boolean cookieInsecure;
-
-    @Value("${cookie.domain:}")
-    private String cookieDomain;
-
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, CookieHelper cookieHelper) {
         this.authService = authService;
+        this.cookieHelper = cookieHelper;
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginReq loginReq, HttpServletResponse response) {
         Map<String, Object> loginResponse = authService.login(loginReq);
 
-        // Extract token from response
+        // Extract token and set HttpOnly cookie
         String token = (String) loginResponse.get("token");
-
-        // Create HttpOnly cookie with JWT token using ResponseCookie
-        // secure=true by default (production), set cookie.insecure=true only for local dev
-        ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("auth_token", token)
-                .httpOnly(true)
-                .secure(!cookieInsecure) // true in production, false only if cookie.insecure=true
-                .path("/")
-                .maxAge(Duration.ofDays(7)) // 7 days
-                .sameSite("Lax"); // CSRF protection
-
-        // Set domain for cross-subdomain cookie sharing (e.g., .northernchile.com)
-        if (cookieDomain != null && !cookieDomain.isEmpty()) {
-            cookieBuilder.domain(cookieDomain);
-        }
-
-        ResponseCookie jwtCookie = cookieBuilder.build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+        cookieHelper.setAuthTokenCookie(response, token);
 
         // Remove token from response body (security best practice)
         loginResponse.remove("token");
@@ -145,22 +121,7 @@ public class AuthController {
      */
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
-        // Clear the auth_token cookie by setting MaxAge to 0
-        ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("auth_token", "")
-                .httpOnly(true)
-                .secure(!cookieInsecure)
-                .path("/")
-                .maxAge(Duration.ZERO) // Delete cookie
-                .sameSite("Lax");
-
-        // Set domain for cross-subdomain cookie sharing
-        if (cookieDomain != null && !cookieDomain.isEmpty()) {
-            cookieBuilder.domain(cookieDomain);
-        }
-
-        ResponseCookie jwtCookie = cookieBuilder.build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+        cookieHelper.clearAuthTokenCookie(response);
 
         Map<String, String> responseBody = new HashMap<>();
         responseBody.put("message", "Logged out successfully");
