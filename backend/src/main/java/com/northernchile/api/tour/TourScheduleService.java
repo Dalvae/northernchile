@@ -154,7 +154,7 @@ public class TourScheduleService {
         var startOfMonth = yearMonth.atDay(1).atStartOfDay().toInstant(ZoneOffset.UTC);
         var endOfMonth = yearMonth.atEndOfMonth().plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
 
-        return tourScheduleRepository.findByTourIdAndStartDatetimeBetween(tourId, startOfMonth, endOfMonth).stream()
+        return tourScheduleRepository.findByTourIdAndStartDatetimeBetweenOrderByStartDatetimeDesc(tourId, startOfMonth, endOfMonth).stream()
                 .map(this::toTourScheduleRes)
                 .collect(Collectors.toList());
     }
