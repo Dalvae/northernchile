@@ -10,6 +10,7 @@ import enLocale from '@fullcalendar/core/locales/en-gb'
 import type { TourRes, TourScheduleRes } from 'api-client'
 import { getLocalDateString, unixToDateString } from '~/utils/dateUtils'
 import type { MoonPhase } from '~/composables/useCalendarData'
+import { logger } from '~/utils/logger'
 
 interface WeatherDay {
   date: string
@@ -119,7 +120,7 @@ async function fetchSchedules() {
 
     schedules.value = allSchedules.flat()
   } catch (e) {
-    console.error('Failed to fetch schedules', e)
+    logger.error('Failed to fetch schedules', e)
     schedules.value = []
   }
 }
@@ -151,7 +152,7 @@ async function fetchLunarData() {
       }
     })
   } catch (e) {
-    console.error('Failed to fetch lunar data', e)
+    logger.error('Failed to fetch lunar data', e)
     lunarData.value = []
   }
 }
@@ -211,7 +212,7 @@ async function fetchWeatherData() {
       })
     }
   } catch (e) {
-    console.error('Failed to fetch weather data', e)
+    logger.error('Failed to fetch weather data', e)
     weatherData.value = []
   }
 }
@@ -561,105 +562,82 @@ defineExpose({
 
 <template>
   <div>
+    <!-- Legend (Hidden on mobile) -->
     <div
-      v-if="loading"
-      class="text-center py-12"
+      v-if="showLegend && !isMobile"
+      class="mb-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg"
     >
-      <UIcon
-        name="i-lucide-loader-2"
-        class="w-8 h-8 animate-spin text-primary mx-auto"
-      />
-      <p class="mt-4 text-neutral-600 dark:text-neutral-300">
-        {{ t("tours.calendar.loading") || "Cargando calendario..." }}
-      </p>
-    </div>
-
-    <div v-else>
-      <!-- Legend (Hidden on mobile) -->
-      <div
-        v-if="showLegend && !isMobile"
-        class="mb-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg"
-      >
-        <h3 class="text-sm font-semibold text-neutral-900 dark:text-white mb-3">
-          {{ t("schedule.legend_title") || "Leyenda" }}
-        </h3>
-        <div class="space-y-3">
-          <!-- Tour legend -->
-          <div v-if="tours.length > 0">
-            <p
-              class="text-xs font-medium text-neutral-600 dark:text-neutral-300 mb-2"
+      <h3 class="text-sm font-semibold text-neutral-900 dark:text-white mb-3">
+        {{ t("schedule.legend_title") || "Leyenda" }}
+      </h3>
+      <div class="space-y-3">
+        <!-- Tour legend -->
+        <div v-if="tours.length > 0">
+          <p class="text-xs font-medium text-neutral-600 dark:text-neutral-300 mb-2">
+            {{ t("tours.calendar.tours") || "Tours" }}
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <div
+              v-for="tour in tours.slice(0, 7)"
+              :key="tour.id"
+              class="flex items-center gap-2"
             >
-              {{ t("tours.calendar.tours") || "Tours" }}
-            </p>
-            <div class="flex flex-wrap gap-3">
               <div
-                v-for="tour in tours.slice(0, 7)"
-                :key="tour.id"
-                class="flex items-center gap-2"
-              >
-                <div
-                  class="w-4 h-4 rounded"
-                  :style="{ backgroundColor: getTourColor(tour.id!) }"
-                />
-                <span class="text-sm text-neutral-700 dark:text-neutral-200">
-                  {{
-                    tour.nameTranslations?.[locale] || tour.nameTranslations?.es
-                  }}
-                </span>
-              </div>
+                class="w-4 h-4 rounded"
+                :style="{ backgroundColor: getTourColor(tour.id!) }"
+              />
+              <span class="text-sm text-neutral-700 dark:text-neutral-200">
+                {{ tour.nameTranslations?.[locale] || tour.nameTranslations?.es }}
+              </span>
             </div>
           </div>
+        </div>
 
-          <!-- Other legend items -->
-          <div>
-            <p
-              class="text-xs font-medium text-neutral-600 dark:text-neutral-300 mb-2"
-            >
-              {{ t("tours.calendar.conditions") || "Condiciones" }}
-            </p>
-            <div class="flex flex-wrap gap-4 text-sm">
-              <div class="flex items-center gap-2">
-                <span class="text-lg">🌑🌒🌓🌔🌕🌖🌗🌘</span>
-                <span class="text-neutral-700 dark:text-neutral-200">
-                  {{ t("schedule.legend.moon_phases") || "Fases lunares" }}
-                </span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-lg">💨</span>
-                <span class="text-neutral-700 dark:text-neutral-200">
-                  {{ t("schedule.legend.high_wind") || "Viento fuerte" }}
-                </span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-lg">☁️</span>
-                <span class="text-neutral-700 dark:text-neutral-200">
-                  {{ t("schedule.legend.cloudy") || "Nublado" }}
-                </span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-lg">🌧️</span>
-                <span class="text-neutral-700 dark:text-neutral-200">
-                  {{ t("schedule.legend.rain") || "Lluvia" }}
-                </span>
-              </div>
+        <!-- Other legend items -->
+        <div>
+          <p class="text-xs font-medium text-neutral-600 dark:text-neutral-300 mb-2">
+            {{ t("tours.calendar.conditions") || "Condiciones" }}
+          </p>
+          <div class="flex flex-wrap gap-4 text-sm">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">🌑🌒🌓🌔🌕🌖🌗🌘</span>
+              <span class="text-neutral-700 dark:text-neutral-200">
+                {{ t("schedule.legend.moon_phases") || "Fases lunares" }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-lg">💨</span>
+              <span class="text-neutral-700 dark:text-neutral-200">
+                {{ t("schedule.legend.high_wind") || "Viento fuerte" }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-lg">☁️</span>
+              <span class="text-neutral-700 dark:text-neutral-200">
+                {{ t("schedule.legend.cloudy") || "Nublado" }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-lg">🌧️</span>
+              <span class="text-neutral-700 dark:text-neutral-200">
+                {{ t("schedule.legend.rain") || "Lluvia" }}
+              </span>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Calendar -->
-      <div
-        class="bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-2 sm:p-4 tour-calendar-container"
-      >
-        <FullCalendar
-          v-if="calendarOptions"
-          :options="calendarOptions"
-        />
-      </div>
-
-      <!-- Slot for additional info -->
-      <slot name="info" />
     </div>
+
+    <!-- Calendar -->
+    <div class="bg-white dark:bg-neutral-800 rounded-lg shadow-sm p-2 sm:p-4 tour-calendar-container">
+      <FullCalendar
+        v-if="calendarOptions"
+        :options="calendarOptions"
+      />
+    </div>
+
+    <!-- Slot for additional info -->
+    <slot name="info" />
   </div>
 </template>
 

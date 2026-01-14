@@ -392,6 +392,7 @@
 <script setup lang="ts">
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { z } from 'zod'
+import { logger } from '~/utils/logger'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -590,7 +591,7 @@ async function handleSubmit(_event: FormSubmitEvent<z.infer<typeof schema.value>
       state.acceptTerms = false
     }
   } catch (error: unknown) {
-    console.error('Error en auth:', error)
+    logger.error('Error en auth:', error)
     showErrorToast(error)
   } finally {
     loading.value = false
@@ -619,7 +620,7 @@ async function handleForgotPassword(_event: FormSubmitEvent<z.infer<typeof forgo
     currentView.value = 'login'
     forgotPasswordState.email = ''
   } catch (error: unknown) {
-    console.error('Error en forgot password:', error)
+    logger.error('Error en forgot password:', error)
 
     // Siempre mostrar mensaje genérico por seguridad
     toast.add({
@@ -665,7 +666,7 @@ async function handleResetPassword(_event: FormSubmitEvent<z.infer<typeof resetP
     // Limpiar token de la URL
     await router.replace(localePath('/auth'))
   } catch (error: unknown) {
-    console.error('Error en reset password:', error)
+    logger.error('Error en reset password:', error)
     showErrorToast(error, t('auth.reset_password_error'))
   } finally {
     loading.value = false

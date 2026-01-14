@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PaymentSessionRes } from 'api-client'
 import { PaymentProvider, PaymentMethod } from '~/types/payment'
+import { logger } from '~/utils/logger'
 
 const cartStore = useCartStore()
 const authStore = useAuthStore()
@@ -99,7 +100,7 @@ onMounted(async () => {
       }
     }
   } catch (e) {
-    console.error('Error loading checkout data from localStorage:', e)
+    logger.error('Error loading checkout data from localStorage:', e)
   }
 })
 
@@ -290,14 +291,14 @@ const lastSubmitTime = ref(0)
 async function submitBooking() {
   // Prevent double submit - strict check
   if (isSubmitting.value) {
-    console.warn('Submit already in progress, ignoring')
+    logger.warn('Submit already in progress, ignoring')
     return
   }
 
   // Prevent rapid double-click
   const now = Date.now()
   if (now - lastSubmitTime.value < 3000) {
-    console.warn('Submit too fast, ignoring')
+    logger.warn('Submit too fast, ignoring')
     return
   }
   lastSubmitTime.value = now
@@ -487,7 +488,7 @@ async function submitBooking() {
       showPIXModal.value = true
     }
   } catch (error: unknown) {
-    console.error('Error in checkout process:', error)
+    logger.error('Error in checkout process:', error)
 
     let errorMessage = t('checkout.errors.processing_error')
 

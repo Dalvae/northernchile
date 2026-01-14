@@ -35,8 +35,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .order(0);
 
         // Stricter rate limiting for authentication endpoints (5/min)
+        // Includes login, register, forgot-password and reset-password to prevent brute force
         registry.addInterceptor(rateLimitInterceptor)
-                .addPathPatterns("/api/auth/login", "/api/auth/register")
+                .addPathPatterns(
+                        "/api/auth/login",
+                        "/api/auth/register",
+                        "/api/auth/forgot-password",
+                        "/api/auth/reset-password"
+                )
                 .order(1);
 
         // Moderate rate limiting for webhook endpoints (30/min)

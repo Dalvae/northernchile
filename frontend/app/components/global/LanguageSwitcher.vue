@@ -55,7 +55,7 @@ const { locale, locales, setLocale, t } = useI18n()
 
 const showSuggestion = ref(false)
 const showIndicator = ref(false)
-const suggestedLocale = ref<string | null>(null)
+const suggestedLocale = ref<'es' | 'en' | 'pt' | null>(null)
 
 // Map browser language prefixes to our locale codes
 const languageMap: Record<string, string> = {
@@ -92,15 +92,17 @@ const items = computed(() => {
   return [menuItems]
 })
 
-function detectBrowserLanguage(): string | null {
+type SupportedLocale = 'es' | 'en' | 'pt'
+
+function detectBrowserLanguage(): SupportedLocale | null {
   if (!import.meta.client) return null
 
   const browserLangs = navigator.languages || [navigator.language]
 
   for (const lang of browserLangs) {
-    const prefix = lang.split('-')[0].toLowerCase()
-    if (languageMap[prefix] && languageMap[prefix] !== locale.value) {
-      return languageMap[prefix]
+    const prefix = lang.split('-')[0]?.toLowerCase()
+    if (prefix && languageMap[prefix] && languageMap[prefix] !== locale.value) {
+      return languageMap[prefix] as SupportedLocale
     }
   }
 
@@ -109,7 +111,7 @@ function detectBrowserLanguage(): string | null {
 
 function switchToSuggestedLocale() {
   if (suggestedLocale.value) {
-    setLocale(suggestedLocale.value)
+    setLocale(suggestedLocale.value as SupportedLocale)
   }
   dismissSuggestion()
 }

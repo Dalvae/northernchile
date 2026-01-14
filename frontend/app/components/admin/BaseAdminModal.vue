@@ -58,7 +58,10 @@ function handleSubmit() {
     v-model:open="isOpen"
     :class="sizeClasses[size]"
   >
-    <template v-if="$slots.trigger" #default>
+    <template
+      v-if="$slots.trigger"
+      #default
+    >
       <slot name="trigger" />
     </template>
 

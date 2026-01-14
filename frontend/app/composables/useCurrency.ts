@@ -8,6 +8,7 @@
  */
 
 import { getLocaleCode } from '~/utils/localeUtils'
+import { logger } from '~/utils/logger'
 
 export const useCurrency = () => {
   const { t, locale } = useI18n()
@@ -38,7 +39,7 @@ export const useCurrency = () => {
 
     // Handle invalid numbers
     if (isNaN(numericValue)) {
-      console.warn(`Invalid price value: ${priceValue}`)
+      logger.warn(`Invalid price value: ${priceValue}`)
       return formatPrice(0, currency)
     }
 
@@ -59,7 +60,7 @@ export const useCurrency = () => {
     try {
       return new Intl.NumberFormat(localeCode, formatOptions).format(numericValue)
     } catch (error) {
-      console.error('Error formatting price:', error)
+      logger.error('Error formatting price:', error)
       // Fallback to basic formatting
       return `$${numericValue.toLocaleString(localeCode)}`
     }

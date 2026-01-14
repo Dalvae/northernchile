@@ -42,7 +42,7 @@
 <script setup lang="ts">
 import logger from '~/utils/logger'
 
-const props = defineProps<{
+defineProps<{
   showDetails?: boolean
 }>()
 

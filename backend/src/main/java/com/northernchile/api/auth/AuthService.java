@@ -5,6 +5,7 @@ import com.northernchile.api.auth.dto.LoginRes;
 import com.northernchile.api.auth.dto.RegisterReq;
 import com.northernchile.api.config.security.JwtUtil;
 import com.northernchile.api.util.UrlBuilder;
+import com.northernchile.api.exception.AccountLockedException;
 import com.northernchile.api.exception.EmailAlreadyExistsException;
 import com.northernchile.api.model.EmailVerificationToken;
 import com.northernchile.api.model.PasswordResetToken;
@@ -38,11 +39,12 @@ public class AuthService {
     private final TokenService tokenService;
     private final ApplicationEventPublisher eventPublisher;
     private final UrlBuilder urlBuilder;
+    private final LoginAttemptService loginAttemptService;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                        AuthenticationConfiguration authenticationConfiguration, JwtUtil jwtUtil,
                        TokenService tokenService, ApplicationEventPublisher eventPublisher,
-                       UrlBuilder urlBuilder) throws Exception {
+                       UrlBuilder urlBuilder, LoginAttemptService loginAttemptService) throws Exception {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationConfiguration.getAuthenticationManager();
@@ -50,6 +52,7 @@ public class AuthService {
         this.tokenService = tokenService;
         this.eventPublisher = eventPublisher;
         this.urlBuilder = urlBuilder;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @Transactional
@@ -116,30 +119,47 @@ public class AuthService {
     }
 
     public LoginRes login(LoginReq loginReq) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginReq.email(), loginReq.password())
-        );
+        String email = loginReq.email();
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        // Check if account is locked due to too many failed attempts
+        if (loginAttemptService.isLocked(email)) {
+            long remainingSeconds = loginAttemptService.getRemainingLockoutSeconds(email);
+            throw new AccountLockedException(email, remainingSeconds);
+        }
 
-        User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found after authentication"));
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, loginReq.password())
+            );
 
-        // Generate JWT with userId and fullName included
-        String jwt = jwtUtil.generateToken(userDetails, user.getId().toString(), user.getFullName());
+            // Login successful - reset attempt counter
+            loginAttemptService.loginSucceeded(email);
 
-        LoginRes.UserData userData = new LoginRes.UserData(
-            user.getId(),
-            user.getEmail(),
-            user.getFullName(),
-            user.getNationality(),
-            user.getPhoneNumber(),
-            user.getDateOfBirth(),
-            user.getRole()
-        );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        return new LoginRes(jwt, userData);
+            User user = userRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found after authentication"));
+
+            // Generate JWT with userId and fullName included
+            String jwt = jwtUtil.generateToken(userDetails, user.getId().toString(), user.getFullName());
+
+            LoginRes.UserData userData = new LoginRes.UserData(
+                user.getId(),
+                user.getEmail(),
+                user.getFullName(),
+                user.getNationality(),
+                user.getPhoneNumber(),
+                user.getDateOfBirth(),
+                user.getRole()
+            );
+
+            return new LoginRes(jwt, userData);
+        } catch (Exception e) {
+            // Login failed - record attempt
+            loginAttemptService.loginFailed(email);
+            throw e;
+        }
     }
 
     /**

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TourRes } from 'api-client'
 import { useAuthStore } from '~/stores/auth'
+import { logger } from '~/utils/logger'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -10,18 +11,18 @@ const { fetchAdminAlertsCount } = useAdminData()
 const sidebarOpen = ref(false)
 
 // Refresh alerts count every 15 minutes
-let alertsRefreshInterval: ReturnType<typeof setInterval> | null = null
+const alertsRefreshInterval = ref<ReturnType<typeof setInterval> | null>(null)
 
 onMounted(() => {
-  alertsRefreshInterval = setInterval(() => {
+  alertsRefreshInterval.value = setInterval(() => {
     refreshAlertsCount()
   }, 15 * 60 * 1000)
 })
 
 // Cleanup interval on unmount
 onUnmounted(() => {
-  if (alertsRefreshInterval) {
-    clearInterval(alertsRefreshInterval)
+  if (alertsRefreshInterval.value) {
+    clearInterval(alertsRefreshInterval.value)
   }
 })
 
@@ -48,7 +49,7 @@ const { data: alertsCount, refresh: refreshAlertsCount } = useAsyncData(
       const response = await fetchAdminAlertsCount()
       return response.pending || 0
     } catch (error) {
-      console.error('Error fetching alerts count:', error)
+      logger.error('Error fetching alerts count:', error)
       return 0
     }
   },

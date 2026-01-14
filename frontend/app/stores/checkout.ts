@@ -58,18 +58,18 @@ export const useCheckoutStore = defineStore('checkout', () => {
 
   const isStep1Valid = computed(() => {
     const authStore = useAuthStore()
-    const baseValidation =
-      contactForm.value.email &&
-      contactForm.value.fullName &&
-      contactForm.value.phone.length >= 6
+    const baseValidation
+      = contactForm.value.email
+        && contactForm.value.fullName
+        && contactForm.value.phone.length >= 6
 
     if (authStore.isAuthenticated) {
       return baseValidation
     }
 
-    const passwordValidation =
-      contactForm.value.password.length >= 8 &&
-      contactForm.value.password === contactForm.value.confirmPassword
+    const passwordValidation
+      = contactForm.value.password.length >= 8
+        && contactForm.value.password === contactForm.value.confirmPassword
 
     return baseValidation && passwordValidation
   })

@@ -38,6 +38,11 @@ public class StorageController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "folder", defaultValue = "general") String folder) {
 
+        // Validate folder to prevent path traversal attacks
+        if (isInvalidPath(folder)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid folder name"));
+        }
+
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
         }
@@ -71,8 +76,7 @@ public class StorageController {
             @PathVariable String filename) {
 
         // Validate folder and filename to prevent path traversal attacks
-        if (folder.contains("..") || folder.contains("/") || folder.contains("\\") ||
-            filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+        if (isInvalidPath(folder) || isInvalidPath(filename)) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Invalid folder or filename"));
         }
@@ -94,6 +98,11 @@ public class StorageController {
             @RequestParam(value = "folder", defaultValue = "general") String folder,
             @RequestParam("filename") String filename) {
 
+        // Validate folder and filename to prevent path traversal attacks
+        if (isInvalidPath(folder) || isInvalidPath(filename)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid folder or filename"));
+        }
+
         String uploadUrl = s3StorageService.generateUploadUrl(folder, filename);
 
         Map<String, String> response = new HashMap<>();
@@ -106,11 +115,28 @@ public class StorageController {
     @GetMapping("/url")
     @Operation(summary = "Get public URL for a file", description = "Get a presigned public URL for an S3 object")
     public ResponseEntity<?> getFileUrl(@RequestParam("key") String key) {
+        // Validate key to prevent path traversal attacks
+        if (key.contains("..")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid key"));
+        }
+
         if (!s3StorageService.fileExists(key)) {
             return ResponseEntity.notFound().build();
         }
 
         String url = s3StorageService.getPublicUrl(key);
         return ResponseEntity.ok(Map.of("url", url));
+    }
+
+    /**
+     * Validates that a path segment doesn't contain path traversal characters.
+     * @param pathSegment the folder or filename to validate
+     * @return true if the path is invalid (contains traversal characters)
+     */
+    private boolean isInvalidPath(String pathSegment) {
+        return pathSegment == null ||
+               pathSegment.contains("..") ||
+               pathSegment.contains("/") ||
+               pathSegment.contains("\\");
     }
 }

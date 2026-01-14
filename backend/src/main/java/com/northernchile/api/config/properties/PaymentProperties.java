@@ -49,8 +49,8 @@ public class PaymentProperties {
     }
 
     public static class Transbank {
-        private String commerceCode = "597055555532";
-        private String apiKey = "579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C";
+        private String commerceCode;
+        private String apiKey;
         private String environment = "INTEGRATION";
         private String webhookSecret;
         private Fees fees = new Fees();
@@ -80,7 +80,7 @@ public class PaymentProperties {
         }
 
         public String getWebhookSecret() {
-            return webhookSecret != null ? webhookSecret : apiKey;
+            return webhookSecret;
         }
 
         public void setWebhookSecret(String webhookSecret) {
@@ -127,7 +127,7 @@ public class PaymentProperties {
     }
 
     public static class MercadoPago {
-        private String accessToken = "";
+        private String accessToken;
         private String webhookSecret;
 
         public String getAccessToken() {
@@ -139,7 +139,7 @@ public class PaymentProperties {
         }
 
         public String getWebhookSecret() {
-            return webhookSecret != null ? webhookSecret : accessToken;
+            return webhookSecret;
         }
 
         public void setWebhookSecret(String webhookSecret) {
