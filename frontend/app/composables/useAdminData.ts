@@ -7,9 +7,11 @@ import type {
   TourScheduleRes,
   BookingRes,
   BookingUpdateReq,
+  PageBookingRes,
   UserCreateReq,
   UserUpdateReq,
   UserRes,
+  PageUserRes,
   MediaRes,
   MediaUpdateReq,
   PageMediaRes,
@@ -84,7 +86,7 @@ export const useAdminData = () => {
         ...baseFetchOptions
       }),
     fetchAdminBookings: (params?: Record<string, string>) =>
-      $fetch<BookingRes[]>('/api/admin/bookings', { params, ...baseFetchOptions }),
+      $fetch<PageBookingRes>('/api/admin/bookings', { params, ...baseFetchOptions }),
     fetchAdminBookingById: (id: string) =>
       $fetch<BookingRes>(`/api/admin/bookings/${id}`, { ...baseFetchOptions }),
     updateAdminBooking: (id: string, bookingData: BookingUpdateReq) =>
@@ -100,7 +102,7 @@ export const useAdminData = () => {
         ...baseFetchOptions
       }),
     fetchAdminUsers: (params?: Record<string, string>) =>
-      $fetch<UserRes[]>('/api/admin/users', { params, ...baseFetchOptions }),
+      $fetch<PageUserRes>('/api/admin/users', { params, ...baseFetchOptions }),
     fetchAdminUserById: (id: string) =>
       $fetch<UserRes>(`/api/admin/users/${id}`, { ...baseFetchOptions }),
     createAdminUser: (userData: UserCreateReq) =>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { h } from 'vue'
+import { h, computed } from 'vue'
 import AdminStatusBadge from '~/components/admin/StatusBadge.vue'
 import AdminCountryCell from '~/components/admin/CountryCell.vue'
 import type { UserRes } from 'api-client'
@@ -18,14 +18,16 @@ const { fetchAdminUsers, deleteAdminUser }
 const { formatDateTime } = useDateTime()
 
 const {
-  data: users,
+  data: usersPage,
   pending,
   refresh
-} = useAsyncData<UserRes[]>('admin-users', () => fetchAdminUsers() as Promise<UserRes[]>, {
+} = useAsyncData('admin-users', () => fetchAdminUsers(), {
   server: false,
   lazy: true,
-  default: () => []
+  default: () => ({ content: [], totalElements: 0, totalPages: 0 })
 })
+
+const users = computed(() => usersPage.value?.content ?? [])
 
 const q = ref('')
 const roleFilter = ref<string>('ALL')

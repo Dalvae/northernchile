@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { h, resolveComponent } from 'vue'
+import { h, resolveComponent, computed } from 'vue'
 import type { BookingRes, LocalTime } from 'api-client'
 import { getGroupedRowModel } from '@tanstack/vue-table'
 import type { GroupingOptions } from '@tanstack/vue-table'
@@ -23,14 +23,16 @@ const { formatLocalTime } = useDateTime()
 const toast = useToast()
 
 const {
-  data: bookings,
+  data: bookingsPage,
   pending,
   refresh
 } = useAsyncData('admin-bookings', () => fetchAdminBookings(), {
   server: false,
   lazy: true,
-  default: () => []
+  default: () => ({ content: [], totalElements: 0, totalPages: 0 })
 })
+
+const bookings = computed(() => bookingsPage.value?.content ?? [])
 
 const q = ref('')
 const activeTab = ref<'upcoming' | 'past'>('upcoming')

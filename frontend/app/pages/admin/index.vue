@@ -17,11 +17,12 @@ const { formatDate, formatLocalTime } = useDateTime()
 
 const adminStore = useAdminStore()
 
-const { data: bookingsData, pending: pendingBookings } = await useAsyncData(
+const { data: bookingsPage, pending: pendingBookings } = await useAsyncData(
   'admin-bookings-dashboard',
   () => fetchAdminBookings(),
-  { server: false, lazy: true, default: () => [] }
+  { server: false, lazy: true, default: () => ({ content: [], totalElements: 0, totalPages: 0 }) }
 )
+const bookingsData = computed(() => bookingsPage.value?.content ?? [])
 const { pending: pendingTours } = useAdminToursData()
 
 const tours = computed(() => adminStore.tours)
