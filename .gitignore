@@ -128,3 +128,6 @@ out/
 .fleet/
 *.local
 openapi.json
+
+# Playwright MCP screenshots
+.playwright-mcp/
