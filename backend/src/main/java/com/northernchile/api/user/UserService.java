@@ -17,11 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -43,15 +41,8 @@ public class UserService {
         this.userMapper = userMapper;
     }
 
-    public List<UserRes> getAllUsers() {
-        return userRepository.findAll().stream()
-                .filter(user -> user.getDeletedAt() == null)
-                .map(userMapper::toUserRes)
-                .collect(Collectors.toList());
-    }
-
     /**
-     * Get paginated list of active users.
+     * Get paginated list of active (non-deleted) users.
      */
     @Transactional(readOnly = true)
     public Page<UserRes> getAllUsersPaged(Pageable pageable) {

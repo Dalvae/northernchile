@@ -31,6 +31,9 @@ public class WeatherService {
 
     private static final Logger log = LoggerFactory.getLogger(WeatherService.class);
 
+    /** Conversion factor: 1 knot = 0.514444 m/s (OpenWeather uses m/s) */
+    private static final double KNOTS_TO_MS = 0.514444;
+
     /**
      * Configuration for RestTemplate bean used by WeatherService
      */
@@ -212,9 +215,7 @@ public class WeatherService {
      * @return true si el viento supera el umbral
      */
     public boolean isWindAboveThreshold(LocalDate date, double thresholdKnots) {
-        // Convertir nudos a m/s (OpenWeather usa m/s)
-        // 1 nudo = 0.514444 m/s
-        double thresholdMs = thresholdKnots * 0.514444;
+        double thresholdMs = thresholdKnots * KNOTS_TO_MS;
 
         Map<String, Object> forecast = self.getForecast();
         if (forecast == null || !forecast.containsKey("daily")) {

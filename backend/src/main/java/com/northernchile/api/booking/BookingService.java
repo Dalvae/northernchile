@@ -217,33 +217,6 @@ public class BookingService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public List<BookingRes> getAllBookingsForAdmin() {
-        return bookingRepository.findAllWithDetails().stream()
-                .map(bookingMapper::toBookingRes)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<BookingRes> getBookingsByTourOwner(User owner) {
-        return bookingRepository.findByTourOwnerId(owner.getId()).stream()
-                .map(bookingMapper::toBookingRes)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Get bookings for admin based on their role.
-     * SUPER_ADMIN sees all bookings, PARTNER_ADMIN sees only their tours' bookings.
-     */
-    @Transactional(readOnly = true)
-    public List<BookingRes> getBookingsForAdmin(User admin) {
-        if (Role.SUPER_ADMIN.getRoleName().equals(admin.getRole())) {
-            return getAllBookingsForAdmin();
-        } else {
-            return getBookingsByTourOwner(admin);
-        }
-    }
-
     /**
      * Get paginated bookings for admin based on their role.
      * SUPER_ADMIN sees all bookings, PARTNER_ADMIN sees only their tours' bookings.

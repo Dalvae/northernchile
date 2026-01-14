@@ -6,23 +6,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.UUID;
 
 @Repository
 public interface ContactMessageRepository extends JpaRepository<ContactMessage, UUID> {
 
-    List<ContactMessage> findAllByOrderByCreatedAtDesc();
-
     /**
-     * Paginated version for admin message listing.
+     * Paginated message listing, sorted by creation date descending.
      */
     Page<ContactMessage> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
-    List<ContactMessage> findByStatusOrderByCreatedAtDesc(String status);
-
     /**
-     * Paginated version filtered by status.
+     * Paginated messages filtered by status, sorted by creation date descending.
      */
     Page<ContactMessage> findByStatusOrderByCreatedAtDesc(String status, Pageable pageable);
 

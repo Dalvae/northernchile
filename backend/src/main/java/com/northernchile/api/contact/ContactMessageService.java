@@ -11,8 +11,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 public class ContactMessageService {
 
@@ -51,19 +49,11 @@ public class ContactMessageService {
         return saved;
     }
 
-    public List<ContactMessage> getAllMessages() {
-        return contactMessageRepository.findAllByOrderByCreatedAtDesc();
-    }
-
     /**
      * Get paginated list of all messages.
      */
     public Page<ContactMessage> getAllMessagesPaged(Pageable pageable) {
         return contactMessageRepository.findAllByOrderByCreatedAtDesc(pageable);
-    }
-
-    public List<ContactMessage> getMessagesByStatus(String status) {
-        return contactMessageRepository.findByStatusOrderByCreatedAtDesc(status);
     }
 
     /**

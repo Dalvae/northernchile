@@ -3,6 +3,7 @@ import {
   type PaymentSessionRes,
   PaymentStatus
 } from '~/types/payment'
+import logger from '~/utils/logger'
 
 interface PaymentState {
   currentPayment: PaymentSessionRes | null
@@ -88,7 +89,7 @@ export const usePaymentStore = defineStore('payment', {
             this.stopPolling()
           }
         } catch (error) {
-          console.error('Error polling payment status:', error)
+          logger.error('Error polling payment status:', error)
         }
       }, intervalMs)
     },

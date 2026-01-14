@@ -114,9 +114,9 @@ public class PaymentSessionPaymentAdapter {
                 request.returnUrl()
             );
 
-            // Log token for Transbank validation process
-            log.info("=== TRANSBANK TOKEN === {} === (buy_order: {}, amount: {})", 
-                response.getToken(), buyOrder, amount);
+            // Log transaction creation (token masked for security)
+            log.info("Transbank transaction created for session: {} (buy_order: {}, amount: {})",
+                session.getId(), buyOrder, amount);
 
             return new PaymentSessionRes(
                 session.getId(),
@@ -170,7 +170,6 @@ public class PaymentSessionPaymentAdapter {
             // Check if transaction was aborted (user cancelled)
             String errorMessage = e.getMessage() != null ? e.getMessage() : "";
             if (errorMessage.contains("aborted")) {
-                log.info("Transbank transaction aborted (user cancelled) for session: {}", session.getId());
                 log.info("Transbank transaction aborted (user cancelled) for session: {}", session.getId());
                 return new PaymentSessionRes(
                     session.getId(),

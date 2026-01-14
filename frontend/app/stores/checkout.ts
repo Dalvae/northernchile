@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { PaymentProvider, PaymentMethod } from '~/types/payment'
+import logger from '~/utils/logger'
 
 export interface CheckoutParticipant {
   fullName: string
@@ -124,7 +125,7 @@ export const useCheckoutStore = defineStore('checkout', () => {
 
       isLoaded.value = true
     } catch (e) {
-      console.error('Error loading checkout data from localStorage:', e)
+      logger.error('Error loading checkout data from localStorage:', e)
       isLoaded.value = true
     }
   }
@@ -257,7 +258,7 @@ export const useCheckoutStore = defineStore('checkout', () => {
   function canSubmitNow(): boolean {
     const now = Date.now()
     if (now - lastSubmitTime.value < 3000) {
-      console.warn('Submit too fast, ignoring')
+      logger.warn('Submit too fast, ignoring')
       return false
     }
     lastSubmitTime.value = now

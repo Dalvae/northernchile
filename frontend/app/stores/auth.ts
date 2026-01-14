@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { UserRes } from 'api-client'
+import logger from '~/utils/logger'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -67,7 +68,7 @@ export const useAuthStore = defineStore('auth', {
           credentials: 'include'
         })
       } catch (error) {
-        console.error('Logout error:', error)
+        logger.error('Logout error:', error)
       }
 
       // Clear user state
@@ -99,7 +100,7 @@ export const useAuthStore = defineStore('auth', {
         const status = (error as { statusCode?: number })?.statusCode
           || (error as { response?: { status?: number } })?.response?.status
         if (status !== 401 && status !== 403) {
-          console.error('[Auth] Error fetching user profile:', error)
+          logger.error('[Auth] Error fetching user profile:', error)
         }
         this.user = null
       }
