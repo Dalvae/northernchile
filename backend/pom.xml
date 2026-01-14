@@ -187,6 +187,13 @@
       			<version>8.0.1</version>
       		</dependency>
 
+      		<!-- Logstash encoder for JSON logging in production -->
+      		<dependency>
+      			<groupId>net.logstash.logback</groupId>
+      			<artifactId>logstash-logback-encoder</artifactId>
+      			<version>7.4</version>
+      		</dependency>
+
       		<!-- Apache Commons Codec for webhook signature verification -->
       		<dependency>
       			<groupId>commons-codec</groupId>
