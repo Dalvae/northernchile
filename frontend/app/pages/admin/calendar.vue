@@ -672,10 +672,17 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
       if (moonPhase) {
         const moonDiv = document.createElement('div')
         moonDiv.className = 'flex items-center gap-1'
-        moonDiv.innerHTML = `
-          <span class="text-lg">${moonPhase.icon}</span>
-          <span class="text-xs text-muted">${moonPhase.illumination}%</span>
-        `
+
+        const moonIconSpan = document.createElement('span')
+        moonIconSpan.className = 'text-lg'
+        moonIconSpan.textContent = moonPhase.icon ?? ''
+        moonDiv.appendChild(moonIconSpan)
+
+        const moonIllumSpan = document.createElement('span')
+        moonIllumSpan.className = 'text-xs text-muted'
+        moonIllumSpan.textContent = `${moonPhase.illumination}%`
+        moonDiv.appendChild(moonIllumSpan)
+
         infoContainer.appendChild(moonDiv)
       }
 
@@ -683,16 +690,17 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
       if (dayWeather) {
         const tempDiv = document.createElement('div')
         tempDiv.className = 'flex items-center gap-1'
-        tempDiv.innerHTML = `
-          <span class="text-base">${getWeatherIcon(
-            dayWeather.weather[0]?.main || ''
-          )}</span>
-          <span class="text-xs text-muted">
-            ${Math.round(dayWeather.temp.max)}°/${Math.round(
-              dayWeather.temp.min
-            )}°
-          </span>
-        `
+
+        const weatherIconSpan = document.createElement('span')
+        weatherIconSpan.className = 'text-base'
+        weatherIconSpan.textContent = getWeatherIcon(dayWeather.weather[0]?.main || '')
+        tempDiv.appendChild(weatherIconSpan)
+
+        const tempTextSpan = document.createElement('span')
+        tempTextSpan.className = 'text-xs text-muted'
+        tempTextSpan.textContent = `${Math.round(dayWeather.temp.max)}°/${Math.round(dayWeather.temp.min)}°`
+        tempDiv.appendChild(tempTextSpan)
+
         infoContainer.appendChild(tempDiv)
       }
 

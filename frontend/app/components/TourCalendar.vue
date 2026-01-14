@@ -417,20 +417,32 @@ const calendarOptions = computed<CalendarOptions>(() => ({
 
       const icon = wData.weather?.[0]?.main === 'Clear' ? '☀️' : '☁️'
 
-      weatherDiv.innerHTML = `
-        <span>${icon}</span>
-        <span class="font-mono">${Math.round(wData.temp?.day || 0)}°</span>
-      `
+      const iconSpan = document.createElement('span')
+      iconSpan.textContent = icon
+      weatherDiv.appendChild(iconSpan)
+
+      const tempSpan = document.createElement('span')
+      tempSpan.className = 'font-mono'
+      tempSpan.textContent = `${Math.round(wData.temp?.day || 0)}°`
+      weatherDiv.appendChild(tempSpan)
+
       infoBox.appendChild(weatherDiv)
     }
 
     if (moon) {
       const moonDiv = document.createElement('div')
       moonDiv.className = 'text-xs text-neutral-500 flex flex-col items-end'
-      moonDiv.innerHTML = `
-        <span class="text-base">${getMoonEmoji(moon.phaseName || '')}</span>
-        <span class="scale-75 origin-right">${moon.illumination}%</span>
-      `
+
+      const moonIconSpan = document.createElement('span')
+      moonIconSpan.className = 'text-base'
+      moonIconSpan.textContent = getMoonEmoji(moon.phaseName || '')
+      moonDiv.appendChild(moonIconSpan)
+
+      const illumSpan = document.createElement('span')
+      illumSpan.className = 'scale-75 origin-right'
+      illumSpan.textContent = `${moon.illumination}%`
+      moonDiv.appendChild(illumSpan)
+
       infoBox.appendChild(moonDiv)
     }
 
