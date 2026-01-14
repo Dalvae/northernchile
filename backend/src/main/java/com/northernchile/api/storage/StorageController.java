@@ -1,7 +1,9 @@
 package com.northernchile.api.storage;
 
+import com.northernchile.api.common.dto.MessageRes;
 import com.northernchile.api.security.Permission;
 import com.northernchile.api.security.annotations.RequiresPermission;
+import com.northernchile.api.storage.dto.StorageUploadRes;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,6 +38,11 @@ public class StorageController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "folder", defaultValue = "general") String folder) {
 
+        // Validate folder to prevent path traversal attacks
+        if (isInvalidPath(folder)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid folder name"));
+        }
+
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
         }
@@ -54,13 +61,7 @@ public class StorageController {
         try {
             String key = s3StorageService.uploadFile(file, folder);
             String url = s3StorageService.getPublicUrl(key);
-
-            Map<String, String> response = new HashMap<>();
-            response.put("key", key);
-            response.put("url", url);
-            response.put("message", "File uploaded successfully");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(StorageUploadRes.success(url, key));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to upload file: " + e.getMessage()));
@@ -75,8 +76,7 @@ public class StorageController {
             @PathVariable String filename) {
 
         // Validate folder and filename to prevent path traversal attacks
-        if (folder.contains("..") || folder.contains("/") || folder.contains("\\") ||
-            filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+        if (isInvalidPath(folder) || isInvalidPath(filename)) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Invalid folder or filename"));
         }
@@ -88,7 +88,7 @@ public class StorageController {
         }
 
         s3StorageService.deleteFile(key);
-        return ResponseEntity.ok(Map.of("message", "File deleted successfully"));
+        return ResponseEntity.ok(MessageRes.of("File deleted successfully"));
     }
 
     @GetMapping("/presigned-upload-url")
@@ -97,6 +97,11 @@ public class StorageController {
     public ResponseEntity<?> getPresignedUploadUrl(
             @RequestParam(value = "folder", defaultValue = "general") String folder,
             @RequestParam("filename") String filename) {
+
+        // Validate folder and filename to prevent path traversal attacks
+        if (isInvalidPath(folder) || isInvalidPath(filename)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid folder or filename"));
+        }
 
         String uploadUrl = s3StorageService.generateUploadUrl(folder, filename);
 
@@ -110,11 +115,28 @@ public class StorageController {
     @GetMapping("/url")
     @Operation(summary = "Get public URL for a file", description = "Get a presigned public URL for an S3 object")
     public ResponseEntity<?> getFileUrl(@RequestParam("key") String key) {
+        // Validate key to prevent path traversal attacks
+        if (key.contains("..")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid key"));
+        }
+
         if (!s3StorageService.fileExists(key)) {
             return ResponseEntity.notFound().build();
         }
 
         String url = s3StorageService.getPublicUrl(key);
         return ResponseEntity.ok(Map.of("url", url));
+    }
+
+    /**
+     * Validates that a path segment doesn't contain path traversal characters.
+     * @param pathSegment the folder or filename to validate
+     * @return true if the path is invalid (contains traversal characters)
+     */
+    private boolean isInvalidPath(String pathSegment) {
+        return pathSegment == null ||
+               pathSegment.contains("..") ||
+               pathSegment.contains("/") ||
+               pathSegment.contains("\\");
     }
 }

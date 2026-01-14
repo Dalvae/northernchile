@@ -66,19 +66,28 @@ pnpm dev
 
 The frontend runs at `http://localhost:3000` and backend at `http://localhost:8080`.
 
-### Backend Only
+### Backend Only (via Docker - REQUIRED)
 ```bash
-cd backend
+# IMPORTANT: Backend MUST be run via Docker for development
+# This ensures consistent environment and hot-reload
 
-# Run tests
-mvn test
+# Start backend with hot-reload (from project root)
+docker-compose up backend
 
-# Build
-mvn clean package
+# View backend logs
+docker-compose logs -f backend
 
-# Run with debugging (port 5005)
-mvn spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+# Rebuild backend container (after dependency changes)
+docker-compose up backend --build
+
+# Run backend tests inside Docker
+docker-compose exec backend mvn test
+
+# Compile/verify changes inside Docker
+docker-compose exec backend mvn compile
 ```
+
+**Note**: Do NOT run `mvn` commands directly on host machine. Always use Docker.
 
 ### Frontend Only
 ```bash

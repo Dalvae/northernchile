@@ -13,8 +13,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE)
 public abstract class MediaMapper {
 
-    @Autowired
     protected S3StorageService s3StorageService;
+
+    @Autowired
+    public void setS3StorageService(S3StorageService s3StorageService) {
+        this.s3StorageService = s3StorageService;
+    }
 
     @Mappings({
             @Mapping(target = "ownerId", source = "owner.id"),

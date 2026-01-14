@@ -1,5 +1,6 @@
 package com.northernchile.api.media.model;
 
+import com.northernchile.api.model.OwnedEntity;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.User;
@@ -24,7 +25,7 @@ import java.util.UUID;
     @Index(name = "idx_media_uploaded_at", columnList = "uploaded_at"),
     @Index(name = "idx_media_taken_at", columnList = "taken_at")
 })
-public class Media {
+public class Media implements OwnedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -97,6 +98,7 @@ public class Media {
     }
 
     // Getters and Setters
+    @Override
     public UUID getId() {
         return id;
     }
@@ -105,6 +107,7 @@ public class Media {
         this.id = id;
     }
 
+    @Override
     public User getOwner() {
         return owner;
     }

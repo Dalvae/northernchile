@@ -2,14 +2,14 @@ package com.northernchile.api.contact;
 
 import com.northernchile.api.contact.dto.ContactMessageReq;
 import com.northernchile.api.model.ContactMessage;
-import com.northernchile.api.notification.EmailService;
+import com.northernchile.api.notification.event.ContactMessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class ContactMessageService {
@@ -17,16 +17,13 @@ public class ContactMessageService {
     private static final Logger log = LoggerFactory.getLogger(ContactMessageService.class);
 
     private final ContactMessageRepository contactMessageRepository;
-    private final EmailService emailService;
-
-    @Value("${notification.admin.email}")
-    private String adminEmail;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ContactMessageService(
             ContactMessageRepository contactMessageRepository,
-            EmailService emailService) {
+            ApplicationEventPublisher eventPublisher) {
         this.contactMessageRepository = contactMessageRepository;
-        this.emailService = emailService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -40,24 +37,30 @@ public class ContactMessageService {
 
         ContactMessage saved = contactMessageRepository.save(message);
 
-        // Send email notification to admin
-        try {
-            emailService.sendContactNotificationToAdmin(saved, adminEmail);
-            log.info("Contact message email notification sent to admin: {}", adminEmail);
-        } catch (Exception e) {
-            log.error("Failed to send contact notification email", e);
-            // Don't fail the request if email fails
-        }
+        // Publish event for admin notification (decoupled from email sending)
+        eventPublisher.publishEvent(new ContactMessageReceivedEvent(
+                saved.getId(),
+                saved.getName(),
+                saved.getEmail(),
+                saved.getPhone(),
+                saved.getMessage()
+        ));
 
         return saved;
     }
 
-    public List<ContactMessage> getAllMessages() {
-        return contactMessageRepository.findAllByOrderByCreatedAtDesc();
+    /**
+     * Get paginated list of all messages.
+     */
+    public Page<ContactMessage> getAllMessagesPaged(Pageable pageable) {
+        return contactMessageRepository.findAllByOrderByCreatedAtDesc(pageable);
     }
 
-    public List<ContactMessage> getMessagesByStatus(String status) {
-        return contactMessageRepository.findByStatusOrderByCreatedAtDesc(status);
+    /**
+     * Get paginated list of messages filtered by status.
+     */
+    public Page<ContactMessage> getMessagesByStatusPaged(String status, Pageable pageable) {
+        return contactMessageRepository.findByStatusOrderByCreatedAtDesc(status, pageable);
     }
 
     public long getNewMessagesCount() {

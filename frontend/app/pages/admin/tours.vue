@@ -140,9 +140,10 @@ function closeModals() {
 }
 
 // ✅ Manejar éxito (crear o editar)
-function onModalSuccess() {
+async function onModalSuccess() {
   closeModals()
-  refresh()
+  // Use refreshTours() with force=true to bypass the 5-minute cache
+  await adminStore.refreshTours()
 }
 
 const toast = useToast()
@@ -219,16 +220,16 @@ async function handleDelete(tour: TourRes) {
       </div>
     </div>
 
-    <!-- ✅ Modal de CREAR (sin tour) -->
-    <AdminToursTourModal
+    <!-- ✅ Modal de CREAR (sin tour) - Lazy loaded -->
+    <LazyAdminToursTourModal
       v-model:open="isCreateModalOpen"
       :tour="null"
       @success="onModalSuccess"
       @close="closeModals"
     />
 
-    <!-- ✅ Modal de EDITAR (con tour seleccionado) -->
-    <AdminToursTourModal
+    <!-- ✅ Modal de EDITAR (con tour seleccionado) - Lazy loaded -->
+    <LazyAdminToursTourModal
       v-model:open="isEditModalOpen"
       :tour="selectedTour"
       @success="onModalSuccess"

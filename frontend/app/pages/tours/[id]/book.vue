@@ -329,6 +329,7 @@ import type {
   BookingRes,
   TourScheduleRes
 } from 'api-client'
+import { logger } from '~/utils/logger'
 
 const route = useRoute()
 const { t, locale } = useI18n()
@@ -578,7 +579,7 @@ async function handleMockPayment() {
     // Step 3: Move to confirmation step
     currentStep.value = 4
   } catch (error) {
-    console.error('Payment error:', error)
+    logger.error('Payment error:', error)
     const message
       = typeof error === 'object'
         && error

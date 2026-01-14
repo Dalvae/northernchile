@@ -214,7 +214,7 @@ const bookingColumns = [
           <span>{{ formatCurrency(row.original.totalAmount) }}</span>
         </template>
         <template #actions-data="{ row }">
-          <AdminBookingsBookingDetailsModal :booking="row.original" />
+          <LazyAdminBookingsBookingDetailsModal :booking="row.original" />
         </template>
       </UTable>
     </UCard>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PaymentStatus } from '~/types/payment'
 import type { PaymentSessionRes } from 'api-client'
+import { logger } from '~/utils/logger'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -61,7 +62,7 @@ onMounted(async () => {
       setTimeout(() => router.push('/'), 2000)
     }
   } catch (error: unknown) {
-    console.error('Error processing payment callback:', error)
+    logger.error('Error processing payment callback:', error)
     const err = error as { message?: string }
     errorMessage.value = err.message || t('payment.callback.error_processing')
     paymentStatus.value = PaymentStatus.Failed
@@ -135,7 +136,7 @@ async function handleMercadoPagoCallback() {
       })
     }
   } catch (error: unknown) {
-    console.error('Error handling MercadoPago callback:', error)
+    logger.error('Error handling MercadoPago callback:', error)
 
     // Fallback: Map collection_status if backend call fails
     const statusMap: Record<string, PaymentStatus> = {

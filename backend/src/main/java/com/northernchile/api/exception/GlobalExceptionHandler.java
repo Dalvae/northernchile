@@ -17,7 +17,6 @@ import org.springframework.web.context.request.WebRequest;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,10 +48,18 @@ public class GlobalExceptionHandler {
         this.messageProvider = messageProvider;
     }
 
+    /**
+     * Returns true only if explicitly running in dev or local profile.
+     * Production (no profiles or 'prod' profile) returns false to protect stack traces.
+     */
     private boolean isDevMode() {
-        return Arrays.asList(environment.getActiveProfiles()).contains("dev")
-            || Arrays.asList(environment.getActiveProfiles()).contains("local")
-            || Arrays.asList(environment.getActiveProfiles()).isEmpty(); // Default to dev if no profile
+        String[] activeProfiles = environment.getActiveProfiles();
+        for (String profile : activeProfiles) {
+            if ("dev".equals(profile) || "local".equals(profile)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private String getStackTraceAsString(Exception ex) {
@@ -62,40 +69,68 @@ public class GlobalExceptionHandler {
         return sw.toString();
     }
 
-    /**
-     * Handles ResourceNotFoundException (custom)
-     * Returns HTTP 404 Not Found
-     */
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFound(
-            ResourceNotFoundException ex,
-            WebRequest request) {
+    private String extractPath(WebRequest request) {
+        return request.getDescription(false).replace("uri=", "");
+    }
+
+    private ResponseEntity<ErrorResponse> buildErrorResponse(Exception ex, WebRequest request, HttpStatus status) {
         ErrorResponse errorResponse = new ErrorResponse(
                 Instant.now(),
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                status.value(),
+                status.getReasonPhrase(),
                 ex.getMessage(),
-                request.getDescription(false).replace("uri=", "")
+                extractPath(request)
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorResponse, status);
+    }
+
+    private BusinessErrorResponse buildBusinessErrorResponse(BusinessException ex, WebRequest request, HttpStatus status, String errorTitle) {
+        return new BusinessErrorResponse(
+                Instant.now(),
+                status.value(),
+                errorTitle,
+                ex.getMessage(),
+                extractPath(request),
+                ex.getErrorCode()
+        );
+    }
+
+    private PaymentErrorResponse buildPaymentErrorResponse(PaymentException ex, WebRequest request, HttpStatus status, String errorTitle, String declineReason) {
+        return new PaymentErrorResponse(
+                Instant.now(),
+                status.value(),
+                errorTitle,
+                ex.getMessage(),
+                extractPath(request),
+                ex.getErrorCode(),
+                declineReason
+        );
     }
 
     /**
-     * Handles EntityNotFoundException (JPA)
+     * Handles ResourceNotFoundException and EntityNotFoundException
      * Returns HTTP 404 Not Found
      */
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEntityNotFound(
-            EntityNotFoundException ex,
-            WebRequest request) {
+    @ExceptionHandler({ResourceNotFoundException.class, EntityNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handleNotFound(Exception ex, WebRequest request) {
+        return buildErrorResponse(ex, request, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * Handles AccountLockedException - when account is locked due to too many failed login attempts
+     * Returns HTTP 423 Locked
+     */
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<ErrorResponse> handleAccountLocked(AccountLockedException ex, WebRequest request) {
+        log.warn("Account locked: {} - Remaining lockout: {} seconds", ex.getEmail(), ex.getRemainingSeconds());
         ErrorResponse errorResponse = new ErrorResponse(
                 Instant.now(),
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                HttpStatus.LOCKED.value(),
+                "Account Locked",
                 ex.getMessage(),
-                request.getDescription(false).replace("uri=", "")
+                extractPath(request)
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorResponse, HttpStatus.LOCKED);
     }
 
     /**
@@ -103,17 +138,8 @@ public class GlobalExceptionHandler {
      * Returns HTTP 409 Conflict
      */
     @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleEmailAlreadyExists(
-            EmailAlreadyExistsException ex,
-            WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                Instant.now(),
-                HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", "")
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    public ResponseEntity<ErrorResponse> handleEmailAlreadyExists(EmailAlreadyExistsException ex, WebRequest request) {
+        return buildErrorResponse(ex, request, HttpStatus.CONFLICT);
     }
 
     /**
@@ -121,17 +147,8 @@ public class GlobalExceptionHandler {
      * Returns HTTP 401 Unauthorized
      */
     @ExceptionHandler({UnauthorizedException.class, InvalidCredentialsException.class})
-    public ResponseEntity<ErrorResponse> handleUnauthorized(
-            RuntimeException ex,
-            WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                Instant.now(),
-                HttpStatus.UNAUTHORIZED.value(),
-                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", "")
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<ErrorResponse> handleUnauthorized(RuntimeException ex, WebRequest request) {
+        return buildErrorResponse(ex, request, HttpStatus.UNAUTHORIZED);
     }
 
     /**
@@ -139,17 +156,8 @@ public class GlobalExceptionHandler {
      * Returns HTTP 403 Forbidden
      */
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(
-            AccessDeniedException ex,
-            WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                Instant.now(),
-                HttpStatus.FORBIDDEN.value(),
-                HttpStatus.FORBIDDEN.getReasonPhrase(),
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", "")
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex, WebRequest request) {
+        return buildErrorResponse(ex, request, HttpStatus.FORBIDDEN);
     }
 
     /**
@@ -157,20 +165,11 @@ public class GlobalExceptionHandler {
      * Returns HTTP 409 Conflict
      */
     @ExceptionHandler(ScheduleFullException.class)
-    public ResponseEntity<BusinessErrorResponse> handleScheduleFull(
-            ScheduleFullException ex,
-            WebRequest request) {
+    public ResponseEntity<BusinessErrorResponse> handleScheduleFull(ScheduleFullException ex, WebRequest request) {
         log.info("Schedule full: {} - Requested: {}, Available: {}",
             ex.getScheduleId(), ex.getRequestedSlots(), ex.getAvailableSlots());
 
-        BusinessErrorResponse errorResponse = new BusinessErrorResponse(
-                Instant.now(),
-                HttpStatus.CONFLICT.value(),
-                "Schedule Full",
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", ""),
-                ex.getErrorCode()
-        );
+        BusinessErrorResponse errorResponse = buildBusinessErrorResponse(ex, request, HttpStatus.CONFLICT, "Schedule Full");
         errorResponse.setAvailableSlots(ex.getAvailableSlots());
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
@@ -180,20 +179,12 @@ public class GlobalExceptionHandler {
      * Returns HTTP 409 Conflict
      */
     @ExceptionHandler(TourNotActiveException.class)
-    public ResponseEntity<BusinessErrorResponse> handleTourNotActive(
-            TourNotActiveException ex,
-            WebRequest request) {
+    public ResponseEntity<BusinessErrorResponse> handleTourNotActive(TourNotActiveException ex, WebRequest request) {
         log.info("Tour not active: {}", ex.getTourId());
-
-        BusinessErrorResponse errorResponse = new BusinessErrorResponse(
-                Instant.now(),
-                HttpStatus.CONFLICT.value(),
-                "Tour Not Available",
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", ""),
-                ex.getErrorCode()
+        return new ResponseEntity<>(
+            buildBusinessErrorResponse(ex, request, HttpStatus.CONFLICT, "Tour Not Available"),
+            HttpStatus.CONFLICT
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     /**
@@ -201,19 +192,10 @@ public class GlobalExceptionHandler {
      * Returns HTTP 409 Conflict
      */
     @ExceptionHandler(BookingCutoffException.class)
-    public ResponseEntity<BusinessErrorResponse> handleBookingCutoff(
-            BookingCutoffException ex,
-            WebRequest request) {
+    public ResponseEntity<BusinessErrorResponse> handleBookingCutoff(BookingCutoffException ex, WebRequest request) {
         log.info("Booking cutoff passed for schedule: {}", ex.getScheduleId());
 
-        BusinessErrorResponse errorResponse = new BusinessErrorResponse(
-                Instant.now(),
-                HttpStatus.CONFLICT.value(),
-                "Booking Window Closed",
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", ""),
-                ex.getErrorCode()
-        );
+        BusinessErrorResponse errorResponse = buildBusinessErrorResponse(ex, request, HttpStatus.CONFLICT, "Booking Window Closed");
         errorResponse.setHoursRequired(ex.getHoursRequired());
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
@@ -223,20 +205,10 @@ public class GlobalExceptionHandler {
      * Returns HTTP 409 Conflict
      */
     @ExceptionHandler(InvalidBookingStateException.class)
-    public ResponseEntity<BusinessErrorResponse> handleInvalidBookingState(
-            InvalidBookingStateException ex,
-            WebRequest request) {
-        log.info("Invalid booking state transition: {} -> {}",
-            ex.getCurrentStatus(), ex.getRequestedStatus());
+    public ResponseEntity<BusinessErrorResponse> handleInvalidBookingState(InvalidBookingStateException ex, WebRequest request) {
+        log.info("Invalid booking state transition: {} -> {}", ex.getCurrentStatus(), ex.getRequestedStatus());
 
-        BusinessErrorResponse errorResponse = new BusinessErrorResponse(
-                Instant.now(),
-                HttpStatus.CONFLICT.value(),
-                "Invalid Booking State",
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", ""),
-                ex.getErrorCode()
-        );
+        BusinessErrorResponse errorResponse = buildBusinessErrorResponse(ex, request, HttpStatus.CONFLICT, "Invalid Booking State");
         errorResponse.setCurrentStatus(ex.getCurrentStatus());
         errorResponse.setAllowedTransitions(ex.getAllowedTransitions());
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
@@ -247,20 +219,12 @@ public class GlobalExceptionHandler {
      * Returns HTTP 410 Gone
      */
     @ExceptionHandler(CartExpiredException.class)
-    public ResponseEntity<BusinessErrorResponse> handleCartExpired(
-            CartExpiredException ex,
-            WebRequest request) {
+    public ResponseEntity<BusinessErrorResponse> handleCartExpired(CartExpiredException ex, WebRequest request) {
         log.info("Cart expired: {}", ex.getCartId());
-
-        BusinessErrorResponse errorResponse = new BusinessErrorResponse(
-                Instant.now(),
-                HttpStatus.GONE.value(),
-                "Cart Expired",
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", ""),
-                ex.getErrorCode()
+        return new ResponseEntity<>(
+            buildBusinessErrorResponse(ex, request, HttpStatus.GONE, "Cart Expired"),
+            HttpStatus.GONE
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.GONE);
     }
 
     /**
@@ -268,20 +232,12 @@ public class GlobalExceptionHandler {
      * Returns HTTP 409 Conflict
      */
     @ExceptionHandler(DuplicateBookingException.class)
-    public ResponseEntity<BusinessErrorResponse> handleDuplicateBooking(
-            DuplicateBookingException ex,
-            WebRequest request) {
+    public ResponseEntity<BusinessErrorResponse> handleDuplicateBooking(DuplicateBookingException ex, WebRequest request) {
         log.info("Duplicate booking attempt for schedule: {}", ex.getScheduleId());
-
-        BusinessErrorResponse errorResponse = new BusinessErrorResponse(
-                Instant.now(),
-                HttpStatus.CONFLICT.value(),
-                "Duplicate Booking",
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", ""),
-                ex.getErrorCode()
+        return new ResponseEntity<>(
+            buildBusinessErrorResponse(ex, request, HttpStatus.CONFLICT, "Duplicate Booking"),
+            HttpStatus.CONFLICT
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     /**
@@ -289,21 +245,12 @@ public class GlobalExceptionHandler {
      * Returns HTTP 402 Payment Required
      */
     @ExceptionHandler(PaymentDeclinedException.class)
-    public ResponseEntity<PaymentErrorResponse> handlePaymentDeclined(
-            PaymentDeclinedException ex,
-            WebRequest request) {
+    public ResponseEntity<PaymentErrorResponse> handlePaymentDeclined(PaymentDeclinedException ex, WebRequest request) {
         log.warn("Payment declined: {} - Reason: {}", ex.getMessage(), ex.getDeclineReason());
-
-        PaymentErrorResponse errorResponse = new PaymentErrorResponse(
-                Instant.now(),
-                HttpStatus.PAYMENT_REQUIRED.value(),
-                "Payment Declined",
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", ""),
-                ex.getErrorCode(),
-                ex.getDeclineReason()
+        return new ResponseEntity<>(
+            buildPaymentErrorResponse(ex, request, HttpStatus.PAYMENT_REQUIRED, "Payment Declined", ex.getDeclineReason()),
+            HttpStatus.PAYMENT_REQUIRED
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.PAYMENT_REQUIRED);
     }
 
     /**
@@ -311,9 +258,7 @@ public class GlobalExceptionHandler {
      * Returns HTTP 502 Bad Gateway
      */
     @ExceptionHandler(PaymentProviderException.class)
-    public ResponseEntity<PaymentErrorResponse> handlePaymentProviderError(
-            PaymentProviderException ex,
-            WebRequest request) {
+    public ResponseEntity<PaymentErrorResponse> handlePaymentProviderError(PaymentProviderException ex, WebRequest request) {
         log.error("Payment provider error [{}]: {}", ex.getProvider(), ex.getMessage(), ex);
 
         String userMessage = messageProvider.getMessage(
@@ -322,16 +267,10 @@ public class GlobalExceptionHandler {
         );
 
         PaymentErrorResponse errorResponse = new PaymentErrorResponse(
-                Instant.now(),
-                HttpStatus.BAD_GATEWAY.value(),
-                "Payment Provider Error",
-                userMessage,
-                request.getDescription(false).replace("uri=", ""),
-                ex.getErrorCode(),
-                null
+                Instant.now(), HttpStatus.BAD_GATEWAY.value(), "Payment Provider Error",
+                userMessage, extractPath(request), ex.getErrorCode(), null
         );
 
-        // Add provider details only in dev mode
         if (isDevMode()) {
             errorResponse.setProviderMessage(ex.getProviderMessage());
         }
@@ -344,21 +283,12 @@ public class GlobalExceptionHandler {
      * Returns HTTP 410 Gone
      */
     @ExceptionHandler(PaymentExpiredException.class)
-    public ResponseEntity<PaymentErrorResponse> handlePaymentExpired(
-            PaymentExpiredException ex,
-            WebRequest request) {
+    public ResponseEntity<PaymentErrorResponse> handlePaymentExpired(PaymentExpiredException ex, WebRequest request) {
         log.info("Payment expired: {}", ex.getMessage());
-
-        PaymentErrorResponse errorResponse = new PaymentErrorResponse(
-                Instant.now(),
-                HttpStatus.GONE.value(),
-                "Payment Expired",
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", ""),
-                ex.getErrorCode(),
-                null
+        return new ResponseEntity<>(
+            buildPaymentErrorResponse(ex, request, HttpStatus.GONE, "Payment Expired", null),
+            HttpStatus.GONE
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.GONE);
     }
 
     /**
@@ -366,20 +296,10 @@ public class GlobalExceptionHandler {
      * Returns HTTP 422 Unprocessable Entity
      */
     @ExceptionHandler(RefundException.class)
-    public ResponseEntity<PaymentErrorResponse> handleRefundError(
-            RefundException ex,
-            WebRequest request) {
+    public ResponseEntity<PaymentErrorResponse> handleRefundError(RefundException ex, WebRequest request) {
         log.error("Refund error: {}", ex.getMessage(), ex);
 
-        PaymentErrorResponse errorResponse = new PaymentErrorResponse(
-                Instant.now(),
-                HttpStatus.UNPROCESSABLE_ENTITY.value(),
-                "Refund Failed",
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", ""),
-                ex.getErrorCode(),
-                null
-        );
+        PaymentErrorResponse errorResponse = buildPaymentErrorResponse(ex, request, HttpStatus.UNPROCESSABLE_ENTITY, "Refund Failed", null);
 
         if (isDevMode()) {
             errorResponse.setProviderMessage(ex.getProviderMessage());
@@ -393,21 +313,12 @@ public class GlobalExceptionHandler {
      * Returns HTTP 400 Bad Request
      */
     @ExceptionHandler(PaymentException.class)
-    public ResponseEntity<PaymentErrorResponse> handlePaymentError(
-            PaymentException ex,
-            WebRequest request) {
+    public ResponseEntity<PaymentErrorResponse> handlePaymentError(PaymentException ex, WebRequest request) {
         log.error("Payment error: {}", ex.getMessage(), ex);
-
-        PaymentErrorResponse errorResponse = new PaymentErrorResponse(
-                Instant.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                "Payment Error",
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", ""),
-                ex.getErrorCode(),
-                null
+        return new ResponseEntity<>(
+            buildPaymentErrorResponse(ex, request, HttpStatus.BAD_REQUEST, "Payment Error", null),
+            HttpStatus.BAD_REQUEST
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     /**
@@ -415,24 +326,19 @@ public class GlobalExceptionHandler {
      * Returns HTTP 400 Bad Request with field-specific error messages
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ValidationErrorResponse> handleValidationErrors(
-            MethodArgumentNotValidException ex,
-            WebRequest request) {
+    public ResponseEntity<ValidationErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex, WebRequest request) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
+            errors.put(fieldName, error.getDefaultMessage());
         });
-
-        String localizedMessage = messageProvider.getMessage("error.bad.request", "Validation failed");
 
         ValidationErrorResponse errorResponse = new ValidationErrorResponse(
                 Instant.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                localizedMessage,
-                request.getDescription(false).replace("uri=", ""),
+                messageProvider.getMessage("error.bad.request", "Validation failed"),
+                extractPath(request),
                 errors
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -443,17 +349,8 @@ public class GlobalExceptionHandler {
      * Returns HTTP 400 Bad Request
      */
     @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
-    public ResponseEntity<ErrorResponse> handleBadRequest(
-            RuntimeException ex,
-            WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                Instant.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", "")
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ErrorResponse> handleBadRequest(RuntimeException ex, WebRequest request) {
+        return buildErrorResponse(ex, request, HttpStatus.BAD_REQUEST);
     }
 
     /**
@@ -462,29 +359,18 @@ public class GlobalExceptionHandler {
      * In development mode, includes full stacktrace for debugging
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGlobalException(
-            Exception ex,
-            WebRequest request) {
-        // Always log the full exception with stacktrace
-        log.error("Unhandled exception occurred: {} - {}",
-            request.getDescription(false),
-            ex.getMessage(),
-            ex
-        );
+    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, WebRequest request) {
+        log.error("Unhandled exception occurred: {} - {}", extractPath(request), ex.getMessage(), ex);
 
-        String detailedMessage = isDevMode()
-            ? ex.getMessage()
-            : messageProvider.getMessage("error.internal.server", "An unexpected error occurred");
-        String stackTrace = isDevMode() ? getStackTraceAsString(ex) : null;
-
+        boolean devMode = isDevMode();
         ErrorResponse errorResponse = new ErrorResponse(
                 Instant.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                detailedMessage,
-                request.getDescription(false).replace("uri=", ""),
-                ex.getClass().getName(),
-                stackTrace
+                devMode ? ex.getMessage() : messageProvider.getMessage("error.internal.server", "An unexpected error occurred"),
+                extractPath(request),
+                devMode ? ex.getClass().getName() : null,
+                devMode ? getStackTraceAsString(ex) : null
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }

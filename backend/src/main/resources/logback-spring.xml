@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- Console appender for development (human-readable) -->
+    <springProfile name="dev,local">
+        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+        <!-- More verbose logging for dev -->
+        <logger name="com.northernchile" level="DEBUG"/>
+    </springProfile>
+
+    <!-- JSON appender for production (machine-parseable) -->
+    <springProfile name="!dev &amp; !local">
+        <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <!-- Include MDC keys for request tracing -->
+                <includeMdcKeyName>requestId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <includeMdcKeyName>traceId</includeMdcKeyName>
+                <!-- Add application context -->
+                <customFields>{"application":"northernchile-api"}</customFields>
+            </encoder>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="JSON"/>
+        </root>
+        <!-- Less verbose in production -->
+        <logger name="com.northernchile" level="INFO"/>
+    </springProfile>
+
+    <!-- Silence noisy loggers -->
+    <logger name="org.springframework.web" level="WARN"/>
+    <logger name="org.hibernate.SQL" level="WARN"/>
+    <logger name="org.hibernate.type.descriptor.sql" level="WARN"/>
+</configuration>

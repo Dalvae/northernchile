@@ -39,7 +39,6 @@ export default defineEventHandler(async (event) => {
     try {
       // Call backend to mark session as cancelled and log the values
       await $fetch(`${backendUrl}/api/payment-sessions/confirm`, {
-        method: 'GET',
         query: {
           TBK_TOKEN: tbkToken,
           TBK_ID_SESION: tbkIdSesion,
@@ -69,7 +68,6 @@ export default defineEventHandler(async (event) => {
       paymentId?: string
       message?: string
     }>(`${backendUrl}/api/payment-sessions/confirm`, {
-      method: 'GET',
       query: { token_ws: tokenWs }
     })
 

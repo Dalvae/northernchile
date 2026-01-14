@@ -6,6 +6,8 @@ import com.northernchile.api.availability.AvailabilityValidator.AvailabilityResu
 import com.northernchile.api.booking.dto.BookingCreateReq;
 import com.northernchile.api.booking.dto.BookingRes;
 import com.northernchile.api.booking.dto.ParticipantReq;
+import com.northernchile.api.config.NotificationConfig;
+import com.northernchile.api.config.properties.AppProperties;
 import com.northernchile.api.exception.BookingCutoffException;
 import com.northernchile.api.exception.InvalidBookingStateException;
 import com.northernchile.api.exception.ResourceNotFoundException;
@@ -25,10 +27,14 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -46,6 +52,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("BookingService Tests")
 class BookingServiceTest {
 
@@ -70,7 +77,15 @@ class BookingServiceTest {
     @Mock
     private PricingService pricingService;
 
-    @InjectMocks
+    @Mock
+    private NotificationConfig notificationConfig;
+
+    @Mock
+    private AppProperties appProperties;
+
+    @Mock
+    private AppProperties.Booking bookingProperties;
+
     private BookingService bookingService;
 
     private User testUser;
@@ -80,6 +95,24 @@ class BookingServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Set up configuration mocks
+        when(notificationConfig.getAdminEmail()).thenReturn("admin@northernchile.com");
+        when(appProperties.getBooking()).thenReturn(bookingProperties);
+        when(bookingProperties.getMinHoursBeforeTour()).thenReturn(2);
+
+        // Create service with all dependencies
+        bookingService = new BookingService(
+                bookingRepository,
+                tourScheduleRepository,
+                emailService,
+                auditLogService,
+                bookingMapper,
+                availabilityValidator,
+                pricingService,
+                notificationConfig,
+                appProperties
+        );
+
         // Set up test user using constructor
         testUser = new User(
             UUID.randomUUID(),
@@ -127,18 +160,14 @@ class BookingServiceTest {
             null  // specialRequests
         );
 
-        // Set required properties via reflection
-        ReflectionTestUtils.setField(bookingService, "adminEmail", "admin@northernchile.com");
-        ReflectionTestUtils.setField(bookingService, "minHoursBeforeTour", 2);
-        
-        // Set up pricing service mock (lenient as not all tests use it)
+        // Set up pricing service mock
         PricingService.PricingResult pricingResult = new PricingService.PricingResult(
             new BigDecimal("50000"),   // subtotal
             new BigDecimal("9500"),    // taxAmount
             new BigDecimal("59500"),   // totalAmount
             new BigDecimal("0.19")     // taxRate
         );
-        lenient().when(pricingService.calculateLineItem(any(BigDecimal.class), anyInt())).thenReturn(pricingResult);
+        when(pricingService.calculateLineItem(any(BigDecimal.class), anyInt())).thenReturn(pricingResult);
     }
 
     @Nested
@@ -492,15 +521,17 @@ class BookingServiceTest {
                 null
             );
 
-            when(bookingRepository.findAllWithDetails()).thenReturn(List.of(new Booking()));
+            Pageable pageable = PageRequest.of(0, 20);
+            Page<Booking> bookingPage = new PageImpl<>(List.of(new Booking()));
+            when(bookingRepository.findAllWithDetailsPaged(pageable)).thenReturn(bookingPage);
             when(bookingMapper.toBookingRes(any())).thenReturn(createMockBookingRes());
 
             // When
-            List<BookingRes> result = bookingService.getBookingsForAdmin(superAdmin);
+            Page<BookingRes> result = bookingService.getBookingsForAdminPaged(superAdmin, pageable);
 
             // Then
-            verify(bookingRepository).findAllWithDetails();
-            assertThat(result).isNotEmpty();
+            verify(bookingRepository).findAllWithDetailsPaged(pageable);
+            assertThat(result.getContent()).isNotEmpty();
         }
 
         @Test
@@ -520,16 +551,18 @@ class BookingServiceTest {
                 null
             );
 
-            when(bookingRepository.findByTourOwnerId(partnerAdmin.getId()))
-                    .thenReturn(List.of(new Booking()));
+            Pageable pageable = PageRequest.of(0, 20);
+            Page<Booking> bookingPage = new PageImpl<>(List.of(new Booking()));
+            when(bookingRepository.findByTourOwnerIdPaged(partnerAdmin.getId(), pageable))
+                    .thenReturn(bookingPage);
             when(bookingMapper.toBookingRes(any())).thenReturn(createMockBookingRes());
 
             // When
-            List<BookingRes> result = bookingService.getBookingsForAdmin(partnerAdmin);
+            Page<BookingRes> result = bookingService.getBookingsForAdminPaged(partnerAdmin, pageable);
 
             // Then
-            verify(bookingRepository).findByTourOwnerId(partnerAdmin.getId());
-            verify(bookingRepository, never()).findAllWithDetails();
+            verify(bookingRepository).findByTourOwnerIdPaged(partnerAdmin.getId(), pageable);
+            verify(bookingRepository, never()).findAllWithDetailsPaged(any());
         }
     }
 

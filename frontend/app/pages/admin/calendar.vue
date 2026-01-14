@@ -269,7 +269,7 @@ import type {
   EventClickArg
 } from '@fullcalendar/core'
 import esLocale from '@fullcalendar/core/locales/es'
-import type { TourRes, TourScheduleRes, TourScheduleCreateReq, WeatherAlert } from 'api-client'
+import type { TourRes, TourScheduleRes, TourScheduleCreateReq, WeatherAlertRes } from 'api-client'
 import type { DailyWeather, MoonPhase } from '~/composables/useCalendarData'
 import { getLocalDateString, CHILE_TIMEZONE } from '~/utils/dateUtils'
 
@@ -295,7 +295,7 @@ interface CalendarDataResponse {
   moonPhases: Map<string, MoonPhase>
   weather: Map<string, DailyWeather>
   alerts: Map<string, WeatherAlert[]>
-  allAlerts?: WeatherAlert[]
+  allAlerts?: WeatherAlertRes[]
 }
 
 // Estado
@@ -387,7 +387,7 @@ const loadCalendarData = async () => {
     const data = await fetchCalendarData(startDate.value, endDate.value) as CalendarDataResponse
     calendarData.value = data
     pendingAlerts.value = Array.isArray(data.allAlerts)
-      ? data.allAlerts.filter((a: WeatherAlert) => a.status === 'PENDING').length
+      ? data.allAlerts.filter((a: WeatherAlertRes) => a.status === 'PENDING').length
       : 0
   } catch (error) {
     console.error('Error loading calendar data:', error)
@@ -606,7 +606,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
           // Verificar si tiene alertas críticas
           const scheduleAlerts = alerts?.get(schedule.id) ?? []
           const hasCriticalAlert = scheduleAlerts.some(
-            (a: WeatherAlert) => a.severity === 'CRITICAL' && a.status === 'PENDING'
+            (a: WeatherAlertRes) => a.severity === 'CRITICAL' && a.status === 'PENDING'
           )
 
           if (hasCriticalAlert) {
@@ -672,10 +672,17 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
       if (moonPhase) {
         const moonDiv = document.createElement('div')
         moonDiv.className = 'flex items-center gap-1'
-        moonDiv.innerHTML = `
-          <span class="text-lg">${moonPhase.icon}</span>
-          <span class="text-xs text-muted">${moonPhase.illumination}%</span>
-        `
+
+        const moonIconSpan = document.createElement('span')
+        moonIconSpan.className = 'text-lg'
+        moonIconSpan.textContent = moonPhase.icon ?? ''
+        moonDiv.appendChild(moonIconSpan)
+
+        const moonIllumSpan = document.createElement('span')
+        moonIllumSpan.className = 'text-xs text-muted'
+        moonIllumSpan.textContent = `${moonPhase.illumination}%`
+        moonDiv.appendChild(moonIllumSpan)
+
         infoContainer.appendChild(moonDiv)
       }
 
@@ -683,16 +690,17 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
       if (dayWeather) {
         const tempDiv = document.createElement('div')
         tempDiv.className = 'flex items-center gap-1'
-        tempDiv.innerHTML = `
-          <span class="text-base">${getWeatherIcon(
-            dayWeather.weather[0]?.main || ''
-          )}</span>
-          <span class="text-xs text-muted">
-            ${Math.round(dayWeather.temp.max)}°/${Math.round(
-              dayWeather.temp.min
-            )}°
-          </span>
-        `
+
+        const weatherIconSpan = document.createElement('span')
+        weatherIconSpan.className = 'text-base'
+        weatherIconSpan.textContent = getWeatherIcon(dayWeather.weather[0]?.main || '')
+        tempDiv.appendChild(weatherIconSpan)
+
+        const tempTextSpan = document.createElement('span')
+        tempTextSpan.className = 'text-xs text-muted'
+        tempTextSpan.textContent = `${Math.round(dayWeather.temp.max)}°/${Math.round(dayWeather.temp.min)}°`
+        tempDiv.appendChild(tempTextSpan)
+
         infoContainer.appendChild(tempDiv)
       }
 

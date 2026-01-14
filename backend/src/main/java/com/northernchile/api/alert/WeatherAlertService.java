@@ -13,9 +13,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.northernchile.api.util.DateTimeUtils;
+
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -36,7 +37,6 @@ import java.util.List;
 public class WeatherAlertService {
 
     private static final Logger logger = LoggerFactory.getLogger(WeatherAlertService.class);
-    private static final ZoneId ZONE_ID = ZoneId.of("America/Santiago");
     private static final int DAYS_TO_CHECK = 8; // Límite de OpenWeatherMap
     private static final double WIND_THRESHOLD_KNOTS = 25.0;
     private static final double WIND_THRESHOLD_MS = WIND_THRESHOLD_KNOTS * 0.514444; // Convertir a m/s
@@ -67,12 +67,12 @@ public class WeatherAlertService {
     public void checkWeatherAlertsAutomatically() {
         logger.info("Iniciando verificación de alertas climáticas");
 
-        LocalDate today = LocalDate.now(ZONE_ID);
+        LocalDate today = LocalDate.now(DateTimeUtils.CHILE_ZONE);
         LocalDate endDate = today.plusDays(DAYS_TO_CHECK);
 
         // Buscar schedules en los próximos 8 días que no estén cancelados
-        ZonedDateTime startDateTime = today.atStartOfDay(ZONE_ID);
-        ZonedDateTime endDateTime = endDate.atStartOfDay(ZONE_ID);
+        ZonedDateTime startDateTime = today.atStartOfDay(DateTimeUtils.CHILE_ZONE);
+        ZonedDateTime endDateTime = endDate.atStartOfDay(DateTimeUtils.CHILE_ZONE);
 
         // Convertir a Instant para el repositorio
         Instant startInstant = startDateTime.toInstant();
@@ -90,7 +90,7 @@ public class WeatherAlertService {
 
         for (TourSchedule schedule : upcomingSchedules) {
             try {
-                LocalDate scheduleDate = schedule.getStartDatetime().atZone(ZONE_ID).toLocalDate();
+                LocalDate scheduleDate = schedule.getStartDatetime().atZone(DateTimeUtils.CHILE_ZONE).toLocalDate();
                 Tour tour = schedule.getTour();
 
                 // Verificar si ya existe una alerta pendiente para este schedule

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { TourRes } from 'api-client'
+import logger from '~/utils/logger'
 
 export const useAdminStore = defineStore('admin', {
   state: () => ({
@@ -43,7 +44,7 @@ export const useAdminStore = defineStore('admin', {
           this.lastFetched = Date.now()
           return data
         } catch (error) {
-          console.error('[AdminStore] Error fetching tours:', error)
+          logger.error('[AdminStore] Error fetching tours:', error)
           throw error
         } finally {
           this.loading = false

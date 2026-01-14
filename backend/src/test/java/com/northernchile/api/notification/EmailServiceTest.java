@@ -1,5 +1,6 @@
 package com.northernchile.api.notification;
 
+import com.northernchile.api.config.properties.MailProperties;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.ContactMessage;
 import com.northernchile.api.model.PrivateTourRequest;
@@ -15,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -45,12 +45,15 @@ class EmailServiceTest {
     @Mock
     private MessageSource messageSource;
 
+    @Mock
+    private MailProperties mailProperties;
+
     private EmailService emailService;
 
     @BeforeEach
     void setUp() {
-        emailService = new EmailService(sesEmailSender, templateEngine, messageSource);
-        ReflectionTestUtils.setField(emailService, "mailEnabled", true);
+        when(mailProperties.isEnabled()).thenReturn(true);
+        emailService = new EmailService(sesEmailSender, templateEngine, messageSource, mailProperties);
     }
 
     @Nested
@@ -82,11 +85,12 @@ class EmailServiceTest {
         @Test
         @DisplayName("Should not send email when mail is disabled")
         void shouldNotSendEmailWhenDisabled() {
-            // Given
-            ReflectionTestUtils.setField(emailService, "mailEnabled", false);
+            // Given - Create new EmailService with mail disabled
+            when(mailProperties.isEnabled()).thenReturn(false);
+            EmailService disabledEmailService = new EmailService(sesEmailSender, templateEngine, messageSource, mailProperties);
 
             // When
-            emailService.sendVerificationEmail(
+            disabledEmailService.sendVerificationEmail(
                     "user@example.com",
                     "Test User",
                     "http://localhost:3000/verify?token=abc123",

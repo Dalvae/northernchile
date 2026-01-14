@@ -1,16 +1,20 @@
 package com.northernchile.api.auth;
 
 import com.northernchile.api.auth.dto.LoginReq;
+import com.northernchile.api.auth.dto.LoginRes;
 import com.northernchile.api.auth.dto.RegisterReq;
+import com.northernchile.api.notification.event.PasswordResetRequestedEvent;
+import com.northernchile.api.notification.event.UserRegisteredEvent;
 import com.northernchile.api.config.security.JwtUtil;
 import com.northernchile.api.exception.EmailAlreadyExistsException;
 import com.northernchile.api.model.EmailVerificationToken;
 import com.northernchile.api.model.PasswordResetToken;
 import com.northernchile.api.model.User;
-import com.northernchile.api.notification.EmailService;
 import com.northernchile.api.user.UserRepository;
+import com.northernchile.api.util.UrlBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.context.ApplicationEventPublisher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -30,7 +34,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -64,7 +67,13 @@ class AuthServiceTest {
     private TokenService tokenService;
 
     @Mock
-    private EmailService emailService;
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private UrlBuilder urlBuilder;
+
+    @Mock
+    private LoginAttemptService loginAttemptService;
 
     @Mock
     private HttpServletRequest httpRequest;
@@ -78,17 +87,17 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() throws Exception {
         when(authenticationConfiguration.getAuthenticationManager()).thenReturn(authenticationManager);
-        
+
         authService = new AuthService(
                 userRepository,
                 passwordEncoder,
                 authenticationConfiguration,
                 jwtUtil,
                 tokenService,
-                emailService
+                eventPublisher,
+                urlBuilder,
+                loginAttemptService
         );
-        
-        ReflectionTestUtils.setField(authService, "frontendBaseUrl", "http://localhost:3000");
 
         // Set up test user using constructor (id, email, passwordHash, fullName, nationality, phoneNumber, dateOfBirth, role, authProvider, providerId)
         testUser = new User(
@@ -148,12 +157,7 @@ class AuthServiceTest {
             assertThat(result.isEmailVerified()).isFalse();
             
             verify(userRepository).save(any(User.class));
-            verify(emailService).sendVerificationEmail(
-                    eq(validRegisterReq.email()),
-                    eq(validRegisterReq.fullName()),
-                    contains("verification-token-123"),
-                    anyString()
-            );
+            verify(eventPublisher).publishEvent(any(UserRegisteredEvent.class));
         }
 
         @Test
@@ -243,7 +247,7 @@ class AuthServiceTest {
             authService.register(validRegisterReq, httpRequest);
 
             // Then
-            verify(emailService).sendVerificationEmail(any(), any(), any(), eq("en-US"));
+            verify(eventPublisher).publishEvent(any(UserRegisteredEvent.class));
         }
     }
 
@@ -257,7 +261,8 @@ class AuthServiceTest {
             // Given
             Authentication authentication = mock(Authentication.class);
             UserDetails userDetails = mock(UserDetails.class);
-            
+
+            when(loginAttemptService.isLocked(testUser.getEmail())).thenReturn(false);
             when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                     .thenReturn(authentication);
             when(authentication.getPrincipal()).thenReturn(userDetails);
@@ -267,23 +272,20 @@ class AuthServiceTest {
                     .thenReturn("jwt-token-123");
 
             // When
-            Map<String, Object> result = authService.login(validLoginReq);
+            LoginRes result = authService.login(validLoginReq);
 
             // Then
-            assertThat(result).containsKey("token");
-            assertThat(result).containsKey("user");
-            assertThat(result.get("token")).isEqualTo("jwt-token-123");
-            
-            @SuppressWarnings("unchecked")
-            Map<String, Object> userMap = (Map<String, Object>) result.get("user");
-            assertThat(userMap.get("email")).isEqualTo(testUser.getEmail());
-            assertThat(userMap.get("role")).isEqualTo("ROLE_CLIENT");
+            assertThat(result.token()).isEqualTo("jwt-token-123");
+            assertThat(result.user()).isNotNull();
+            assertThat(result.user().email()).isEqualTo(testUser.getEmail());
+            assertThat(result.user().role()).isEqualTo("ROLE_CLIENT");
         }
 
         @Test
         @DisplayName("Should reject login with invalid credentials")
         void shouldRejectLoginWithInvalidCredentials() {
             // Given
+            when(loginAttemptService.isLocked(validLoginReq.email())).thenReturn(false);
             when(authenticationManager.authenticate(any()))
                     .thenThrow(new BadCredentialsException("Invalid credentials"));
 
@@ -299,10 +301,11 @@ class AuthServiceTest {
             testUser.setNationality("CL");
             testUser.setPhoneNumber("+56912345678");
             testUser.setDateOfBirth(LocalDate.of(1990, 1, 15));
-            
+
             Authentication authentication = mock(Authentication.class);
             UserDetails userDetails = mock(UserDetails.class);
-            
+
+            when(loginAttemptService.isLocked(testUser.getEmail())).thenReturn(false);
             when(authenticationManager.authenticate(any())).thenReturn(authentication);
             when(authentication.getPrincipal()).thenReturn(userDetails);
             when(authentication.getName()).thenReturn(testUser.getEmail());
@@ -310,14 +313,12 @@ class AuthServiceTest {
             when(jwtUtil.generateToken(any(), any(), any())).thenReturn("token");
 
             // When
-            Map<String, Object> result = authService.login(validLoginReq);
+            LoginRes result = authService.login(validLoginReq);
 
             // Then
-            @SuppressWarnings("unchecked")
-            Map<String, Object> userMap = (Map<String, Object>) result.get("user");
-            assertThat(userMap.get("nationality")).isEqualTo("CL");
-            assertThat(userMap.get("phoneNumber")).isEqualTo("+56912345678");
-            assertThat(userMap.get("dateOfBirth")).isEqualTo(LocalDate.of(1990, 1, 15));
+            assertThat(result.user().nationality()).isEqualTo("CL");
+            assertThat(result.user().phoneNumber()).isEqualTo("+56912345678");
+            assertThat(result.user().dateOfBirth()).isEqualTo(LocalDate.of(1990, 1, 15));
         }
     }
 
@@ -379,12 +380,7 @@ class AuthServiceTest {
             authService.requestPasswordReset(testUser.getEmail(), "es-CL");
 
             // Then
-            verify(emailService).sendPasswordResetEmail(
-                    eq(testUser.getEmail()),
-                    eq(testUser.getFullName()),
-                    contains("reset-token-123"),
-                    eq("es-CL")
-            );
+            verify(eventPublisher).publishEvent(any(PasswordResetRequestedEvent.class));
         }
 
         @Test
@@ -454,12 +450,7 @@ class AuthServiceTest {
             authService.resendVerificationEmail(testUser.getEmail(), "pt-BR");
 
             // Then
-            verify(emailService).sendVerificationEmail(
-                    eq(testUser.getEmail()),
-                    eq(testUser.getFullName()),
-                    contains("new-verification-token"),
-                    eq("pt-BR")
-            );
+            verify(eventPublisher).publishEvent(any(UserRegisteredEvent.class));
         }
 
         @Test

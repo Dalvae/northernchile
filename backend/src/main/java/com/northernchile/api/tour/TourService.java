@@ -92,35 +92,29 @@ public class TourService {
     @Transactional(readOnly = true)
     @Cacheable(value = "tour-list", key = "'all-published'")
     public List<TourRes> getPublishedTours() {
-        // Use EntityGraph to eagerly fetch images and owner - avoids N+1 query
         List<TourRes> tours = tourRepository.findByStatusNotDeletedWithImages("PUBLISHED").stream()
                 .map(tourMapper::toTourRes)
-                .map(this::populateImages)
                 .collect(Collectors.toList());
 
-        return tours;
+        return populateImagesBatch(tours);
     }
 
     @Transactional(readOnly = true)
     public List<TourRes> getAllToursForAdmin() {
-        // Use EntityGraph to eagerly fetch images and owner - avoids N+1 query
         List<TourRes> tours = tourRepository.findAllNotDeletedWithImages().stream()
                 .map(tourMapper::toTourRes)
-                .map(this::populateImages)
                 .collect(Collectors.toList());
 
-        return tours;
+        return populateImagesBatch(tours);
     }
 
     @Transactional(readOnly = true)
     public List<TourRes> getToursByOwner(User owner) {
-        // Use EntityGraph to eagerly fetch images and owner - avoids N+1 query
         List<TourRes> tours = tourRepository.findByOwnerIdNotDeletedWithImages(owner.getId()).stream()
                 .map(tourMapper::toTourRes)
-                .map(this::populateImages)
                 .collect(Collectors.toList());
 
-        return tours;
+        return populateImagesBatch(tours);
     }
 
     @Transactional(readOnly = true)
@@ -258,6 +252,50 @@ public class TourService {
                 .map(tourMapper::toTourImageRes)
                 .collect(Collectors.toList());
 
+        return withImages(tourRes, images);
+    }
+
+    /**
+     * Batch populate images for multiple tours in a single query.
+     * This avoids N+1 queries when loading lists of tours.
+     */
+    private List<TourRes> populateImagesBatch(List<TourRes> tours) {
+        if (tours == null || tours.isEmpty()) {
+            return tours;
+        }
+
+        // Collect all tour IDs
+        List<UUID> tourIds = tours.stream()
+                .map(TourRes::id)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        if (tourIds.isEmpty()) {
+            return tours;
+        }
+
+        // Fetch all images in one query and group by tour ID
+        Map<UUID, List<TourImageRes>> imagesByTourId = mediaRepository
+                .findByTourIdInOrderByDisplayOrder(tourIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        media -> media.getTour().getId(),
+                        Collectors.mapping(tourMapper::toTourImageRes, Collectors.toList())
+                ));
+
+        // Populate images for each tour
+        return tours.stream()
+                .map(tour -> {
+                    List<TourImageRes> images = imagesByTourId.getOrDefault(tour.id(), Collections.emptyList());
+                    return withImages(tour, images);
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Helper to create a new TourRes with images (records are immutable)
+     */
+    private TourRes withImages(TourRes tourRes, List<TourImageRes> images) {
         return new TourRes(
                 tourRes.id(),
                 tourRes.slug(),

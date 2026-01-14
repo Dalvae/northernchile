@@ -65,7 +65,7 @@ public class RefundController {
      * Only allowed if more than 24 hours before the tour.
      */
     @PostMapping("/booking/{bookingId}/cancel")
-    @PreAuthorize("@bookingSecurityService.isBookingUser(authentication, #bookingId)")
+    @PreAuthorize("@authorizationService.isBookingUser(authentication, #bookingId)")
     @Operation(summary = "Cancel booking with refund", description = "User cancels their booking and requests refund (24h policy applies)")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Cancellation and refund processed"),

@@ -1,7 +1,10 @@
 package com.northernchile.api.payment;
 
+import com.northernchile.api.payment.dto.DeleteResultRes;
 import com.northernchile.api.payment.dto.PaymentRes;
 import com.northernchile.api.payment.dto.PaymentStatusRes;
+import com.northernchile.api.payment.dto.RefundReq;
+import com.northernchile.api.payment.dto.TestPaymentsRes;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -15,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -63,16 +65,11 @@ public class PaymentController {
     })
     public ResponseEntity<PaymentStatusRes> refundPayment(
         @PathVariable("id") UUID paymentId,
-        @RequestBody(required = false) Map<String, Object> body) {
+        @RequestBody(required = false) RefundReq request) {
 
         log.info("Payment refund request for: {}", paymentId);
 
-        // Extract refund amount from body (if partial refund)
-        BigDecimal amount = null;
-        if (body != null && body.containsKey("amount")) {
-            amount = new BigDecimal(body.get("amount").toString());
-        }
-
+        BigDecimal amount = request != null ? request.amount() : null;
         PaymentStatusRes response = paymentService.refundPayment(paymentId, amount);
         return ResponseEntity.ok(response);
     }
@@ -99,13 +96,10 @@ public class PaymentController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden - admin access required")
     })
-    public ResponseEntity<Map<String, Object>> getTestPayments() {
+    public ResponseEntity<TestPaymentsRes> getTestPayments() {
         log.info("Getting all test payments");
         var testPayments = paymentService.getTestPayments();
-        return ResponseEntity.ok(Map.of(
-            "count", testPayments.size(),
-            "payments", testPayments
-        ));
+        return ResponseEntity.ok(new TestPaymentsRes(testPayments.size(), testPayments));
     }
 
     @DeleteMapping("/test")
@@ -116,13 +110,10 @@ public class PaymentController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden - super admin access required")
     })
-    public ResponseEntity<?> deleteTestPayments() {
+    public ResponseEntity<DeleteResultRes> deleteTestPayments() {
         log.warn("Deleting all test payments - SUPER ADMIN action");
         int deletedCount = paymentService.deleteTestPayments();
-        return ResponseEntity.ok(Map.of(
-            "message", "Test payments deleted successfully",
-            "deletedCount", deletedCount
-        ));
+        return ResponseEntity.ok(new DeleteResultRes("Test payments deleted successfully", deletedCount));
     }
 
     // Exception handling is managed by GlobalExceptionHandler for consistent error responses

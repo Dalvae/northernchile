@@ -1,17 +1,21 @@
 package com.northernchile.api.auth;
 
 import com.northernchile.api.auth.dto.LoginReq;
+import com.northernchile.api.auth.dto.LoginRes;
 import com.northernchile.api.auth.dto.RegisterReq;
 import com.northernchile.api.config.security.JwtUtil;
+import com.northernchile.api.util.UrlBuilder;
+import com.northernchile.api.exception.AccountLockedException;
 import com.northernchile.api.exception.EmailAlreadyExistsException;
 import com.northernchile.api.model.EmailVerificationToken;
 import com.northernchile.api.model.PasswordResetToken;
 import com.northernchile.api.model.User;
-import com.northernchile.api.notification.EmailService;
+import com.northernchile.api.notification.event.PasswordResetRequestedEvent;
+import com.northernchile.api.notification.event.UserRegisteredEvent;
 import com.northernchile.api.security.Role;
 import com.northernchile.api.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -23,9 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 
 @Service
 public class AuthService {
@@ -35,20 +37,22 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final TokenService tokenService;
-    private final EmailService emailService;
-
-    @Value("${NUXT_PUBLIC_BASE_URL:http://localhost:3000}")
-    private String frontendBaseUrl;
+    private final ApplicationEventPublisher eventPublisher;
+    private final UrlBuilder urlBuilder;
+    private final LoginAttemptService loginAttemptService;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                        AuthenticationConfiguration authenticationConfiguration, JwtUtil jwtUtil,
-                       TokenService tokenService, EmailService emailService) throws Exception {
+                       TokenService tokenService, ApplicationEventPublisher eventPublisher,
+                       UrlBuilder urlBuilder, LoginAttemptService loginAttemptService) throws Exception {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationConfiguration.getAuthenticationManager();
         this.jwtUtil = jwtUtil;
         this.tokenService = tokenService;
-        this.emailService = emailService;
+        this.eventPublisher = eventPublisher;
+        this.urlBuilder = urlBuilder;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @Transactional
@@ -70,12 +74,16 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        // Send verification email
+        // Publish event for verification email (decoupled from email sending)
         EmailVerificationToken token = tokenService.createEmailVerificationToken(savedUser);
-        String verificationUrl = frontendBaseUrl + "/verify-email?token=" + token.getToken();
+        String verificationUrl = urlBuilder.verificationUrl(token.getToken());
         String languageCode = getLanguageFromRequest(request);
-        emailService.sendVerificationEmail(savedUser.getEmail(), savedUser.getFullName(),
-                verificationUrl, languageCode);
+        eventPublisher.publishEvent(new UserRegisteredEvent(
+                savedUser.getEmail(),
+                savedUser.getFullName(),
+                verificationUrl,
+                languageCode
+        ));
 
         return savedUser;
     }
@@ -110,34 +118,48 @@ public class AuthService {
         return "es-CL"; // Default fallback
     }
 
-    public Map<String, Object> login(LoginReq loginReq) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginReq.email(), loginReq.password())
-        );
+    public LoginRes login(LoginReq loginReq) {
+        String email = loginReq.email();
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        // Check if account is locked due to too many failed attempts
+        if (loginAttemptService.isLocked(email)) {
+            long remainingSeconds = loginAttemptService.getRemainingLockoutSeconds(email);
+            throw new AccountLockedException(email, remainingSeconds);
+        }
 
-        User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found after authentication"));
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, loginReq.password())
+            );
 
-        // Generate JWT with userId and fullName included
-        String jwt = jwtUtil.generateToken(userDetails, user.getId().toString(), user.getFullName());
+            // Login successful - reset attempt counter
+            loginAttemptService.loginSucceeded(email);
 
-        Map<String, Object> userMap = new HashMap<>();
-        userMap.put("id", user.getId());
-        userMap.put("email", user.getEmail());
-        userMap.put("fullName", user.getFullName());
-        userMap.put("nationality", user.getNationality());
-        userMap.put("phoneNumber", user.getPhoneNumber());
-        userMap.put("dateOfBirth", user.getDateOfBirth());
-        userMap.put("role", user.getRole()); // Return role as singular String, not array
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("token", jwt);
-        response.put("user", userMap);
+            User user = userRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found after authentication"));
 
-        return response;
+            // Generate JWT with userId and fullName included
+            String jwt = jwtUtil.generateToken(userDetails, user.getId().toString(), user.getFullName());
+
+            LoginRes.UserData userData = new LoginRes.UserData(
+                user.getId(),
+                user.getEmail(),
+                user.getFullName(),
+                user.getNationality(),
+                user.getPhoneNumber(),
+                user.getDateOfBirth(),
+                user.getRole()
+            );
+
+            return new LoginRes(jwt, userData);
+        } catch (Exception e) {
+            // Login failed - record attempt
+            loginAttemptService.loginFailed(email);
+            throw e;
+        }
     }
 
     /**
@@ -164,10 +186,14 @@ public class AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         PasswordResetToken token = tokenService.createPasswordResetToken(user);
-        String resetUrl = frontendBaseUrl + "/auth?token=" + token.getToken();
+        String resetUrl = urlBuilder.passwordResetUrl(token.getToken());
 
-        emailService.sendPasswordResetEmail(user.getEmail(), user.getFullName(),
-                resetUrl, languageCode != null ? languageCode : "es-CL");
+        eventPublisher.publishEvent(new PasswordResetRequestedEvent(
+                user.getEmail(),
+                user.getFullName(),
+                resetUrl,
+                languageCode != null ? languageCode : "es-CL"
+        ));
     }
 
     /**
@@ -198,9 +224,13 @@ public class AuthService {
         }
 
         EmailVerificationToken token = tokenService.createEmailVerificationToken(user);
-        String verificationUrl = frontendBaseUrl + "/verify-email?token=" + token.getToken();
+        String verificationUrl = urlBuilder.verificationUrl(token.getToken());
 
-        emailService.sendVerificationEmail(user.getEmail(), user.getFullName(),
-                verificationUrl, languageCode != null ? languageCode : "es-CL");
+        eventPublisher.publishEvent(new UserRegisteredEvent(
+                user.getEmail(),
+                user.getFullName(),
+                verificationUrl,
+                languageCode != null ? languageCode : "es-CL"
+        ));
     }
 }

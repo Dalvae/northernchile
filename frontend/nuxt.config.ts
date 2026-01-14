@@ -250,12 +250,9 @@ export default defineNuxtConfig({
     defaultLocale: 'es',
     strategy: 'prefix_except_default',
     baseUrl: import.meta.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:3000',
-    detectBrowserLanguage: {
-      useCookie: true,
-      cookieKey: 'i18n_redirected',
-      redirectOn: 'no page', // Changed from 'root' to fix SEO indexing - crawlers now see content without redirects
-      fallbackLocale: 'en'
-    }
+    // Disabled automatic redirect for SEO - search engines (using en-US) would get redirected
+    // and not index Spanish content. LanguageSwitcher component handles manual suggestions instead.
+    detectBrowserLanguage: false
   },
   image: {
     format: ['webp', 'avif'],

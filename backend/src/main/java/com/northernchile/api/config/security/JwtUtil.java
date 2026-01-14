@@ -1,5 +1,6 @@
 package com.northernchile.api.config.security;
 
+import com.northernchile.api.config.properties.AuthProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -7,7 +8,8 @@ import io.jsonwebtoken.security.Keys;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import org.springframework.beans.factory.annotation.Value;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -21,18 +23,19 @@ import java.util.stream.Collectors;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final AuthProperties authProperties;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
+    public JwtUtil(AuthProperties authProperties) {
+        this.authProperties = authProperties;
+    }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+    public Instant extractExpiration(String token) {
+        Date expiration = extractClaim(token, Claims::getExpiration);
+        return expiration.toInstant();
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -41,7 +44,7 @@ public class JwtUtil {
     }
 
     private Key getSigningKey() {
-        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = authProperties.getJwt().getSecret().getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -54,7 +57,7 @@ public class JwtUtil {
     }
 
     private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        return extractExpiration(token).isBefore(Instant.now());
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -79,11 +82,14 @@ public class JwtUtil {
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
+        Instant now = Instant.now();
+        Instant expiration = now.plus(authProperties.getJwt().getExpiration(), ChronoUnit.MILLIS);
+
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(expiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

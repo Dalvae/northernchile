@@ -364,7 +364,7 @@
     "terms_text": "By continuing, you agree to our",
     "terms_of_service": "Terms of Service",
     "privacy_policy": "Privacy Policy",
-    "accept_terms": "I accept the Terms of Service and Privacy Policy",
+    "accept_terms": "I accept the",
     "accept_terms_required": "You must accept the terms to continue",
     "login_success": "Logged in successfully",
     "register_success": "Account created successfully",
@@ -911,9 +911,12 @@
     "code": "Code",
     "goHome": "Go to Homepage",
     "goBack": "Go Back",
+    "reload": "Reload page",
     "needHelp": "Need help?",
     "contactUs": "Contact us",
     "debugInfo": "Debug information",
+    "unexpected": "Something went wrong",
+    "tryAgain": "We're sorry, an unexpected error occurred. Please try again.",
     "404": {
       "title": "Oops! You got lost in the desert",
       "message": "The page you're looking for doesn't exist. Perhaps it was carried away by the Atacama wind."

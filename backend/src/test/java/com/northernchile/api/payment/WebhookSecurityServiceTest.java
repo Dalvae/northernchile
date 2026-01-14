@@ -1,31 +1,47 @@
 package com.northernchile.api.payment;
 
+import com.northernchile.api.config.properties.PaymentProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("WebhookSecurityService Tests")
 class WebhookSecurityServiceTest {
 
     private WebhookSecurityService webhookSecurityService;
+
+    @Mock
+    private PaymentProperties paymentProperties;
+
+    @Mock
+    private PaymentProperties.MercadoPago mercadoPagoConfig;
+
+    @Mock
+    private PaymentProperties.Transbank transbankConfig;
 
     private static final String TEST_MP_SECRET = "test-mercadopago-secret-key";
     private static final String TEST_TB_SECRET = "test-transbank-secret-key";
 
     @BeforeEach
     void setUp() {
-        webhookSecurityService = new WebhookSecurityService();
-        ReflectionTestUtils.setField(webhookSecurityService, "mercadoPagoSecret", TEST_MP_SECRET);
-        ReflectionTestUtils.setField(webhookSecurityService, "transbankSecret", TEST_TB_SECRET);
+        when(paymentProperties.getMercadopago()).thenReturn(mercadoPagoConfig);
+        when(paymentProperties.getTransbank()).thenReturn(transbankConfig);
+        when(mercadoPagoConfig.getWebhookSecret()).thenReturn(TEST_MP_SECRET);
+        when(transbankConfig.getWebhookSecret()).thenReturn(TEST_TB_SECRET);
+        webhookSecurityService = new WebhookSecurityService(paymentProperties);
     }
 
     @Nested
@@ -105,13 +121,14 @@ class WebhookSecurityServiceTest {
         @Test
         @DisplayName("Should reject when secret not configured")
         void shouldRejectWhenSecretNotConfigured() {
-            // Given
-            ReflectionTestUtils.setField(webhookSecurityService, "mercadoPagoSecret", "");
+            // Given - Create new instance with empty secret
+            when(mercadoPagoConfig.getWebhookSecret()).thenReturn("");
+            WebhookSecurityService serviceWithEmptySecret = new WebhookSecurityService(paymentProperties);
             String body = "{\"type\":\"payment\",\"id\":\"12345\"}";
             String signature = "some-signature";
 
             // When
-            boolean result = webhookSecurityService.verifyMercadoPagoSignature(body, signature);
+            boolean result = serviceWithEmptySecret.verifyMercadoPagoSignature(body, signature);
 
             // Then
             assertThat(result).isFalse();
@@ -153,13 +170,14 @@ class WebhookSecurityServiceTest {
         @Test
         @DisplayName("Should reject when Transbank secret not configured")
         void shouldRejectWhenTransbankSecretNotConfigured() {
-            // Given
-            ReflectionTestUtils.setField(webhookSecurityService, "transbankSecret", null);
+            // Given - Create new instance with null secret
+            when(transbankConfig.getWebhookSecret()).thenReturn(null);
+            WebhookSecurityService serviceWithNullSecret = new WebhookSecurityService(paymentProperties);
             String body = "{\"token\":\"abc123\"}";
             String signature = "some-signature";
 
             // When
-            boolean result = webhookSecurityService.verifyTransbankSignature(body, signature);
+            boolean result = serviceWithNullSecret.verifyTransbankSignature(body, signature);
 
             // Then
             assertThat(result).isFalse();

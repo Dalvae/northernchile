@@ -5,6 +5,8 @@ import com.northernchile.api.booking.dto.BookingClientUpdateReq;
 import com.northernchile.api.booking.dto.BookingCreateReq;
 import com.northernchile.api.booking.dto.BookingRes;
 import com.northernchile.api.booking.dto.ParticipantRes;
+import com.northernchile.api.config.NotificationConfig;
+import com.northernchile.api.config.properties.AppProperties;
 import com.northernchile.api.exception.BookingCutoffException;
 import com.northernchile.api.exception.InvalidBookingStateException;
 import com.northernchile.api.exception.ResourceNotFoundException;
@@ -17,13 +19,14 @@ import com.northernchile.api.notification.EmailService;
 import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
 import com.northernchile.api.tour.TourUtils;
+import com.northernchile.api.util.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -50,12 +53,8 @@ public class BookingService {
     private final BookingMapper bookingMapper;
     private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
     private final PricingService pricingService;
-
-    @Value("${notification.admin.email}")
-    private String adminEmail;
-
-    @Value("${booking.min-hours-before-tour:2}")
-    private int minHoursBeforeTour;
+    private final NotificationConfig notificationConfig;
+    private final AppProperties appProperties;
 
     public BookingService(
             BookingRepository bookingRepository,
@@ -64,7 +63,9 @@ public class BookingService {
             AuditLogService auditLogService,
             BookingMapper bookingMapper,
             com.northernchile.api.availability.AvailabilityValidator availabilityValidator,
-            PricingService pricingService) {
+            PricingService pricingService,
+            NotificationConfig notificationConfig,
+            AppProperties appProperties) {
         this.bookingRepository = bookingRepository;
         this.tourScheduleRepository = tourScheduleRepository;
         this.emailService = emailService;
@@ -72,6 +73,8 @@ public class BookingService {
         this.bookingMapper = bookingMapper;
         this.availabilityValidator = availabilityValidator;
         this.pricingService = pricingService;
+        this.notificationConfig = notificationConfig;
+        this.appProperties = appProperties;
     }
 
     @Transactional
@@ -117,10 +120,11 @@ public class BookingService {
 
     private void validateBookingCutoffTime(com.northernchile.api.model.TourSchedule schedule) {
         Instant now = Instant.now();
-        Instant cutoffTime = schedule.getStartDatetime().minus(minHoursBeforeTour, ChronoUnit.HOURS);
+        int minHours = appProperties.getBooking().getMinHoursBeforeTour();
+        Instant cutoffTime = schedule.getStartDatetime().minus(minHours, ChronoUnit.HOURS);
 
         if (now.isAfter(cutoffTime)) {
-            throw new BookingCutoffException(schedule.getId(), cutoffTime, minHoursBeforeTour);
+            throw new BookingCutoffException(schedule.getId(), cutoffTime, minHours);
         }
     }
 
@@ -130,7 +134,7 @@ public class BookingService {
         Booking booking = new Booking();
         booking.setUser(currentUser);
         booking.setSchedule(schedule);
-        booking.setTourDate(LocalDate.ofInstant(schedule.getStartDatetime(), java.time.ZoneId.of("America/Santiago")));
+        booking.setTourDate(LocalDate.ofInstant(schedule.getStartDatetime(), DateTimeUtils.CHILE_ZONE));
         booking.setStatus("PENDING");
         booking.setSubtotal(pricing.subtotal());
         booking.setTaxAmount(pricing.taxAmount());
@@ -175,10 +179,10 @@ public class BookingService {
         // Format date and time
         java.time.format.DateTimeFormatter dateFormatter =
                 java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                .withZone(java.time.ZoneId.of("America/Santiago"));
+                .withZone(DateTimeUtils.CHILE_ZONE);
         java.time.format.DateTimeFormatter timeFormatter =
                 java.time.format.DateTimeFormatter.ofPattern("HH:mm")
-                .withZone(java.time.ZoneId.of("America/Santiago"));
+                .withZone(DateTimeUtils.CHILE_ZONE);
 
         String tourDate = dateFormatter.format(schedule.getStartDatetime());
         String tourTime = timeFormatter.format(schedule.getStartDatetime());
@@ -206,36 +210,25 @@ public class BookingService {
         }
 
         // Also send to general admin (contacto@northernchile) if different from owner
+        String adminEmail = notificationConfig.getAdminEmail();
         if (adminEmail != null && (tourOwner == null || !adminEmail.equalsIgnoreCase(tourOwner.getEmail()))) {
             emailService.sendNewBookingNotificationToAdmin(booking, adminEmail);
             log.info("Sent booking notification to general admin: {}", adminEmail);
         }
     }
 
-    @Transactional(readOnly = true)
-    public List<BookingRes> getAllBookingsForAdmin() {
-        return bookingRepository.findAllWithDetails().stream()
-                .map(bookingMapper::toBookingRes)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<BookingRes> getBookingsByTourOwner(User owner) {
-        return bookingRepository.findByTourOwnerId(owner.getId()).stream()
-                .map(bookingMapper::toBookingRes)
-                .collect(Collectors.toList());
-    }
-
     /**
-     * Get bookings for admin based on their role.
+     * Get paginated bookings for admin based on their role.
      * SUPER_ADMIN sees all bookings, PARTNER_ADMIN sees only their tours' bookings.
      */
     @Transactional(readOnly = true)
-    public List<BookingRes> getBookingsForAdmin(User admin) {
+    public Page<BookingRes> getBookingsForAdminPaged(User admin, Pageable pageable) {
         if (Role.SUPER_ADMIN.getRoleName().equals(admin.getRole())) {
-            return getAllBookingsForAdmin();
+            return bookingRepository.findAllWithDetailsPaged(pageable)
+                    .map(bookingMapper::toBookingRes);
         } else {
-            return getBookingsByTourOwner(admin);
+            return bookingRepository.findByTourOwnerIdPaged(admin.getId(), pageable)
+                    .map(bookingMapper::toBookingRes);
         }
     }
 

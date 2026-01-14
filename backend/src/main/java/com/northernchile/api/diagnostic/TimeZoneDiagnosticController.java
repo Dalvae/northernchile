@@ -1,5 +1,6 @@
 package com.northernchile.api.diagnostic;
 
+import com.northernchile.api.util.DateTimeUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,8 +21,6 @@ import java.util.*;
 @RequestMapping("/api/diagnostic")
 public class TimeZoneDiagnosticController {
 
-    private static final ZoneId ZONE_ID = ZoneId.of("America/Santiago");
-
     /**
      * GET /api/diagnostic/timezone
      *
@@ -38,21 +37,21 @@ public class TimeZoneDiagnosticController {
         Map<String, Object> info = new HashMap<>();
 
         // Información básica
-        info.put("zoneId", ZONE_ID.getId());
+        info.put("zoneId", DateTimeUtils.CHILE_ZONE.getId());
         info.put("currentUtcTime", Instant.now().toString());
 
         // Hora actual en Chile
-        ZonedDateTime nowInChile = ZonedDateTime.now(ZONE_ID);
+        ZonedDateTime nowInChile = ZonedDateTime.now(DateTimeUtils.CHILE_ZONE);
         info.put("currentChileTime", nowInChile.toString());
         info.put("currentOffset", nowInChile.getOffset().toString());
 
         // Determinar si estamos en horario de verano
-        boolean isDST = ZONE_ID.getRules().isDaylightSavings(Instant.now());
+        boolean isDST = DateTimeUtils.CHILE_ZONE.getRules().isDaylightSavings(Instant.now());
         info.put("isDaylightSavingTime", isDST);
         info.put("timezoneName", isDST ? "CLST (Chile Summer Time)" : "CLT (Chile Standard Time)");
 
         // Próximas transiciones DST
-        ZoneRules rules = ZONE_ID.getRules();
+        ZoneRules rules = DateTimeUtils.CHILE_ZONE.getRules();
         List<Map<String, String>> transitions = new ArrayList<>();
 
         Instant searchFrom = Instant.now();
@@ -60,7 +59,7 @@ public class TimeZoneDiagnosticController {
             ZoneOffsetTransition transition = rules.nextTransition(searchFrom);
             if (transition != null) {
                 Map<String, String> transitionInfo = new HashMap<>();
-                ZonedDateTime transitionTime = ZonedDateTime.ofInstant(transition.getInstant(), ZONE_ID);
+                ZonedDateTime transitionTime = ZonedDateTime.ofInstant(transition.getInstant(), DateTimeUtils.CHILE_ZONE);
 
                 transitionInfo.put("dateTime", transitionTime.toString());
                 transitionInfo.put("offsetBefore", transition.getOffsetBefore().toString());
@@ -78,13 +77,13 @@ public class TimeZoneDiagnosticController {
 
         // Ejemplo verano (enero)
         LocalDate summerDate = LocalDate.of(2025, 1, 15);
-        ZonedDateTime summerZdt = summerDate.atStartOfDay(ZONE_ID);
+        ZonedDateTime summerZdt = summerDate.atStartOfDay(DateTimeUtils.CHILE_ZONE);
         examples.put("2025-01-15_00:00_Chile", summerZdt.toInstant().toString());
         examples.put("2025-01-15_offset", summerZdt.getOffset().toString());
 
         // Ejemplo invierno (julio)
         LocalDate winterDate = LocalDate.of(2025, 7, 15);
-        ZonedDateTime winterZdt = winterDate.atStartOfDay(ZONE_ID);
+        ZonedDateTime winterZdt = winterDate.atStartOfDay(DateTimeUtils.CHILE_ZONE);
         examples.put("2025-07-15_00:00_Chile", winterZdt.toInstant().toString());
         examples.put("2025-07-15_offset", winterZdt.getOffset().toString());
 
@@ -113,7 +112,7 @@ public class TimeZoneDiagnosticController {
             ZoneId.of("America/Santiago");
 
             // Verificar que hay transiciones DST desde 2024
-            ZoneRules rules = ZONE_ID.getRules();
+            ZoneRules rules = DateTimeUtils.CHILE_ZONE.getRules();
             Instant start2024 = LocalDateTime.of(2024, 1, 1, 0, 0)
                 .toInstant(ZoneOffset.ofHours(-3));
 
@@ -124,7 +123,7 @@ public class TimeZoneDiagnosticController {
             }
 
             // Verificar offset actual es correcto (-3 o -4)
-            ZonedDateTime now = ZonedDateTime.now(ZONE_ID);
+            ZonedDateTime now = ZonedDateTime.now(DateTimeUtils.CHILE_ZONE);
             int offsetHours = now.getOffset().getTotalSeconds() / 3600;
 
             if (offsetHours != -3 && offsetHours != -4) {

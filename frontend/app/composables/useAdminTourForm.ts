@@ -1,7 +1,7 @@
 // composables/useAdminTourForm.ts
 import { z } from 'zod'
 import type { FormSubmitEvent, FormErrorEvent, FormError } from '@nuxt/ui'
-import type { TourRes, TourCreateReq, TourUpdateReq, ContentBlock, ItineraryItem, LocalTime } from 'api-client'
+import type { TourRes, TourCreateReq, TourUpdateReq, ContentBlock, ItineraryItem } from 'api-client'
 
 // Schema definition
 const schema = z.object({
@@ -59,26 +59,8 @@ const initialState: TourSchema = {
   descriptionBlocksTranslations: undefined
 }
 
-/**
- * Convert LocalTime object to HH:mm string
- */
-function localTimeToString(lt?: LocalTime): string | undefined {
-  if (!lt || lt.hour === undefined) return undefined
-  const h = String(lt.hour).padStart(2, '0')
-  const m = String(lt.minute ?? 0).padStart(2, '0')
-  return `${h}:${m}`
-}
-
-/**
- * Convert HH:mm string to LocalTime object
- */
-function stringToLocalTime(str?: string): LocalTime | undefined {
-  if (!str) return undefined
-  const [hour, minute] = str.split(':').map(Number)
-  return { hour, minute, second: 0, nano: 0 }
-}
-
 export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event: 'success') => void) => {
+  const { localTimeToString, stringToLocalTime } = useDateTime()
   const { createAdminTour, updateAdminTour } = useAdminData()
   const toast = useToast()
   const loading = ref(false)

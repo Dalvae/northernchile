@@ -1,17 +1,23 @@
 package com.northernchile.api.external;
 
+import com.northernchile.api.config.properties.WeatherProperties;
 import com.northernchile.api.external.dto.DailyForecast;
 import com.northernchile.api.external.dto.FiveDayForecastResponse;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.northernchile.api.util.DateTimeUtils;
+
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,43 +30,59 @@ import java.util.stream.Collectors;
 public class WeatherService {
 
     private static final Logger log = LoggerFactory.getLogger(WeatherService.class);
-    private static final ZoneId ZONE_ID = ZoneId.of("America/Santiago");
+
+    /** Conversion factor: 1 knot = 0.514444 m/s (OpenWeather uses m/s) */
+    private static final double KNOTS_TO_MS = 0.514444;
+
+    /**
+     * Configuration for RestTemplate bean used by WeatherService
+     */
+    @Configuration
+    static class RestTemplateConfig {
+        @Bean
+        RestTemplate weatherRestTemplate(RestTemplateBuilder builder) {
+            return builder
+                    .connectTimeout(Duration.ofSeconds(5))
+                    .readTimeout(Duration.ofSeconds(10))
+                    .build();
+        }
+    }
+
+    private final RestTemplate restTemplate;
+    private final WeatherProperties weatherProperties;
 
     // Self-injection to allow internal calls to pass through the Spring proxy (for @Cacheable)
     @org.springframework.context.annotation.Lazy
     @org.springframework.beans.factory.annotation.Autowired
     private WeatherService self;
 
-    @Value("${weather.api.key:dummy}")
-    private String apiKey;
-
-    // San Pedro de Atacama coordinates
-    @Value("${weather.api.lat:-22.9083}")
-    private String latitude;
-
-    @Value("${weather.api.lon:-68.1999}")
-    private String longitude;
+    public WeatherService(RestTemplate weatherRestTemplate, WeatherProperties weatherProperties) {
+        this.restTemplate = weatherRestTemplate;
+        this.weatherProperties = weatherProperties;
+    }
 
     /**
      * Obtiene pronóstico de 5 días con datos cada 3 horas (API gratuita)
      * Caché de 3 horas para evitar llamadas excesivas
+     * Circuit breaker protects against cascading failures when weather API is down.
      * @return Datos agrupados por día con temperaturas, viento, nubes, etc.
      */
     @Cacheable(value = "weatherForecast", key = "'fiveday'")
+    @CircuitBreaker(name = "weather", fallbackMethod = "getForecastFallback")
     public Map<String, Object> getForecast() {
-        if ("dummy".equals(apiKey)) {
+        var api = weatherProperties.getApi();
+        if ("dummy".equals(api.getKey())) {
             log.warn("API key is 'dummy', skipping weather fetch");
             return createEmptyForecast();
         }
 
         // Free 5 Day / 3 Hour Forecast API
         String url = String.format("https://api.openweathermap.org/data/2.5/forecast?lat=%s&lon=%s&units=metric&appid=%s",
-                latitude, longitude, apiKey);
+                api.getLat(), api.getLon(), api.getKey());
 
-        log.debug("Fetching weather from: {}", url.replace(apiKey, "***"));
+        log.debug("Fetching weather from: {}", url.replace(api.getKey(), "***"));
 
         try {
-            RestTemplate restTemplate = new RestTemplate();
             FiveDayForecastResponse response = restTemplate.getForObject(url, FiveDayForecastResponse.class);
 
             if (response == null) {
@@ -86,13 +108,22 @@ public class WeatherService {
     }
 
     /**
+     * Fallback method called when circuit breaker is open or call fails.
+     * Returns empty forecast to allow graceful degradation.
+     */
+    private Map<String, Object> getForecastFallback(Throwable t) {
+        log.warn("Weather circuit breaker fallback triggered: {}", t.getMessage());
+        return createEmptyForecast();
+    }
+
+    /**
      * Procesa los datos de 3 horas y los agrupa por día
      */
     private Map<String, Object> processForecastData(FiveDayForecastResponse response) {
         // Agrupar items por fecha
         Map<LocalDate, List<FiveDayForecastResponse.ForecastItem>> byDay = response.list().stream()
                 .collect(Collectors.groupingBy(item ->
-                    Instant.ofEpochSecond(item.dt()).atZone(ZONE_ID).toLocalDate()
+                    Instant.ofEpochSecond(item.dt()).atZone(DateTimeUtils.CHILE_ZONE).toLocalDate()
                 ));
 
         // Convertir a formato que espera el frontend
@@ -137,7 +168,7 @@ public class WeatherService {
                     // Timestamp del mediodía (para dt)
                     long dt = items.stream()
                             .filter(i -> {
-                                int hour = Instant.ofEpochSecond(i.dt()).atZone(ZONE_ID).getHour();
+                                int hour = Instant.ofEpochSecond(i.dt()).atZone(DateTimeUtils.CHILE_ZONE).getHour();
                                 return hour >= 12 && hour <= 15;
                             })
                             .findFirst()
@@ -184,9 +215,7 @@ public class WeatherService {
      * @return true si el viento supera el umbral
      */
     public boolean isWindAboveThreshold(LocalDate date, double thresholdKnots) {
-        // Convertir nudos a m/s (OpenWeather usa m/s)
-        // 1 nudo = 0.514444 m/s
-        double thresholdMs = thresholdKnots * 0.514444;
+        double thresholdMs = thresholdKnots * KNOTS_TO_MS;
 
         Map<String, Object> forecast = self.getForecast();
         if (forecast == null || !forecast.containsKey("daily")) {
@@ -200,7 +229,7 @@ public class WeatherService {
                 .filter(day -> {
                     long dt = ((Number) day.get("dt")).longValue();
                     LocalDate forecastDate = Instant.ofEpochSecond(dt)
-                            .atZone(ZONE_ID)
+                            .atZone(DateTimeUtils.CHILE_ZONE)
                             .toLocalDate();
                     return forecastDate.equals(date);
                 })
@@ -232,7 +261,7 @@ public class WeatherService {
                 .filter(day -> {
                     long dt = ((Number) day.get("dt")).longValue();
                     LocalDate forecastDate = Instant.ofEpochSecond(dt)
-                            .atZone(ZONE_ID)
+                            .atZone(DateTimeUtils.CHILE_ZONE)
                             .toLocalDate();
                     return forecastDate.equals(date);
                 })
@@ -260,7 +289,7 @@ public class WeatherService {
                 .filter(day -> {
                     long dt = ((Number) day.get("dt")).longValue();
                     LocalDate forecastDate = Instant.ofEpochSecond(dt)
-                            .atZone(ZONE_ID)
+                            .atZone(DateTimeUtils.CHILE_ZONE)
                             .toLocalDate();
                     return forecastDate.equals(date);
                 })

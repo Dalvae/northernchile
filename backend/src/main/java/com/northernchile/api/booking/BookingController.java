@@ -9,8 +9,10 @@ import com.northernchile.api.model.User;
 import com.northernchile.api.security.AuthorizationService;
 import com.northernchile.api.security.Permission;
 import com.northernchile.api.security.annotations.RequiresPermission;
-import com.northernchile.api.user.UserRepository;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,15 +25,12 @@ import java.util.UUID;
 public class BookingController {
 
     private final BookingService bookingService;
-    private final UserRepository userRepository;
     private final AuthorizationService authorizationService;
 
     public BookingController(
             BookingService bookingService,
-            UserRepository userRepository,
             AuthorizationService authorizationService) {
         this.bookingService = bookingService;
-        this.userRepository = userRepository;
         this.authorizationService = authorizationService;
     }
 
@@ -109,13 +108,16 @@ public class BookingController {
     // ==================== ADMIN ENDPOINTS ====================
 
     /**
-     * Get all bookings for admin (filtered by ownership for Partner Admin)
+     * Get paginated bookings for admin (filtered by ownership for Partner Admin).
+     * Supports pagination via ?page=0&size=20&sort=createdAt,desc
      */
     @GetMapping("/admin/bookings")
     @RequiresPermission(Permission.VIEW_ALL_BOOKINGS)
-    public ResponseEntity<List<BookingRes>> getAdminBookings(@CurrentUser User currentUser) {
-        List<BookingRes> bookings = bookingService.getBookingsForAdmin(currentUser);
-        return new ResponseEntity<>(bookings, HttpStatus.OK);
+    public ResponseEntity<Page<BookingRes>> getAdminBookings(
+            @CurrentUser User currentUser,
+            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+        Page<BookingRes> bookings = bookingService.getBookingsForAdminPaged(currentUser, pageable);
+        return ResponseEntity.ok(bookings);
     }
 
     /**

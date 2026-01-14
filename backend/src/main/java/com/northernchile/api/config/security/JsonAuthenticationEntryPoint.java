@@ -31,16 +31,27 @@ public class JsonAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
-        
+
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+        // Check for specific JWT error from filter
+        String errorCode = (String) request.getAttribute(JwtAuthenticationFilter.JWT_ERROR_CODE_ATTR);
+        String errorMessage = (String) request.getAttribute(JwtAuthenticationFilter.JWT_ERROR_MESSAGE_ATTR);
 
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("timestamp", Instant.now().toString());
         errorResponse.put("status", HttpServletResponse.SC_UNAUTHORIZED);
         errorResponse.put("error", "Unauthorized");
-        errorResponse.put("message", "Authentication required to access this resource");
         errorResponse.put("path", request.getRequestURI());
+
+        // Provide specific error message if available
+        if (errorCode != null) {
+            errorResponse.put("code", errorCode);
+            errorResponse.put("message", errorMessage);
+        } else {
+            errorResponse.put("message", "Authentication required to access this resource");
+        }
 
         objectMapper.writeValue(response.getOutputStream(), errorResponse);
     }

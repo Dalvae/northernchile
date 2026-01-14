@@ -15,6 +15,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.northernchile.api.util.DateTimeUtils;
+
 import java.time.*;
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +36,6 @@ public class TourScheduleGeneratorService {
     private static final int HARD_WEATHER_WINDOW_DAYS = 2;
 
     private static final double WIND_THRESHOLD_KNOTS = 25.0;
-    private static final ZoneId ZONE_ID = ZoneId.of("America/Santiago");
 
     private final TourRepository tourRepository;
     private final TourScheduleRepository tourScheduleRepository;
@@ -66,7 +67,7 @@ public class TourScheduleGeneratorService {
     public void generateSchedulesAutomatically() {
         logger.info("Iniciando generación automática de schedules");
 
-        LocalDate today = LocalDate.now(ZONE_ID);
+        LocalDate today = LocalDate.now(DateTimeUtils.CHILE_ZONE);
 
         // Solo tours recurrentes y publicados
         List<Tour> recurringTours = tourRepository.findByRecurringTrueAndStatus("PUBLISHED");
@@ -140,7 +141,7 @@ public class TourScheduleGeneratorService {
             ExecutionTime executionTime = ExecutionTime.forCron(cron);
 
             // Verificar si la fecha coincide con la expresión cron
-            ZonedDateTime dateTime = date.atStartOfDay(ZONE_ID);
+            ZonedDateTime dateTime = date.atStartOfDay(DateTimeUtils.CHILE_ZONE);
             Optional<ZonedDateTime> nextExecution = executionTime.nextExecution(dateTime.minusDays(1));
 
             return nextExecution.isPresent() && nextExecution.get().toLocalDate().equals(date);
@@ -158,7 +159,7 @@ public class TourScheduleGeneratorService {
      * (límite del pronóstico de OpenWeatherMap). Más allá de 8 días, solo se valida luna.
      */
     private boolean isDateValid(Tour tour, LocalDate date) {
-        LocalDate today = LocalDate.now(ZONE_ID);
+        LocalDate today = LocalDate.now(DateTimeUtils.CHILE_ZONE);
         long daysFromNow = java.time.temporal.ChronoUnit.DAYS.between(today, date);
 
         // Restricción por luminosidad lunar para tours sensibles a la luna
@@ -197,8 +198,8 @@ public class TourScheduleGeneratorService {
      * Verifica si ya existe un schedule para este tour en esta fecha
      */
     private boolean scheduleExists(Tour tour, LocalDate date) {
-        ZonedDateTime startOfDay = date.atStartOfDay(ZONE_ID);
-        ZonedDateTime endOfDay = date.plusDays(1).atStartOfDay(ZONE_ID);
+        ZonedDateTime startOfDay = date.atStartOfDay(DateTimeUtils.CHILE_ZONE);
+        ZonedDateTime endOfDay = date.plusDays(1).atStartOfDay(DateTimeUtils.CHILE_ZONE);
 
         Instant startInstant = startOfDay.toInstant();
         Instant endInstant = endOfDay.toInstant();
@@ -218,7 +219,7 @@ public class TourScheduleGeneratorService {
                 ? tour.getDefaultStartTime()
                 : LocalTime.of(20, 0); // Default a las 20:00 si no está definido
 
-        ZonedDateTime startDateTime = ZonedDateTime.of(date, startTime, ZONE_ID);
+        ZonedDateTime startDateTime = ZonedDateTime.of(date, startTime, DateTimeUtils.CHILE_ZONE);
         Instant startInstant = startDateTime.toInstant();
 
         TourSchedule schedule = new TourSchedule();

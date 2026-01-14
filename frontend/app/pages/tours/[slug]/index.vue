@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import type { TourRes, TourScheduleRes, ContentBlock, TourImageRes, ItineraryItem } from 'api-client'
 import { useCalendarData } from '~/composables/useCalendarData'
+import { logger } from '~/utils/logger'
 import { useCurrency } from '~/composables/useCurrency'
 import { getTodayString, getLocalDateString } from '~/utils/dateUtils'
 import { useIntersectionObserver } from '@vueuse/core'
@@ -40,7 +41,7 @@ async function fetchContent(contentKey: string | undefined) {
     const contentModule = await import(`~/app/content/tours/${contentKey}.ts`)
     tourContent.value = contentModule.default
   } catch {
-    console.error(
+    logger.error(
       'No se encontró contenido enriquecido para la clave:',
       contentKey
     )
@@ -285,7 +286,7 @@ onMounted(async () => {
       currentWeatherLabel.value = 'Sin pronóstico'
     }
   } catch (e) {
-    console.error('Error cargando datos ambientales', e)
+    logger.error('Error cargando datos ambientales', e)
     currentMoonLabel.value = '-'
     currentWeatherLabel.value = '-'
   }
@@ -364,7 +365,7 @@ async function fetchSchedules() {
     // Store all schedules (TourScheduleRes already contains tour info)
     allSchedules.value = response || []
   } catch (e) {
-    console.error('Error fetching schedules:', e)
+    logger.error('Error fetching schedules:', e)
     allSchedules.value = []
   } finally {
     loadingSchedules.value = false

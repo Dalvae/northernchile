@@ -24,8 +24,12 @@ public abstract class TourMapper {
 
     protected static final Logger log = LoggerFactory.getLogger(TourMapper.class);
 
-    @Autowired
     protected S3StorageService s3StorageService;
+
+    @Autowired
+    public void setS3StorageService(S3StorageService s3StorageService) {
+        this.s3StorageService = s3StorageService;
+    }
 
     @Mappings({
             @Mapping(target = "id", source = "tour.id"),

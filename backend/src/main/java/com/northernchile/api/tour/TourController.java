@@ -9,7 +9,6 @@ import com.northernchile.api.security.annotations.RequiresPermission;
 import com.northernchile.api.tour.dto.TourCreateReq;
 import com.northernchile.api.tour.dto.TourRes;
 import com.northernchile.api.tour.dto.TourUpdateReq;
-import com.northernchile.api.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,19 +22,16 @@ import java.util.UUID;
 public class TourController {
 
     private final TourService tourService;
-    private final UserRepository userRepository;
     private final TourRepository tourRepository;
     private final TourMapper tourMapper;
     private final AuthorizationService authorizationService;
 
     public TourController(
             TourService tourService,
-            UserRepository userRepository,
             TourRepository tourRepository,
             TourMapper tourMapper,
             AuthorizationService authorizationService) {
         this.tourService = tourService;
-        this.userRepository = userRepository;
         this.tourRepository = tourRepository;
         this.tourMapper = tourMapper;
         this.authorizationService = authorizationService;

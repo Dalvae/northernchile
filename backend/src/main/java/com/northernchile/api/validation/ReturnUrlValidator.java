@@ -1,11 +1,10 @@
 package com.northernchile.api.validation;
 
+import com.northernchile.api.config.properties.AppProperties;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -15,10 +14,12 @@ import java.util.List;
 @Component
 public class ReturnUrlValidator implements ConstraintValidator<ValidReturnUrl, String> {
 
-    @Value("${app.security.allowed-redirect-domains:http://localhost:3000,https://www.northernchile.com,https://northernchile.com}")
-    private String allowedDomainsConfig;
-
+    private final AppProperties appProperties;
     private boolean nullable;
+
+    public ReturnUrlValidator(AppProperties appProperties) {
+        this.appProperties = appProperties;
+    }
 
     @Override
     public void initialize(ValidReturnUrl constraintAnnotation) {
@@ -32,8 +33,8 @@ public class ReturnUrlValidator implements ConstraintValidator<ValidReturnUrl, S
             return nullable;
         }
 
-        // Parse allowed domains from configuration
-        List<String> allowedDomains = Arrays.asList(allowedDomainsConfig.split(","));
+        // Get allowed domains from configuration
+        List<String> allowedDomains = appProperties.getSecurity().getAllowedRedirectDomains();
 
         // Check if URL starts with any allowed domain
         boolean isValid = allowedDomains.stream()
@@ -42,7 +43,7 @@ public class ReturnUrlValidator implements ConstraintValidator<ValidReturnUrl, S
         if (!isValid) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(
-                "Return URL must start with one of the allowed domains: " + allowedDomainsConfig
+                "Return URL must start with one of the allowed domains: " + String.join(",", allowedDomains)
             ).addConstraintViolation();
         }
 

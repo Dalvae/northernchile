@@ -436,7 +436,7 @@
 </template>
 
 <script setup lang="ts">
-import type { WeatherAlert } from 'api-client'
+import type { WeatherAlertRes, AlertHistoryRes } from 'api-client'
 import { getStatusColor } from '~/utils/adminOptions'
 
 definePageMeta({
@@ -450,33 +450,18 @@ useHead({
 const toast = useToast()
 const { formatDateTime: formatDate } = useDateTime()
 
-// Extended alert type with additional UI fields
-interface AlertWithDetails extends WeatherAlert {
-  title?: string
-  description?: string
-  scheduleDate?: string
-  tourScheduleId?: string
-  moonIllumination?: number
-}
-
 // State
 const pending = ref(false)
 const refreshing = ref(false)
 const checking = ref(false)
 const resolving = ref(false)
 const showResolveModal = ref(false)
-const selectedAlert = ref<AlertWithDetails | null>(null)
-
-// Alerts data
-interface AlertHistoryResponse {
-  all: AlertWithDetails[]
-  bySchedule: Record<string, AlertWithDetails[]>
-}
+const selectedAlert = ref<WeatherAlertRes | null>(null)
 
 const { data: alertsData, refresh: refreshAlerts } = await useAsyncData(
   'admin-alerts',
   async () => {
-    const response = await $fetch<AlertHistoryResponse>(
+    const response = await $fetch<AlertHistoryRes>(
       '/api/admin/alerts/history'
     )
     return response
@@ -533,25 +518,25 @@ const filteredAlerts = computed(() => {
 
   if (filters.value.status !== 'ALL') {
     filtered = filtered.filter(
-      (alert: AlertWithDetails) => alert.status === filters.value.status
+      (alert: WeatherAlertRes) => alert.status === filters.value.status
     )
   }
 
   if (filters.value.severity !== 'ALL') {
     filtered = filtered.filter(
-      (alert: AlertWithDetails) => alert.severity === filters.value.severity
+      (alert: WeatherAlertRes) => alert.severity === filters.value.severity
     )
   }
 
   if (filters.value.type !== 'ALL') {
     filtered = filtered.filter(
-      (alert: AlertWithDetails) => alert.alertType === filters.value.type
+      (alert: WeatherAlertRes) => alert.alertType === filters.value.type
     )
   }
 
   // Sort by createdAt descending (newest first)
   return filtered.sort(
-    (a: AlertWithDetails, b: AlertWithDetails) =>
+    (a: WeatherAlertRes, b: WeatherAlertRes) =>
       new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
   )
 })
@@ -561,11 +546,11 @@ const stats = computed(() => {
     return { pending: 0, cancelled: 0, kept: 0, rescheduled: 0 }
 
   return {
-    pending: alertsData.value.all.filter((a: AlertWithDetails) => a.status === 'PENDING').length,
-    cancelled: alertsData.value.all.filter((a: AlertWithDetails) => a.status === 'CANCELLED')
+    pending: alertsData.value.all.filter((a: WeatherAlertRes) => a.status === 'PENDING').length,
+    cancelled: alertsData.value.all.filter((a: WeatherAlertRes) => a.status === 'CANCELLED')
       .length,
-    kept: alertsData.value.all.filter((a: AlertWithDetails) => a.status === 'KEPT').length,
-    rescheduled: alertsData.value.all.filter((a: AlertWithDetails) => a.status === 'RESCHEDULED')
+    kept: alertsData.value.all.filter((a: WeatherAlertRes) => a.status === 'KEPT').length,
+    rescheduled: alertsData.value.all.filter((a: WeatherAlertRes) => a.status === 'RESCHEDULED')
       .length
   }
 })
@@ -600,7 +585,7 @@ const checkAlertsManually = async () => {
   }
 }
 
-const openResolveModal = (alert: AlertWithDetails, resolution: string) => {
+const openResolveModal = (alert: WeatherAlertRes, resolution: string) => {
   selectedAlert.value = alert
   resolveForm.value = {
     resolution,

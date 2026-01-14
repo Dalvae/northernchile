@@ -9,18 +9,17 @@ import com.northernchile.api.user.dto.UserCreateReq;
 import com.northernchile.api.user.dto.UserRes;
 import com.northernchile.api.user.dto.UserUpdateReq;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -42,11 +41,13 @@ public class UserService {
         this.userMapper = userMapper;
     }
 
-    public List<UserRes> getAllUsers() {
-        return userRepository.findAll().stream()
-                .filter(user -> user.getDeletedAt() == null)
-                .map(userMapper::toUserRes)
-                .collect(Collectors.toList());
+    /**
+     * Get paginated list of active (non-deleted) users.
+     */
+    @Transactional(readOnly = true)
+    public Page<UserRes> getAllUsersPaged(Pageable pageable) {
+        return userRepository.findByDeletedAtIsNull(pageable)
+                .map(userMapper::toUserRes);
     }
 
     public Optional<UserRes> getUserById(UUID userId) {

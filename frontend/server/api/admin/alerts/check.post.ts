@@ -1,6 +1,10 @@
-import type { WeatherAlert } from 'api-client'
 import { proxyPostNoBody } from '../../../utils/apiProxy'
 
+interface CheckAlertsResponse {
+  message: string
+  pendingAlerts: number
+}
+
 export default defineEventHandler(event =>
-  proxyPostNoBody<WeatherAlert[]>(event, '/api/admin/alerts/check', 'Failed to check alerts')
+  proxyPostNoBody<CheckAlertsResponse>(event, '/api/admin/alerts/check', 'Failed to check alerts')
 )

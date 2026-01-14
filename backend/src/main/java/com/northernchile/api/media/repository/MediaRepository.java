@@ -119,6 +119,13 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
     List<Media> findByTourIdOrderByDisplayOrderAsc(UUID tourId);
 
     /**
+     * Find media for multiple tours in a single query (batch loading to avoid N+1)
+     * Results are ordered by tour_id and display_order for proper grouping
+     */
+    @Query("SELECT m FROM Media m WHERE m.tour.id IN :tourIds ORDER BY m.tour.id, m.displayOrder ASC")
+    List<Media> findByTourIdInOrderByDisplayOrder(@Param("tourIds") List<UUID> tourIds);
+
+    /**
      * Find media by schedule ordered by display order
      */
     List<Media> findByScheduleIdOrderByDisplayOrderAsc(UUID scheduleId);

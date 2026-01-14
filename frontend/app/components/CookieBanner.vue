@@ -5,13 +5,22 @@ const { shouldShowBanner, acceptCookies, rejectCookies } = useCookieConsent()
 // Show banner after user scrolls or after 3 seconds
 const showBanner = ref(false)
 const hasInteracted = ref(false)
+const fallbackTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
 
 // Detect scroll interaction
 function handleScroll() {
   if (!hasInteracted.value && window.scrollY > 100) {
     hasInteracted.value = true
     showBanner.value = true
-    window.removeEventListener('scroll', handleScroll)
+    cleanup()
+  }
+}
+
+function cleanup() {
+  window.removeEventListener('scroll', handleScroll)
+  if (fallbackTimeout.value) {
+    clearTimeout(fallbackTimeout.value)
+    fallbackTimeout.value = null
   }
 }
 
@@ -22,17 +31,17 @@ onMounted(() => {
     window.addEventListener('scroll', handleScroll)
 
     // Fallback: show after 3 seconds if no scroll
-    setTimeout(() => {
+    fallbackTimeout.value = setTimeout(() => {
       if (!hasInteracted.value) {
         showBanner.value = true
-        window.removeEventListener('scroll', handleScroll)
+        cleanup()
       }
     }, 3000)
   }
 })
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
+  cleanup()
 })
 
 function handleAccept() {

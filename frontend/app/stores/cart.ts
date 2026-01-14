@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { CartRes, CartItemReq, CartItemRes } from 'api-client'
+import logger from '~/utils/logger'
 
 declare global {
   interface Window {
@@ -65,7 +66,7 @@ export const useCartStore = defineStore('cart', () => {
 
   function startOperation(key: string): boolean {
     if (pendingOperations.value.has(key)) {
-      console.warn(`Operation already pending for: ${key}`)
+      logger.warn(`Operation already pending for: ${key}`)
       return false // Operation already in progress
     }
     pendingOperations.value.add(key)
@@ -98,7 +99,7 @@ export const useCartStore = defineStore('cart', () => {
       _cart.value = response
       isInitialized.value = true
     } catch (error) {
-      console.error('Error fetching cart:', error)
+      logger.error('Error fetching cart:', error)
       // Reset to default on error
       _cart.value = { ...defaultCart }
       isInitialized.value = true
@@ -117,7 +118,7 @@ export const useCartStore = defineStore('cart', () => {
 
     // Prevent duplicate add for same schedule
     if (!startOperation(operationKey)) {
-      console.warn('Add operation already in progress for this schedule')
+      logger.warn('Add operation already in progress for this schedule')
       return false
     }
 
@@ -177,7 +178,7 @@ export const useCartStore = defineStore('cart', () => {
 
       return true
     } catch (error) {
-      console.error('Error adding item to cart:', error)
+      logger.error('Error adding item to cart:', error)
       // Revert to previous state on error
       _cart.value = previousCart
 
@@ -202,7 +203,7 @@ export const useCartStore = defineStore('cart', () => {
 
     // Prevent duplicate remove
     if (!startOperation(operationKey)) {
-      console.warn('Remove operation already in progress for this item')
+      logger.warn('Remove operation already in progress for this item')
       return false
     }
 
@@ -230,7 +231,7 @@ export const useCartStore = defineStore('cart', () => {
 
       return true
     } catch (error) {
-      console.error('Error removing item from cart:', error)
+      logger.error('Error removing item from cart:', error)
       // Revert on error
       _cart.value = previousCart
       showErrorToast(error, t('cart.error_removing', 'Error al eliminar del carrito'))
@@ -258,7 +259,7 @@ export const useCartStore = defineStore('cart', () => {
         credentials: 'include'
       })
     } catch (error) {
-      console.warn('Could not clear cart on backend:', error)
+      logger.warn('Could not clear cart on backend:', error)
     }
   }
 

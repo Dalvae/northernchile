@@ -1,9 +1,10 @@
 package com.northernchile.api.booking;
 
 import com.northernchile.api.model.Booking;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -49,22 +50,31 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
            "WHERE b.id = :id")
     Optional<Booking> findByIdWithDetails(UUID id);
 
-    @Query("SELECT DISTINCT b FROM Booking b " +
+    /**
+     * Paginated version of findAllWithDetails for admin listing.
+     */
+    @Query(value = "SELECT DISTINCT b FROM Booking b " +
            "LEFT JOIN FETCH b.schedule s " +
            "LEFT JOIN FETCH s.tour t " +
            "LEFT JOIN FETCH t.owner " +
            "LEFT JOIN FETCH b.user " +
-           "LEFT JOIN FETCH b.participants")
-    List<Booking> findAllWithDetails();
+           "LEFT JOIN FETCH b.participants",
+           countQuery = "SELECT COUNT(DISTINCT b) FROM Booking b")
+    Page<Booking> findAllWithDetailsPaged(Pageable pageable);
 
-    @Query("SELECT DISTINCT b FROM Booking b " +
+    /**
+     * Paginated bookings filtered by tour owner for partner admin listing.
+     */
+    @Query(value = "SELECT DISTINCT b FROM Booking b " +
            "LEFT JOIN FETCH b.schedule s " +
            "LEFT JOIN FETCH s.tour t " +
            "LEFT JOIN FETCH t.owner o " +
            "LEFT JOIN FETCH b.user " +
            "LEFT JOIN FETCH b.participants " +
-           "WHERE o.id = :ownerId")
-    List<Booking> findByTourOwnerId(UUID ownerId);
+           "WHERE o.id = :ownerId",
+           countQuery = "SELECT COUNT(DISTINCT b) FROM Booking b " +
+           "JOIN b.schedule s JOIN s.tour t JOIN t.owner o WHERE o.id = :ownerId")
+    Page<Booking> findByTourOwnerIdPaged(@Param("ownerId") UUID ownerId, Pageable pageable);
 
     @Query("SELECT DISTINCT b FROM Booking b " +
            "LEFT JOIN FETCH b.schedule s " +

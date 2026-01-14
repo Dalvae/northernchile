@@ -364,7 +364,7 @@
     "terms_text": "Al continuar, aceptas nuestros",
     "terms_of_service": "Términos de Servicio",
     "privacy_policy": "Política de Privacidad",
-    "accept_terms": "Acepto los Términos de Servicio y la Política de Privacidad",
+    "accept_terms": "Acepto los",
     "accept_terms_required": "Debes aceptar los términos para continuar",
     "login_success": "Sesión iniciada correctamente",
     "register_success": "Cuenta creada correctamente",
@@ -911,9 +911,12 @@
     "code": "Código",
     "goHome": "Volver al Inicio",
     "goBack": "Regresar",
+    "reload": "Recargar página",
     "needHelp": "¿Necesitas ayuda?",
     "contactUs": "Contáctanos",
     "debugInfo": "Información de depuración",
+    "unexpected": "Algo salió mal",
+    "tryAgain": "Lo sentimos, ocurrió un error inesperado. Por favor, intenta nuevamente.",
     "404": {
       "title": "¡Ups! Te perdiste en el desierto",
       "message": "La página que buscas no existe. Quizás fue llevada por el viento del Atacama."

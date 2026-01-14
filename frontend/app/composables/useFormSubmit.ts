@@ -1,5 +1,6 @@
 /**
  * Composable for handling form submissions with loading state and error handling.
+ * Built on top of useApiError for consistent error handling.
  *
  * @example
  * const { loading, submit } = useFormSubmit()
@@ -7,7 +8,7 @@
  * async function handleSubmit() {
  *   const result = await submit(
  *     () => $fetch('/api/users', { method: 'POST', body: userData }),
- *     { successMessage: t('user.created'), errorMessage: t('user.createError') }
+ *     { successMessage: t('user.created'), errorTitle: t('user.createError') }
  *   )
  *   if (result) {
  *     emit('success')
@@ -15,12 +16,10 @@
  * }
  */
 export function useFormSubmit() {
-  const toast = useToast()
-  const { t } = useI18n()
-  const { extractErrorMessage } = useApiError()
+  const { showErrorToast, showSuccessToast, parseError } = useApiError()
 
   const loading = ref(false)
-  const error = ref<Error | null>(null)
+  const error = ref<ReturnType<typeof parseError> | null>(null)
 
   /**
    * Submit a form with automatic loading state and toast notifications.
@@ -33,7 +32,8 @@ export function useFormSubmit() {
     fn: () => Promise<T>,
     options?: {
       successMessage?: string
-      errorMessage?: string
+      successDescription?: string
+      errorTitle?: string
       showSuccessToast?: boolean
       showErrorToast?: boolean
     }
@@ -48,25 +48,16 @@ export function useFormSubmit() {
       const result = await fn()
 
       if (showSuccess && options?.successMessage) {
-        toast.add({
-          title: options.successMessage,
-          color: 'success',
-          icon: 'i-heroicons-check-circle'
-        })
+        showSuccessToast(options.successMessage, options.successDescription)
       }
 
       return result
     } catch (e) {
-      error.value = e as Error
-      const errorMsg = extractErrorMessage(e)
+      const apiError = parseError(e)
+      error.value = apiError
 
       if (showError) {
-        toast.add({
-          title: options?.errorMessage || t('common.error'),
-          description: errorMsg,
-          color: 'error',
-          icon: 'i-heroicons-exclamation-triangle'
-        })
+        showErrorToast(e, options?.errorTitle)
       }
 
       return null

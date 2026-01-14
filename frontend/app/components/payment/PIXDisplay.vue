@@ -41,7 +41,7 @@ async function copyPixCode() {
       description: t('payment.pix.code_copied_description')
     })
 
-    setTimeout(() => {
+    copyResetTimeout.value = setTimeout(() => {
       pixCodeCopied.value = false
     }, 3000)
   } catch {
@@ -78,6 +78,8 @@ function updateTimeRemaining() {
 
 // Start countdown and polling
 const countdownInterval = ref<ReturnType<typeof setInterval> | null>(null)
+const copyResetTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
+const redirectTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
 
 onMounted(() => {
   // Update time remaining every second
@@ -91,6 +93,12 @@ onMounted(() => {
 onUnmounted(() => {
   if (countdownInterval.value) {
     clearInterval(countdownInterval.value)
+  }
+  if (copyResetTimeout.value) {
+    clearTimeout(copyResetTimeout.value)
+  }
+  if (redirectTimeout.value) {
+    clearTimeout(redirectTimeout.value)
   }
   paymentStore.stopPolling()
 })
@@ -110,7 +118,7 @@ watch(
       })
 
       // Redirect to success page after short delay
-      setTimeout(() => {
+      redirectTimeout.value = setTimeout(() => {
         router.push({
           path: localePath('/payment/callback'),
           query: {

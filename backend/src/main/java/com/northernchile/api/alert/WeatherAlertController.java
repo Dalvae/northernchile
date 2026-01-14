@@ -1,5 +1,11 @@
 package com.northernchile.api.alert;
 
+import com.northernchile.api.alert.dto.AlertCheckRes;
+import com.northernchile.api.alert.dto.AlertCountRes;
+import com.northernchile.api.alert.dto.AlertHistoryRes;
+import com.northernchile.api.alert.dto.WeatherAlertMapper;
+import com.northernchile.api.alert.dto.WeatherAlertRes;
+import com.northernchile.api.common.dto.MessageRes;
 import com.northernchile.api.config.security.annotation.CurrentUser;
 import com.northernchile.api.model.User;
 import com.northernchile.api.model.WeatherAlert;
@@ -8,7 +14,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Controlador para gestión de alertas climáticas
@@ -21,35 +26,42 @@ public class WeatherAlertController {
 
     private final WeatherAlertService alertService;
     private final WeatherAlertRepository alertRepository;
+    private final WeatherAlertMapper alertMapper;
 
-    public WeatherAlertController(WeatherAlertService alertService, WeatherAlertRepository alertRepository) {
+    public WeatherAlertController(
+            WeatherAlertService alertService,
+            WeatherAlertRepository alertRepository,
+            WeatherAlertMapper alertMapper) {
         this.alertService = alertService;
         this.alertRepository = alertRepository;
+        this.alertMapper = alertMapper;
     }
 
     /**
      * Obtiene todas las alertas pendientes
      */
     @GetMapping
-    public List<WeatherAlert> getPendingAlerts() {
-        return alertService.getPendingAlerts();
+    public List<WeatherAlertRes> getPendingAlerts() {
+        List<WeatherAlert> alerts = alertRepository.findByStatusWithScheduleAndTour("PENDING");
+        return alertMapper.toResList(alerts);
     }
 
     /**
      * Obtiene el conteo de alertas pendientes (para mostrar badge)
      */
     @GetMapping("/count")
-    public Map<String, Long> getPendingAlertsCount() {
+    public AlertCountRes getPendingAlertsCount() {
         long count = alertService.countPendingAlerts();
-        return Map.of("pending", count);
+        return new AlertCountRes(count);
     }
 
     /**
      * Obtiene una alerta por ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<WeatherAlert> getAlertById(@PathVariable String id) {
-        return alertRepository.findById(java.util.UUID.fromString(id))
+    public ResponseEntity<WeatherAlertRes> getAlertById(@PathVariable String id) {
+        return alertRepository.findByIdWithScheduleAndTour(java.util.UUID.fromString(id))
+                .map(alertMapper::toRes)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -58,24 +70,21 @@ public class WeatherAlertController {
      * Obtiene alertas para un schedule específico
      */
     @GetMapping("/schedule/{scheduleId}")
-    public List<WeatherAlert> getAlertsBySchedule(@PathVariable String scheduleId) {
-        return alertRepository.findByTourSchedule_Id(java.util.UUID.fromString(scheduleId));
+    public List<WeatherAlertRes> getAlertsBySchedule(@PathVariable String scheduleId) {
+        List<WeatherAlert> alerts = alertRepository.findByScheduleIdWithTour(java.util.UUID.fromString(scheduleId));
+        return alertMapper.toResList(alerts);
     }
 
     /**
      * Resuelve una alerta
      */
     @PostMapping("/{id}/resolve")
-    public ResponseEntity<Map<String, String>> resolveAlert(
+    public ResponseEntity<MessageRes> resolveAlert(
             @PathVariable String id,
             @jakarta.validation.Valid @RequestBody ResolveAlertRequest request,
             @CurrentUser User currentUser) {
-        try {
-            alertService.resolveAlert(id, request.resolution(), currentUser.getId().toString());
-            return ResponseEntity.ok(Map.of("message", "Alert resolved successfully"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+        alertService.resolveAlert(id, request.resolution(), currentUser.getId().toString());
+        return ResponseEntity.ok(MessageRes.of("Alert resolved successfully"));
     }
 
     /**
@@ -83,20 +92,18 @@ public class WeatherAlertController {
      */
     @PostMapping("/check")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<Map<String, Object>> checkAlertsManually() {
+    public ResponseEntity<AlertCheckRes> checkAlertsManually() {
         int pendingCount = alertService.checkWeatherAlertsManually();
-        return ResponseEntity.ok(Map.of(
-                "message", "Verificación completada",
-                "pendingAlerts", pendingCount
-        ));
+        return ResponseEntity.ok(new AlertCheckRes("Verificación completada", pendingCount));
     }
 
     /**
      * Obtiene historial de alertas (resueltas + pendientes)
      */
     @GetMapping("/history")
-    public List<WeatherAlert> getAlertsHistory() {
-        return alertRepository.findAll();
+    public AlertHistoryRes getAlertsHistory() {
+        List<WeatherAlert> alerts = alertRepository.findAllWithScheduleAndTour();
+        return alertMapper.toHistoryRes(alerts);
     }
 
     record ResolveAlertRequest(String resolution) {}

@@ -7,7 +7,7 @@ import com.northernchile.api.media.repository.MediaRepository;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.User;
-import com.northernchile.api.security.Role;
+import com.northernchile.api.security.AuthorizationService;
 import com.northernchile.api.storage.S3StorageService;
 import com.northernchile.api.tour.TourRepository;
 import com.northernchile.api.tour.TourScheduleRepository;
@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,65 +42,105 @@ public class MediaService {
     private final UserRepository userRepository;
     private final S3StorageService s3StorageService;
     private final MediaMapper mediaMapper;
+    private final AuthorizationService authorizationService;
 
     public MediaService(MediaRepository mediaRepository,
                        TourRepository tourRepository,
                        TourScheduleRepository scheduleRepository,
                        UserRepository userRepository,
                        S3StorageService s3StorageService,
-                       MediaMapper mediaMapper) {
+                       MediaMapper mediaMapper,
+                       AuthorizationService authorizationService) {
         this.mediaRepository = mediaRepository;
         this.tourRepository = tourRepository;
         this.scheduleRepository = scheduleRepository;
         this.userRepository = userRepository;
         this.s3StorageService = s3StorageService;
         this.mediaMapper = mediaMapper;
+        this.authorizationService = authorizationService;
+    }
+
+    // ============= Helper methods for DRY entity lookup + access verification =============
+
+    /**
+     * Find user by ID or throw EntityNotFoundException.
+     */
+    private User findUserOrThrow(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + userId));
     }
 
     /**
-     * Verify if the requester has access to a tour.
-     * SUPER_ADMIN can access any tour, PARTNER_ADMIN only their own tours.
+     * Find tour by ID or throw EntityNotFoundException.
      */
-    private void verifyTourAccess(User requester, Tour tour) {
-        boolean isSuperAdmin = requester.getRole().equals(Role.SUPER_ADMIN.getRoleName());
-        boolean isOwner = tour.getOwner().getId().equals(requester.getId());
+    private Tour findTourOrThrow(UUID tourId) {
+        return tourRepository.findById(tourId)
+                .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
+    }
 
-        if (!isSuperAdmin && !isOwner) {
-            throw new AccessDeniedException("You don't have permission to access this tour");
+    /**
+     * Find schedule by ID or throw EntityNotFoundException.
+     */
+    private TourSchedule findScheduleOrThrow(UUID scheduleId) {
+        return scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
+    }
+
+    /**
+     * Find media by ID or throw EntityNotFoundException.
+     */
+    private Media findMediaOrThrow(UUID mediaId) {
+        return mediaRepository.findById(mediaId)
+                .orElseThrow(() -> new EntityNotFoundException("Media not found: " + mediaId));
+    }
+
+    /**
+     * Find tour and verify requester has access.
+     * Uses AuthorizationService for centralized ownership verification.
+     */
+    private Tour findTourWithAccess(UUID tourId, UUID requesterId) {
+        Tour tour = findTourOrThrow(tourId);
+        authorizationService.checkOwnership(tour, "You don't have permission to access this tour");
+        return tour;
+    }
+
+    /**
+     * Find schedule and verify requester has access (through parent tour).
+     * Uses AuthorizationService for centralized ownership verification.
+     */
+    private TourSchedule findScheduleWithAccess(UUID scheduleId, UUID requesterId) {
+        TourSchedule schedule = findScheduleOrThrow(scheduleId);
+        // TourSchedule doesn't implement OwnedEntity, so we check access via its parent Tour
+        authorizationService.checkOwnership(schedule.getTour(), "You don't have permission to access this schedule");
+        return schedule;
+    }
+
+    /**
+     * Find media and verify requester has access.
+     * Uses AuthorizationService for centralized ownership verification.
+     */
+    private Media findMediaWithAccess(UUID mediaId, UUID requesterId) {
+        Media media = findMediaOrThrow(mediaId);
+        authorizationService.checkOwnership(media, "You don't have permission to access this media");
+        return media;
+    }
+
+    /**
+     * Verify that media is assigned to a specific tour.
+     */
+    private void verifyMediaBelongsToTour(Media media, UUID tourId) {
+        if (media.getTour() == null || !media.getTour().getId().equals(tourId)) {
+            throw new IllegalArgumentException("Media " + media.getId() + " is not assigned to tour " + tourId);
         }
     }
 
     /**
-     * Verify if the requester has access to a schedule (through its parent tour).
-     * SUPER_ADMIN can access any schedule, PARTNER_ADMIN only their own schedules.
+     * Verify that media is assigned to a specific schedule.
      */
-    private void verifyScheduleAccess(User requester, TourSchedule schedule) {
-        boolean isSuperAdmin = requester.getRole().equals(Role.SUPER_ADMIN.getRoleName());
-        boolean isOwner = schedule.getTour().getOwner().getId().equals(requester.getId());
-
-        if (!isSuperAdmin && !isOwner) {
-            throw new AccessDeniedException("You don't have permission to access this schedule");
+    private void verifyMediaBelongsToSchedule(Media media, UUID scheduleId) {
+        if (media.getSchedule() == null || !media.getSchedule().getId().equals(scheduleId)) {
+            throw new IllegalArgumentException("Media " + media.getId() + " is not assigned to schedule " + scheduleId);
         }
-    }
-
-    /**
-     * Verify if the requester has access to media.
-     * SUPER_ADMIN can access any media, PARTNER_ADMIN only their own media.
-     */
-    private void verifyMediaAccess(User requester, Media media) {
-        boolean isSuperAdmin = requester.getRole().equals(Role.SUPER_ADMIN.getRoleName());
-        boolean isOwner = media.getOwner().getId().equals(requester.getId());
-
-        if (!isSuperAdmin && !isOwner) {
-            throw new AccessDeniedException("You don't have permission to access this media");
-        }
-    }
-
-    /**
-     * Check if the requester is a SUPER_ADMIN.
-     */
-    private boolean isSuperAdmin(User user) {
-        return user.getRole().equals(Role.SUPER_ADMIN.getRoleName());
     }
 
     /**
@@ -167,9 +206,9 @@ public class MediaService {
         if (tourId != null) {
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
-            verifyTourAccess(owner, tour);
+            authorizationService.checkOwnership(tour, "You don't have permission to access this tour");
             media.setTour(tour);
-            
+
             // Get next display order for this tour
             Integer maxOrder = mediaRepository.getMaxDisplayOrderByTour(tourId);
             media.setDisplayOrder(maxOrder != null ? maxOrder + 1 : 0);
@@ -178,9 +217,10 @@ public class MediaService {
         if (scheduleId != null) {
             TourSchedule schedule = scheduleRepository.findById(scheduleId)
                     .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
-            verifyScheduleAccess(owner, schedule);
+            // TourSchedule doesn't implement OwnedEntity, so we check access via its parent Tour
+            authorizationService.checkOwnership(schedule.getTour(), "You don't have permission to access this schedule");
             media.setSchedule(schedule);
-            
+
             // Get next display order for this schedule
             Integer maxOrder = mediaRepository.getMaxDisplayOrderBySchedule(scheduleId);
             media.setDisplayOrder(maxOrder != null ? maxOrder + 1 : 0);
@@ -196,14 +236,7 @@ public class MediaService {
      * Get media by ID.
      */
     public MediaRes getMedia(UUID id, UUID requesterId) {
-        Media media = mediaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Media not found: " + id));
-
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
-
-        verifyMediaAccess(requester, media);
-
+        Media media = findMediaWithAccess(id, requesterId);
         return mediaMapper.toMediaRes(media);
     }
 
@@ -214,10 +247,9 @@ public class MediaService {
     public Page<MediaRes> listMedia(UUID requesterId, UUID tourId, UUID scheduleId, String type, String search, Pageable pageable) {
         log.info("Listing media for requester: {}, tour: {}, schedule: {}, type: {}, search: {}", requesterId, tourId, scheduleId, type, search);
 
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
+        User requester = findUserOrThrow(requesterId);
 
-        boolean isSuperAdmin = isSuperAdmin(requester);
+        boolean isSuperAdmin = authorizationService.isSuperAdmin();
 
         Page<Media> mediaPage;
 
@@ -273,31 +305,11 @@ public class MediaService {
     public MediaRes updateMedia(UUID id, MediaUpdateReq req, UUID requesterId) {
         log.info("Updating media: {}", id);
 
-        Media media = mediaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Media not found: " + id));
-
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
-
-        verifyMediaAccess(requester, media);
-
+        Media media = findMediaWithAccess(id, requesterId);
         mediaMapper.updateMediaFromReq(req, media);
 
-        if (req.tourId() != null) {
-            Tour tour = tourRepository.findById(req.tourId())
-                    .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + req.tourId()));
-            media.setTour(tour);
-        } else {
-            media.setTour(null);
-        }
-
-        if (req.scheduleId() != null) {
-            TourSchedule schedule = scheduleRepository.findById(req.scheduleId())
-                    .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + req.scheduleId()));
-            media.setSchedule(schedule);
-        } else {
-            media.setSchedule(null);
-        }
+        media.setTour(req.tourId() != null ? findTourOrThrow(req.tourId()) : null);
+        media.setSchedule(req.scheduleId() != null ? findScheduleOrThrow(req.scheduleId()) : null);
 
         Media updated = mediaRepository.save(media);
         log.info("Media updated: {}", id);
@@ -312,13 +324,7 @@ public class MediaService {
     public void deleteMedia(UUID id, UUID requesterId) {
         log.info("Deleting media: {}", id);
 
-        Media media = mediaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Media not found: " + id));
-
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
-
-        verifyMediaAccess(requester, media);
+        Media media = findMediaWithAccess(id, requesterId);
 
         try {
             s3StorageService.deleteFile(media.getS3Key());
@@ -339,22 +345,13 @@ public class MediaService {
     public void assignMediaToTour(UUID tourId, List<UUID> mediaIds, UUID requesterId) {
         log.info("Assigning {} media items to tour: {}", mediaIds.size(), tourId);
 
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
-
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
-
-        verifyTourAccess(requester, tour);
+        Tour tour = findTourWithAccess(tourId, requesterId);
 
         Integer maxOrder = mediaRepository.getMaxDisplayOrderByTour(tourId);
         int currentOrder = maxOrder != null ? maxOrder : -1;
 
         for (UUID mediaId : mediaIds) {
-            Media media = mediaRepository.findById(mediaId)
-                    .orElseThrow(() -> new EntityNotFoundException("Media not found: " + mediaId));
-
-            verifyMediaAccess(requester, media);
+            Media media = findMediaWithAccess(mediaId, requesterId);
 
             // Check if already assigned
             if (media.getTour() != null && media.getTour().getId().equals(tourId)) {
@@ -378,23 +375,9 @@ public class MediaService {
     public void unassignMediaFromTour(UUID tourId, UUID mediaId, UUID requesterId) {
         log.info("Unassigning media {} from tour: {}", mediaId, tourId);
 
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
-
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
-
-        verifyTourAccess(requester, tour);
-
-        Media media = mediaRepository.findById(mediaId)
-                .orElseThrow(() -> new EntityNotFoundException("Media not found: " + mediaId));
-
-        // Verify media belongs to this tour
-        if (media.getTour() == null || !media.getTour().getId().equals(tourId)) {
-            throw new IllegalArgumentException("Media " + mediaId + " is not assigned to tour " + tourId);
-        }
-
-        verifyMediaAccess(requester, media);
+        findTourWithAccess(tourId, requesterId);
+        Media media = findMediaWithAccess(mediaId, requesterId);
+        verifyMediaBelongsToTour(media, tourId);
 
         // Unassign by clearing tour reference
         media.setTour(null);
@@ -413,24 +396,14 @@ public class MediaService {
     public void reorderTourMedia(UUID tourId, List<MediaOrderReq> orders, UUID requesterId) {
         log.info("Reordering media for tour: {}", tourId);
 
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
-
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
-
-        verifyTourAccess(requester, tour);
+        findTourWithAccess(tourId, requesterId);
 
         // Step 1: Set all to temporary high values to avoid unique constraint conflicts
         int tempOffset = 10000;
         for (int i = 0; i < orders.size(); i++) {
             MediaOrderReq order = orders.get(i);
-            Media media = mediaRepository.findById(order.mediaId())
-                    .orElseThrow(() -> new EntityNotFoundException("Media not found: " + order.mediaId()));
-
-            if (media.getTour() == null || !media.getTour().getId().equals(tourId)) {
-                throw new IllegalArgumentException("Media " + order.mediaId() + " is not assigned to tour " + tourId);
-            }
+            Media media = findMediaOrThrow(order.mediaId());
+            verifyMediaBelongsToTour(media, tourId);
 
             media.setDisplayOrder(tempOffset + i);
             mediaRepository.save(media);
@@ -441,9 +414,7 @@ public class MediaService {
 
         // Step 3: Set final display orders
         for (MediaOrderReq order : orders) {
-            Media media = mediaRepository.findById(order.mediaId())
-                    .orElseThrow(() -> new EntityNotFoundException("Media not found: " + order.mediaId()));
-
+            Media media = findMediaOrThrow(order.mediaId());
             media.setDisplayOrder(order.displayOrder());
             mediaRepository.save(media);
         }
@@ -458,20 +429,9 @@ public class MediaService {
     public void setHeroImage(UUID tourId, UUID mediaId, UUID requesterId) {
         log.info("Setting hero image for tour: {}, media: {}", tourId, mediaId);
 
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
-
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
-
-        verifyTourAccess(requester, tour);
-
-        Media media = mediaRepository.findById(mediaId)
-                .orElseThrow(() -> new EntityNotFoundException("Media not found: " + mediaId));
-
-        if (media.getTour() == null || !media.getTour().getId().equals(tourId)) {
-            throw new IllegalArgumentException("Media not assigned to this tour");
-        }
+        findTourWithAccess(tourId, requesterId);
+        Media media = findMediaOrThrow(mediaId);
+        verifyMediaBelongsToTour(media, tourId);
 
         // Unset current hero
         mediaRepository.unsetHeroByTour(tourId);
@@ -491,20 +451,9 @@ public class MediaService {
     public void toggleFeatured(UUID tourId, UUID mediaId, UUID requesterId) {
         log.info("Toggling featured status for tour: {}, media: {}", tourId, mediaId);
 
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
-
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
-
-        verifyTourAccess(requester, tour);
-
-        Media media = mediaRepository.findById(mediaId)
-                .orElseThrow(() -> new EntityNotFoundException("Media not found: " + mediaId));
-
-        if (media.getTour() == null || !media.getTour().getId().equals(tourId)) {
-            throw new IllegalArgumentException("Media not assigned to this tour");
-        }
+        findTourWithAccess(tourId, requesterId);
+        Media media = findMediaOrThrow(mediaId);
+        verifyMediaBelongsToTour(media, tourId);
 
         // Toggle the featured status
         media.setIsFeatured(!Boolean.TRUE.equals(media.getIsFeatured()));
@@ -519,17 +468,9 @@ public class MediaService {
     public List<MediaRes> getTourGallery(UUID tourId, UUID requesterId) {
         log.info("Getting gallery for tour: {}", tourId);
 
-        Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
+        findTourWithAccess(tourId, requesterId);
 
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
-
-        verifyTourAccess(requester, tour);
-
-        List<Media> mediaList = mediaRepository.findByTourIdOrderByDisplayOrderAsc(tourId);
-
-        return mediaList.stream()
+        return mediaRepository.findByTourIdOrderByDisplayOrderAsc(tourId).stream()
                 .map(mediaMapper::toMediaRes)
                 .toList();
     }
@@ -541,22 +482,13 @@ public class MediaService {
     public void assignMediaToSchedule(UUID scheduleId, List<UUID> mediaIds, UUID requesterId) {
         log.info("Assigning {} media items to schedule: {}", mediaIds.size(), scheduleId);
 
-        TourSchedule schedule = scheduleRepository.findById(scheduleId)
-                .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
-
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
-
-        verifyScheduleAccess(requester, schedule);
+        TourSchedule schedule = findScheduleWithAccess(scheduleId, requesterId);
 
         Integer maxOrder = mediaRepository.getMaxDisplayOrderBySchedule(scheduleId);
         int currentOrder = maxOrder != null ? maxOrder : -1;
 
         for (UUID mediaId : mediaIds) {
-            Media media = mediaRepository.findById(mediaId)
-                    .orElseThrow(() -> new EntityNotFoundException("Media not found: " + mediaId));
-
-            verifyMediaAccess(requester, media);
+            Media media = findMediaWithAccess(mediaId, requesterId);
 
             // Check if already assigned
             if (media.getSchedule() != null && media.getSchedule().getId().equals(scheduleId)) {
@@ -580,23 +512,9 @@ public class MediaService {
     public void unassignMediaFromSchedule(UUID scheduleId, UUID mediaId, UUID requesterId) {
         log.info("Unassigning media {} from schedule: {}", mediaId, scheduleId);
 
-        TourSchedule schedule = scheduleRepository.findById(scheduleId)
-                .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
-
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
-
-        verifyScheduleAccess(requester, schedule);
-
-        Media media = mediaRepository.findById(mediaId)
-                .orElseThrow(() -> new EntityNotFoundException("Media not found: " + mediaId));
-
-        // Verify media belongs to this schedule
-        if (media.getSchedule() == null || !media.getSchedule().getId().equals(scheduleId)) {
-            throw new IllegalArgumentException("Media " + mediaId + " is not assigned to schedule " + scheduleId);
-        }
-
-        verifyMediaAccess(requester, media);
+        findScheduleWithAccess(scheduleId, requesterId);
+        Media media = findMediaWithAccess(mediaId, requesterId);
+        verifyMediaBelongsToSchedule(media, scheduleId);
 
         // Unassign by clearing schedule reference
         media.setSchedule(null);
@@ -613,21 +531,11 @@ public class MediaService {
     public void reorderScheduleMedia(UUID scheduleId, List<MediaOrderReq> orders, UUID requesterId) {
         log.info("Reordering media for schedule: {}", scheduleId);
 
-        TourSchedule schedule = scheduleRepository.findById(scheduleId)
-                .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
-
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
-
-        verifyScheduleAccess(requester, schedule);
+        findScheduleWithAccess(scheduleId, requesterId);
 
         for (MediaOrderReq order : orders) {
-            Media media = mediaRepository.findById(order.mediaId())
-                    .orElseThrow(() -> new EntityNotFoundException("Media not found: " + order.mediaId()));
-
-            if (media.getSchedule() == null || !media.getSchedule().getId().equals(scheduleId)) {
-                throw new IllegalArgumentException("Media " + order.mediaId() + " is not assigned to schedule " + scheduleId);
-            }
+            Media media = findMediaOrThrow(order.mediaId());
+            verifyMediaBelongsToSchedule(media, scheduleId);
 
             media.setDisplayOrder(order.displayOrder());
             mediaRepository.save(media);
@@ -643,32 +551,18 @@ public class MediaService {
     public List<MediaRes> getScheduleGallery(UUID scheduleId, UUID requesterId) {
         log.info("Getting gallery for schedule: {}", scheduleId);
 
-        TourSchedule schedule = scheduleRepository.findById(scheduleId)
-                .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
-
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + requesterId));
-
-        verifyScheduleAccess(requester, schedule);
+        TourSchedule schedule = findScheduleWithAccess(scheduleId, requesterId);
 
         List<MediaRes> result = new java.util.ArrayList<>();
 
         // Get inherited media from parent tour
         UUID tourId = schedule.getTour().getId();
-        List<Media> tourMediaList = mediaRepository.findByTourIdOrderByDisplayOrderAsc(tourId);
-
-        for (Media m : tourMediaList) {
-            MediaRes res = mediaMapper.toMediaRes(m).withIsInherited(true); // Mark as inherited from tour
-            result.add(res);
-        }
+        mediaRepository.findByTourIdOrderByDisplayOrderAsc(tourId).forEach(m ->
+                result.add(mediaMapper.toMediaRes(m).withIsInherited(true)));
 
         // Get schedule-specific media
-        List<Media> scheduleMediaList = mediaRepository.findByScheduleIdOrderByDisplayOrderAsc(scheduleId);
-
-        for (Media m : scheduleMediaList) {
-            MediaRes res = mediaMapper.toMediaRes(m).withIsInherited(false); // Mark as schedule-specific
-            result.add(res);
-        }
+        mediaRepository.findByScheduleIdOrderByDisplayOrderAsc(scheduleId).forEach(m ->
+                result.add(mediaMapper.toMediaRes(m).withIsInherited(false)));
 
         return result;
     }

@@ -4,8 +4,6 @@ import com.northernchile.api.config.security.annotation.CurrentUser;
 import com.northernchile.api.model.User;
 import com.northernchile.api.tour.dto.TourScheduleCreateReq;
 import com.northernchile.api.tour.dto.TourScheduleRes;
-import com.northernchile.api.user.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,11 +16,9 @@ import java.util.UUID;
 public class TourScheduleController {
 
     private final TourScheduleService tourScheduleService;
-    private final UserRepository userRepository;
 
-    public TourScheduleController(TourScheduleService tourScheduleService, UserRepository userRepository) {
+    public TourScheduleController(TourScheduleService tourScheduleService) {
         this.tourScheduleService = tourScheduleService;
-        this.userRepository = userRepository;
     }
 
     @PostMapping
