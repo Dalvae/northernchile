@@ -246,10 +246,10 @@ public class CartService {
 
     /**
      * Scheduled task to delete expired carts.
-     * Runs every 15 minutes to cleanup carts that have passed their expiration time.
-     * Interval increased from 5 min to reduce database compute costs on Neon.
+     * Runs every hour to cleanup carts that have passed their expiration time.
+     * Interval increased from 15 min to reduce database compute costs on Neon.
      */
-    @org.springframework.scheduling.annotation.Scheduled(cron = "0 */15 * * * *")
+    @org.springframework.scheduling.annotation.Scheduled(cron = "0 0 * * * *")
     @Transactional
     public void cleanupExpiredCarts() {
         Instant now = Instant.now();
