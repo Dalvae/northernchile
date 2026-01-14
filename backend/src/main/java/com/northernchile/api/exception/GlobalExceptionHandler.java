@@ -17,7 +17,6 @@ import org.springframework.web.context.request.WebRequest;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,10 +48,18 @@ public class GlobalExceptionHandler {
         this.messageProvider = messageProvider;
     }
 
+    /**
+     * Returns true only if explicitly running in dev or local profile.
+     * Production (no profiles or 'prod' profile) returns false to protect stack traces.
+     */
     private boolean isDevMode() {
-        return Arrays.asList(environment.getActiveProfiles()).contains("dev")
-            || Arrays.asList(environment.getActiveProfiles()).contains("local")
-            || Arrays.asList(environment.getActiveProfiles()).isEmpty(); // Default to dev if no profile
+        String[] activeProfiles = environment.getActiveProfiles();
+        for (String profile : activeProfiles) {
+            if ("dev".equals(profile) || "local".equals(profile)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private String getStackTraceAsString(Exception ex) {
