@@ -1,5 +1,8 @@
 package com.northernchile.api.config.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -20,6 +23,18 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
+    /**
+     * Request attribute key for JWT error code.
+     * Used by JsonAuthenticationEntryPoint to provide specific error messages.
+     */
+    public static final String JWT_ERROR_CODE_ATTR = "jwt_error_code";
+    public static final String JWT_ERROR_MESSAGE_ATTR = "jwt_error_message";
+
+    // Error codes for JWT validation failures
+    public static final String ERROR_TOKEN_EXPIRED = "token_expired";
+    public static final String ERROR_TOKEN_INVALID = "token_invalid";
+    public static final String ERROR_TOKEN_SIGNATURE = "token_signature_invalid";
 
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
@@ -59,9 +74,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (jwt != null) {
             try {
                 username = jwtUtil.extractUsername(jwt);
+            } catch (ExpiredJwtException e) {
+                log.debug("JWT token expired: {}", e.getMessage());
+                request.setAttribute(JWT_ERROR_CODE_ATTR, ERROR_TOKEN_EXPIRED);
+                request.setAttribute(JWT_ERROR_MESSAGE_ATTR, "Token has expired");
+            } catch (MalformedJwtException e) {
+                log.debug("Malformed JWT token: {}", e.getMessage());
+                request.setAttribute(JWT_ERROR_CODE_ATTR, ERROR_TOKEN_INVALID);
+                request.setAttribute(JWT_ERROR_MESSAGE_ATTR, "Invalid token format");
+            } catch (SignatureException e) {
+                log.warn("JWT signature validation failed");
+                request.setAttribute(JWT_ERROR_CODE_ATTR, ERROR_TOKEN_SIGNATURE);
+                request.setAttribute(JWT_ERROR_MESSAGE_ATTR, "Token signature invalid");
             } catch (Exception e) {
-                // Token inválido o expirado, continuar sin autenticación
-                log.debug("Invalid or expired JWT token: {}", e.getMessage());
+                log.debug("JWT token validation failed: {}", e.getMessage());
+                request.setAttribute(JWT_ERROR_CODE_ATTR, ERROR_TOKEN_INVALID);
+                request.setAttribute(JWT_ERROR_MESSAGE_ATTR, "Token validation failed");
             }
         }
 
