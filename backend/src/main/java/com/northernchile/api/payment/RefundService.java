@@ -275,8 +275,9 @@ public class RefundService {
             // Try to parse as Long (MercadoPago payment IDs are numeric)
             try {
                 Long mpPaymentId = Long.parseLong(paymentId);
-                // Full refund
-                refund = client.refund(mpPaymentId);
+                // Partial refund with specified amount
+                refund = client.refund(mpPaymentId, amount);
+                log.info("MercadoPago partial refund requested: paymentId={}, amount={}", mpPaymentId, amount);
             } catch (NumberFormatException e) {
                 // If it's not a numeric ID, it might be a preference ID
                 // In this case, we need to find the actual payment
