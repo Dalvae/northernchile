@@ -67,6 +67,34 @@ public class RateLimitConfig {
                 .build();
     }
 
+    // ==================== Global Rate Limiting ====================
+
+    private final Map<String, Bucket> globalCache = new ConcurrentHashMap<>();
+
+    /**
+     * Get or create a global bucket for the given IP address.
+     * Configuration: 100 requests per minute for all API endpoints.
+     *
+     * @param ip The IP address to rate limit
+     * @return The bucket for this IP
+     */
+    public Bucket resolveGlobalBucket(String ip) {
+        return globalCache.computeIfAbsent(ip, k -> createGlobalBucket());
+    }
+
+    /**
+     * Creates a new bucket for global rate limiting.
+     * Allows 100 requests per minute as baseline protection.
+     *
+     * @return A new bucket instance
+     */
+    private Bucket createGlobalBucket() {
+        Bandwidth limit = Bandwidth.classic(100, Refill.intervally(100, Duration.ofMinutes(1)));
+        return Bucket.builder()
+                .addLimit(limit)
+                .build();
+    }
+
     /**
      * Clear all rate limit caches for a specific IP.
      * Useful for testing or manual override.
@@ -76,6 +104,7 @@ public class RateLimitConfig {
     public void clearBucket(String ip) {
         authCache.remove(ip);
         webhookCache.remove(ip);
+        globalCache.remove(ip);
     }
 
     /**
@@ -85,5 +114,6 @@ public class RateLimitConfig {
     public void clearAllBuckets() {
         authCache.clear();
         webhookCache.clear();
+        globalCache.clear();
     }
 }
