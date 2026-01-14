@@ -22,9 +22,10 @@ export function useTheme() {
   const current = useState<Theme>('nc-theme-v2', () => themeCookie.value || 'atacama-cosmic-desert')
 
   // Apply theme class to HTML element using useHead
+  // Include 'dark' class to ensure Nuxt UI components respect dark mode
   useHead({
     htmlAttrs: {
-      class: computed(() => current.value)
+      class: computed(() => `dark ${current.value}`)
     }
   })
 
@@ -39,8 +40,8 @@ export function useTheme() {
     if (import.meta.client) {
       // Remove all theme classes
       document.documentElement.classList.remove(...themes)
-      // Add new theme class
-      document.documentElement.classList.add(theme)
+      // Add new theme class and ensure dark mode is set
+      document.documentElement.classList.add('dark', theme)
       // Save to localStorage as backup
       localStorage.setItem(STORAGE_KEY, theme)
     }
@@ -58,8 +59,8 @@ export function useTheme() {
     if (saved && themes.includes(saved) && saved !== current.value) {
       apply(saved)
     } else {
-      // Ensure current theme class is applied
-      document.documentElement.classList.add(current.value)
+      // Ensure current theme class and dark mode are applied
+      document.documentElement.classList.add('dark', current.value)
     }
   })
 
