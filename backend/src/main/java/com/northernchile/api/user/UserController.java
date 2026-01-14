@@ -10,6 +10,9 @@ import com.northernchile.api.user.dto.UserRes;
 import com.northernchile.api.user.dto.UserUpdateReq;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,9 +34,24 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
+    /**
+     * Get all users (non-paginated).
+     * @deprecated Use paginated endpoint /paged instead
+     */
     @GetMapping
     public ResponseEntity<List<UserRes>> getAllUsers() {
         List<UserRes> users = userService.getAllUsers();
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
+
+    /**
+     * Get paginated list of all users.
+     * Supports pagination via ?page=0&size=20&sort=createdAt,desc
+     */
+    @GetMapping("/paged")
+    public ResponseEntity<Page<UserRes>> getAllUsersPaged(
+            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+        Page<UserRes> users = userService.getAllUsersPaged(pageable);
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 

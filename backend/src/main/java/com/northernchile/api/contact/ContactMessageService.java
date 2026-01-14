@@ -6,6 +6,8 @@ import com.northernchile.api.notification.event.ContactMessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,8 +55,22 @@ public class ContactMessageService {
         return contactMessageRepository.findAllByOrderByCreatedAtDesc();
     }
 
+    /**
+     * Get paginated list of all messages.
+     */
+    public Page<ContactMessage> getAllMessagesPaged(Pageable pageable) {
+        return contactMessageRepository.findAllByOrderByCreatedAtDesc(pageable);
+    }
+
     public List<ContactMessage> getMessagesByStatus(String status) {
         return contactMessageRepository.findByStatusOrderByCreatedAtDesc(status);
+    }
+
+    /**
+     * Get paginated list of messages filtered by status.
+     */
+    public Page<ContactMessage> getMessagesByStatusPaged(String status, Pageable pageable) {
+        return contactMessageRepository.findByStatusOrderByCreatedAtDesc(status, pageable);
     }
 
     public long getNewMessagesCount() {

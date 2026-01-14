@@ -25,6 +25,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -238,6 +241,21 @@ public class BookingService {
             return getAllBookingsForAdmin();
         } else {
             return getBookingsByTourOwner(admin);
+        }
+    }
+
+    /**
+     * Get paginated bookings for admin based on their role.
+     * SUPER_ADMIN sees all bookings, PARTNER_ADMIN sees only their tours' bookings.
+     */
+    @Transactional(readOnly = true)
+    public Page<BookingRes> getBookingsForAdminPaged(User admin, Pageable pageable) {
+        if (Role.SUPER_ADMIN.getRoleName().equals(admin.getRole())) {
+            return bookingRepository.findAllWithDetailsPaged(pageable)
+                    .map(bookingMapper::toBookingRes);
+        } else {
+            return bookingRepository.findByTourOwnerIdPaged(admin.getId(), pageable)
+                    .map(bookingMapper::toBookingRes);
         }
     }
 

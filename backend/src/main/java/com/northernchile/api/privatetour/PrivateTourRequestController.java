@@ -3,6 +3,9 @@ package com.northernchile.api.privatetour;
 import com.northernchile.api.model.PrivateTourRequest;
 import com.northernchile.api.security.Permission;
 import com.northernchile.api.security.annotations.RequiresPermission;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,10 +35,24 @@ public class PrivateTourRequestController {
     }
 
     // Endpoints de ADMINISTRACIÓN para gestionar las solicitudes
+    /**
+     * @deprecated Use paginated endpoint /admin/private-tours/requests/paged instead
+     */
     @GetMapping("/admin/private-tours/requests")
     @RequiresPermission(Permission.VIEW_PRIVATE_TOUR_REQUESTS)
     public ResponseEntity<List<PrivateTourRequest>> getAllRequests() {
         return ResponseEntity.ok(privateTourRequestRepository.findAll());
+    }
+
+    /**
+     * Get paginated private tour requests.
+     * Supports pagination via ?page=0&size=20&sort=createdAt,desc
+     */
+    @GetMapping("/admin/private-tours/requests/paged")
+    @RequiresPermission(Permission.VIEW_PRIVATE_TOUR_REQUESTS)
+    public ResponseEntity<Page<PrivateTourRequest>> getAllRequestsPaged(
+            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+        return ResponseEntity.ok(privateTourRequestRepository.findAllByOrderByCreatedAtDesc(pageable));
     }
 
     @PutMapping("/admin/private-tours/requests/{id}")
