@@ -198,7 +198,7 @@ public class BookingService {
                 tourDate,
                 tourTime,
                 booking.getParticipants().size(),
-                booking.getTotalAmount().toString(),
+                String.format("CLP %,.0f", booking.getTotalAmount()),
                 booking.getLanguageCode() != null ? booking.getLanguageCode() : "es-CL"
         );
 
