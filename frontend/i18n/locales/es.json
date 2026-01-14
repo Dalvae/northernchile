@@ -911,9 +911,12 @@
     "code": "Código",
     "goHome": "Volver al Inicio",
     "goBack": "Regresar",
+    "reload": "Recargar página",
     "needHelp": "¿Necesitas ayuda?",
     "contactUs": "Contáctanos",
     "debugInfo": "Información de depuración",
+    "unexpected": "Algo salió mal",
+    "tryAgain": "Lo sentimos, ocurrió un error inesperado. Por favor, intenta nuevamente.",
     "404": {
       "title": "¡Ups! Te perdiste en el desierto",
       "message": "La página que buscas no existe. Quizás fue llevada por el viento del Atacama."

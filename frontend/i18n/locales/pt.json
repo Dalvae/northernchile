@@ -907,9 +907,12 @@
     "code": "Código",
     "goHome": "Voltar ao Início",
     "goBack": "Voltar",
+    "reload": "Recarregar página",
     "needHelp": "Precisa de ajuda?",
     "contactUs": "Fale conosco",
     "debugInfo": "Informações de depuração",
+    "unexpected": "Algo deu errado",
+    "tryAgain": "Desculpe, ocorreu um erro inesperado. Por favor, tente novamente.",
     "404": {
       "title": "Ops! Você se perdeu no deserto",
       "message": "A página que você procura não existe. Talvez tenha sido levada pelo vento do Atacama."
