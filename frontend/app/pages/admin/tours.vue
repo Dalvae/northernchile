@@ -140,9 +140,10 @@ function closeModals() {
 }
 
 // ✅ Manejar éxito (crear o editar)
-function onModalSuccess() {
+async function onModalSuccess() {
   closeModals()
-  refresh()
+  // Use refreshTours() with force=true to bypass the 5-minute cache
+  await adminStore.refreshTours()
 }
 
 const toast = useToast()
