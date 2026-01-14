@@ -1,6 +1,7 @@
 package com.northernchile.api.reports;
 
 import com.northernchile.api.booking.BookingRepository;
+import com.northernchile.api.config.properties.PaymentProperties;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.Participant;
 import com.northernchile.api.model.Tour;
@@ -61,6 +62,15 @@ class ReportsServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private PaymentProperties paymentProperties;
+
+    @Mock
+    private PaymentProperties.Transbank transbankConfig;
+
+    @Mock
+    private PaymentProperties.Transbank.Fees feesConfig;
+
     private ReportsService reportsService;
 
     private Instant start;
@@ -69,18 +79,22 @@ class ReportsServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Setup mock payment properties
+        when(paymentProperties.getTransbank()).thenReturn(transbankConfig);
+        when(transbankConfig.getFees()).thenReturn(feesConfig);
+        when(feesConfig.getDebit()).thenReturn(0.0177);
+        when(feesConfig.getCredit()).thenReturn(0.0351);
+        when(feesConfig.getPrepaid()).thenReturn(0.0177);
+
         reportsService = new ReportsService(
                 bookingRepository,
                 paymentRepository,
                 tourRepository,
                 tourScheduleRepository,
-                userRepository
+                userRepository,
+                paymentProperties
         );
-        // Set default fee rates
-        ReflectionTestUtils.setField(reportsService, "transbankDebitFee", new BigDecimal("0.0177"));
-        ReflectionTestUtils.setField(reportsService, "transbankCreditFee", new BigDecimal("0.0351"));
-        ReflectionTestUtils.setField(reportsService, "transbankPrepaidFee", new BigDecimal("0.0177"));
-        
+
         start = Instant.now().minus(30, ChronoUnit.DAYS);
         end = Instant.now();
         mockBookings = createMockBookings();
