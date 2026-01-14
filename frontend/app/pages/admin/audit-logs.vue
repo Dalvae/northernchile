@@ -364,7 +364,7 @@
 </template>
 
 <script setup lang="ts">
-import type { AuditLog } from 'api-client'
+import type { AuditLogRes } from 'api-client'
 
 definePageMeta({
   layout: 'admin'
@@ -378,7 +378,7 @@ const { formatDate, formatTime } = useDateTime()
 
 // State
 const pending = ref(false)
-const auditLogs = ref<AuditLog[]>([])
+const auditLogs = ref<AuditLogRes[]>([])
 const stats = ref({
   totalLogs: 0,
   createActions: 0,
@@ -419,7 +419,7 @@ const entityTypeFilterOptions = [
 ]
 
 // Fetch audit logs
-const fetchAuditLogs = async () => {
+const fetchAuditLogRess = async () => {
   pending.value = true
   try {
     const params = new URLSearchParams({
@@ -433,7 +433,7 @@ const fetchAuditLogs = async () => {
     if (filters.value.userEmail)
       params.append('userEmail', filters.value.userEmail)
 
-    const response = await $fetch<AuditLogsResponse>(
+    const response = await $fetch<AuditLogRessResponse>(
       `/api/admin/audit-logs?${params.toString()}`
     )
 
@@ -472,13 +472,13 @@ const debouncedFetch = () => {
 // Reset pagination and fetch
 const resetPaginationAndFetch = () => {
   pagination.value.currentPage = 0
-  fetchAuditLogs()
+  fetchAuditLogRess()
 }
 
 // Go to page
 const goToPage = (page: number) => {
   pagination.value.currentPage = page
-  fetchAuditLogs()
+  fetchAuditLogRess()
 }
 
 // Computed visible pages for pagination
@@ -513,8 +513,8 @@ const visiblePages = computed(() => {
 // Helper functions
 type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
 
-interface AuditLogsResponse {
-  data: AuditLog[]
+interface AuditLogRessResponse {
+  data: AuditLogRes[]
   totalItems: number
   totalPages: number
   currentPage: number
@@ -559,7 +559,7 @@ function getActionIcon(action: string): string {
 
 // Initialize
 onMounted(() => {
-  fetchAuditLogs()
+  fetchAuditLogRess()
   fetchStats()
 })
 </script>

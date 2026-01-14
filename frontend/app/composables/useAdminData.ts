@@ -20,13 +20,13 @@ import type {
   OverviewReport,
   BookingsByDayReport,
   TopTourReport,
-  AuditLog,
+  AuditLogRes,
   PrivateTourRequest,
   RefundRes
 } from 'api-client'
 
-export interface PageAuditLog {
-  data: AuditLog[]
+export interface PageAuditLogRes {
+  data: AuditLogRes[]
   totalItems: number
   totalPages: number
   currentPage: number
@@ -245,8 +245,8 @@ export const useAdminData = () => {
         ...baseFetchOptions
       }),
     // Audit Logs
-    fetchAuditLogs: (params?: Record<string, string>) =>
-      $fetch<PageAuditLog>('/api/admin/audit-logs', { params, ...baseFetchOptions }),
+    fetchAuditLogRess: (params?: Record<string, string>) =>
+      $fetch<PageAuditLogRes>('/api/admin/audit-logs', { params, ...baseFetchOptions }),
     fetchAuditStats: () =>
       $fetch<{
         totalLogs: number
