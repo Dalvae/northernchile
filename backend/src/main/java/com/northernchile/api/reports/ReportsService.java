@@ -1,6 +1,7 @@
 package com.northernchile.api.reports;
 
 import com.northernchile.api.booking.BookingRepository;
+import com.northernchile.api.config.properties.PaymentProperties;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.payment.model.Payment;
 import com.northernchile.api.payment.model.PaymentProvider;
@@ -15,7 +16,6 @@ import com.northernchile.api.tour.TourUtils;
 import com.northernchile.api.user.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,27 +42,21 @@ public class ReportsService {
     private final TourRepository tourRepository;
     private final TourScheduleRepository tourScheduleRepository;
     private final UserRepository userRepository;
-
-    @Value("${transbank.fee.debit:0.0177}")
-    private BigDecimal transbankDebitFee;
-
-    @Value("${transbank.fee.credit:0.0351}")
-    private BigDecimal transbankCreditFee;
-
-    @Value("${transbank.fee.prepaid:0.0177}")
-    private BigDecimal transbankPrepaidFee;
+    private final PaymentProperties paymentProperties;
 
     public ReportsService(
             BookingRepository bookingRepository,
             PaymentRepository paymentRepository,
             TourRepository tourRepository,
             TourScheduleRepository tourScheduleRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            PaymentProperties paymentProperties) {
         this.bookingRepository = bookingRepository;
         this.paymentRepository = paymentRepository;
         this.tourRepository = tourRepository;
         this.tourScheduleRepository = tourScheduleRepository;
         this.userRepository = userRepository;
+        this.paymentProperties = paymentProperties;
     }
 
     public OverviewReport getOverview(Instant start, Instant end) {
@@ -238,15 +232,16 @@ public class ReportsService {
 
     private BigDecimal estimateTransbankFee(Payment payment, Map<String, Object> response) {
         BigDecimal amount = payment.getAmount();
-        BigDecimal feeRate = transbankCreditFee; // Default to credit
+        var fees = paymentProperties.getTransbank().getFees();
+        BigDecimal feeRate = BigDecimal.valueOf(fees.getCredit()); // Default to credit
 
         if (response != null && response.get("payment_type_code") != null) {
             String paymentType = response.get("payment_type_code").toString();
             feeRate = switch (paymentType) {
-                case "VD" -> transbankDebitFee;      // Venta Débito
-                case "VP" -> transbankPrepaidFee;    // Venta Prepago
-                case "VN", "VC", "SI", "S2", "NC", "NP" -> transbankCreditFee; // Credit variants
-                default -> transbankCreditFee;
+                case "VD" -> BigDecimal.valueOf(fees.getDebit());      // Venta Débito
+                case "VP" -> BigDecimal.valueOf(fees.getPrepaid());    // Venta Prepago
+                case "VN", "VC", "SI", "S2", "NC", "NP" -> BigDecimal.valueOf(fees.getCredit()); // Credit variants
+                default -> BigDecimal.valueOf(fees.getCredit());
             };
         }
 

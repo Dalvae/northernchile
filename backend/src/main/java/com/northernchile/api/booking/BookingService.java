@@ -6,6 +6,7 @@ import com.northernchile.api.booking.dto.BookingCreateReq;
 import com.northernchile.api.booking.dto.BookingRes;
 import com.northernchile.api.booking.dto.ParticipantRes;
 import com.northernchile.api.config.NotificationConfig;
+import com.northernchile.api.config.properties.AppProperties;
 import com.northernchile.api.exception.BookingCutoffException;
 import com.northernchile.api.exception.InvalidBookingStateException;
 import com.northernchile.api.exception.ResourceNotFoundException;
@@ -21,7 +22,6 @@ import com.northernchile.api.tour.TourUtils;
 import com.northernchile.api.util.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,9 +51,7 @@ public class BookingService {
     private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
     private final PricingService pricingService;
     private final NotificationConfig notificationConfig;
-
-    @Value("${booking.min-hours-before-tour:2}")
-    private int minHoursBeforeTour;
+    private final AppProperties appProperties;
 
     public BookingService(
             BookingRepository bookingRepository,
@@ -63,7 +61,8 @@ public class BookingService {
             BookingMapper bookingMapper,
             com.northernchile.api.availability.AvailabilityValidator availabilityValidator,
             PricingService pricingService,
-            NotificationConfig notificationConfig) {
+            NotificationConfig notificationConfig,
+            AppProperties appProperties) {
         this.bookingRepository = bookingRepository;
         this.tourScheduleRepository = tourScheduleRepository;
         this.emailService = emailService;
@@ -72,6 +71,7 @@ public class BookingService {
         this.availabilityValidator = availabilityValidator;
         this.pricingService = pricingService;
         this.notificationConfig = notificationConfig;
+        this.appProperties = appProperties;
     }
 
     @Transactional
@@ -117,10 +117,11 @@ public class BookingService {
 
     private void validateBookingCutoffTime(com.northernchile.api.model.TourSchedule schedule) {
         Instant now = Instant.now();
-        Instant cutoffTime = schedule.getStartDatetime().minus(minHoursBeforeTour, ChronoUnit.HOURS);
+        int minHours = appProperties.getBooking().getMinHoursBeforeTour();
+        Instant cutoffTime = schedule.getStartDatetime().minus(minHours, ChronoUnit.HOURS);
 
         if (now.isAfter(cutoffTime)) {
-            throw new BookingCutoffException(schedule.getId(), cutoffTime, minHoursBeforeTour);
+            throw new BookingCutoffException(schedule.getId(), cutoffTime, minHours);
         }
     }
 

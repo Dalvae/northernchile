@@ -1,10 +1,10 @@
 package com.northernchile.api.external;
 
+import com.northernchile.api.config.properties.WeatherProperties;
 import com.northernchile.api.external.dto.DailyForecast;
 import com.northernchile.api.external.dto.FiveDayForecastResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Bean;
@@ -45,24 +45,16 @@ public class WeatherService {
     }
 
     private final RestTemplate restTemplate;
+    private final WeatherProperties weatherProperties;
 
     // Self-injection to allow internal calls to pass through the Spring proxy (for @Cacheable)
     @org.springframework.context.annotation.Lazy
     @org.springframework.beans.factory.annotation.Autowired
     private WeatherService self;
 
-    @Value("${weather.api.key:dummy}")
-    private String apiKey;
-
-    // San Pedro de Atacama coordinates
-    @Value("${weather.api.lat:-22.9083}")
-    private String latitude;
-
-    @Value("${weather.api.lon:-68.1999}")
-    private String longitude;
-
-    public WeatherService(RestTemplate weatherRestTemplate) {
+    public WeatherService(RestTemplate weatherRestTemplate, WeatherProperties weatherProperties) {
         this.restTemplate = weatherRestTemplate;
+        this.weatherProperties = weatherProperties;
     }
 
     /**
@@ -72,16 +64,17 @@ public class WeatherService {
      */
     @Cacheable(value = "weatherForecast", key = "'fiveday'")
     public Map<String, Object> getForecast() {
-        if ("dummy".equals(apiKey)) {
+        var api = weatherProperties.getApi();
+        if ("dummy".equals(api.getKey())) {
             log.warn("API key is 'dummy', skipping weather fetch");
             return createEmptyForecast();
         }
 
         // Free 5 Day / 3 Hour Forecast API
         String url = String.format("https://api.openweathermap.org/data/2.5/forecast?lat=%s&lon=%s&units=metric&appid=%s",
-                latitude, longitude, apiKey);
+                api.getLat(), api.getLon(), api.getKey());
 
-        log.debug("Fetching weather from: {}", url.replace(apiKey, "***"));
+        log.debug("Fetching weather from: {}", url.replace(api.getKey(), "***"));
 
         try {
             FiveDayForecastResponse response = restTemplate.getForObject(url, FiveDayForecastResponse.class);

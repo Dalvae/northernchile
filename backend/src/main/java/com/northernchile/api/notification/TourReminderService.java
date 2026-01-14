@@ -1,11 +1,12 @@
 package com.northernchile.api.notification;
 
 import com.northernchile.api.booking.BookingRepository;
+import com.northernchile.api.config.properties.AppProperties;
+import com.northernchile.api.config.properties.MailProperties;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.TourSchedule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,16 +25,15 @@ public class TourReminderService {
 
     private final BookingRepository bookingRepository;
     private final EmailService emailService;
+    private final MailProperties mailProperties;
+    private final AppProperties appProperties;
 
-    @Value("${mail.reminder.hours-before-tour:24}")
-    private int hoursBeforeTour;
-
-    @Value("${app.timezone:America/Santiago}")
-    private String appTimezone;
-
-    public TourReminderService(BookingRepository bookingRepository, EmailService emailService) {
+    public TourReminderService(BookingRepository bookingRepository, EmailService emailService,
+                               MailProperties mailProperties, AppProperties appProperties) {
         this.bookingRepository = bookingRepository;
         this.emailService = emailService;
+        this.mailProperties = mailProperties;
+        this.appProperties = appProperties;
     }
 
     /**
@@ -45,6 +45,7 @@ public class TourReminderService {
     public void sendTourReminders() {
         log.info("Starting tour reminder check...");
 
+        int hoursBeforeTour = mailProperties.getReminder().getHoursBeforeTour();
         Instant now = Instant.now();
         Instant reminderWindow = now.plus(hoursBeforeTour, ChronoUnit.HOURS);
 
@@ -82,7 +83,7 @@ public class TourReminderService {
         var tour = schedule.getTour();
 
         // Format date and time separately
-        ZoneId zone = ZoneId.of(appTimezone);
+        ZoneId zone = ZoneId.of(appProperties.getTimezone());
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy")
                 .withZone(zone);
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm")

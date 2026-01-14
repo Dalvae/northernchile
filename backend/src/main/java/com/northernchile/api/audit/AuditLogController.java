@@ -1,5 +1,8 @@
 package com.northernchile.api.audit;
 
+import com.northernchile.api.audit.dto.AuditLogPageRes;
+import com.northernchile.api.audit.dto.AuditLogRes;
+import com.northernchile.api.audit.dto.AuditStatsRes;
 import com.northernchile.api.model.AuditLog;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -9,8 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Controlador para consultar el audit log
@@ -32,7 +35,7 @@ public class AuditLogController {
      * Obtiene logs de auditoría con paginación y filtros opcionales
      */
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getAuditLogs(
+    public ResponseEntity<AuditLogPageRes> getAuditLogs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String action,
@@ -57,11 +60,17 @@ public class AuditLogController {
             auditPage = auditLogRepository.findAll(pageable);
         }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("data", auditPage.getContent());
-        response.put("currentPage", auditPage.getNumber());
-        response.put("totalItems", auditPage.getTotalElements());
-        response.put("totalPages", auditPage.getTotalPages());
+        List<AuditLogRes> logs = auditPage.getContent().stream()
+                .map(AuditLogRes::from)
+                .toList();
+
+        AuditLogPageRes response = new AuditLogPageRes(
+                logs,
+                auditPage.getTotalElements(),
+                auditPage.getTotalPages(),
+                auditPage.getNumber(),
+                auditPage.getSize()
+        );
 
         return ResponseEntity.ok(response);
     }
@@ -71,8 +80,9 @@ public class AuditLogController {
      * Obtiene un log específico por ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<AuditLog> getAuditLogById(@PathVariable String id) {
-        return auditLogRepository.findById(java.util.UUID.fromString(id))
+    public ResponseEntity<AuditLogRes> getAuditLogById(@PathVariable String id) {
+        return auditLogRepository.findById(UUID.fromString(id))
+                .map(AuditLogRes::from)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -82,19 +92,12 @@ public class AuditLogController {
      * Obtiene estadísticas del audit log
      */
     @GetMapping("/stats")
-    public ResponseEntity<Map<String, Object>> getAuditStats() {
-        Map<String, Object> stats = new HashMap<>();
-
+    public ResponseEntity<AuditStatsRes> getAuditStats() {
         long totalLogs = auditLogRepository.count();
         long createActions = auditLogRepository.countByAction("CREATE");
         long updateActions = auditLogRepository.countByAction("UPDATE");
         long deleteActions = auditLogRepository.countByAction("DELETE");
 
-        stats.put("totalLogs", totalLogs);
-        stats.put("createActions", createActions);
-        stats.put("updateActions", updateActions);
-        stats.put("deleteActions", deleteActions);
-
-        return ResponseEntity.ok(stats);
+        return ResponseEntity.ok(new AuditStatsRes(totalLogs, createActions, updateActions, deleteActions));
     }
 }

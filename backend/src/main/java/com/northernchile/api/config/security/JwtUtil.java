@@ -1,5 +1,6 @@
 package com.northernchile.api.config.security;
 
+import com.northernchile.api.config.properties.AuthProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -7,7 +8,6 @@ import io.jsonwebtoken.security.Keys;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -21,11 +21,11 @@ import java.util.stream.Collectors;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final AuthProperties authProperties;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
+    public JwtUtil(AuthProperties authProperties) {
+        this.authProperties = authProperties;
+    }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -41,7 +41,7 @@ public class JwtUtil {
     }
 
     private Key getSigningKey() {
-        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = authProperties.getJwt().getSecret().getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -83,7 +83,7 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .setExpiration(new Date(System.currentTimeMillis() + authProperties.getJwt().getExpiration()))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

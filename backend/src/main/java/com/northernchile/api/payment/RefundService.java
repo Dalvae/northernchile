@@ -6,6 +6,7 @@ import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.payment.PaymentRefundClient;
 import com.mercadopago.resources.payment.PaymentRefund;
 import com.northernchile.api.booking.BookingRepository;
+import com.northernchile.api.config.properties.PaymentProperties;
 import com.northernchile.api.exception.RefundException;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.notification.EmailService;
@@ -16,7 +17,6 @@ import com.northernchile.api.payment.model.PaymentSessionStatus;
 import com.northernchile.api.payment.repository.PaymentSessionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,29 +38,17 @@ public class RefundService {
     private final BookingRepository bookingRepository;
     private final PaymentSessionRepository paymentSessionRepository;
     private final EmailService emailService;
-
-    @Value("${transbank.commerce-code:597055555532}")
-    private String transbankCommerceCode;
-
-    @Value("${transbank.api-key:579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C}")
-    private String transbankApiKey;
-
-    @Value("${transbank.environment:INTEGRATION}")
-    private String transbankEnvironment;
-
-    @Value("${mercadopago.access-token:}")
-    private String mercadoPagoAccessToken;
-
-    @Value("${refund.retention.percentage:5}")
-    private int retentionPercentage;
+    private final PaymentProperties paymentProperties;
 
     public RefundService(
             BookingRepository bookingRepository,
             PaymentSessionRepository paymentSessionRepository,
-            EmailService emailService) {
+            EmailService emailService,
+            PaymentProperties paymentProperties) {
         this.bookingRepository = bookingRepository;
         this.paymentSessionRepository = paymentSessionRepository;
         this.emailService = emailService;
+        this.paymentProperties = paymentProperties;
     }
 
     /**
@@ -117,12 +105,13 @@ public class RefundService {
         } else {
             // Full refund - apply retention percentage to cover transaction fees
             BigDecimal totalAmount = booking.getTotalAmount();
-            BigDecimal retentionRate = BigDecimal.valueOf(retentionPercentage).divide(BigDecimal.valueOf(100));
+            int retentionPct = paymentProperties.getRefund().getRetentionPercentage();
+            BigDecimal retentionRate = BigDecimal.valueOf(retentionPct).divide(BigDecimal.valueOf(100));
             retentionAmount = totalAmount.multiply(retentionRate).setScale(0, java.math.RoundingMode.UP);
             refundAmount = totalAmount.subtract(retentionAmount);
-            
-            log.info("Processing FULL refund with {}% retention: total={}, retention={}, refund={}", 
-                retentionPercentage, totalAmount, retentionAmount, refundAmount);
+
+            log.info("Processing FULL refund with {}% retention: total={}, retention={}, refund={}",
+                retentionPct, totalAmount, retentionAmount, refundAmount);
         }
         
         // Process refund with payment provider
@@ -268,7 +257,7 @@ public class RefundService {
         log.info("Processing MercadoPago refund for session: {}, amount: {}", session.getId(), amount);
 
         try {
-            MercadoPagoConfig.setAccessToken(mercadoPagoAccessToken);
+            MercadoPagoConfig.setAccessToken(paymentProperties.getMercadopago().getAccessToken());
             
             // MercadoPago uses the payment ID (stored in externalPaymentId or token)
             String paymentId = session.getExternalPaymentId();
@@ -314,9 +303,10 @@ public class RefundService {
     }
 
     private WebpayPlus.Transaction getTransbankTransaction() {
-        if ("PRODUCTION".equalsIgnoreCase(transbankEnvironment)) {
-            return WebpayPlus.Transaction.buildForProduction(transbankCommerceCode, transbankApiKey);
+        var transbank = paymentProperties.getTransbank();
+        if ("PRODUCTION".equalsIgnoreCase(transbank.getEnvironment())) {
+            return WebpayPlus.Transaction.buildForProduction(transbank.getCommerceCode(), transbank.getApiKey());
         }
-        return WebpayPlus.Transaction.buildForIntegration(transbankCommerceCode, transbankApiKey);
+        return WebpayPlus.Transaction.buildForIntegration(transbank.getCommerceCode(), transbank.getApiKey());
     }
 }

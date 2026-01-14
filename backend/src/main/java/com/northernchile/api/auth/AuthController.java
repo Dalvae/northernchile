@@ -1,16 +1,17 @@
 package com.northernchile.api.auth;
 
 import com.northernchile.api.auth.dto.LoginReq;
+import com.northernchile.api.auth.dto.LoginRes;
 import com.northernchile.api.auth.dto.PasswordResetReq;
 import com.northernchile.api.auth.dto.PasswordResetRequestReq;
 import com.northernchile.api.auth.dto.RegisterReq;
+import com.northernchile.api.common.dto.MessageRes;
 import com.northernchile.api.util.CookieHelper;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -26,59 +27,44 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginReq loginReq, HttpServletResponse response) {
-        Map<String, Object> loginResponse = authService.login(loginReq);
+    public ResponseEntity<LoginRes> login(@Valid @RequestBody LoginReq loginReq, HttpServletResponse response) {
+        LoginRes loginResponse = authService.login(loginReq);
 
-        // Extract token and set HttpOnly cookie
-        String token = (String) loginResponse.get("token");
-        cookieHelper.setAuthTokenCookie(response, token);
+        // Set HttpOnly cookie with token
+        cookieHelper.setAuthTokenCookie(response, loginResponse.token());
 
-        // Remove token from response body (security best practice)
-        loginResponse.remove("token");
-
-        return ResponseEntity.ok(loginResponse);
+        // Return response without token in body (security best practice)
+        return ResponseEntity.ok(loginResponse.withoutToken());
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterReq registerReq, jakarta.servlet.http.HttpServletRequest request) {
+    public ResponseEntity<MessageRes> register(@Valid @RequestBody RegisterReq registerReq, jakarta.servlet.http.HttpServletRequest request) {
         authService.register(registerReq, request);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "User registered successfully. Please check your email to verify your account.");
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(MessageRes.of("User registered successfully. Please check your email to verify your account."));
     }
 
     /**
      * Verify email with token
      */
     @GetMapping("/verify-email")
-    public ResponseEntity<?> verifyEmail(@RequestParam String token) {
-        try {
-            authService.verifyEmail(token);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Email verified successfully. You can now log in.");
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<MessageRes> verifyEmail(@RequestParam String token) {
+        authService.verifyEmail(token);
+        return ResponseEntity.ok(MessageRes.of("Email verified successfully. You can now log in."));
     }
 
     /**
      * Request password reset - sends email with reset link
      */
     @PostMapping("/password-reset/request")
-    public ResponseEntity<?> requestPasswordReset(
+    public ResponseEntity<MessageRes> requestPasswordReset(
             @Valid @RequestBody PasswordResetRequestReq request,
             @RequestHeader(value = "Accept-Language", defaultValue = "es-CL") String language) {
         try {
             authService.requestPasswordReset(request.email(), language);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Password reset email sent. Please check your inbox.");
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(MessageRes.of("Password reset email sent. Please check your inbox."));
         } catch (Exception e) {
             // Don't reveal if user exists or not for security
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "If the email exists, a password reset link has been sent.");
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(MessageRes.of("If the email exists, a password reset link has been sent."));
         }
     }
 
@@ -86,45 +72,28 @@ public class AuthController {
      * Reset password with token
      */
     @PostMapping("/password-reset/confirm")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody PasswordResetReq request) {
-        try {
-            authService.resetPassword(request.token(), request.newPassword());
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Password reset successfully. You can now log in with your new password.");
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<MessageRes> resetPassword(@Valid @RequestBody PasswordResetReq request) {
+        authService.resetPassword(request.token(), request.newPassword());
+        return ResponseEntity.ok(MessageRes.of("Password reset successfully. You can now log in with your new password."));
     }
 
     /**
      * Resend verification email
      */
     @PostMapping("/resend-verification")
-    public ResponseEntity<?> resendVerificationEmail(
+    public ResponseEntity<MessageRes> resendVerificationEmail(
             @RequestBody Map<String, String> request,
             @RequestHeader(value = "Accept-Language", defaultValue = "es-CL") String language) {
-        try {
-            authService.resendVerificationEmail(request.get("email"), language);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Verification email sent. Please check your inbox.");
-            return ResponseEntity.ok(response);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Failed to send verification email."));
-        }
+        authService.resendVerificationEmail(request.get("email"), language);
+        return ResponseEntity.ok(MessageRes.of("Verification email sent. Please check your inbox."));
     }
 
     /**
      * Logout - clears the auth cookie
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
+    public ResponseEntity<MessageRes> logout(HttpServletResponse response) {
         cookieHelper.clearAuthTokenCookie(response);
-
-        Map<String, String> responseBody = new HashMap<>();
-        responseBody.put("message", "Logged out successfully");
-        return ResponseEntity.ok(responseBody);
+        return ResponseEntity.ok(MessageRes.of("Logged out successfully"));
     }
 }

@@ -1,9 +1,9 @@
 package com.northernchile.api.auth;
 
+import com.northernchile.api.config.properties.AuthProperties;
 import com.northernchile.api.model.EmailVerificationToken;
 import com.northernchile.api.model.PasswordResetToken;
 import com.northernchile.api.model.User;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,17 +18,14 @@ public class TokenService {
 
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @Value("${token.verification.expiration.hours:24}")
-    private long verificationTokenExpirationHours;
-
-    @Value("${token.password-reset.expiration.hours:2}")
-    private long passwordResetTokenExpirationHours;
+    private final AuthProperties authProperties;
 
     public TokenService(EmailVerificationTokenRepository emailVerificationTokenRepository,
-                       PasswordResetTokenRepository passwordResetTokenRepository) {
+                       PasswordResetTokenRepository passwordResetTokenRepository,
+                       AuthProperties authProperties) {
         this.emailVerificationTokenRepository = emailVerificationTokenRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.authProperties = authProperties;
     }
 
     /**
@@ -37,7 +34,8 @@ public class TokenService {
     @Transactional
     public EmailVerificationToken createEmailVerificationToken(User user) {
         String token = generateSecureToken();
-        Instant expiresAt = Instant.now().plus(verificationTokenExpirationHours, ChronoUnit.HOURS);
+        int expirationHours = authProperties.getToken().getVerification().getExpirationHours();
+        Instant expiresAt = Instant.now().plus(expirationHours, ChronoUnit.HOURS);
 
         EmailVerificationToken verificationToken = new EmailVerificationToken(token, user, expiresAt);
         return emailVerificationTokenRepository.save(verificationToken);
@@ -49,7 +47,8 @@ public class TokenService {
     @Transactional
     public PasswordResetToken createPasswordResetToken(User user) {
         String token = generateSecureToken();
-        Instant expiresAt = Instant.now().plus(passwordResetTokenExpirationHours, ChronoUnit.HOURS);
+        int expirationHours = authProperties.getToken().getPasswordReset().getExpirationHours();
+        Instant expiresAt = Instant.now().plus(expirationHours, ChronoUnit.HOURS);
 
         PasswordResetToken resetToken = new PasswordResetToken(token, user, expiresAt);
         return passwordResetTokenRepository.save(resetToken);

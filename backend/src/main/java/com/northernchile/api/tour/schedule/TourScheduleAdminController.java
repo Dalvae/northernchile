@@ -14,6 +14,7 @@ import com.northernchile.api.tour.TourScheduleRepository;
 import com.northernchile.api.tour.TourScheduleService;
 import com.northernchile.api.tour.dto.TourScheduleCreateReq;
 import com.northernchile.api.tour.dto.TourScheduleRes;
+import com.northernchile.api.tour.schedule.dto.ScheduleParticipantsRes;
 import com.northernchile.api.util.DateTimeUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -162,38 +161,41 @@ public class TourScheduleAdminController {
      */
     @GetMapping("/{id}/participants")
     @RequiresPermission(value = Permission.VIEW_BOOKING, resourceIdParam = "id", resourceType = RequiresPermission.ResourceType.SCHEDULE)
-    public ResponseEntity<Map<String, Object>> getScheduleParticipants(@PathVariable String id) {
+    public ResponseEntity<ScheduleParticipantsRes> getScheduleParticipants(@PathVariable String id) {
         TourSchedule schedule = tourScheduleRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Schedule not found with id: " + id));
 
         List<Booking> bookings = bookingRepository.findByScheduleId(UUID.fromString(id));
 
-        List<Map<String, Object>> participantsList = new ArrayList<>();
+        List<ScheduleParticipantsRes.ParticipantInfo> participantsList = new ArrayList<>();
         for (Booking booking : bookings) {
             for (Participant participant : booking.getParticipants()) {
-                Map<String, Object> participantData = new HashMap<>();
-                participantData.put("participantId", participant.getId());
-                participantData.put("fullName", participant.getFullName());
-                participantData.put("documentId", participant.getDocumentId());
-                participantData.put("nationality", participant.getNationality());
-                participantData.put("age", participant.getAge());
-                participantData.put("bookingId", booking.getId());
-                participantData.put("bookingStatus", booking.getStatus());
-                participantData.put("pickupAddress", participant.getPickupAddress());
-                participantsList.add(participantData);
+                participantsList.add(new ScheduleParticipantsRes.ParticipantInfo(
+                        participant.getId(),
+                        participant.getFullName(),
+                        participant.getDocumentId(),
+                        participant.getNationality(),
+                        participant.getAge(),
+                        booking.getId(),
+                        booking.getStatus(),
+                        participant.getPickupAddress()
+                ));
             }
         }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("scheduleId", schedule.getId());
-        response.put("startDatetime", schedule.getStartDatetime());
-        response.put("tourName", schedule.getTour() != null && schedule.getTour().getNameTranslations() != null
-            ? schedule.getTour().getNameTranslations().get("es")
-            : null);
-        response.put("status", schedule.getStatus());
-        response.put("totalBookings", bookings.size());
-        response.put("totalParticipants", participantsList.size());
-        response.put("participants", participantsList);
+        String tourName = schedule.getTour() != null && schedule.getTour().getNameTranslations() != null
+                ? schedule.getTour().getNameTranslations().get("es")
+                : null;
+
+        ScheduleParticipantsRes response = new ScheduleParticipantsRes(
+                schedule.getId(),
+                schedule.getStartDatetime(),
+                tourName,
+                schedule.getStatus(),
+                bookings.size(),
+                participantsList.size(),
+                participantsList
+        );
 
         return ResponseEntity.ok(response);
     }

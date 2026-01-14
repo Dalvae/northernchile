@@ -8,6 +8,8 @@ import cl.transbank.webpay.webpayplus.responses.WebpayPlusTransactionCreateRespo
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.preference.*;
 import com.mercadopago.resources.preference.Preference;
+import com.northernchile.api.config.properties.AppProperties;
+import com.northernchile.api.config.properties.PaymentProperties;
 import com.northernchile.api.payment.dto.PaymentSessionReq;
 import com.northernchile.api.payment.dto.PaymentSessionRes;
 import com.northernchile.api.payment.model.PaymentProvider;
@@ -15,7 +17,6 @@ import com.northernchile.api.payment.model.PaymentSession;
 import com.northernchile.api.payment.model.PaymentSessionStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -31,23 +32,13 @@ public class PaymentSessionPaymentAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentSessionPaymentAdapter.class);
 
-    @Value("${transbank.commerce-code:597055555532}")
-    private String transbankCommerceCode;
+    private final PaymentProperties paymentProperties;
+    private final AppProperties appProperties;
 
-    @Value("${transbank.api-key:579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C}")
-    private String transbankApiKey;
-
-    @Value("${transbank.environment:INTEGRATION}")
-    private String transbankEnvironment;
-
-    @Value("${mercadopago.access-token:}")
-    private String mercadoPagoAccessToken;
-
-    @Value("${payment.test-mode:false}")
-    private boolean testMode;
-
-    @Value("${app.base-url:http://localhost:8080}")
-    private String appBaseUrl;
+    public PaymentSessionPaymentAdapter(PaymentProperties paymentProperties, AppProperties appProperties) {
+        this.paymentProperties = paymentProperties;
+        this.appProperties = appProperties;
+    }
 
     /**
      * Initialize payment with the appropriate provider.
@@ -85,7 +76,7 @@ public class PaymentSessionPaymentAdapter {
         log.info("Fetching external_reference from MercadoPago payment: {}", mpPaymentId);
         
         try {
-            MercadoPagoConfig.setAccessToken(mercadoPagoAccessToken);
+            MercadoPagoConfig.setAccessToken(paymentProperties.getMercadopago().getAccessToken());
             
             com.mercadopago.client.payment.PaymentClient paymentClient = new com.mercadopago.client.payment.PaymentClient();
             com.mercadopago.resources.payment.Payment payment = paymentClient.get(Long.parseLong(mpPaymentId));
@@ -223,10 +214,11 @@ public class PaymentSessionPaymentAdapter {
     }
 
     private WebpayPlus.Transaction getTransbankTransaction() {
-        if ("PRODUCTION".equalsIgnoreCase(transbankEnvironment)) {
-            return WebpayPlus.Transaction.buildForProduction(transbankCommerceCode, transbankApiKey);
+        var transbank = paymentProperties.getTransbank();
+        if ("PRODUCTION".equalsIgnoreCase(transbank.getEnvironment())) {
+            return WebpayPlus.Transaction.buildForProduction(transbank.getCommerceCode(), transbank.getApiKey());
         }
-        return WebpayPlus.Transaction.buildForIntegration(transbankCommerceCode, transbankApiKey);
+        return WebpayPlus.Transaction.buildForIntegration(transbank.getCommerceCode(), transbank.getApiKey());
     }
 
     // === MercadoPago ===
@@ -247,7 +239,7 @@ public class PaymentSessionPaymentAdapter {
         log.info("Initializing MercadoPago Checkout Pro for session: {}", session.getId());
 
         try {
-            MercadoPagoConfig.setAccessToken(mercadoPagoAccessToken);
+            MercadoPagoConfig.setAccessToken(paymentProperties.getMercadopago().getAccessToken());
 
             // Build items
             List<PreferenceItemRequest> items = new ArrayList<>();
@@ -275,7 +267,7 @@ public class PaymentSessionPaymentAdapter {
                 .build();
 
             // Build notification URL for webhook
-            String notificationUrl = appBaseUrl + "/api/webhooks/mercadopago";
+            String notificationUrl = appProperties.getBaseUrl() + "/api/webhooks/mercadopago";
             log.info("Setting MercadoPago notification URL: {}", notificationUrl);
 
             // Build preference
@@ -297,7 +289,7 @@ public class PaymentSessionPaymentAdapter {
             return new PaymentSessionRes(
                 session.getId(),
                 PaymentSessionStatus.PENDING,
-                testMode ? preference.getSandboxInitPoint() : preference.getInitPoint(),
+                paymentProperties.isTestMode() ? preference.getSandboxInitPoint() : preference.getInitPoint(),
                 preference.getId(),
                 null,
                 null,
@@ -316,7 +308,7 @@ public class PaymentSessionPaymentAdapter {
         log.info("Initializing MercadoPago PIX payment for session: {}", session.getId());
 
         try {
-            MercadoPagoConfig.setAccessToken(mercadoPagoAccessToken);
+            MercadoPagoConfig.setAccessToken(paymentProperties.getMercadopago().getAccessToken());
 
             // Use Payment API for PIX
             com.mercadopago.client.payment.PaymentClient client = new com.mercadopago.client.payment.PaymentClient();
@@ -384,7 +376,7 @@ public class PaymentSessionPaymentAdapter {
         log.info("Confirming MercadoPago payment for session: {} - payment_id: {}", session.getId(), mpPaymentId);
 
         try {
-            MercadoPagoConfig.setAccessToken(mercadoPagoAccessToken);
+            MercadoPagoConfig.setAccessToken(paymentProperties.getMercadopago().getAccessToken());
 
             PaymentSessionStatus status = PaymentSessionStatus.PENDING;
 

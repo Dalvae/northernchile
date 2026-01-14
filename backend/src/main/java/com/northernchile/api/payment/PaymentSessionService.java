@@ -4,6 +4,7 @@ import com.northernchile.api.availability.AvailabilityValidator;
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.booking.BookingService;
 import com.northernchile.api.cart.CartRepository;
+import com.northernchile.api.config.properties.PaymentProperties;
 import com.northernchile.api.exception.PaymentProviderException;
 import com.northernchile.api.exception.ScheduleFullException;
 import com.northernchile.api.model.Booking;
@@ -20,7 +21,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,9 +54,7 @@ public class PaymentSessionService {
     private final CartRepository cartRepository;
     private final PaymentSessionPaymentAdapter paymentAdapter;
     private final AvailabilityValidator availabilityValidator;
-
-    @Value("${payment.test-mode:false}")
-    private boolean testMode;
+    private final PaymentProperties paymentProperties;
 
     public PaymentSessionService(
             PaymentSessionRepository sessionRepository,
@@ -65,7 +63,8 @@ public class PaymentSessionService {
             @Lazy BookingService bookingService,
             CartRepository cartRepository,
             PaymentSessionPaymentAdapter paymentAdapter,
-            AvailabilityValidator availabilityValidator) {
+            AvailabilityValidator availabilityValidator,
+            PaymentProperties paymentProperties) {
         this.sessionRepository = sessionRepository;
         this.scheduleRepository = scheduleRepository;
         this.bookingRepository = bookingRepository;
@@ -73,6 +72,7 @@ public class PaymentSessionService {
         this.cartRepository = cartRepository;
         this.paymentAdapter = paymentAdapter;
         this.availabilityValidator = availabilityValidator;
+        this.paymentProperties = paymentProperties;
     }
 
     /**
@@ -113,7 +113,7 @@ public class PaymentSessionService {
         session.setReturnUrl(request.returnUrl());
         session.setCancelUrl(request.cancelUrl());
         session.setExpiresAt(Instant.now().plus(SESSION_EXPIRATION_MINUTES, ChronoUnit.MINUTES));
-        session.setTest(testMode);
+        session.setTest(paymentProperties.isTestMode());
 
         session = sessionRepository.save(session);
         log.info("Payment session created: {}", session.getId());

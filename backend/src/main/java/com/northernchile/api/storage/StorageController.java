@@ -1,7 +1,9 @@
 package com.northernchile.api.storage;
 
+import com.northernchile.api.common.dto.MessageRes;
 import com.northernchile.api.security.Permission;
 import com.northernchile.api.security.annotations.RequiresPermission;
+import com.northernchile.api.storage.dto.StorageUploadRes;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -54,13 +56,7 @@ public class StorageController {
         try {
             String key = s3StorageService.uploadFile(file, folder);
             String url = s3StorageService.getPublicUrl(key);
-
-            Map<String, String> response = new HashMap<>();
-            response.put("key", key);
-            response.put("url", url);
-            response.put("message", "File uploaded successfully");
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(StorageUploadRes.success(url, key));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to upload file: " + e.getMessage()));
@@ -88,7 +84,7 @@ public class StorageController {
         }
 
         s3StorageService.deleteFile(key);
-        return ResponseEntity.ok(Map.of("message", "File deleted successfully"));
+        return ResponseEntity.ok(MessageRes.of("File deleted successfully"));
     }
 
     @GetMapping("/presigned-upload-url")

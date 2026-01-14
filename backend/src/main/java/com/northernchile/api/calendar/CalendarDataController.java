@@ -1,5 +1,6 @@
 package com.northernchile.api.calendar;
 
+import com.northernchile.api.calendar.dto.CalendarDataRes;
 import com.northernchile.api.external.LunarService;
 import com.northernchile.api.external.WeatherService;
 import com.northernchile.api.lunar.dto.MoonPhaseDTO;
@@ -7,7 +8,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +41,7 @@ public class CalendarDataController {
      * }
      */
     @GetMapping("/data")
-    public Map<String, Object> getCalendarData(
+    public CalendarDataRes getCalendarData(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
@@ -52,10 +52,6 @@ public class CalendarDataController {
         Map<String, Object> weatherForecast = weatherService.getForecast();
 
         // 3. Combinar ambos en una sola respuesta
-        Map<String, Object> response = new HashMap<>();
-        response.put("moonPhases", moonPhases);
-        response.put("weather", weatherForecast);
-
-        return response;
+        return new CalendarDataRes(moonPhases, weatherForecast);
     }
 }

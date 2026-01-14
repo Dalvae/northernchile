@@ -1,7 +1,7 @@
 package com.northernchile.api.util;
 
+import com.northernchile.api.config.properties.AppProperties;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -15,11 +15,11 @@ import java.time.Duration;
 @Component
 public class CookieHelper {
 
-    @Value("${cookie.insecure:false}")
-    private boolean cookieInsecure;
+    private final AppProperties appProperties;
 
-    @Value("${cookie.domain:}")
-    private String cookieDomain;
+    public CookieHelper(AppProperties appProperties) {
+        this.appProperties = appProperties;
+    }
 
     /**
      * Creates and adds a cookie to the response.
@@ -30,15 +30,17 @@ public class CookieHelper {
      * @param maxAge Duration for cookie validity
      */
     public void setCookie(HttpServletResponse response, String name, String value, Duration maxAge) {
+        var cookie = appProperties.getCookie();
         ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from(name, value)
                 .httpOnly(true)
-                .secure(!cookieInsecure)
+                .secure(!cookie.isInsecure())
                 .path("/")
                 .maxAge(maxAge)
                 .sameSite("Lax");
 
-        if (cookieDomain != null && !cookieDomain.isEmpty()) {
-            cookieBuilder.domain(cookieDomain);
+        String domain = cookie.getDomain();
+        if (domain != null && !domain.isEmpty()) {
+            cookieBuilder.domain(domain);
         }
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookieBuilder.build().toString());

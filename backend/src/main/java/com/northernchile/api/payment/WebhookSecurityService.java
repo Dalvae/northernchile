@@ -1,10 +1,10 @@
 package com.northernchile.api.payment;
 
+import com.northernchile.api.config.properties.PaymentProperties;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -30,14 +30,11 @@ public class WebhookSecurityService {
 
     private static final Logger logger = LoggerFactory.getLogger(WebhookSecurityService.class);
 
-    @Value("${mercadopago.webhook-secret:${MERCADOPAGO_ACCESS_TOKEN:}}")
-    private String mercadoPagoSecret;
+    private final PaymentProperties paymentProperties;
 
-    @Value("${transbank.webhook-secret:${TRANSBANK_API_KEY:}}")
-    private String transbankSecret;
-
-    @Value("${payment.test-mode:false}")
-    private boolean testMode;
+    public WebhookSecurityService(PaymentProperties paymentProperties) {
+        this.paymentProperties = paymentProperties;
+    }
 
     // Store processed request IDs with their timestamps for deduplication
     // Note: In a multi-instance deployment, consider using database-based deduplication
@@ -63,11 +60,12 @@ public class WebhookSecurityService {
      */
     public boolean verifyMercadoPagoSignature(String dataId, String requestId, String xSignature) {
         // In test mode, skip signature verification entirely for easier testing
-        if (testMode) {
+        if (paymentProperties.isTestMode()) {
             logger.warn("Mercado Pago webhook signature verification SKIPPED - test mode enabled");
             return true;
         }
 
+        String mercadoPagoSecret = paymentProperties.getMercadopago().getWebhookSecret();
         if (mercadoPagoSecret == null || mercadoPagoSecret.isBlank()) {
             logger.error("Mercado Pago webhook secret not configured");
             return false;
@@ -155,11 +153,12 @@ public class WebhookSecurityService {
         logger.warn("Using deprecated signature verification method");
 
         // In test mode, be lenient
-        if (testMode) {
+        if (paymentProperties.isTestMode()) {
             logger.warn("Test mode: Skipping strict signature verification");
             return true;
         }
 
+        String mercadoPagoSecret = paymentProperties.getMercadopago().getWebhookSecret();
         if (mercadoPagoSecret == null || mercadoPagoSecret.isBlank()) {
             logger.error("Mercado Pago webhook secret not configured");
             return false;
@@ -204,6 +203,7 @@ public class WebhookSecurityService {
      * @return true if signature is valid
      */
     public boolean verifyTransbankSignature(String body, String signature) {
+        String transbankSecret = paymentProperties.getTransbank().getWebhookSecret();
         if (transbankSecret == null || transbankSecret.isBlank()) {
             logger.warn("Transbank webhook secret not configured");
             return false;

@@ -1,6 +1,6 @@
 package com.northernchile.api.pricing;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.northernchile.api.config.properties.AppProperties;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -8,15 +8,15 @@ import java.math.RoundingMode;
 
 /**
  * Centralized pricing service for consistent price calculations.
- * 
+ *
  * IMPORTANT: Tour prices in the database are TAX-INCLUSIVE (IVA incluido).
  * This means the displayed price IS the final price customers pay.
- * 
+ *
  * When calculating subtotal and tax:
  * - totalAmount = pricePerParticipant × participantCount (this is what the customer pays)
  * - subtotal = totalAmount / (1 + taxRate) (back-calculated net price)
  * - taxAmount = totalAmount - subtotal (the tax portion)
- * 
+ *
  * This ensures:
  * 1. The price shown to customers is exactly what they pay
  * 2. Tax calculations are consistent across cart, booking, and payment
@@ -25,8 +25,11 @@ import java.math.RoundingMode;
 @Service
 public class PricingService {
 
-    @Value("${tax.rate:0.19}")
-    private BigDecimal taxRate;
+    private final AppProperties appProperties;
+
+    public PricingService(AppProperties appProperties) {
+        this.appProperties = appProperties;
+    }
 
     /**
      * Calculate pricing breakdown for a given total amount (tax-inclusive).
@@ -35,13 +38,14 @@ public class PricingService {
     public PricingResult calculateFromTaxInclusiveAmount(BigDecimal totalAmount) {
         // Back-calculate subtotal from tax-inclusive total
         // subtotal = total / (1 + taxRate)
+        BigDecimal taxRate = BigDecimal.valueOf(appProperties.getTaxRate());
         BigDecimal subtotal = totalAmount.divide(
-            BigDecimal.ONE.add(taxRate), 
+            BigDecimal.ONE.add(taxRate),
             0, // CLP has no decimals
             RoundingMode.HALF_UP
         );
         BigDecimal taxAmount = totalAmount.subtract(subtotal);
-        
+
         return new PricingResult(subtotal, taxAmount, totalAmount, taxRate);
     }
 
@@ -70,7 +74,7 @@ public class PricingService {
      * Get the current tax rate.
      */
     public BigDecimal getTaxRate() {
-        return taxRate;
+        return BigDecimal.valueOf(appProperties.getTaxRate());
     }
 
     /**

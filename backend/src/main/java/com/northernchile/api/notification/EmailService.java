@@ -1,9 +1,9 @@
 package com.northernchile.api.notification;
 
+import com.northernchile.api.config.properties.MailProperties;
 import com.northernchile.api.util.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -21,14 +21,14 @@ public class EmailService {
     private final SesEmailSender sesEmailSender;
     private final TemplateEngine templateEngine;
     private final MessageSource messageSource;
+    private final MailProperties mailProperties;
 
-    @Value("${mail.enabled:false}")
-    private boolean mailEnabled;
-
-    public EmailService(SesEmailSender sesEmailSender, TemplateEngine templateEngine, MessageSource messageSource) {
+    public EmailService(SesEmailSender sesEmailSender, TemplateEngine templateEngine,
+                        MessageSource messageSource, MailProperties mailProperties) {
         this.sesEmailSender = sesEmailSender;
         this.templateEngine = templateEngine;
         this.messageSource = messageSource;
+        this.mailProperties = mailProperties;
     }
 
     /**
@@ -113,7 +113,7 @@ public class EmailService {
     public CompletableFuture<Void> sendNewBookingNotificationToAdmin(com.northernchile.api.model.Booking booking, String adminEmail) {
         log.info("Sending booking notification to admin: {} - Booking ID: {}", adminEmail, booking.getId());
 
-        if (!mailEnabled) {
+        if (!mailProperties.isEnabled()) {
             log.warn("Email sending is disabled. Would have sent booking notification to: {}", adminEmail);
             return CompletableFuture.completedFuture(null);
         }
@@ -170,7 +170,7 @@ public class EmailService {
     public CompletableFuture<Void> sendNewPrivateRequestNotificationToAdmin(com.northernchile.api.model.PrivateTourRequest request, String adminEmail) {
         log.info("Sending private tour request notification to admin: {} - Request ID: {}", adminEmail, request.getId());
 
-        if (!mailEnabled) {
+        if (!mailProperties.isEnabled()) {
             log.warn("Email sending is disabled. Would have sent private tour request notification to: {}", adminEmail);
             return CompletableFuture.completedFuture(null);
         }
@@ -204,7 +204,7 @@ public class EmailService {
     public CompletableFuture<Void> sendContactNotificationToAdmin(com.northernchile.api.model.ContactMessage contactMessage, String adminEmail) {
         log.info("Sending contact notification to admin: {} from: {}", adminEmail, contactMessage.getEmail());
 
-        if (!mailEnabled) {
+        if (!mailProperties.isEnabled()) {
             log.warn("Email sending is disabled. Would have sent contact notification to: {}", adminEmail);
             return CompletableFuture.completedFuture(null);
         }
@@ -234,7 +234,7 @@ public class EmailService {
                                                       java.util.List<com.northernchile.api.tour.ManifestService.ManifestParticipant> participants) {
         log.info("Sending manifest email to: {} for tour: {}", operatorEmail, tourName);
 
-        if (!mailEnabled) {
+        if (!mailProperties.isEnabled()) {
             log.warn("Email sending is disabled. Would have sent manifest to: {}", operatorEmail);
             return CompletableFuture.completedFuture(null);
         }
@@ -267,7 +267,7 @@ public class EmailService {
                                                                     String emergencyContact, String languageCode) {
         log.info("Sending pickup reminder to: {} for tour: {}", toEmail, tourName);
 
-        if (!mailEnabled) {
+        if (!mailProperties.isEnabled()) {
             log.warn("Email sending is disabled. Would have sent pickup reminder to: {}", toEmail);
             return CompletableFuture.completedFuture(null);
         }
@@ -372,7 +372,7 @@ public class EmailService {
      * Generic method to send HTML emails using Thymeleaf templates via Amazon SES
      */
     private void sendHtmlEmail(String toEmail, String subject, String templateName, Context context, Locale locale) {
-        if (!mailEnabled) {
+        if (!mailProperties.isEnabled()) {
             log.warn("Email sending is disabled. Would have sent email to: {} with subject: {}", toEmail, subject);
             return;
         }
