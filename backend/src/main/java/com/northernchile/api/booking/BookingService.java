@@ -5,6 +5,7 @@ import com.northernchile.api.booking.dto.BookingClientUpdateReq;
 import com.northernchile.api.booking.dto.BookingCreateReq;
 import com.northernchile.api.booking.dto.BookingRes;
 import com.northernchile.api.booking.dto.ParticipantRes;
+import com.northernchile.api.config.NotificationConfig;
 import com.northernchile.api.exception.BookingCutoffException;
 import com.northernchile.api.exception.InvalidBookingStateException;
 import com.northernchile.api.exception.ResourceNotFoundException;
@@ -21,8 +22,6 @@ import com.northernchile.api.util.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,9 +50,7 @@ public class BookingService {
     private final BookingMapper bookingMapper;
     private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
     private final PricingService pricingService;
-
-    @Value("${notification.admin.email}")
-    private String adminEmail;
+    private final NotificationConfig notificationConfig;
 
     @Value("${booking.min-hours-before-tour:2}")
     private int minHoursBeforeTour;
@@ -65,7 +62,8 @@ public class BookingService {
             AuditLogService auditLogService,
             BookingMapper bookingMapper,
             com.northernchile.api.availability.AvailabilityValidator availabilityValidator,
-            PricingService pricingService) {
+            PricingService pricingService,
+            NotificationConfig notificationConfig) {
         this.bookingRepository = bookingRepository;
         this.tourScheduleRepository = tourScheduleRepository;
         this.emailService = emailService;
@@ -73,6 +71,7 @@ public class BookingService {
         this.bookingMapper = bookingMapper;
         this.availabilityValidator = availabilityValidator;
         this.pricingService = pricingService;
+        this.notificationConfig = notificationConfig;
     }
 
     @Transactional
@@ -207,6 +206,7 @@ public class BookingService {
         }
 
         // Also send to general admin (contacto@northernchile) if different from owner
+        String adminEmail = notificationConfig.getAdminEmail();
         if (adminEmail != null && (tourOwner == null || !adminEmail.equalsIgnoreCase(tourOwner.getEmail()))) {
             emailService.sendNewBookingNotificationToAdmin(booking, adminEmail);
             log.info("Sent booking notification to general admin: {}", adminEmail);

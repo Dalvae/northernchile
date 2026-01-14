@@ -1,11 +1,11 @@
 package com.northernchile.api.contact;
 
+import com.northernchile.api.config.NotificationConfig;
 import com.northernchile.api.contact.dto.ContactMessageReq;
 import com.northernchile.api.model.ContactMessage;
 import com.northernchile.api.notification.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,15 +18,15 @@ public class ContactMessageService {
 
     private final ContactMessageRepository contactMessageRepository;
     private final EmailService emailService;
-
-    @Value("${notification.admin.email}")
-    private String adminEmail;
+    private final NotificationConfig notificationConfig;
 
     public ContactMessageService(
             ContactMessageRepository contactMessageRepository,
-            EmailService emailService) {
+            EmailService emailService,
+            NotificationConfig notificationConfig) {
         this.contactMessageRepository = contactMessageRepository;
         this.emailService = emailService;
+        this.notificationConfig = notificationConfig;
     }
 
     @Transactional
@@ -42,6 +42,7 @@ public class ContactMessageService {
 
         // Send email notification to admin
         try {
+            String adminEmail = notificationConfig.getAdminEmail();
             emailService.sendContactNotificationToAdmin(saved, adminEmail);
             log.info("Contact message email notification sent to admin: {}", adminEmail);
         } catch (Exception e) {

@@ -5,7 +5,7 @@ import { USER_ROLE_OPTIONS } from '~/utils/adminOptions'
 
 const emit = defineEmits<{ success: [] }>()
 const { createAdminUser } = useAdminData()
-const toast = useToast()
+const { showSuccessToast, showErrorToast } = useApiError()
 
 const isOpen = ref(false)
 
@@ -31,6 +31,15 @@ const schema = z.object({
 
 const isSubmitting = ref(false)
 
+function resetForm() {
+  state.email = ''
+  state.fullName = ''
+  state.password = ''
+  state.role = 'ROLE_CLIENT'
+  state.nationality = ''
+  state.phoneNumber = ''
+}
+
 async function handleSubmit() {
   isSubmitting.value = true
   try {
@@ -44,41 +53,12 @@ async function handleSubmit() {
     }
 
     await createAdminUser(payload)
-    toast.add({
-      title: 'Usuario creado',
-      color: 'success',
-      icon: 'i-lucide-check-circle'
-    })
-
-    // Reset form
-    state.email = ''
-    state.fullName = ''
-    state.password = ''
-    state.role = 'ROLE_CLIENT'
-    state.nationality = ''
-    state.phoneNumber = ''
-
+    showSuccessToast('Usuario creado')
+    resetForm()
     isOpen.value = false
     emit('success')
-  } catch (error: unknown) {
-    let description = 'Error desconocido'
-
-    if (typeof error === 'string') {
-      description = error
-    } else if (error && typeof error === 'object') {
-      const anyError = error as { data?: { message?: string }, message?: string }
-      description
-        = anyError.data?.message
-          || anyError.message
-          || description
-    }
-
-    toast.add({
-      title: 'Error al crear',
-      description,
-      color: 'error',
-      icon: 'i-lucide-x-circle'
-    })
+  } catch (error) {
+    showErrorToast(error, 'Error al crear')
   } finally {
     isSubmitting.value = false
   }
@@ -95,135 +75,101 @@ async function handleSubmit() {
     Crear Usuario
   </UButton>
 
-  <UModal v-model:open="isOpen">
-    <template #content>
-      <div class="p-6">
-        <!-- Header -->
-        <div class="flex justify-between items-start pb-4 border-b border-default">
-          <div>
-            <h3 class="text-xl font-semibold text-default">
-              Crear Usuario
-            </h3>
-            <p class="text-sm text-muted mt-1">
-              Completa los datos del nuevo usuario
-            </p>
-          </div>
-          <UButton
-            icon="i-lucide-x"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            @click="isOpen = false"
-          />
-        </div>
+  <AdminBaseAdminModal
+    v-model:open="isOpen"
+    title="Crear Usuario"
+    subtitle="Completa los datos del nuevo usuario"
+    submit-label="Crear Usuario"
+    :submit-loading="isSubmitting"
+    @submit="handleSubmit"
+  >
+    <UForm
+      :schema="schema"
+      :state="state"
+      class="space-y-4"
+      @submit="handleSubmit"
+    >
+      <!-- Email -->
+      <UFormField
+        label="Email"
+        name="email"
+        required
+      >
+        <UInput
+          v-model="state.email"
+          type="email"
+          placeholder="usuario@example.com"
+          icon="i-lucide-mail"
+          class="w-full"
+        />
+      </UFormField>
 
-        <!-- Form -->
-        <UForm
-          :schema="schema"
-          :state="state"
-          class="py-4 space-y-4 max-h-[60vh] overflow-y-auto"
-          @submit="handleSubmit"
-        >
-          <!-- Email -->
-          <UFormField
-            label="Email"
-            name="email"
-            required
-          >
-            <UInput
-              v-model="state.email"
-              type="email"
-              placeholder="usuario@example.com"
-              icon="i-lucide-mail"
-              class="w-full"
-            />
-          </UFormField>
+      <!-- Full Name -->
+      <UFormField
+        label="Nombre Completo"
+        name="fullName"
+        required
+      >
+        <UInput
+          v-model="state.fullName"
+          placeholder="Nombre completo"
+          icon="i-lucide-user"
+          class="w-full"
+        />
+      </UFormField>
 
-          <!-- Full Name -->
-          <UFormField
-            label="Nombre Completo"
-            name="fullName"
-            required
-          >
-            <UInput
-              v-model="state.fullName"
-              placeholder="Nombre completo"
-              icon="i-lucide-user"
-              class="w-full"
-            />
-          </UFormField>
+      <!-- Password -->
+      <UFormField
+        label="Contraseña"
+        name="password"
+        required
+        help="Mínimo 8 caracteres"
+      >
+        <UInput
+          v-model="state.password"
+          type="password"
+          placeholder="••••••••"
+          icon="i-lucide-lock"
+          class="w-full"
+        />
+      </UFormField>
 
-          <!-- Password -->
-          <UFormField
-            label="Contraseña"
-            name="password"
-            required
-            help="Mínimo 8 caracteres"
-          >
-            <UInput
-              v-model="state.password"
-              type="password"
-              placeholder="••••••••"
-              icon="i-lucide-lock"
-              class="w-full"
-            />
-          </UFormField>
+      <!-- Role -->
+      <UFormField
+        label="Rol"
+        name="role"
+        required
+      >
+        <USelect
+          v-model="state.role"
+          :items="[...USER_ROLE_OPTIONS] as { label: string, value: string }[]"
+          option-attribute="label"
+          value-attribute="value"
+          placeholder="Selecciona un rol"
+          class="w-full"
+        />
+      </UFormField>
 
-          <!-- Role -->
-          <UFormField
-            label="Rol"
-            name="role"
-            required
-          >
-            <USelect
-              v-model="state.role"
-              :items="[...USER_ROLE_OPTIONS] as { label: string, value: string }[]"
-              option-attribute="label"
-              value-attribute="value"
-              placeholder="Selecciona un rol"
-              class="w-full"
-            />
-          </UFormField>
+      <!-- Nationality -->
+      <CountrySelect
+        v-model="state.nationality"
+        label="Nacionalidad"
+        placeholder="Selecciona nacionalidad"
+      />
 
-          <!-- Nationality -->
-          <CountrySelect
-            v-model="state.nationality"
-            label="Nacionalidad"
-            placeholder="Selecciona nacionalidad"
-          />
-
-          <!-- Phone Number -->
-          <UFormField
-            label="Teléfono"
-            name="phoneNumber"
-          >
-            <UInput
-              v-model="state.phoneNumber"
-              type="tel"
-              placeholder="+56 9 1234 5678"
-              icon="i-lucide-phone"
-              class="w-full"
-            />
-          </UFormField>
-        </UForm>
-
-        <!-- Footer -->
-        <div class="flex justify-end gap-3 pt-4 border-t border-default">
-          <UButton
-            label="Cancelar"
-            color="neutral"
-            variant="outline"
-            :disabled="isSubmitting"
-            @click="isOpen = false"
-          />
-          <UButton
-            label="Crear Usuario"
-            color="primary"
-            :loading="isSubmitting"
-            @click="handleSubmit"
-          />
-        </div>
-      </div>
-    </template>
-  </UModal>
+      <!-- Phone Number -->
+      <UFormField
+        label="Teléfono"
+        name="phoneNumber"
+      >
+        <UInput
+          v-model="state.phoneNumber"
+          type="tel"
+          placeholder="+56 9 1234 5678"
+          icon="i-lucide-phone"
+          class="w-full"
+        />
+      </UFormField>
+    </UForm>
+  </AdminBaseAdminModal>
 </template>

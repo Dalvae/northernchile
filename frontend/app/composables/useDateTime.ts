@@ -76,6 +76,7 @@ export function useDateTime() {
 
   /**
    * Format a LocalTime object or string (HH:mm).
+   * Returns undefined if input is invalid.
    */
   const formatLocalTime = (value: LocalTime | string | null | undefined): string => {
     if (!value) return ''
@@ -88,6 +89,27 @@ export function useDateTime() {
       return `${h}:${m}`
     }
     return ''
+  }
+
+  /**
+   * Convert LocalTime object to HH:mm string.
+   * Returns undefined if input is invalid.
+   */
+  const localTimeToString = (lt?: LocalTime | null): string | undefined => {
+    if (!lt || lt.hour === undefined) return undefined
+    const h = String(lt.hour).padStart(2, '0')
+    const m = String(lt.minute ?? 0).padStart(2, '0')
+    return `${h}:${m}`
+  }
+
+  /**
+   * Convert HH:mm string to LocalTime object.
+   * Returns undefined if input is invalid.
+   */
+  const stringToLocalTime = (str?: string | null): LocalTime | undefined => {
+    if (!str) return undefined
+    const [hour, minute] = str.split(':').map(Number)
+    return { hour, minute, second: 0, nano: 0 }
   }
 
   /**
@@ -126,6 +148,10 @@ export function useDateTime() {
     formatTime,
     formatLocalTime,
     formatLocalized,
+
+    // LocalTime conversions
+    localTimeToString,
+    stringToLocalTime,
 
     // Re-export utilities for convenience
     parseDateOnly,

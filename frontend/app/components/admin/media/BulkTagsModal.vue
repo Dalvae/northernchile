@@ -6,7 +6,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue', 'success'])
 
-const toast = useToast()
+const { showSuccessToast, showErrorToast } = useApiError()
 const { updateAdminMedia, fetchAdminMediaById } = useAdminData()
 
 const isOpen = computed({
@@ -29,7 +29,7 @@ watch(isOpen, (open) => {
 
 async function save() {
   if (tags.value.length === 0) {
-    toast.add({ color: 'warning', title: 'Añade al menos una etiqueta' })
+    showErrorToast({ message: 'Añade al menos una etiqueta' })
     return
   }
 
@@ -59,22 +59,16 @@ async function save() {
     }
 
     if (failed === 0) {
-      toast.add({
-        color: 'success',
-        title: `Etiquetas ${mode.value === 'add' ? 'añadidas' : 'reemplazadas'} en ${updated} ${updated === 1 ? 'medio' : 'medios'}`
-      })
+      showSuccessToast(`Etiquetas ${mode.value === 'add' ? 'añadidas' : 'reemplazadas'} en ${updated} ${updated === 1 ? 'medio' : 'medios'}`)
     } else {
-      toast.add({
-        color: 'warning',
-        title: `${updated} actualizados, ${failed} fallaron`
-      })
+      showErrorToast({ message: `${updated} actualizados, ${failed} fallaron` })
     }
 
     emit('success')
     isOpen.value = false
   } catch (error) {
     console.error('Error updating tags:', error)
-    toast.add({ color: 'error', title: 'Error al actualizar etiquetas' })
+    showErrorToast(error, 'Error al actualizar etiquetas')
   } finally {
     saving.value = false
   }
@@ -82,94 +76,57 @@ async function save() {
 </script>
 
 <template>
-  <UModal
+  <AdminBaseAdminModal
     v-model:open="isOpen"
-    class="sm:max-w-md"
+    title="Editar Etiquetas"
+    :subtitle="`${mediaIds.length} ${mediaIds.length === 1 ? 'medio seleccionado' : 'medios seleccionados'}`"
+    size="md"
+    :submit-label="mode === 'add' ? 'Añadir Etiquetas' : 'Reemplazar Etiquetas'"
+    :submit-loading="saving"
+    :submit-disabled="tags.length === 0"
+    @submit="save"
   >
-    <template #content>
-      <div class="p-6">
-        <!-- Header -->
-        <div class="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
-          <div>
-            <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-              Editar Etiquetas
-            </h3>
-            <p class="text-sm text-neutral-600 dark:text-neutral-300">
-              {{ mediaIds.length }} {{ mediaIds.length === 1 ? 'medio seleccionado' : 'medios seleccionados' }}
-            </p>
-          </div>
-          <UButton
-            icon="i-heroicons-x-mark"
-            variant="ghost"
-            color="neutral"
-            @click="isOpen = false"
-          />
-        </div>
+    <div class="space-y-4">
+      <!-- Mode selector -->
+      <div>
+        <label class="block text-sm font-medium text-default mb-2">
+          Modo
+        </label>
 
-        <!-- Content -->
-        <div class="py-6 space-y-4">
-          <!-- Mode selector -->
-          <div>
-            <label class="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
-              Modo
-            </label>
-
-            <div class="flex gap-4">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <URadio
-                  v-model="mode"
-                  value="add"
-                  name="tag-mode"
-                />
-                <span class="text-sm">Añadir a existentes</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <URadio
-                  v-model="mode"
-                  value="replace"
-                  name="tag-mode"
-                />
-                <span class="text-sm">Reemplazar todas</span>
-              </label>
-            </div>
-
-            <p class="text-xs text-neutral-600 dark:text-neutral-300 mt-2">
-              {{ mode === 'add' ? 'Las etiquetas se añadirán a las existentes' : 'Las etiquetas existentes serán reemplazadas' }}
-            </p>
-          </div>
-
-          <!-- Tags -->
-          <div>
-            <label class="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
-              Etiquetas
-            </label>
-            <UiTagInput
-              v-model="tags"
-              lowercase
+        <div class="flex gap-4">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <URadio
+              v-model="mode"
+              value="add"
+              name="tag-mode"
             />
-          </div>
+            <span class="text-sm">Añadir a existentes</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <URadio
+              v-model="mode"
+              value="replace"
+              name="tag-mode"
+            />
+            <span class="text-sm">Reemplazar todas</span>
+          </label>
         </div>
 
-        <!-- Footer -->
-        <div class="flex justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-800">
-          <UButton
-            variant="outline"
-            color="neutral"
-            @click="isOpen = false"
-          >
-            Cancelar
-          </UButton>
-
-          <UButton
-            color="primary"
-            :loading="saving"
-            :disabled="tags.length === 0"
-            @click="save"
-          >
-            {{ mode === 'add' ? 'Añadir' : 'Reemplazar' }} Etiquetas
-          </UButton>
-        </div>
+        <p class="text-xs text-muted mt-2">
+          {{ mode === 'add' ? 'Las etiquetas se añadirán a las existentes' : 'Las etiquetas existentes serán reemplazadas' }}
+        </p>
       </div>
-    </template>
-  </UModal>
+
+      <!-- Tags -->
+      <div>
+        <label class="block text-sm font-medium text-default mb-2">
+          Etiquetas
+        </label>
+        <UiTagInput
+          v-model="tags"
+          lowercase
+        />
+      </div>
+    </div>
+  </AdminBaseAdminModal>
 </template>

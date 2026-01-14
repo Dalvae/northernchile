@@ -12,7 +12,7 @@ const emit = defineEmits<{
 }>()
 
 const { updateAdminUser, resetAdminUserPassword } = useAdminData()
-const toast = useToast()
+const { showSuccessToast, showErrorToast } = useApiError()
 
 const isOpen = ref(false)
 
@@ -39,12 +39,7 @@ const newPassword = ref('')
 
 async function handlePasswordReset() {
   if (!newPassword.value || newPassword.value.length < 8) {
-    toast.add({
-      title: 'Error',
-      description: 'La contraseña debe tener al menos 8 caracteres',
-      color: 'error',
-      icon: 'i-lucide-x-circle'
-    })
+    showErrorToast({ message: 'La contraseña debe tener al menos 8 caracteres' })
     return
   }
 
@@ -55,33 +50,11 @@ async function handlePasswordReset() {
   isResettingPassword.value = true
   try {
     await resetAdminUserPassword(props.user.id!, newPassword.value)
-    toast.add({
-      title: 'Contraseña restablecida',
-      description: 'La contraseña del usuario ha sido actualizada correctamente',
-      color: 'success',
-      icon: 'i-lucide-check-circle'
-    })
+    showSuccessToast('Contraseña restablecida', 'La contraseña del usuario ha sido actualizada correctamente')
     newPassword.value = ''
     showPasswordReset.value = false
-  } catch (error: unknown) {
-    let description = 'Error desconocido'
-
-    if (typeof error === 'string') {
-      description = error
-    } else if (error && typeof error === 'object') {
-      const anyError = error as { data?: { message?: string }, message?: string }
-      description
-        = anyError.data?.message
-          || anyError.message
-          || description
-    }
-
-    toast.add({
-      title: 'Error al restablecer contraseña',
-      description,
-      color: 'error',
-      icon: 'i-lucide-x-circle'
-    })
+  } catch (error) {
+    showErrorToast(error, 'Error al restablecer contraseña')
   } finally {
     isResettingPassword.value = false
   }
@@ -98,32 +71,11 @@ async function handleSubmit() {
     }
 
     await updateAdminUser(props.user.id!, payload)
-    toast.add({
-      title: 'Usuario actualizado',
-      color: 'success',
-      icon: 'i-lucide-check-circle'
-    })
+    showSuccessToast('Usuario actualizado')
     isOpen.value = false
     emit('success')
-  } catch (error: unknown) {
-    let description = 'Error desconocido'
-
-    if (typeof error === 'string') {
-      description = error
-    } else if (error && typeof error === 'object') {
-      const anyError = error as { data?: { message?: string }, message?: string }
-      description
-        = anyError.data?.message
-          || anyError.message
-          || description
-    }
-
-    toast.add({
-      title: 'Error al actualizar',
-      description,
-      color: 'error',
-      icon: 'i-lucide-x-circle'
-    })
+  } catch (error) {
+    showErrorToast(error, 'Error al actualizar')
   } finally {
     isSubmitting.value = false
   }
@@ -141,179 +93,145 @@ async function handleSubmit() {
     @click="isOpen = true"
   />
 
-  <UModal v-model:open="isOpen">
-    <template #content>
-      <div class="p-6">
-        <!-- Header -->
-        <div class="flex justify-between items-start pb-4 border-b border-default">
+  <AdminBaseAdminModal
+    v-model:open="isOpen"
+    title="Editar Usuario"
+    subtitle="Modifica la información del usuario"
+    submit-label="Guardar Cambios"
+    :submit-loading="isSubmitting"
+    @submit="handleSubmit"
+  >
+    <UForm
+      :schema="schema"
+      :state="state"
+      class="space-y-4"
+      @submit="handleSubmit"
+    >
+      <!-- Email (readonly) -->
+      <UFormField
+        label="Email"
+        name="email"
+      >
+        <UInput
+          :model-value="user.email"
+          type="email"
+          icon="i-lucide-mail"
+          class="w-full"
+          disabled
+          readonly
+        />
+      </UFormField>
+
+      <!-- Full Name -->
+      <UFormField
+        label="Nombre Completo"
+        name="fullName"
+        required
+      >
+        <UInput
+          v-model="state.fullName"
+          placeholder="Nombre completo"
+          icon="i-lucide-user"
+          class="w-full"
+        />
+      </UFormField>
+
+      <!-- Role -->
+      <UFormField
+        label="Rol"
+        name="role"
+        required
+      >
+        <USelect
+          v-model="state.role"
+          :items="[...USER_ROLE_OPTIONS] as { label: string, value: string }[]"
+          option-attribute="label"
+          value-attribute="value"
+          placeholder="Selecciona un rol"
+          class="w-full"
+        />
+      </UFormField>
+
+      <!-- Nationality -->
+      <CountrySelect
+        v-model="state.nationality"
+        label="Nacionalidad"
+        placeholder="Selecciona nacionalidad"
+      />
+
+      <!-- Phone Number -->
+      <UFormField
+        label="Teléfono"
+        name="phoneNumber"
+      >
+        <UInput
+          v-model="state.phoneNumber"
+          type="tel"
+          placeholder="+56 9 1234 5678"
+          icon="i-lucide-phone"
+          class="w-full"
+        />
+      </UFormField>
+
+      <!-- Password Reset Section -->
+      <div class="pt-4 border-t border-default">
+        <div class="flex items-center justify-between mb-3">
           <div>
-            <h3 class="text-xl font-semibold text-default">
-              Editar Usuario
-            </h3>
-            <p class="text-sm text-muted mt-1">
-              Modifica la información del usuario
+            <h4 class="font-medium text-default">
+              Restablecer Contraseña
+            </h4>
+            <p class="text-sm text-muted">
+              Establece una nueva contraseña para este usuario
             </p>
           </div>
           <UButton
-            icon="i-lucide-x"
-            color="neutral"
-            variant="ghost"
+            v-if="!showPasswordReset"
+            icon="i-lucide-key"
+            color="warning"
+            variant="outline"
             size="sm"
-            @click="isOpen = false"
-          />
+            @click="showPasswordReset = true"
+          >
+            Cambiar Contraseña
+          </UButton>
         </div>
 
-        <!-- Form -->
-        <UForm
-          :schema="schema"
-          :state="state"
-          class="py-4 space-y-4 max-h-[60vh] overflow-y-auto"
-          @submit="handleSubmit"
+        <div
+          v-if="showPasswordReset"
+          class="space-y-3 p-4 bg-warning-50 dark:bg-warning-950 rounded-lg border border-warning-200 dark:border-warning-800"
         >
-          <!-- Email (readonly) -->
           <UFormField
-            label="Email"
-            name="email"
+            label="Nueva Contraseña"
+            help="Mínimo 8 caracteres"
           >
             <UInput
-              :model-value="user.email"
-              type="email"
-              icon="i-lucide-mail"
-              class="w-full"
-              disabled
-              readonly
-            />
-          </UFormField>
-
-          <!-- Full Name -->
-          <UFormField
-            label="Nombre Completo"
-            name="fullName"
-            required
-          >
-            <UInput
-              v-model="state.fullName"
-              placeholder="Nombre completo"
-              icon="i-lucide-user"
+              v-model="newPassword"
+              type="password"
+              placeholder="••••••••"
+              icon="i-lucide-lock"
               class="w-full"
             />
           </UFormField>
-
-          <!-- Role -->
-          <UFormField
-            label="Rol"
-            name="role"
-            required
-          >
-            <USelect
-              v-model="state.role"
-              :items="[...USER_ROLE_OPTIONS] as { label: string, value: string }[]"
-              option-attribute="label"
-              value-attribute="value"
-              placeholder="Selecciona un rol"
-              class="w-full"
-            />
-          </UFormField>
-
-          <!-- Nationality -->
-          <CountrySelect
-            v-model="state.nationality"
-            label="Nacionalidad"
-            placeholder="Selecciona nacionalidad"
-          />
-
-          <!-- Phone Number -->
-          <UFormField
-            label="Teléfono"
-            name="phoneNumber"
-          >
-            <UInput
-              v-model="state.phoneNumber"
-              type="tel"
-              placeholder="+56 9 1234 5678"
-              icon="i-lucide-phone"
-              class="w-full"
-            />
-          </UFormField>
-
-          <!-- Password Reset Section -->
-          <div class="pt-4 border-t border-default">
-            <div class="flex items-center justify-between mb-3">
-              <div>
-                <h4 class="font-medium text-neutral-900 dark:text-white">
-                  Restablecer Contraseña
-                </h4>
-                <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                  Establece una nueva contraseña para este usuario
-                </p>
-              </div>
-              <UButton
-                v-if="!showPasswordReset"
-                icon="i-lucide-key"
-                color="warning"
-                variant="outline"
-                size="sm"
-                @click="showPasswordReset = true"
-              >
-                Cambiar Contraseña
-              </UButton>
-            </div>
-
-            <div
-              v-if="showPasswordReset"
-              class="space-y-3 p-4 bg-warning-50 dark:bg-warning-950 rounded-lg border border-warning-200 dark:border-warning-800"
+          <div class="flex gap-2">
+            <UButton
+              color="warning"
+              :loading="isResettingPassword"
+              icon="i-lucide-key"
+              @click="handlePasswordReset"
             >
-              <UFormField
-                label="Nueva Contraseña"
-                help="Mínimo 8 caracteres"
-              >
-                <UInput
-                  v-model="newPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  icon="i-lucide-lock"
-                  class="w-full"
-                />
-              </UFormField>
-              <div class="flex gap-2">
-                <UButton
-                  color="warning"
-                  :loading="isResettingPassword"
-                  icon="i-lucide-key"
-                  @click="handlePasswordReset"
-                >
-                  Restablecer Contraseña
-                </UButton>
-                <UButton
-                  color="neutral"
-                  variant="outline"
-                  :disabled="isResettingPassword"
-                  @click="showPasswordReset = false; newPassword = ''"
-                >
-                  Cancelar
-                </UButton>
-              </div>
-            </div>
+              Restablecer Contraseña
+            </UButton>
+            <UButton
+              color="neutral"
+              variant="outline"
+              :disabled="isResettingPassword"
+              @click="showPasswordReset = false; newPassword = ''"
+            >
+              Cancelar
+            </UButton>
           </div>
-        </UForm>
-
-        <!-- Footer -->
-        <div class="flex justify-end gap-3 pt-4 border-t border-default">
-          <UButton
-            label="Cancelar"
-            color="neutral"
-            variant="outline"
-            :disabled="isSubmitting"
-            @click="isOpen = false"
-          />
-          <UButton
-            label="Guardar Cambios"
-            color="primary"
-            :loading="isSubmitting"
-            @click="handleSubmit"
-          />
         </div>
       </div>
-    </template>
-  </UModal>
+    </UForm>
+  </AdminBaseAdminModal>
 </template>
