@@ -131,3 +131,7 @@ openapi.json
 
 # Playwright MCP screenshots
 .playwright-mcp/
+
+# Database backups
+*.sql
+backup_*.sql
