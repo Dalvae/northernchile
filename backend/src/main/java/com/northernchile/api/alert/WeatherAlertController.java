@@ -5,6 +5,7 @@ import com.northernchile.api.alert.dto.AlertCountRes;
 import com.northernchile.api.alert.dto.AlertHistoryRes;
 import com.northernchile.api.alert.dto.WeatherAlertMapper;
 import com.northernchile.api.alert.dto.WeatherAlertRes;
+import com.northernchile.api.booking.dto.ScheduleCancellationResult;
 import com.northernchile.api.common.dto.MessageRes;
 import com.northernchile.api.config.security.annotation.CurrentUser;
 import com.northernchile.api.model.User;
@@ -76,7 +77,7 @@ public class WeatherAlertController {
     }
 
     /**
-     * Resuelve una alerta
+     * Resuelve una alerta (simple resolution, no cascade cancellation)
      */
     @PostMapping("/{id}/resolve")
     public ResponseEntity<MessageRes> resolveAlert(
@@ -85,6 +86,35 @@ public class WeatherAlertController {
             @CurrentUser User currentUser) {
         alertService.resolveAlert(id, request.resolution(), currentUser.getId().toString());
         return ResponseEntity.ok(MessageRes.of("Alert resolved successfully"));
+    }
+
+    /**
+     * Resuelve una alerta y opcionalmente cancela el schedule con refunds en cascada.
+     * Use cancelWithRefunds=true to cancel the tour and automatically refund all bookings.
+     *
+     * @param id Alert ID
+     * @param cancelWithRefunds If true, cancels the schedule and processes refunds
+     * @return ScheduleCancellationResult with details of refunds processed (if cancelled)
+     */
+    @PostMapping("/{id}/resolve-with-action")
+    public ResponseEntity<?> resolveAlertWithAction(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "false") boolean cancelWithRefunds,
+            @CurrentUser User currentUser) {
+
+        ScheduleCancellationResult result = alertService.resolveAlertWithAction(
+                id,
+                cancelWithRefunds,
+                currentUser
+        );
+
+        if (result != null) {
+            // Cancelled with refunds - return the full result
+            return ResponseEntity.ok(result);
+        } else {
+            // Just resolved without cancellation
+            return ResponseEntity.ok(MessageRes.of("Alert resolved - tour kept"));
+        }
     }
 
     /**

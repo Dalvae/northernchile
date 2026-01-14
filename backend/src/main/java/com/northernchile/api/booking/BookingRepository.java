@@ -28,6 +28,17 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
 
     List<Booking> findByScheduleId(UUID scheduleId);
 
+    /**
+     * Find all bookings for a schedule with full details (for cascade cancellation).
+     */
+    @Query("SELECT DISTINCT b FROM Booking b " +
+           "LEFT JOIN FETCH b.schedule s " +
+           "LEFT JOIN FETCH s.tour t " +
+           "LEFT JOIN FETCH b.user " +
+           "LEFT JOIN FETCH b.participants " +
+           "WHERE s.id = :scheduleId")
+    List<Booking> findByScheduleIdWithDetails(@Param("scheduleId") UUID scheduleId);
+
     List<Booking> findByCreatedAtBetween(Instant start, Instant end);
 
     /**

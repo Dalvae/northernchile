@@ -1,10 +1,14 @@
 package com.northernchile.api.alert;
 
+import com.northernchile.api.booking.ScheduleCancellationService;
+import com.northernchile.api.booking.dto.CancellationReason;
+import com.northernchile.api.booking.dto.ScheduleCancellationResult;
 import com.northernchile.api.external.LunarService;
 import com.northernchile.api.external.WeatherService;
 import com.northernchile.api.external.dto.DailyForecast;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
+import com.northernchile.api.model.User;
 import com.northernchile.api.model.WeatherAlert;
 import com.northernchile.api.tour.TourScheduleRepository;
 import org.slf4j.Logger;
@@ -46,16 +50,19 @@ public class WeatherAlertService {
     private final WeatherAlertRepository alertRepository;
     private final WeatherService weatherService;
     private final LunarService lunarService;
+    private final ScheduleCancellationService scheduleCancellationService;
 
     public WeatherAlertService(
             TourScheduleRepository scheduleRepository,
             WeatherAlertRepository alertRepository,
             WeatherService weatherService,
-            LunarService lunarService) {
+            LunarService lunarService,
+            ScheduleCancellationService scheduleCancellationService) {
         this.scheduleRepository = scheduleRepository;
         this.alertRepository = alertRepository;
         this.weatherService = weatherService;
         this.lunarService = lunarService;
+        this.scheduleCancellationService = scheduleCancellationService;
     }
 
     /**
@@ -213,7 +220,7 @@ public class WeatherAlertService {
     }
 
     /**
-     * Resuelve una alerta
+     * Resuelve una alerta (simple resolution without cascade cancellation)
      */
     @Transactional
     public void resolveAlert(String alertId, String resolution, String adminId) {
@@ -228,5 +235,61 @@ public class WeatherAlertService {
         alertRepository.save(alert);
 
         logger.info("Alerta {} resuelta por admin {}: {}", alertId, adminId, resolution);
+    }
+
+    /**
+     * Resuelve una alerta y opcionalmente cancela el schedule con refunds en cascada.
+     * Use this method when the admin decides to cancel a tour due to an alert.
+     *
+     * @param alertId The alert ID to resolve
+     * @param cancelWithRefunds If true, cancels the schedule and processes refunds for all bookings
+     * @param currentUser The admin performing the action
+     * @return ScheduleCancellationResult if cancelled, null if just resolved without cancellation
+     */
+    @Transactional
+    public ScheduleCancellationResult resolveAlertWithAction(
+            String alertId,
+            boolean cancelWithRefunds,
+            User currentUser) {
+
+        WeatherAlert alert = alertRepository.findById(java.util.UUID.fromString(alertId))
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Alert not found with id: " + alertId));
+
+        if (!"PENDING".equals(alert.getStatus())) {
+            throw new IllegalStateException("Alert is not in PENDING status: " + alert.getStatus());
+        }
+
+        ScheduleCancellationResult cancellationResult = null;
+
+        if (cancelWithRefunds) {
+            // Determine cancellation reason based on alert type
+            CancellationReason reason = switch (alert.getAlertType()) {
+                case "WIND", "CLOUDS" -> CancellationReason.WEATHER;
+                case "MOON" -> CancellationReason.ASTRONOMICAL;
+                default -> CancellationReason.OTHER;
+            };
+
+            // Cancel schedule with cascade refunds
+            cancellationResult = scheduleCancellationService.cancelScheduleWithRefunds(
+                    alert.getTourSchedule().getId(),
+                    reason,
+                    currentUser
+            );
+
+            alert.setResolution("CANCELLED_WITH_REFUNDS");
+            logger.info("Alert {} resolved with cascade cancellation: {} bookings refunded, {} failed",
+                    alertId, cancellationResult.refundsProcessed(), cancellationResult.refundsFailed());
+        } else {
+            alert.setResolution("KEPT");
+            logger.info("Alert {} resolved without cancellation (tour kept)", alertId);
+        }
+
+        // Update alert status
+        alert.setStatus("RESOLVED");
+        alert.setResolvedBy(currentUser.getId().toString());
+        alert.setResolvedAt(Instant.now());
+        alertRepository.save(alert);
+
+        return cancellationResult;
     }
 }

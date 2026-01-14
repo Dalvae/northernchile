@@ -1,6 +1,9 @@
 package com.northernchile.api.tour.schedule;
 
 import com.northernchile.api.booking.BookingRepository;
+import com.northernchile.api.booking.ScheduleCancellationService;
+import com.northernchile.api.booking.dto.CancellationReason;
+import com.northernchile.api.booking.dto.ScheduleCancellationResult;
 import com.northernchile.api.config.security.annotation.CurrentUser;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.Participant;
@@ -38,18 +41,21 @@ public class TourScheduleAdminController {
     private final TourScheduleGeneratorService generatorService;
     private final BookingRepository bookingRepository;
     private final AuthorizationService authorizationService;
+    private final ScheduleCancellationService scheduleCancellationService;
 
     public TourScheduleAdminController(
             TourScheduleRepository tourScheduleRepository,
             TourScheduleService tourScheduleService,
             TourScheduleGeneratorService generatorService,
             BookingRepository bookingRepository,
-            AuthorizationService authorizationService) {
+            AuthorizationService authorizationService,
+            ScheduleCancellationService scheduleCancellationService) {
         this.tourScheduleRepository = tourScheduleRepository;
         this.tourScheduleService = tourScheduleService;
         this.generatorService = generatorService;
         this.bookingRepository = bookingRepository;
         this.authorizationService = authorizationService;
+        this.scheduleCancellationService = scheduleCancellationService;
     }
 
     /**
@@ -134,6 +140,7 @@ public class TourScheduleAdminController {
     /**
      * DELETE /api/admin/schedules/{id}
      * Cancela un schedule (cambia status a CANCELLED)
+     * NOTE: Use POST /{id}/cancel-with-refunds for cascade cancellation with automatic refunds
      */
     @DeleteMapping("/{id}")
     @RequiresPermission(value = Permission.DELETE_SCHEDULE, resourceIdParam = "id", resourceType = RequiresPermission.ResourceType.SCHEDULE)
@@ -142,6 +149,29 @@ public class TourScheduleAdminController {
             @CurrentUser User currentUser) {
         TourScheduleRes cancelled = tourScheduleService.cancelScheduledTour(UUID.fromString(id), currentUser);
         return ResponseEntity.ok(cancelled);
+    }
+
+    /**
+     * POST /api/admin/schedules/{id}/cancel-with-refunds
+     * Cancels a schedule AND processes refunds for all confirmed bookings.
+     * This is the preferred method when cancelling a tour due to weather, operational reasons, etc.
+     *
+     * @param id Schedule ID to cancel
+     * @param reason Optional cancellation reason (defaults to ADMIN_DECISION)
+     * @return ScheduleCancellationResult with details of each booking refund processed
+     */
+    @PostMapping("/{id}/cancel-with-refunds")
+    @RequiresPermission(value = Permission.DELETE_SCHEDULE, resourceIdParam = "id", resourceType = RequiresPermission.ResourceType.SCHEDULE)
+    public ResponseEntity<ScheduleCancellationResult> cancelScheduleWithRefunds(
+            @PathVariable String id,
+            @RequestParam(required = false, defaultValue = "ADMIN_DECISION") CancellationReason reason,
+            @CurrentUser User currentUser) {
+        ScheduleCancellationResult result = scheduleCancellationService.cancelScheduleWithRefunds(
+                UUID.fromString(id),
+                reason,
+                currentUser
+        );
+        return ResponseEntity.ok(result);
     }
 
     /**
