@@ -387,6 +387,9 @@ public class PaymentSessionPaymentAdapter {
                 String mpStatus = mpPayment.getStatus();
                 if ("approved".equals(mpStatus)) {
                     status = PaymentSessionStatus.COMPLETED;
+                    // IMPORTANT: Update externalPaymentId with the numeric payment ID for refunds
+                    session.setExternalPaymentId(mpPaymentId);
+                    log.info("Updated session {} externalPaymentId to {} for future refunds", session.getId(), mpPaymentId);
                 } else if ("pending".equals(mpStatus) || "in_process".equals(mpStatus)) {
                     status = PaymentSessionStatus.PENDING;
                 } else {
