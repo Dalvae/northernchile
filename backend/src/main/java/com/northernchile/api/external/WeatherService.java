@@ -5,12 +5,16 @@ import com.northernchile.api.external.dto.FiveDayForecastResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.northernchile.api.util.DateTimeUtils;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
@@ -26,6 +30,22 @@ public class WeatherService {
 
     private static final Logger log = LoggerFactory.getLogger(WeatherService.class);
 
+    /**
+     * Configuration for RestTemplate bean used by WeatherService
+     */
+    @Configuration
+    static class RestTemplateConfig {
+        @Bean
+        RestTemplate weatherRestTemplate(RestTemplateBuilder builder) {
+            return builder
+                    .connectTimeout(Duration.ofSeconds(5))
+                    .readTimeout(Duration.ofSeconds(10))
+                    .build();
+        }
+    }
+
+    private final RestTemplate restTemplate;
+
     // Self-injection to allow internal calls to pass through the Spring proxy (for @Cacheable)
     @org.springframework.context.annotation.Lazy
     @org.springframework.beans.factory.annotation.Autowired
@@ -40,6 +60,10 @@ public class WeatherService {
 
     @Value("${weather.api.lon:-68.1999}")
     private String longitude;
+
+    public WeatherService(RestTemplate weatherRestTemplate) {
+        this.restTemplate = weatherRestTemplate;
+    }
 
     /**
      * Obtiene pronóstico de 5 días con datos cada 3 horas (API gratuita)
@@ -60,7 +84,6 @@ public class WeatherService {
         log.debug("Fetching weather from: {}", url.replace(apiKey, "***"));
 
         try {
-            RestTemplate restTemplate = new RestTemplate();
             FiveDayForecastResponse response = restTemplate.getForObject(url, FiveDayForecastResponse.class);
 
             if (response == null) {

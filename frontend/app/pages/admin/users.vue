@@ -151,8 +151,8 @@ async function handleDelete(user: UserRes) {
             value-attribute="value"
             placeholder="Filtrar por rol"
           />
-          <!-- Create User Modal -->
-          <AdminUsersUserFormModal @success="refresh" />
+          <!-- Create User Modal - Lazy loaded -->
+          <LazyAdminUsersUserFormModal @success="refresh" />
         </div>
       </div>
 
@@ -199,8 +199,8 @@ async function handleDelete(user: UserRes) {
 
           <template #actions-cell="{ row }">
             <div class="flex items-center gap-2">
-              <!-- Edit User Modal -->
-              <AdminUsersUserFormModal
+              <!-- Edit User Modal - Lazy loaded -->
+              <LazyAdminUsersUserFormModal
                 :user="row.original"
                 @success="refresh"
               />

@@ -503,19 +503,19 @@ async function handleBulkSuccess() {
       </template>
     </UCard>
 
-    <!-- Modals -->
-    <AdminMediaUploadModal
+    <!-- Modals - Lazy loaded -->
+    <LazyAdminMediaUploadModal
       v-model="uploadModalOpen"
       @success="fetchMedia"
     />
 
-    <AdminMediaEditModal
+    <LazyAdminMediaEditModal
       v-model="editModalOpen"
       :media="selectedMedia"
       @success="fetchMedia"
     />
 
-    <AdminMediaLightbox
+    <LazyAdminMediaLightbox
       v-model="lightboxOpen"
       :media="allLoadedMedia"
       :initial-index="lightboxIndex"
@@ -525,13 +525,13 @@ async function handleBulkSuccess() {
       @load-more="loadMoreForLightbox"
     />
 
-    <AdminMediaBulkAssignTourModal
+    <LazyAdminMediaBulkAssignTourModal
       v-model="bulkAssignTourModalOpen"
       :media-ids="selectedItems"
       @success="handleBulkSuccess"
     />
 
-    <AdminMediaBulkTagsModal
+    <LazyAdminMediaBulkTagsModal
       v-model="bulkTagsModalOpen"
       :media-ids="selectedItems"
       @success="handleBulkSuccess"

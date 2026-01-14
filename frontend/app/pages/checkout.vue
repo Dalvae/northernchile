@@ -103,26 +103,32 @@ onMounted(async () => {
   }
 })
 
-// Save contact form when it changes (debounced via watch)
-watch(contactForm, (newVal) => {
-  if (import.meta.client) {
-    // Don't save passwords
-    const toSave = {
-      email: newVal.email,
-      fullName: newVal.fullName,
-      phone: newVal.phone,
-      countryCode: newVal.countryCode
-    }
-    localStorage.setItem(CHECKOUT_CONTACT_KEY, JSON.stringify(toSave))
-  }
-}, { deep: true })
+// Computed for localStorage save (excluding passwords)
+const contactFormForSave = computed(() => JSON.stringify({
+  email: contactForm.value.email,
+  fullName: contactForm.value.fullName,
+  phone: contactForm.value.phone,
+  countryCode: contactForm.value.countryCode
+}))
 
-// Save participants when they change
-watch(participants, (newVal) => {
-  if (import.meta.client && newVal.length > 0) {
-    localStorage.setItem(CHECKOUT_PARTICIPANTS_KEY, JSON.stringify(newVal))
+// Save contact form when it changes (watch primitive string instead of deep object)
+watch(contactFormForSave, (json) => {
+  if (import.meta.client) {
+    localStorage.setItem(CHECKOUT_CONTACT_KEY, json)
   }
-}, { deep: true })
+})
+
+// Serialize participants for efficient watching
+const participantsForSave = computed(() =>
+  participants.value.length > 0 ? JSON.stringify(participants.value) : ''
+)
+
+// Save participants when they change (watch primitive string instead of deep array)
+watch(participantsForSave, (json) => {
+  if (import.meta.client && json) {
+    localStorage.setItem(CHECKOUT_PARTICIPANTS_KEY, json)
+  }
+})
 
 // Save current step
 watch(currentStep, (newVal) => {

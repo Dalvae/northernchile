@@ -7,11 +7,13 @@ import com.northernchile.api.exception.EmailAlreadyExistsException;
 import com.northernchile.api.model.EmailVerificationToken;
 import com.northernchile.api.model.PasswordResetToken;
 import com.northernchile.api.model.User;
-import com.northernchile.api.notification.EmailService;
+import com.northernchile.api.notification.event.PasswordResetRequestedEvent;
+import com.northernchile.api.notification.event.UserRegisteredEvent;
 import com.northernchile.api.security.Role;
 import com.northernchile.api.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -35,20 +37,20 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final TokenService tokenService;
-    private final EmailService emailService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${NUXT_PUBLIC_BASE_URL:http://localhost:3000}")
     private String frontendBaseUrl;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                        AuthenticationConfiguration authenticationConfiguration, JwtUtil jwtUtil,
-                       TokenService tokenService, EmailService emailService) throws Exception {
+                       TokenService tokenService, ApplicationEventPublisher eventPublisher) throws Exception {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationConfiguration.getAuthenticationManager();
         this.jwtUtil = jwtUtil;
         this.tokenService = tokenService;
-        this.emailService = emailService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -70,12 +72,16 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        // Send verification email
+        // Publish event for verification email (decoupled from email sending)
         EmailVerificationToken token = tokenService.createEmailVerificationToken(savedUser);
         String verificationUrl = frontendBaseUrl + "/verify-email?token=" + token.getToken();
         String languageCode = getLanguageFromRequest(request);
-        emailService.sendVerificationEmail(savedUser.getEmail(), savedUser.getFullName(),
-                verificationUrl, languageCode);
+        eventPublisher.publishEvent(new UserRegisteredEvent(
+                savedUser.getEmail(),
+                savedUser.getFullName(),
+                verificationUrl,
+                languageCode
+        ));
 
         return savedUser;
     }
@@ -166,8 +172,12 @@ public class AuthService {
         PasswordResetToken token = tokenService.createPasswordResetToken(user);
         String resetUrl = frontendBaseUrl + "/auth?token=" + token.getToken();
 
-        emailService.sendPasswordResetEmail(user.getEmail(), user.getFullName(),
-                resetUrl, languageCode != null ? languageCode : "es-CL");
+        eventPublisher.publishEvent(new PasswordResetRequestedEvent(
+                user.getEmail(),
+                user.getFullName(),
+                resetUrl,
+                languageCode != null ? languageCode : "es-CL"
+        ));
     }
 
     /**
@@ -200,7 +210,11 @@ public class AuthService {
         EmailVerificationToken token = tokenService.createEmailVerificationToken(user);
         String verificationUrl = frontendBaseUrl + "/verify-email?token=" + token.getToken();
 
-        emailService.sendVerificationEmail(user.getEmail(), user.getFullName(),
-                verificationUrl, languageCode != null ? languageCode : "es-CL");
+        eventPublisher.publishEvent(new UserRegisteredEvent(
+                user.getEmail(),
+                user.getFullName(),
+                verificationUrl,
+                languageCode != null ? languageCode : "es-CL"
+        ));
     }
 }

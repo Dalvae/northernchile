@@ -269,7 +269,7 @@ import type {
   EventClickArg
 } from '@fullcalendar/core'
 import esLocale from '@fullcalendar/core/locales/es'
-import type { TourRes, TourScheduleRes, TourScheduleCreateReq, WeatherAlert } from 'api-client'
+import type { TourRes, TourScheduleRes, TourScheduleCreateReq, WeatherAlertRes } from 'api-client'
 import type { DailyWeather, MoonPhase } from '~/composables/useCalendarData'
 import { getLocalDateString, CHILE_TIMEZONE } from '~/utils/dateUtils'
 
@@ -295,7 +295,7 @@ interface CalendarDataResponse {
   moonPhases: Map<string, MoonPhase>
   weather: Map<string, DailyWeather>
   alerts: Map<string, WeatherAlert[]>
-  allAlerts?: WeatherAlert[]
+  allAlerts?: WeatherAlertRes[]
 }
 
 // Estado
@@ -387,7 +387,7 @@ const loadCalendarData = async () => {
     const data = await fetchCalendarData(startDate.value, endDate.value) as CalendarDataResponse
     calendarData.value = data
     pendingAlerts.value = Array.isArray(data.allAlerts)
-      ? data.allAlerts.filter((a: WeatherAlert) => a.status === 'PENDING').length
+      ? data.allAlerts.filter((a: WeatherAlertRes) => a.status === 'PENDING').length
       : 0
   } catch (error) {
     console.error('Error loading calendar data:', error)
@@ -606,7 +606,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
           // Verificar si tiene alertas críticas
           const scheduleAlerts = alerts?.get(schedule.id) ?? []
           const hasCriticalAlert = scheduleAlerts.some(
-            (a: WeatherAlert) => a.severity === 'CRITICAL' && a.status === 'PENDING'
+            (a: WeatherAlertRes) => a.severity === 'CRITICAL' && a.status === 'PENDING'
           )
 
           if (hasCriticalAlert) {

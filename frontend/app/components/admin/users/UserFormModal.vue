@@ -157,7 +157,7 @@ const submitLabel = computed(() => isEditMode.value ? 'Guardar Cambios' : 'Crear
       :schema="schema"
       :state="state"
       class="space-y-4"
-      @submit="handleSubmit"
+      @submit="() => { handleSubmit() }"
     >
       <!-- Email -->
       <UFormField
