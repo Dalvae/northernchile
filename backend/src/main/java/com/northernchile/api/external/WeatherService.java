@@ -3,6 +3,7 @@ package com.northernchile.api.external;
 import com.northernchile.api.config.properties.WeatherProperties;
 import com.northernchile.api.external.dto.DailyForecast;
 import com.northernchile.api.external.dto.FiveDayForecastResponse;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -60,9 +61,11 @@ public class WeatherService {
     /**
      * Obtiene pronóstico de 5 días con datos cada 3 horas (API gratuita)
      * Caché de 3 horas para evitar llamadas excesivas
+     * Circuit breaker protects against cascading failures when weather API is down.
      * @return Datos agrupados por día con temperaturas, viento, nubes, etc.
      */
     @Cacheable(value = "weatherForecast", key = "'fiveday'")
+    @CircuitBreaker(name = "weather", fallbackMethod = "getForecastFallback")
     public Map<String, Object> getForecast() {
         var api = weatherProperties.getApi();
         if ("dummy".equals(api.getKey())) {
@@ -99,6 +102,15 @@ public class WeatherService {
             log.error("Error fetching OpenWeather forecast: {}", e.getMessage(), e);
             return createEmptyForecast();
         }
+    }
+
+    /**
+     * Fallback method called when circuit breaker is open or call fails.
+     * Returns empty forecast to allow graceful degradation.
+     */
+    private Map<String, Object> getForecastFallback(Throwable t) {
+        log.warn("Weather circuit breaker fallback triggered: {}", t.getMessage());
+        return createEmptyForecast();
     }
 
     /**
