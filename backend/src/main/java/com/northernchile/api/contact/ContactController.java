@@ -13,7 +13,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -39,47 +38,29 @@ public class ContactController {
         ));
     }
 
+    // ==================== ADMIN ENDPOINTS ====================
+
     /**
-     * ADMIN endpoints - Manage contact messages
-     */
-    /**
-     * @deprecated Use paginated endpoint /admin/contact/messages/paged instead
+     * Get paginated contact messages.
+     * Supports pagination via ?page=0&size=20&sort=createdAt,desc
      */
     @GetMapping("/admin/contact/messages")
     @RequiresPermission(Permission.VIEW_CONTACT_MESSAGES)
-    @Operation(summary = "Get all contact messages", description = "Get all contact form messages (admin only)")
-    public ResponseEntity<List<ContactMessage>> getAllMessages() {
-        List<ContactMessage> messages = contactMessageService.getAllMessages();
-        return ResponseEntity.ok(messages);
-    }
-
-    @GetMapping("/admin/contact/messages/paged")
-    @RequiresPermission(Permission.VIEW_CONTACT_MESSAGES)
-    @Operation(summary = "Get paginated contact messages", description = "Get paginated contact form messages (admin only)")
-    public ResponseEntity<Page<ContactMessage>> getAllMessagesPaged(
+    @Operation(summary = "Get contact messages", description = "Get paginated contact form messages (admin only)")
+    public ResponseEntity<Page<ContactMessage>> getAllMessages(
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        Page<ContactMessage> messages = contactMessageService.getAllMessagesPaged(pageable);
-        return ResponseEntity.ok(messages);
+        return ResponseEntity.ok(contactMessageService.getAllMessagesPaged(pageable));
     }
 
     /**
-     * @deprecated Use paginated endpoint /admin/contact/messages/new/paged instead
+     * Get paginated new (unread) contact messages.
      */
     @GetMapping("/admin/contact/messages/new")
     @RequiresPermission(Permission.VIEW_CONTACT_MESSAGES)
-    @Operation(summary = "Get new contact messages", description = "Get unread contact messages (admin only)")
-    public ResponseEntity<List<ContactMessage>> getNewMessages() {
-        List<ContactMessage> messages = contactMessageService.getMessagesByStatus("NEW");
-        return ResponseEntity.ok(messages);
-    }
-
-    @GetMapping("/admin/contact/messages/new/paged")
-    @RequiresPermission(Permission.VIEW_CONTACT_MESSAGES)
-    @Operation(summary = "Get paginated new contact messages", description = "Get paginated unread contact messages (admin only)")
-    public ResponseEntity<Page<ContactMessage>> getNewMessagesPaged(
+    @Operation(summary = "Get new contact messages", description = "Get paginated unread contact messages (admin only)")
+    public ResponseEntity<Page<ContactMessage>> getNewMessages(
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        Page<ContactMessage> messages = contactMessageService.getMessagesByStatusPaged("NEW", pageable);
-        return ResponseEntity.ok(messages);
+        return ResponseEntity.ok(contactMessageService.getMessagesByStatusPaged("NEW", pageable));
     }
 
     @GetMapping("/admin/contact/messages/count/new")

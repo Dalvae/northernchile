@@ -9,7 +9,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -34,23 +33,15 @@ public class PrivateTourRequestController {
         return ResponseEntity.ok("Request received. We will contact you shortly.");
     }
 
-    // Endpoints de ADMINISTRACIÓN para gestionar las solicitudes
-    /**
-     * @deprecated Use paginated endpoint /admin/private-tours/requests/paged instead
-     */
-    @GetMapping("/admin/private-tours/requests")
-    @RequiresPermission(Permission.VIEW_PRIVATE_TOUR_REQUESTS)
-    public ResponseEntity<List<PrivateTourRequest>> getAllRequests() {
-        return ResponseEntity.ok(privateTourRequestRepository.findAll());
-    }
+    // ==================== ADMIN ENDPOINTS ====================
 
     /**
      * Get paginated private tour requests.
      * Supports pagination via ?page=0&size=20&sort=createdAt,desc
      */
-    @GetMapping("/admin/private-tours/requests/paged")
+    @GetMapping("/admin/private-tours/requests")
     @RequiresPermission(Permission.VIEW_PRIVATE_TOUR_REQUESTS)
-    public ResponseEntity<Page<PrivateTourRequest>> getAllRequestsPaged(
+    public ResponseEntity<Page<PrivateTourRequest>> getAllRequests(
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
         return ResponseEntity.ok(privateTourRequestRepository.findAllByOrderByCreatedAtDesc(pageable));
     }

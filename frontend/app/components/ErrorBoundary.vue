@@ -40,6 +40,8 @@
 </template>
 
 <script setup lang="ts">
+import logger from '~/utils/logger'
+
 const props = defineProps<{
   showDetails?: boolean
 }>()
@@ -48,9 +50,9 @@ const error = ref<Error | null>(null)
 const router = useRouter()
 
 onErrorCaptured((err, instance, info) => {
-  console.error('Error boundary caught:', err)
-  console.error('Component:', instance)
-  console.error('Info:', info)
+  logger.error('Error boundary caught:', err)
+  logger.error('Component:', instance)
+  logger.error('Info:', info)
   error.value = err
   return false // Prevent error from propagating
 })

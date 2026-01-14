@@ -108,27 +108,16 @@ public class BookingController {
     // ==================== ADMIN ENDPOINTS ====================
 
     /**
-     * Get all bookings for admin (filtered by ownership for Partner Admin)
-     * @deprecated Use paginated endpoint /admin/bookings/paged instead
-     */
-    @GetMapping("/admin/bookings")
-    @RequiresPermission(Permission.VIEW_ALL_BOOKINGS)
-    public ResponseEntity<List<BookingRes>> getAdminBookings(@CurrentUser User currentUser) {
-        List<BookingRes> bookings = bookingService.getBookingsForAdmin(currentUser);
-        return new ResponseEntity<>(bookings, HttpStatus.OK);
-    }
-
-    /**
      * Get paginated bookings for admin (filtered by ownership for Partner Admin).
      * Supports pagination via ?page=0&size=20&sort=createdAt,desc
      */
-    @GetMapping("/admin/bookings/paged")
+    @GetMapping("/admin/bookings")
     @RequiresPermission(Permission.VIEW_ALL_BOOKINGS)
-    public ResponseEntity<Page<BookingRes>> getAdminBookingsPaged(
+    public ResponseEntity<Page<BookingRes>> getAdminBookings(
             @CurrentUser User currentUser,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
         Page<BookingRes> bookings = bookingService.getBookingsForAdminPaged(currentUser, pageable);
-        return new ResponseEntity<>(bookings, HttpStatus.OK);
+        return ResponseEntity.ok(bookings);
     }
 
     /**
