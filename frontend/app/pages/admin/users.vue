@@ -152,7 +152,7 @@ async function handleDelete(user: UserRes) {
             placeholder="Filtrar por rol"
           />
           <!-- Create User Modal -->
-          <AdminUsersCreateUserModal @success="refresh" />
+          <AdminUsersUserFormModal @success="refresh" />
         </div>
       </div>
 
@@ -200,7 +200,7 @@ async function handleDelete(user: UserRes) {
           <template #actions-cell="{ row }">
             <div class="flex items-center gap-2">
               <!-- Edit User Modal -->
-              <AdminUsersEditUserModal
+              <AdminUsersUserFormModal
                 :user="row.original"
                 @success="refresh"
               />

@@ -1,6 +1,7 @@
 package com.northernchile.api.tour;
 
 import com.northernchile.api.audit.AuditLogService;
+import com.northernchile.api.availability.AvailabilityValidator;
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
@@ -27,7 +28,8 @@ public class TourScheduleService {
     private final TourScheduleRepository tourScheduleRepository;
     private final TourRepository tourRepository;
     private final UserRepository userRepository;
-    private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
+    private final BookingRepository bookingRepository;
+    private final AvailabilityValidator availabilityValidator;
     private final AuditLogService auditLogService;
     private final AuthorizationService authorizationService;
     private final TourScheduleMapper tourScheduleMapper;
@@ -36,13 +38,15 @@ public class TourScheduleService {
             TourScheduleRepository tourScheduleRepository,
             TourRepository tourRepository,
             UserRepository userRepository,
-            com.northernchile.api.availability.AvailabilityValidator availabilityValidator,
+            BookingRepository bookingRepository,
+            AvailabilityValidator availabilityValidator,
             AuditLogService auditLogService,
             AuthorizationService authorizationService,
             TourScheduleMapper tourScheduleMapper) {
         this.tourScheduleRepository = tourScheduleRepository;
         this.tourRepository = tourRepository;
         this.userRepository = userRepository;
+        this.bookingRepository = bookingRepository;
         this.availabilityValidator = availabilityValidator;
         this.auditLogService = auditLogService;
         this.authorizationService = authorizationService;
@@ -202,5 +206,22 @@ public class TourScheduleService {
         int totalReserved = schedule.getMaxParticipants() - availabilityStatus.availableSlots();
 
         return tourScheduleMapper.toRes(schedule, totalReserved, availabilityStatus.availableSlots());
+    }
+
+    /**
+     * Converts a TourSchedule to TourScheduleRes with availability calculation.
+     * Uses confirmed bookings only (excludes cart reservations).
+     *
+     * @param schedule the tour schedule entity
+     * @return TourScheduleRes with calculated availability
+     */
+    public TourScheduleRes toScheduleResWithAvailability(TourSchedule schedule) {
+        Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(schedule.getId());
+        if (bookedParticipants == null) {
+            bookedParticipants = 0;
+        }
+        int availableSpots = Math.max(0, schedule.getMaxParticipants() - bookedParticipants);
+
+        return tourScheduleMapper.toRes(schedule, bookedParticipants, availableSpots);
     }
 }

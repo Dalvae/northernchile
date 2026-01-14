@@ -7,7 +7,7 @@ import com.northernchile.api.media.repository.MediaRepository;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.User;
-import com.northernchile.api.security.Role;
+import com.northernchile.api.security.AuthorizationService;
 import com.northernchile.api.storage.S3StorageService;
 import com.northernchile.api.tour.TourRepository;
 import com.northernchile.api.tour.TourScheduleRepository;
@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,65 +42,22 @@ public class MediaService {
     private final UserRepository userRepository;
     private final S3StorageService s3StorageService;
     private final MediaMapper mediaMapper;
+    private final AuthorizationService authorizationService;
 
     public MediaService(MediaRepository mediaRepository,
                        TourRepository tourRepository,
                        TourScheduleRepository scheduleRepository,
                        UserRepository userRepository,
                        S3StorageService s3StorageService,
-                       MediaMapper mediaMapper) {
+                       MediaMapper mediaMapper,
+                       AuthorizationService authorizationService) {
         this.mediaRepository = mediaRepository;
         this.tourRepository = tourRepository;
         this.scheduleRepository = scheduleRepository;
         this.userRepository = userRepository;
         this.s3StorageService = s3StorageService;
         this.mediaMapper = mediaMapper;
-    }
-
-    /**
-     * Verify if the requester has access to a tour.
-     * SUPER_ADMIN can access any tour, PARTNER_ADMIN only their own tours.
-     */
-    private void verifyTourAccess(User requester, Tour tour) {
-        boolean isSuperAdmin = requester.getRole().equals(Role.SUPER_ADMIN.getRoleName());
-        boolean isOwner = tour.getOwner().getId().equals(requester.getId());
-
-        if (!isSuperAdmin && !isOwner) {
-            throw new AccessDeniedException("You don't have permission to access this tour");
-        }
-    }
-
-    /**
-     * Verify if the requester has access to a schedule (through its parent tour).
-     * SUPER_ADMIN can access any schedule, PARTNER_ADMIN only their own schedules.
-     */
-    private void verifyScheduleAccess(User requester, TourSchedule schedule) {
-        boolean isSuperAdmin = requester.getRole().equals(Role.SUPER_ADMIN.getRoleName());
-        boolean isOwner = schedule.getTour().getOwner().getId().equals(requester.getId());
-
-        if (!isSuperAdmin && !isOwner) {
-            throw new AccessDeniedException("You don't have permission to access this schedule");
-        }
-    }
-
-    /**
-     * Verify if the requester has access to media.
-     * SUPER_ADMIN can access any media, PARTNER_ADMIN only their own media.
-     */
-    private void verifyMediaAccess(User requester, Media media) {
-        boolean isSuperAdmin = requester.getRole().equals(Role.SUPER_ADMIN.getRoleName());
-        boolean isOwner = media.getOwner().getId().equals(requester.getId());
-
-        if (!isSuperAdmin && !isOwner) {
-            throw new AccessDeniedException("You don't have permission to access this media");
-        }
-    }
-
-    /**
-     * Check if the requester is a SUPER_ADMIN.
-     */
-    private boolean isSuperAdmin(User user) {
-        return user.getRole().equals(Role.SUPER_ADMIN.getRoleName());
+        this.authorizationService = authorizationService;
     }
 
     // ============= Helper methods for DRY entity lookup + access verification =============
@@ -140,31 +96,32 @@ public class MediaService {
 
     /**
      * Find tour and verify requester has access.
+     * Uses AuthorizationService for centralized ownership verification.
      */
     private Tour findTourWithAccess(UUID tourId, UUID requesterId) {
         Tour tour = findTourOrThrow(tourId);
-        User requester = findUserOrThrow(requesterId);
-        verifyTourAccess(requester, tour);
+        authorizationService.checkOwnership(tour, "You don't have permission to access this tour");
         return tour;
     }
 
     /**
-     * Find schedule and verify requester has access.
+     * Find schedule and verify requester has access (through parent tour).
+     * Uses AuthorizationService for centralized ownership verification.
      */
     private TourSchedule findScheduleWithAccess(UUID scheduleId, UUID requesterId) {
         TourSchedule schedule = findScheduleOrThrow(scheduleId);
-        User requester = findUserOrThrow(requesterId);
-        verifyScheduleAccess(requester, schedule);
+        // TourSchedule doesn't implement OwnedEntity, so we check access via its parent Tour
+        authorizationService.checkOwnership(schedule.getTour(), "You don't have permission to access this schedule");
         return schedule;
     }
 
     /**
      * Find media and verify requester has access.
+     * Uses AuthorizationService for centralized ownership verification.
      */
     private Media findMediaWithAccess(UUID mediaId, UUID requesterId) {
         Media media = findMediaOrThrow(mediaId);
-        User requester = findUserOrThrow(requesterId);
-        verifyMediaAccess(requester, media);
+        authorizationService.checkOwnership(media, "You don't have permission to access this media");
         return media;
     }
 
@@ -249,9 +206,9 @@ public class MediaService {
         if (tourId != null) {
             Tour tour = tourRepository.findById(tourId)
                     .orElseThrow(() -> new EntityNotFoundException("Tour not found: " + tourId));
-            verifyTourAccess(owner, tour);
+            authorizationService.checkOwnership(tour, "You don't have permission to access this tour");
             media.setTour(tour);
-            
+
             // Get next display order for this tour
             Integer maxOrder = mediaRepository.getMaxDisplayOrderByTour(tourId);
             media.setDisplayOrder(maxOrder != null ? maxOrder + 1 : 0);
@@ -260,9 +217,10 @@ public class MediaService {
         if (scheduleId != null) {
             TourSchedule schedule = scheduleRepository.findById(scheduleId)
                     .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + scheduleId));
-            verifyScheduleAccess(owner, schedule);
+            // TourSchedule doesn't implement OwnedEntity, so we check access via its parent Tour
+            authorizationService.checkOwnership(schedule.getTour(), "You don't have permission to access this schedule");
             media.setSchedule(schedule);
-            
+
             // Get next display order for this schedule
             Integer maxOrder = mediaRepository.getMaxDisplayOrderBySchedule(scheduleId);
             media.setDisplayOrder(maxOrder != null ? maxOrder + 1 : 0);
@@ -291,7 +249,7 @@ public class MediaService {
 
         User requester = findUserOrThrow(requesterId);
 
-        boolean isSuperAdmin = isSuperAdmin(requester);
+        boolean isSuperAdmin = authorizationService.isSuperAdmin();
 
         Page<Media> mediaPage;
 

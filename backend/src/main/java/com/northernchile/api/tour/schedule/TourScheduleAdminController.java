@@ -1,8 +1,6 @@
 package com.northernchile.api.tour.schedule;
 
 import com.northernchile.api.booking.BookingRepository;
-import com.northernchile.api.booking.dto.BookingRes;
-import com.northernchile.api.booking.dto.ParticipantRes;
 import com.northernchile.api.config.security.annotation.CurrentUser;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.Participant;
@@ -16,8 +14,6 @@ import com.northernchile.api.tour.TourScheduleRepository;
 import com.northernchile.api.tour.TourScheduleService;
 import com.northernchile.api.tour.dto.TourScheduleCreateReq;
 import com.northernchile.api.tour.dto.TourScheduleRes;
-import com.northernchile.api.tour.mapper.TourScheduleMapper;
-import com.northernchile.api.user.UserRepository;
 import com.northernchile.api.util.DateTimeUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -41,26 +37,20 @@ public class TourScheduleAdminController {
     private final TourScheduleRepository tourScheduleRepository;
     private final TourScheduleService tourScheduleService;
     private final TourScheduleGeneratorService generatorService;
-    private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final AuthorizationService authorizationService;
-    private final TourScheduleMapper tourScheduleMapper;
 
     public TourScheduleAdminController(
             TourScheduleRepository tourScheduleRepository,
             TourScheduleService tourScheduleService,
             TourScheduleGeneratorService generatorService,
-            UserRepository userRepository,
             BookingRepository bookingRepository,
-            AuthorizationService authorizationService,
-            TourScheduleMapper tourScheduleMapper) {
+            AuthorizationService authorizationService) {
         this.tourScheduleRepository = tourScheduleRepository;
         this.tourScheduleService = tourScheduleService;
         this.generatorService = generatorService;
-        this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
         this.authorizationService = authorizationService;
-        this.tourScheduleMapper = tourScheduleMapper;
     }
 
     /**
@@ -110,7 +100,7 @@ public class TourScheduleAdminController {
         }
 
         List<TourScheduleRes> response = schedules.stream()
-                .map(this::mapToResponse)
+                .map(tourScheduleService::toScheduleResWithAvailability)
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
@@ -206,16 +196,5 @@ public class TourScheduleAdminController {
         response.put("participants", participantsList);
 
         return ResponseEntity.ok(response);
-    }
-
-    private TourScheduleRes mapToResponse(TourSchedule schedule) {
-        // Calculate actual availability (confirmed bookings only for admin view)
-        Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(schedule.getId());
-        if (bookedParticipants == null) {
-            bookedParticipants = 0;
-        }
-        int availableSpots = Math.max(0, schedule.getMaxParticipants() - bookedParticipants);
-
-        return tourScheduleMapper.toRes(schedule, bookedParticipants, availableSpots);
     }
 }

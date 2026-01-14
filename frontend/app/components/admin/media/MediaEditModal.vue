@@ -9,12 +9,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue', 'success'])
 
-const { showSuccessToast, showErrorToast } = useApiError()
-
-const isOpen = computed({
-  get: () => props.modelValue,
-  set: value => emit('update:modelValue', value)
-})
+const { fetchAdminSchedules, updateAdminMedia } = useAdminData()
 
 // Form state
 const state = ref({
@@ -29,7 +24,6 @@ const state = ref({
 const adminStore = useAdminStore()
 
 // Fetch tours for assignment
-const { fetchAdminSchedules, updateAdminMedia } = useAdminData()
 const { data: tours } = useAsyncData('admin-tours-data', () => adminStore.fetchTours(), {
   server: false,
   lazy: true,
@@ -69,10 +63,11 @@ watch(() => props.media, (media) => {
   }
 }, { immediate: true })
 
-async function save() {
-  if (!props.media?.id) return
-
-  try {
+const { isOpen, isSubmitting, handleSubmit } = useControlledModalForm({
+  modelValue: toRef(props, 'modelValue'),
+  onUpdateModelValue: v => emit('update:modelValue', v),
+  onSubmit: async () => {
+    if (!props.media?.id) return
     await updateAdminMedia(props.media.id, {
       altTranslations: state.value.altTranslations,
       captionTranslations: state.value.captionTranslations,
@@ -81,15 +76,13 @@ async function save() {
       tourId: state.value.tourId,
       scheduleId: state.value.scheduleId
     })
-
-    showSuccessToast('Medio actualizado')
+  },
+  onSuccess: () => {
     emit('success')
-    isOpen.value = false
-  } catch (error) {
-    console.error('Error updating media:', error)
-    showErrorToast(error, 'Error al actualizar')
-  }
-}
+  },
+  successMessage: 'Medio actualizado',
+  errorMessage: 'Error al actualizar'
+})
 </script>
 
 <template>
@@ -99,7 +92,8 @@ async function save() {
     size="2xl"
     content-height="70vh"
     submit-label="Guardar Cambios"
-    @submit="save"
+    :submit-loading="isSubmitting"
+    @submit="handleSubmit"
   >
     <div
       v-if="media"

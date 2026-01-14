@@ -1,41 +1,68 @@
 <script setup lang="ts">
-import type { UserRes, UserUpdateReq } from 'api-client'
+import type { UserRes, UserCreateReq, UserUpdateReq } from 'api-client'
 import { z } from 'zod'
 import { USER_ROLE_OPTIONS } from '~/utils/adminOptions'
 
 const props = defineProps<{
-  user: UserRes
+  user?: UserRes // If provided, it's edit mode; otherwise, create mode
 }>()
 
 const emit = defineEmits<{
   success: []
 }>()
 
-const { updateAdminUser, resetAdminUserPassword } = useAdminData()
+const { createAdminUser, updateAdminUser, resetAdminUserPassword } = useAdminData()
 const { showSuccessToast, showErrorToast } = useApiError()
 
-const isOpen = ref(false)
+const isEditMode = computed(() => !!props.user)
 
-// Form state - initialize with user data
-const state = reactive<UserUpdateReq>({
-  fullName: props.user.fullName,
-  role: props.user.role,
-  nationality: props.user.nationality ?? '',
-  phoneNumber: props.user.phoneNumber ?? ''
+// Form state
+const state = reactive({
+  email: '',
+  fullName: '',
+  password: '',
+  role: 'ROLE_CLIENT',
+  nationality: '',
+  phoneNumber: ''
 })
 
-// Validation schema
-const schema = z.object({
+// Validation schema - password only required for create
+const schema = computed(() => z.object({
+  email: isEditMode.value ? z.string().optional() : z.string().email('Email inválido'),
   fullName: z.string().min(1, 'Nombre completo es requerido'),
+  password: isEditMode.value ? z.string().optional() : z.string().min(8, 'Contraseña debe tener al menos 8 caracteres'),
   role: z.string().min(1, 'Rol es requerido'),
   nationality: z.string().optional(),
   phoneNumber: z.string().optional()
-})
+}))
 
-const isSubmitting = ref(false)
+// Password reset state (only for edit mode)
 const isResettingPassword = ref(false)
 const showPasswordReset = ref(false)
 const newPassword = ref('')
+
+// Initialize form with user data when editing
+watch(() => props.user, (user) => {
+  if (user) {
+    state.email = user.email || ''
+    state.fullName = user.fullName || ''
+    state.password = ''
+    state.role = user.role || 'ROLE_CLIENT'
+    state.nationality = user.nationality || ''
+    state.phoneNumber = user.phoneNumber || ''
+  }
+}, { immediate: true })
+
+function resetForm() {
+  state.email = ''
+  state.fullName = ''
+  state.password = ''
+  state.role = 'ROLE_CLIENT'
+  state.nationality = ''
+  state.phoneNumber = ''
+  showPasswordReset.value = false
+  newPassword.value = ''
+}
 
 async function handlePasswordReset() {
   if (!newPassword.value || newPassword.value.length < 8) {
@@ -49,7 +76,7 @@ async function handlePasswordReset() {
 
   isResettingPassword.value = true
   try {
-    await resetAdminUserPassword(props.user.id!, newPassword.value)
+    await resetAdminUserPassword(props.user!.id!, newPassword.value)
     showSuccessToast('Contraseña restablecida', 'La contraseña del usuario ha sido actualizada correctamente')
     newPassword.value = ''
     showPasswordReset.value = false
@@ -60,31 +87,56 @@ async function handlePasswordReset() {
   }
 }
 
-async function handleSubmit() {
-  isSubmitting.value = true
-  try {
-    const payload: UserUpdateReq = {
-      fullName: state.fullName,
-      role: state.role,
-      nationality: state.nationality || undefined,
-      phoneNumber: state.phoneNumber || undefined
+const { isOpen, isSubmitting, handleSubmit } = useModalForm({
+  onSubmit: async () => {
+    if (isEditMode.value) {
+      const payload: UserUpdateReq = {
+        fullName: state.fullName,
+        role: state.role,
+        nationality: state.nationality || undefined,
+        phoneNumber: state.phoneNumber || undefined
+      }
+      await updateAdminUser(props.user!.id!, payload)
+    } else {
+      const payload: UserCreateReq = {
+        email: state.email,
+        fullName: state.fullName,
+        password: state.password,
+        role: state.role,
+        nationality: state.nationality || undefined,
+        phoneNumber: state.phoneNumber || undefined
+      }
+      await createAdminUser(payload)
     }
-
-    await updateAdminUser(props.user.id!, payload)
-    showSuccessToast('Usuario actualizado')
-    isOpen.value = false
+  },
+  onSuccess: () => {
+    if (!isEditMode.value) {
+      resetForm()
+    }
     emit('success')
-  } catch (error) {
-    showErrorToast(error, 'Error al actualizar')
-  } finally {
-    isSubmitting.value = false
-  }
-}
+  },
+  successMessage: computed(() => isEditMode.value ? 'Usuario actualizado' : 'Usuario creado').value,
+  errorMessage: computed(() => isEditMode.value ? 'Error al actualizar' : 'Error al crear').value
+})
+
+// Modal config based on mode
+const modalTitle = computed(() => isEditMode.value ? 'Editar Usuario' : 'Crear Usuario')
+const modalSubtitle = computed(() => isEditMode.value ? 'Modifica la información del usuario' : 'Completa los datos del nuevo usuario')
+const submitLabel = computed(() => isEditMode.value ? 'Guardar Cambios' : 'Crear Usuario')
 </script>
 
 <template>
-  <!-- Trigger Button -->
+  <!-- Trigger Button - different for create vs edit -->
   <UButton
+    v-if="!isEditMode"
+    icon="i-lucide-user-plus"
+    color="primary"
+    @click="isOpen = true"
+  >
+    Crear Usuario
+  </UButton>
+  <UButton
+    v-else
     icon="i-lucide-pencil"
     color="neutral"
     variant="ghost"
@@ -95,9 +147,9 @@ async function handleSubmit() {
 
   <AdminBaseAdminModal
     v-model:open="isOpen"
-    title="Editar Usuario"
-    subtitle="Modifica la información del usuario"
-    submit-label="Guardar Cambios"
+    :title="modalTitle"
+    :subtitle="modalSubtitle"
+    :submit-label="submitLabel"
     :submit-loading="isSubmitting"
     @submit="handleSubmit"
   >
@@ -107,18 +159,20 @@ async function handleSubmit() {
       class="space-y-4"
       @submit="handleSubmit"
     >
-      <!-- Email (readonly) -->
+      <!-- Email -->
       <UFormField
         label="Email"
         name="email"
+        :required="!isEditMode"
       >
         <UInput
-          :model-value="user.email"
+          v-model="state.email"
           type="email"
+          :placeholder="isEditMode ? '' : 'usuario@example.com'"
           icon="i-lucide-mail"
           class="w-full"
-          disabled
-          readonly
+          :disabled="isEditMode"
+          :readonly="isEditMode"
         />
       </UFormField>
 
@@ -132,6 +186,23 @@ async function handleSubmit() {
           v-model="state.fullName"
           placeholder="Nombre completo"
           icon="i-lucide-user"
+          class="w-full"
+        />
+      </UFormField>
+
+      <!-- Password (only for create) -->
+      <UFormField
+        v-if="!isEditMode"
+        label="Contraseña"
+        name="password"
+        required
+        help="Mínimo 8 caracteres"
+      >
+        <UInput
+          v-model="state.password"
+          type="password"
+          placeholder="••••••••"
+          icon="i-lucide-lock"
           class="w-full"
         />
       </UFormField>
@@ -173,8 +244,11 @@ async function handleSubmit() {
         />
       </UFormField>
 
-      <!-- Password Reset Section -->
-      <div class="pt-4 border-t border-default">
+      <!-- Password Reset Section (only for edit) -->
+      <div
+        v-if="isEditMode"
+        class="pt-4 border-t border-default"
+      >
         <div class="flex items-center justify-between mb-3">
           <div>
             <h4 class="font-medium text-default">

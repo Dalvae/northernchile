@@ -4,12 +4,10 @@ import com.northernchile.api.cart.dto.CartItemReq;
 import com.northernchile.api.cart.dto.CartRes;
 import com.northernchile.api.model.Cart;
 import com.northernchile.api.model.User;
-import com.northernchile.api.user.UserRepository;
+import com.northernchile.api.security.AuthorizationService;
 import com.northernchile.api.util.CookieHelper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -20,12 +18,12 @@ import java.util.UUID;
 public class CartController {
 
     private final CartService cartService;
-    private final UserRepository userRepository;
+    private final AuthorizationService authorizationService;
     private final CookieHelper cookieHelper;
 
-    public CartController(CartService cartService, UserRepository userRepository, CookieHelper cookieHelper) {
+    public CartController(CartService cartService, AuthorizationService authorizationService, CookieHelper cookieHelper) {
         this.cartService = cartService;
-        this.userRepository = userRepository;
+        this.authorizationService = authorizationService;
         this.cookieHelper = cookieHelper;
     }
 
@@ -68,12 +66,7 @@ public class CartController {
     }
 
     private Optional<User> getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            return Optional.empty();
-        }
-        String currentPrincipalName = authentication.getName();
-        return userRepository.findByEmail(currentPrincipalName);
+        return Optional.ofNullable(authorizationService.getCurrentUser());
     }
 
     private Optional<UUID> getCartId(String cartId) {

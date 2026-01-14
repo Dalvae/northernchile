@@ -1,9 +1,7 @@
 package com.northernchile.api.tour;
 
-import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.tour.dto.TourScheduleRes;
-import com.northernchile.api.tour.mapper.TourScheduleMapper;
 import com.northernchile.api.util.DateTimeUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -21,16 +19,13 @@ import java.util.stream.Collectors;
 public class TourSchedulePublicController {
 
     private final TourScheduleRepository tourScheduleRepository;
-    private final BookingRepository bookingRepository;
-    private final TourScheduleMapper tourScheduleMapper;
+    private final TourScheduleService tourScheduleService;
 
     public TourSchedulePublicController(
             TourScheduleRepository tourScheduleRepository,
-            BookingRepository bookingRepository,
-            TourScheduleMapper tourScheduleMapper) {
+            TourScheduleService tourScheduleService) {
         this.tourScheduleRepository = tourScheduleRepository;
-        this.bookingRepository = bookingRepository;
-        this.tourScheduleMapper = tourScheduleMapper;
+        this.tourScheduleService = tourScheduleService;
     }
 
     /**
@@ -58,21 +53,10 @@ public class TourSchedulePublicController {
         List<TourScheduleRes> response = schedules.stream()
                 .filter(s -> s.getTour().getId().equals(tourId))
                 .filter(s -> "OPEN".equals(s.getStatus()))
-                .map(this::mapToResponse)
+                .map(tourScheduleService::toScheduleResWithAvailability)
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
-    }
-
-    private TourScheduleRes mapToResponse(TourSchedule schedule) {
-        // Calculate actual availability (confirmed bookings only for public view)
-        Integer bookedParticipants = bookingRepository.countConfirmedParticipantsByScheduleId(schedule.getId());
-        if (bookedParticipants == null) {
-            bookedParticipants = 0;
-        }
-        int availableSpots = Math.max(0, schedule.getMaxParticipants() - bookedParticipants);
-
-        return tourScheduleMapper.toRes(schedule, bookedParticipants, availableSpots);
     }
 }
 

@@ -9,7 +9,6 @@ import com.northernchile.api.model.User;
 import com.northernchile.api.security.AuthorizationService;
 import com.northernchile.api.security.Permission;
 import com.northernchile.api.security.annotations.RequiresPermission;
-import com.northernchile.api.user.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,15 +22,12 @@ import java.util.UUID;
 public class BookingController {
 
     private final BookingService bookingService;
-    private final UserRepository userRepository;
     private final AuthorizationService authorizationService;
 
     public BookingController(
             BookingService bookingService,
-            UserRepository userRepository,
             AuthorizationService authorizationService) {
         this.bookingService = bookingService;
-        this.userRepository = userRepository;
         this.authorizationService = authorizationService;
     }
 
