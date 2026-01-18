@@ -12,7 +12,10 @@ export default defineSitemapEventHandler(async () => {
       '/contact',
       '/tours',
       '/private-tours',
-      '/moon-calendar'
+      '/moon-calendar',
+      '/terms',
+      '/privacy',
+      '/cancellation-policy'
     ]
 
     const staticUrls = staticPages.flatMap((page) => {

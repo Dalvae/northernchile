@@ -12,6 +12,53 @@ useSeoMeta({
   twitterCard: 'summary_large_image'
 })
 
+// FAQ Schema for rich results in Google
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: computed(() => JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        'mainEntity': [
+          {
+            '@type': 'Question',
+            'name': t('contact.faq.q1.question'),
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': t('contact.faq.q1.answer')
+            }
+          },
+          {
+            '@type': 'Question',
+            'name': t('contact.faq.q2.question'),
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': t('contact.faq.q2.answer')
+            }
+          },
+          {
+            '@type': 'Question',
+            'name': t('contact.faq.q3.question'),
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': t('contact.faq.q3.answer')
+            }
+          },
+          {
+            '@type': 'Question',
+            'name': t('contact.faq.q4.question'),
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': t('contact.faq.q4.answer')
+            }
+          }
+        ]
+      }))
+    }
+  ]
+})
+
 const state = reactive({
   name: '',
   email: '',

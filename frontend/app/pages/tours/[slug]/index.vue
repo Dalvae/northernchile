@@ -168,6 +168,18 @@ useSeoMeta({
   ogImageHeight: 630
 })
 
+// Breadcrumb schema for rich results
+const localePath = useLocalePath()
+useSchemaOrg([
+  defineBreadcrumb({
+    itemListElement: [
+      { name: 'Home', item: localePath('/') },
+      { name: () => t('nav.tours'), item: localePath('/tours') },
+      { name: () => translatedName.value }
+    ]
+  })
+])
+
 // JSON-LD Structured Data for SEO (Schema.org TouristTrip + Product)
 useHead({
   script: [
