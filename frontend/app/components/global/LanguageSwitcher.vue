@@ -2,6 +2,8 @@
   <UPopover
     v-model:open="showSuggestion"
     :ui="{ content: 'p-0' }"
+    side="bottom"
+    align="end"
   >
     <UDropdownMenu :items="items">
       <UButton
