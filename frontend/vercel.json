@@ -1,4 +1,5 @@
 {
   "buildCommand": "pnpm run vercel-build",
-  "installCommand": "pnpm install --shamefully-hoist"
+  "installCommand": "pnpm install --shamefully-hoist",
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- . ../CLAUDE.md"
 }
