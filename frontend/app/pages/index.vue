@@ -11,9 +11,10 @@ useSeoMeta({
   description: () => t('home.meta.description'),
   ogTitle: () => t('home.meta.og_title'),
   ogDescription: () => t('home.meta.og_description'),
-  ogImage: 'https://www.northernchile.com/og-image-homepage.jpg',
   twitterCard: 'summary_large_image'
 })
+
+// OG Image usa el componente Tour definido globalmente en app.vue
 
 // 2. Fetch de datos (ÚNICA LLAMADA)
 // Usamos useFetch directo con transform para eficiencia y lazy: true
