@@ -337,8 +337,8 @@ export default defineNuxtConfig({
       url: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.com',
       logo: '/images/logo.png',
       description: 'Tours astronómicos y expediciones en San Pedro de Atacama.',
+      email: 'contacto@northernchile.com',
       address: {
-        streetAddress: 'Caracoles 123', // TODO: Verify exact address
         addressLocality: 'San Pedro de Atacama',
         addressRegion: 'Antofagasta',
         postalCode: '1410000',
@@ -357,8 +357,8 @@ export default defineNuxtConfig({
             'Saturday',
             'Sunday'
           ],
-          opens: '00:00',
-          closes: '23:59'
+          opens: '09:00',
+          closes: '23:00'
         }
       ]
     }

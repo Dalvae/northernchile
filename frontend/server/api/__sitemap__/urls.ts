@@ -12,7 +12,6 @@ export default defineSitemapEventHandler(async () => {
       '/contact',
       '/tours',
       '/private-tours',
-      '/moon-calendar',
       '/terms',
       '/privacy',
       '/cancellation-policy'
