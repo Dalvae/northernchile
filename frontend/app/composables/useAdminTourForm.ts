@@ -1,7 +1,7 @@
 // composables/useAdminTourForm.ts
 import { z } from 'zod'
 import type { FormSubmitEvent, FormErrorEvent, FormError } from '@nuxt/ui'
-import type { TourRes, TourCreateReq, TourUpdateReq, ContentBlock, ItineraryItem } from 'api-client'
+import type { TourRes, TourCreateReq, TourUpdateReq, ContentBlock, ItineraryItem, LocalTime } from 'api-client'
 
 // Schema definition
 const schema = z.object({
@@ -60,7 +60,7 @@ const initialState: TourSchema = {
 }
 
 export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event: 'success') => void) => {
-  const { localTimeToString, stringToLocalTime } = useDateTime()
+  const { localTimeToString } = useDateTime()
   const { createAdminTour, updateAdminTour } = useAdminData()
   const toast = useToast()
   const loading = ref(false)
@@ -161,7 +161,9 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
         price: event.data.price,
         defaultMaxParticipants: event.data.defaultMaxParticipants,
         durationHours: event.data.durationHours,
-        defaultStartTime: stringToLocalTime(event.data.defaultStartTime),
+        // Note: Backend expects LocalTime as ISO string (e.g., "10:30:00"), not object
+        // The OpenAPI schema incorrectly models LocalTime as an object
+        defaultStartTime: event.data.defaultStartTime as unknown as LocalTime | undefined,
         status: event.data.status,
         contentKey: event.data.contentKey,
         guideName: event.data.guideName?.trim() || undefined,
