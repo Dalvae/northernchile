@@ -17,7 +17,7 @@ const emit = defineEmits<{
 
 const isEditing = computed(() => !!props.tour)
 
-const { state, schema, loading, formErrors, onSubmit, onError }
+const { state, schema, loading, formErrors, onSubmit, onError, hasDraft, discardDraft }
   = useAdminTourForm(props, emit)
 
 provide('tour-form-state', state)
@@ -46,6 +46,31 @@ const handleSubmit = () => {
   >
     <template #body>
       <div class="py-4">
+        <!-- Draft restored banner - only show option to discard -->
+        <div
+          v-if="hasDraft && !isEditing"
+          class="mb-6 p-3 bg-info-50 dark:bg-info-950 border border-info-200 dark:border-info-800 rounded-lg"
+        >
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+              <UIcon
+                name="i-heroicons-document-text"
+                class="text-info-600 dark:text-info-400 size-4"
+              />
+              <p class="text-sm text-info-700 dark:text-info-300">
+                Borrador restaurado automáticamente
+              </p>
+            </div>
+            <UButton
+              label="Empezar de cero"
+              size="xs"
+              color="neutral"
+              variant="ghost"
+              @click="discardDraft"
+            />
+          </div>
+        </div>
+
         <UForm
           ref="form"
           :schema="schema"

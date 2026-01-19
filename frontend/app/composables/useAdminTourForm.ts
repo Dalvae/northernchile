@@ -3,6 +3,8 @@ import { z } from 'zod'
 import type { FormSubmitEvent, FormErrorEvent, FormError } from '@nuxt/ui'
 import type { TourRes, TourCreateReq, TourUpdateReq, ContentBlock, ItineraryItem, LocalTime } from 'api-client'
 
+const DRAFT_STORAGE_KEY = 'tour-form-draft'
+
 // Schema definition
 const schema = z.object({
   nameTranslations: z.object({
@@ -65,9 +67,80 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
   const toast = useToast()
   const loading = ref(false)
   const formErrors = ref<FormError[]>([])
+  const hasDraft = ref(false)
 
   // Reactive state
   const state = reactive<TourSchema>({ ...initialState })
+
+  // LocalStorage helpers (only for create mode)
+  const saveDraft = () => {
+    if (import.meta.client && !props.tour) {
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(state))
+      } catch {
+        // Ignore storage errors
+      }
+    }
+  }
+
+  const loadDraft = (): TourSchema | null => {
+    if (import.meta.client) {
+      try {
+        const saved = localStorage.getItem(DRAFT_STORAGE_KEY)
+        if (saved) {
+          return JSON.parse(saved) as TourSchema
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+    return null
+  }
+
+  const clearDraft = () => {
+    if (import.meta.client) {
+      try {
+        localStorage.removeItem(DRAFT_STORAGE_KEY)
+        hasDraft.value = false
+      } catch {
+        // Ignore storage errors
+      }
+    }
+  }
+
+  const discardDraft = () => {
+    clearDraft()
+    Object.assign(state, { ...initialState })
+    toast.add({
+      title: 'Borrador descartado',
+      color: 'neutral',
+      icon: 'i-heroicons-trash'
+    })
+  }
+
+  // Auto-restore draft on mount (create mode only)
+  onMounted(() => {
+    if (!props.tour) {
+      const draft = loadDraft()
+      if (draft && draft.nameTranslations?.es) {
+        Object.assign(state, draft)
+        hasDraft.value = true
+      }
+    }
+  })
+
+  // Auto-save draft on state changes (create mode only, debounced)
+  let saveTimeout: ReturnType<typeof setTimeout> | null = null
+  watch(
+    () => state,
+    () => {
+      if (!props.tour) {
+        if (saveTimeout) clearTimeout(saveTimeout)
+        saveTimeout = setTimeout(saveDraft, 1000) // Save after 1s of inactivity
+      }
+    },
+    { deep: true }
+  )
 
   // Watch to populate data when editing or reset when creating new
   watch(
@@ -182,6 +255,7 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
         })
       } else {
         await createAdminTour(basePayload)
+        clearDraft() // Clear draft on successful create
         toast.add({
           title: 'Tour creado con éxito',
           color: 'success',
@@ -226,6 +300,9 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
     loading,
     formErrors,
     onSubmit,
-    onError
+    onError,
+    // Draft management
+    hasDraft,
+    discardDraft
   }
 }
