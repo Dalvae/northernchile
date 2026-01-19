@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { PaymentSessionRes, SavedParticipantRes } from 'api-client'
+import type { PaymentSessionRes } from 'api-client'
+import { useDebounceFn } from '@vueuse/core'
 import { PaymentProvider, PaymentMethod } from '~/types/payment'
 import { logger } from '~/utils/logger'
 
@@ -13,6 +14,53 @@ const localePath = useLocalePath()
 const { phoneCodes, getCountryFlag } = useCountries()
 const { formatPrice } = useCurrency()
 const { participants: savedParticipants, fetchParticipants: fetchSavedParticipants } = useSavedParticipants()
+
+// Auth mode for Step 1 (register vs login)
+const authMode = ref<'register' | 'login'>('register')
+const emailCheckResult = ref<{ exists: boolean } | null>(null)
+const isCheckingEmail = ref(false)
+
+// Cart conflict state
+const showCartConflictModal = ref(false)
+
+// UTabs items for auth mode toggle
+const authModeItems = computed(() => [
+  { label: t('auth.create_account'), value: 'register' },
+  { label: t('auth.have_account'), value: 'login' }
+])
+
+// Email validation helper
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+// Debounced email check (1 second delay)
+const debouncedCheckEmail = useDebounceFn(async (email: string) => {
+  if (!email || !isValidEmail(email)) {
+    emailCheckResult.value = null
+    return
+  }
+
+  isCheckingEmail.value = true
+  try {
+    emailCheckResult.value = await $fetch<{ exists: boolean }>('/api/auth/check-email', {
+      params: { email }
+    })
+  } catch (error) {
+    logger.error('Error checking email:', error)
+    emailCheckResult.value = null
+  } finally {
+    isCheckingEmail.value = false
+  }
+}, 1000)
+
+// Watch email changes for verification
+watch(() => contactForm.value.email, (email) => {
+  // Only check if user is not authenticated
+  if (!authStore.isAuthenticated && email) {
+    debouncedCheckEmail(email)
+  }
+})
 
 // SEO: Prevent indexing of checkout page
 useHead({
@@ -195,11 +243,17 @@ const step1Valid = computed(() => {
     return baseValidation
   }
 
-  const passwordValidation
-    = contactForm.value.password.length >= 8
-      && contactForm.value.password === contactForm.value.confirmPassword
-
-  return baseValidation && passwordValidation
+  // For non-authenticated users, validate based on auth mode
+  if (authMode.value === 'register') {
+    // Register: need password + confirm password
+    const passwordValidation
+      = contactForm.value.password.length >= 8
+        && contactForm.value.password === contactForm.value.confirmPassword
+    return baseValidation && passwordValidation
+  } else {
+    // Login: only need password (no confirm)
+    return baseValidation && contactForm.value.password.length >= 1
+  }
 })
 
 const step2Valid = computed(() => {
@@ -209,7 +263,9 @@ const step2Valid = computed(() => {
 })
 
 // Navigation
-function nextStep() {
+const isProcessingAuth = ref(false)
+
+async function nextStep() {
   if (currentStep.value === 1 && !step1Valid.value) {
     toast.add({
       color: 'warning',
@@ -220,6 +276,112 @@ function nextStep() {
   }
 
   if (currentStep.value === 1) {
+    // Handle authentication before advancing to Step 2
+    if (!authStore.isAuthenticated) {
+      isProcessingAuth.value = true
+      try {
+        if (authMode.value === 'register') {
+          // Register new user
+          toast.add({
+            color: 'info',
+            title: t('auth.creating_account'),
+            icon: 'i-lucide-loader-2'
+          })
+
+          await authStore.register({
+            email: contactForm.value.email,
+            password: contactForm.value.password,
+            fullName: contactForm.value.fullName,
+            phoneNumber: contactForm.value.phone ? `${contactForm.value.countryCode}${contactForm.value.phone}` : null,
+            nationality: null
+          })
+
+          // Auto-login after registration
+          await authStore.login({
+            email: contactForm.value.email,
+            password: contactForm.value.password
+          })
+
+          if (!authStore.isAuthenticated) {
+            throw new Error('Login failed after registration')
+          }
+
+          toast.add({
+            color: 'success',
+            title: t('auth.welcome')
+          })
+        } else {
+          // Login existing user
+          toast.add({
+            color: 'info',
+            title: t('auth.logging_in'),
+            icon: 'i-lucide-loader-2'
+          })
+
+          // Save current cart before login for conflict detection
+          cartStore.savePreLoginCart()
+
+          await authStore.login({
+            email: contactForm.value.email,
+            password: contactForm.value.password
+          })
+
+          if (!authStore.isAuthenticated) {
+            throw new Error('Login failed')
+          }
+
+          // Fetch the user's cart from backend (might differ from pre-login cart)
+          await cartStore.fetchCart()
+
+          // Check for cart conflict
+          if (cartStore.hasCartConflict()) {
+            showCartConflictModal.value = true
+            isProcessingAuth.value = false
+            // Don't advance - wait for user to resolve conflict
+            return
+          }
+
+          toast.add({
+            color: 'success',
+            title: t('auth.welcome')
+          })
+        }
+
+        // Fetch saved participants now that user is authenticated
+        await fetchSavedParticipants()
+      } catch (error: unknown) {
+        const statusCode = error && typeof error === 'object' && 'statusCode' in error
+          ? (error as { statusCode?: number }).statusCode
+          : undefined
+
+        if (statusCode === 409) {
+          // Email already exists (register mode)
+          toast.add({
+            color: 'warning',
+            title: t('common.error'),
+            description: t('checkout.toast.account_exists')
+          })
+          authMode.value = 'login'
+        } else if (statusCode === 401) {
+          // Invalid credentials (login mode)
+          toast.add({
+            color: 'error',
+            title: t('common.error'),
+            description: t('auth.invalid_credentials')
+          })
+        } else {
+          toast.add({
+            color: 'error',
+            title: t('common.error'),
+            description: t('common.error_unknown')
+          })
+        }
+        isProcessingAuth.value = false
+        return
+      }
+      isProcessingAuth.value = false
+    }
+
     initializeParticipants()
   }
 
@@ -323,50 +485,15 @@ async function submitBooking() {
   const config = useRuntimeConfig()
 
   try {
-    // Step 1: Ensure user is authenticated
+    // Step 1: Verify user is authenticated (should already be done in Step 1 -> Step 2 transition)
     if (!authStore.isAuthenticated) {
       toast.add({
-        color: 'info',
-        title: t('auth.login'),
-        description: t('auth.register_description')
+        color: 'error',
+        title: t('common.error'),
+        description: t('auth.invalid_credentials')
       })
-
-      // Register and login the new user
-      try {
-        await authStore.register({
-          email: contactForm.value.email,
-          password: contactForm.value.password,
-          fullName: contactForm.value.fullName,
-          phoneNumber: contactForm.value.phone ? `${contactForm.value.countryCode}${contactForm.value.phone}` : null,
-          nationality: participants.value[0]?.nationality || null
-        })
-
-        // Auto-login after registration
-        await authStore.login({
-          email: contactForm.value.email,
-          password: contactForm.value.password
-        })
-
-        // Verify login was successful before continuing
-        if (!authStore.isAuthenticated) {
-          throw new Error('Login failed after registration')
-        }
-      } catch (error: unknown) {
-        const statusCode = error && typeof error === 'object' && 'statusCode' in error
-          ? (error as { statusCode?: number }).statusCode
-          : undefined
-
-        if (statusCode === 409) {
-          toast.add({
-            color: 'warning',
-            title: t('common.error'),
-            description: t('checkout.toast.account_exists')
-          })
-          router.push(localePath('/auth'))
-          return
-        }
-        throw error
-      }
+      currentStep.value = 1
+      return
     }
 
     // Make a copy of cart items at the start (before any async operations that might clear the cart)
@@ -564,6 +691,25 @@ function handlePIXExpired() {
   })
 }
 
+// Handle cart conflict resolution
+async function handleCartConflictSelect(choice: 'current' | 'saved' | 'merge') {
+  showCartConflictModal.value = false
+
+  await cartStore.resolveCartConflict(choice)
+
+  toast.add({
+    color: 'success',
+    title: t('auth.welcome')
+  })
+
+  // Fetch saved participants now that user is authenticated
+  await fetchSavedParticipants()
+
+  // Initialize participants and advance to step 2
+  initializeParticipants()
+  currentStep.value = 2
+}
+
 // Calculate total - use value from backend cart API (tax-inclusive)
 const total = computed(() => cartStore.cart.cartTotal)
 </script>
@@ -659,6 +805,15 @@ const total = computed(() => cartStore.cart.cartTotal)
             </template>
 
             <div class="space-y-4">
+              <!-- Auth Mode Toggle (only if not authenticated) -->
+              <div v-if="!authStore.isAuthenticated" class="mb-6">
+                <UTabs
+                  v-model="authMode"
+                  :items="authModeItems"
+                  class="w-full"
+                />
+              </div>
+
               <div>
                 <label
                   class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
@@ -680,13 +835,53 @@ const total = computed(() => cartStore.cart.cartTotal)
                 >
                   {{ t('checkout.email') }} *
                 </label>
-                <input
-                  v-model="contactForm.email"
-                  type="email"
-                  placeholder="juan@example.com"
-                  class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                  required
+                <div class="relative">
+                  <input
+                    v-model="contactForm.email"
+                    type="email"
+                    placeholder="juan@example.com"
+                    class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                    required
+                  >
+                  <!-- Loading indicator for email check -->
+                  <div
+                    v-if="isCheckingEmail"
+                    class="absolute right-3 top-1/2 -translate-y-1/2"
+                  >
+                    <UIcon
+                      name="i-lucide-loader-2"
+                      class="w-4 h-4 text-neutral-400 animate-spin"
+                    />
+                  </div>
+                </div>
+
+                <!-- Email verification messages -->
+                <p
+                  v-if="!authStore.isAuthenticated && emailCheckResult?.exists && authMode === 'register'"
+                  class="text-warning-500 text-sm mt-1"
                 >
+                  {{ t('checkout.email_exists') }}
+                  <button
+                    type="button"
+                    class="underline font-medium ml-1"
+                    @click="authMode = 'login'"
+                  >
+                    {{ t('auth.login_instead') }}
+                  </button>
+                </p>
+                <p
+                  v-if="!authStore.isAuthenticated && emailCheckResult && !emailCheckResult.exists && authMode === 'login'"
+                  class="text-warning-500 text-sm mt-1"
+                >
+                  {{ t('checkout.email_not_found') }}
+                  <button
+                    type="button"
+                    class="underline font-medium ml-1"
+                    @click="authMode = 'register'"
+                  >
+                    {{ t('auth.register_instead') }}
+                  </button>
+                </p>
               </div>
 
               <div>
@@ -718,17 +913,50 @@ const total = computed(() => cartStore.cart.cartTotal)
                 </div>
               </div>
 
+              <!-- Password fields (only if not authenticated) -->
               <div
                 v-if="!authStore.isAuthenticated"
                 class="space-y-4 mt-4"
               >
-                <p class="text-sm text-neutral-600 dark:text-neutral-300">
-                  {{ t('checkout.create_account_prompt') }} <NuxtLink
-                    :to="{ path: localePath('/auth'), query: { redirect: localePath('/checkout') } }"
-                    class="text-primary font-medium hover:underline"
-                  >{{ t('checkout.login_here') }}</NuxtLink>.
-                </p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Register mode: password + confirm -->
+                <template v-if="authMode === 'register'">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
+                      >
+                        {{ t('checkout.password') }} *
+                      </label>
+                      <input
+                        v-model="contactForm.password"
+                        type="password"
+                        placeholder="••••••••"
+                        class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                        required
+                      >
+                      <p class="text-xs text-neutral-500 mt-1">
+                        {{ t('auth.password_min') }}
+                      </p>
+                    </div>
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
+                      >
+                        {{ t('checkout.confirm_password') }} *
+                      </label>
+                      <input
+                        v-model="contactForm.confirmPassword"
+                        type="password"
+                        placeholder="••••••••"
+                        class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+                        required
+                      >
+                    </div>
+                  </div>
+                </template>
+
+                <!-- Login mode: password only -->
+                <template v-else>
                   <div>
                     <label
                       class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
@@ -742,22 +970,14 @@ const total = computed(() => cartStore.cart.cartTotal)
                       class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                       required
                     >
-                  </div>
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1"
+                    <NuxtLink
+                      :to="localePath('/auth/forgot-password')"
+                      class="text-xs text-primary hover:underline mt-1 inline-block"
                     >
-                      {{ t('checkout.confirm_password') }} *
-                    </label>
-                    <input
-                      v-model="contactForm.confirmPassword"
-                      type="password"
-                      placeholder="••••••••"
-                      class="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                      required
-                    >
+                      {{ t('auth.forgot_password') }}
+                    </NuxtLink>
                   </div>
-                </div>
+                </template>
               </div>
             </div>
 
@@ -773,9 +993,10 @@ const total = computed(() => cartStore.cart.cartTotal)
                 </UButton>
                 <UButton
                   color="primary"
-                  icon="i-lucide-arrow-right"
+                  :icon="isProcessingAuth ? 'i-lucide-loader-2' : 'i-lucide-arrow-right'"
                   trailing
-                  :disabled="!step1Valid"
+                  :disabled="!step1Valid || isProcessingAuth"
+                  :loading="isProcessingAuth"
                   @click="nextStep"
                 >
                   {{ t('checkout.continue') }}
@@ -977,6 +1198,15 @@ const total = computed(() => cartStore.cart.cartTotal)
           </div>
         </template>
       </UModal>
+
+      <!-- Cart Conflict Modal -->
+      <CheckoutCartConflictModal
+        :open="showCartConflictModal"
+        :current-cart="cartStore.cart.items"
+        :saved-cart="cartStore.getPreLoginCart()"
+        @select="handleCartConflictSelect"
+        @close="showCartConflictModal = false"
+      />
     </UContainer>
   </div>
 </template>

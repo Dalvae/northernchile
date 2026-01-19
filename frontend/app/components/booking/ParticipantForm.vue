@@ -268,7 +268,7 @@ const savedParticipantSelectItems = computed(() => {
     { label: 'Ingresar manualmente', value: '' }
   ]
 
-  savedParticipantOptions.value.forEach(p => {
+  savedParticipantOptions.value.forEach((p) => {
     options.push({
       label: p.isSelf ? `${p.fullName} (Yo)` : p.fullName,
       value: p.id

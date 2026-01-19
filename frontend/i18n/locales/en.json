@@ -333,6 +333,13 @@
     "register": "Sign Up",
     "register_description": "Create your account to book tours",
     "logout": "Log Out",
+    "create_account": "Create account",
+    "have_account": "I have an account",
+    "creating_account": "Creating your account...",
+    "logging_in": "Logging in...",
+    "login_instead": "Log in",
+    "register_instead": "Create account",
+    "welcome": "Welcome!",
     "forgot_password": "Forgot your password?",
     "forgot_password_description": "Enter your email and we'll send you a link to reset your password",
     "reset_password": "Reset Password",
@@ -874,7 +881,16 @@
       "processing_error": "There was an error processing your booking.",
       "no_slots_available": "Not enough spots available for this date.",
       "tour_not_available": "The selected tour is no longer available."
-    }
+    },
+    "email_exists": "This email already has an account.",
+    "email_not_found": "We couldn't find this account.",
+    "cart_conflict_title": "You have a saved cart",
+    "cart_conflict_description": "We found a cart from a previous session. What would you like to do?",
+    "cart_current": "Current cart",
+    "cart_saved": "Saved cart",
+    "use_current": "Use current",
+    "use_saved": "Use saved",
+    "merge_carts": "Merge"
   },
   "errors": {
     "bad_request": "Invalid request",

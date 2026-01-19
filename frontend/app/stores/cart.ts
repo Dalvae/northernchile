@@ -284,6 +284,111 @@ export const useCartStore = defineStore('cart', () => {
     }
   }
 
+  // === CART CONFLICT HANDLING (for login during checkout) ===
+
+  // Store the pre-login cart for conflict detection
+  const preLoginCart = ref<CartItemRes[]>([])
+
+  /**
+   * Save current cart state before login attempt.
+   * Called before authentication to preserve local cart.
+   */
+  function savePreLoginCart(): void {
+    preLoginCart.value = JSON.parse(JSON.stringify(_cart.value.items || []))
+  }
+
+  /**
+   * Check if there's a cart conflict after login.
+   * Returns true if the backend cart differs from pre-login cart.
+   */
+  function hasCartConflict(): boolean {
+    const currentItems = _cart.value.items || []
+    const savedItems = preLoginCart.value
+
+    // No conflict if either cart is empty
+    if (currentItems.length === 0 || savedItems.length === 0) {
+      return false
+    }
+
+    // Check if the items are different
+    if (currentItems.length !== savedItems.length) {
+      return true
+    }
+
+    // Check if schedules match
+    const currentScheduleIds = new Set(currentItems.map(i => i.scheduleId))
+    const savedScheduleIds = new Set(savedItems.map(i => i.scheduleId))
+
+    for (const id of savedScheduleIds) {
+      if (!currentScheduleIds.has(id)) {
+        return true
+      }
+    }
+
+    // Check if participant counts match
+    for (const saved of savedItems) {
+      const current = currentItems.find(i => i.scheduleId === saved.scheduleId)
+      if (!current || current.numParticipants !== saved.numParticipants) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  /**
+   * Get the pre-login cart items (for displaying in conflict modal).
+   */
+  function getPreLoginCart(): CartItemRes[] {
+    return preLoginCart.value
+  }
+
+  /**
+   * Resolve cart conflict based on user choice.
+   * @param choice - 'current' (keep backend cart), 'saved' (use pre-login cart), or 'merge'
+   */
+  async function resolveCartConflict(choice: 'current' | 'saved' | 'merge'): Promise<void> {
+    const savedItems = preLoginCart.value
+
+    if (choice === 'current') {
+      // Keep current backend cart - nothing to do
+      preLoginCart.value = []
+      return
+    }
+
+    if (choice === 'saved') {
+      // Replace with pre-login cart
+      // Clear current cart and add saved items
+      await clearCart()
+      for (const item of savedItems) {
+        await addItem({
+          scheduleId: item.scheduleId,
+          numParticipants: item.numParticipants
+        })
+      }
+      preLoginCart.value = []
+      return
+    }
+
+    if (choice === 'merge') {
+      // Merge: add pre-login items that aren't already in current cart
+      const currentScheduleIds = new Set((_cart.value.items || []).map(i => i.scheduleId))
+
+      for (const item of savedItems) {
+        if (!currentScheduleIds.has(item.scheduleId)) {
+          // Item not in current cart, add it
+          await addItem({
+            scheduleId: item.scheduleId,
+            numParticipants: item.numParticipants
+          })
+        }
+        // If item already exists, we could optionally increase participant count
+        // For now, we skip duplicates to avoid overbooking issues
+      }
+      preLoginCart.value = []
+    }
+  }
+
   return {
     // Safe getters (computed, always return valid values)
     cart,
@@ -301,6 +406,11 @@ export const useCartStore = defineStore('cart', () => {
     clearCart,
     resetState,
     ensureLoaded,
+    // Cart conflict handling
+    savePreLoginCart,
+    hasCartConflict,
+    getPreLoginCart,
+    resolveCartConflict,
     // Utility (for debugging/UI)
     isOperationPending
   }

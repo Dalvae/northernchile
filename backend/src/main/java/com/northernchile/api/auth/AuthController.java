@@ -96,4 +96,13 @@ public class AuthController {
         cookieHelper.clearAuthTokenCookie(response);
         return ResponseEntity.ok(MessageRes.of("Logged out successfully"));
     }
+
+    /**
+     * Check if an email is already registered (for checkout flow)
+     */
+    @GetMapping("/check-email")
+    public ResponseEntity<Map<String, Boolean>> checkEmail(@RequestParam String email) {
+        boolean exists = authService.emailExists(email);
+        return ResponseEntity.ok(Map.of("exists", exists));
+    }
 }
