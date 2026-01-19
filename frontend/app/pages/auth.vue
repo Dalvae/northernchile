@@ -565,12 +565,15 @@ async function handleSubmit(_event: FormSubmitEvent<z.infer<typeof schema.value>
 
       await router.push(localePath('/'))
     } else {
+      // TODO: dateOfBirth is captured but not sent - need to decide if user can be participant
+      // and if we should store participant data for frictionless rebooking
       await authStore.register({
         email: state.email,
         password: state.password,
         fullName: state.fullName,
         nationality: state.nationality || undefined,
-        phoneNumber: state.phoneNumber ? `${state.phoneCountryCode}${state.phoneNumber}` : undefined
+        phoneNumber: state.phoneNumber ? `${state.phoneCountryCode}${state.phoneNumber}` : undefined,
+        dateOfBirth: state.dateOfBirth || undefined
       })
 
       toast.add({

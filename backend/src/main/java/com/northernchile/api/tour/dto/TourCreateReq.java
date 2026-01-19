@@ -1,5 +1,6 @@
 package com.northernchile.api.tour.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
@@ -45,6 +46,8 @@ public record TourCreateReq(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     Integer durationHours,
 
+    @JsonFormat(pattern = "HH:mm:ss")
+    @Schema(type = "string", format = "time", example = "14:30:00")
     LocalTime defaultStartTime,
 
     @NotNull

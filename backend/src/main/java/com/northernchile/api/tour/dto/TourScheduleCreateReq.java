@@ -1,5 +1,6 @@
 package com.northernchile.api.tour.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.northernchile.api.util.DateTimeUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
@@ -19,7 +20,12 @@ public record TourScheduleCreateReq(
     Instant startDatetime,
 
     // Preferred: separate date and time fields
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Schema(type = "string", format = "date", example = "2025-01-20")
     LocalDate date,
+
+    @JsonFormat(pattern = "HH:mm:ss")
+    @Schema(type = "string", format = "time", example = "14:30:00")
     LocalTime time,
 
     @NotNull

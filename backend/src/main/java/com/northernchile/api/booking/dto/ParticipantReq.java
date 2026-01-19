@@ -1,5 +1,6 @@
 package com.northernchile.api.booking.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
@@ -20,6 +21,8 @@ public record ParticipantReq(
     String nationality,
 
     @Past(message = "Date of birth must be in the past")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Schema(type = "string", format = "date", example = "1990-05-15")
     LocalDate dateOfBirth,
 
     @Min(value = 0, message = "Age cannot be negative")

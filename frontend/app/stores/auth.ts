@@ -49,6 +49,7 @@ export const useAuthStore = defineStore('auth', {
       fullName: string
       phoneNumber?: string | null
       nationality?: string | null
+      dateOfBirth?: string | null
     }) {
       this.loading = true
 

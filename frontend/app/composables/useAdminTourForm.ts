@@ -1,7 +1,7 @@
 // composables/useAdminTourForm.ts
 import { z } from 'zod'
 import type { FormSubmitEvent, FormErrorEvent, FormError } from '@nuxt/ui'
-import type { TourRes, TourCreateReq, TourUpdateReq, ContentBlock, ItineraryItem, LocalTime } from 'api-client'
+import type { TourRes, TourCreateReq, TourUpdateReq, ContentBlock, ItineraryItem } from 'api-client'
 
 const DRAFT_STORAGE_KEY = 'tour-form-draft'
 
@@ -234,9 +234,7 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
         price: event.data.price,
         defaultMaxParticipants: event.data.defaultMaxParticipants,
         durationHours: event.data.durationHours,
-        // Note: Backend expects LocalTime as ISO string (e.g., "10:30:00"), not object
-        // The OpenAPI schema incorrectly models LocalTime as an object
-        defaultStartTime: event.data.defaultStartTime as unknown as LocalTime | undefined,
+        defaultStartTime: event.data.defaultStartTime,
         status: event.data.status,
         contentKey: event.data.contentKey,
         guideName: event.data.guideName?.trim() || undefined,

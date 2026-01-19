@@ -1,5 +1,6 @@
 package com.northernchile.api.auth.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -24,5 +25,8 @@ public record RegisterReq(
 
     String nationality,
     String phoneNumber,
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Schema(type = "string", format = "date", example = "1990-05-15")
     LocalDate dateOfBirth
 ) {}
