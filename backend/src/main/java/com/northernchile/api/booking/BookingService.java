@@ -13,8 +13,11 @@ import com.northernchile.api.exception.ResourceNotFoundException;
 import com.northernchile.api.exception.ScheduleFullException;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.Participant;
+import com.northernchile.api.model.SavedParticipant;
 import com.northernchile.api.model.User;
 import com.northernchile.api.security.Role;
+import com.northernchile.api.user.SavedParticipantRepository;
+import com.northernchile.api.user.SavedParticipantService;
 import com.northernchile.api.notification.EmailService;
 import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
@@ -55,6 +58,8 @@ public class BookingService {
     private final PricingService pricingService;
     private final NotificationConfig notificationConfig;
     private final AppProperties appProperties;
+    private final SavedParticipantService savedParticipantService;
+    private final SavedParticipantRepository savedParticipantRepository;
 
     public BookingService(
             BookingRepository bookingRepository,
@@ -65,7 +70,9 @@ public class BookingService {
             com.northernchile.api.availability.AvailabilityValidator availabilityValidator,
             PricingService pricingService,
             NotificationConfig notificationConfig,
-            AppProperties appProperties) {
+            AppProperties appProperties,
+            SavedParticipantService savedParticipantService,
+            SavedParticipantRepository savedParticipantRepository) {
         this.bookingRepository = bookingRepository;
         this.tourScheduleRepository = tourScheduleRepository;
         this.emailService = emailService;
@@ -75,6 +82,8 @@ public class BookingService {
         this.pricingService = pricingService;
         this.notificationConfig = notificationConfig;
         this.appProperties = appProperties;
+        this.savedParticipantService = savedParticipantService;
+        this.savedParticipantRepository = savedParticipantRepository;
     }
 
     @Transactional
@@ -94,7 +103,7 @@ public class BookingService {
         var pricing = pricingService.calculateLineItem(schedule.getTour().getPrice(), req.participants().size());
 
         Booking booking = createBookingEntity(req, currentUser, schedule, pricing);
-        List<Participant> participants = createParticipantEntities(req, booking);
+        List<Participant> participants = createParticipantEntities(req, booking, currentUser);
         booking.setParticipants(participants);
 
         Booking savedBooking = bookingRepository.save(booking);
@@ -144,25 +153,97 @@ public class BookingService {
         return booking;
     }
 
-    private List<Participant> createParticipantEntities(BookingCreateReq req, Booking booking) {
+    private List<Participant> createParticipantEntities(BookingCreateReq req, Booking booking, User currentUser) {
         List<Participant> participants = new ArrayList<>();
         for (var participantReq : req.participants()) {
             Participant participant = new Participant();
             participant.setBooking(booking);
-            participant.setFullName(participantReq.fullName());
-            participant.setDocumentId(participantReq.documentId());
-            participant.setNationality(participantReq.nationality());
 
-            if (participantReq.dateOfBirth() != null) {
-                participant.setDateOfBirth(participantReq.dateOfBirth());
-            } else if (participantReq.age() != null) {
-                participant.setAge(participantReq.age());
+            // If savedParticipantId is provided, load from saved participant
+            if (participantReq.savedParticipantId() != null) {
+                SavedParticipant savedParticipant = savedParticipantRepository
+                        .findById(participantReq.savedParticipantId())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "SavedParticipant", participantReq.savedParticipantId()));
+
+                // Verify ownership if user is logged in
+                if (currentUser != null && !savedParticipant.getUser().getId().equals(currentUser.getId())) {
+                    throw new SecurityException("Cannot use saved participant from another user");
+                }
+
+                // Use saved participant data (can be overridden by request data)
+                participant.setFullName(participantReq.fullName() != null ?
+                        participantReq.fullName() : savedParticipant.getFullName());
+                participant.setDocumentId(participantReq.documentId() != null ?
+                        participantReq.documentId() : savedParticipant.getDocumentId());
+                participant.setNationality(participantReq.nationality() != null ?
+                        participantReq.nationality() : savedParticipant.getNationality());
+                participant.setPhoneNumber(participantReq.phoneNumber() != null ?
+                        participantReq.phoneNumber() : savedParticipant.getPhoneNumber());
+                participant.setEmail(participantReq.email() != null ?
+                        participantReq.email() : savedParticipant.getEmail());
+
+                if (participantReq.dateOfBirth() != null) {
+                    participant.setDateOfBirth(participantReq.dateOfBirth());
+                } else if (savedParticipant.getDateOfBirth() != null) {
+                    participant.setDateOfBirth(savedParticipant.getDateOfBirth());
+                } else if (participantReq.age() != null) {
+                    participant.setAge(participantReq.age());
+                }
+
+                participant.setSavedParticipant(savedParticipant);
+            } else {
+                // Use data from request
+                participant.setFullName(participantReq.fullName());
+                participant.setDocumentId(participantReq.documentId());
+                participant.setNationality(participantReq.nationality());
+                participant.setPhoneNumber(participantReq.phoneNumber());
+                participant.setEmail(participantReq.email());
+
+                if (participantReq.dateOfBirth() != null) {
+                    participant.setDateOfBirth(participantReq.dateOfBirth());
+                } else if (participantReq.age() != null) {
+                    participant.setAge(participantReq.age());
+                }
             }
 
             participant.setPickupAddress(participantReq.pickupAddress());
             participant.setSpecialRequirements(participantReq.specialRequirements());
-            participant.setPhoneNumber(participantReq.phoneNumber());
-            participant.setEmail(participantReq.email());
+
+            // Handle saveForFuture and markAsSelf for logged-in users
+            if (currentUser != null && Boolean.TRUE.equals(participantReq.saveForFuture())) {
+                boolean markAsSelf = Boolean.TRUE.equals(participantReq.markAsSelf());
+
+                SavedParticipant savedParticipant = savedParticipantService.createFromBookingData(
+                        currentUser,
+                        participant.getFullName(),
+                        participant.getDocumentId(),
+                        participant.getDateOfBirth(),
+                        participant.getNationality(),
+                        participant.getPhoneNumber(),
+                        participant.getEmail(),
+                        markAsSelf
+                );
+                participant.setSavedParticipant(savedParticipant);
+                log.info("Saved participant {} from booking for user {}, isSelf={}",
+                        savedParticipant.getId(), currentUser.getEmail(), markAsSelf);
+            } else if (currentUser != null && Boolean.TRUE.equals(participantReq.markAsSelf())) {
+                // Just mark as self without saving (sync data to profile)
+                SavedParticipant savedParticipant = savedParticipantService.createFromBookingData(
+                        currentUser,
+                        participant.getFullName(),
+                        participant.getDocumentId(),
+                        participant.getDateOfBirth(),
+                        participant.getNationality(),
+                        participant.getPhoneNumber(),
+                        participant.getEmail(),
+                        true
+                );
+                participant.setSavedParticipant(savedParticipant);
+                log.info("Synced self participant {} from booking for user {}",
+                        savedParticipant.getId(), currentUser.getEmail());
+            }
+
             participants.add(participant);
         }
         return participants;

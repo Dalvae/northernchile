@@ -210,7 +210,8 @@ public class UserService {
             "fullName", currentUser.getFullName() != null ? currentUser.getFullName() : "",
             "nationality", currentUser.getNationality() != null ? currentUser.getNationality() : "",
             "phoneNumber", currentUser.getPhoneNumber() != null ? currentUser.getPhoneNumber() : "",
-            "dateOfBirth", currentUser.getDateOfBirth() != null ? currentUser.getDateOfBirth().toString() : ""
+            "dateOfBirth", currentUser.getDateOfBirth() != null ? currentUser.getDateOfBirth().toString() : "",
+            "documentId", currentUser.getDocumentId() != null ? currentUser.getDocumentId() : ""
         );
 
         if (req.fullName() != null) {
@@ -225,6 +226,9 @@ public class UserService {
         if (req.dateOfBirth() != null) {
             currentUser.setDateOfBirth(req.dateOfBirth());
         }
+        if (req.documentId() != null) {
+            currentUser.setDocumentId(req.documentId());
+        }
 
         User updatedUser = userRepository.save(currentUser);
 
@@ -232,7 +236,8 @@ public class UserService {
             "fullName", updatedUser.getFullName() != null ? updatedUser.getFullName() : "",
             "nationality", updatedUser.getNationality() != null ? updatedUser.getNationality() : "",
             "phoneNumber", updatedUser.getPhoneNumber() != null ? updatedUser.getPhoneNumber() : "",
-            "dateOfBirth", updatedUser.getDateOfBirth() != null ? updatedUser.getDateOfBirth().toString() : ""
+            "dateOfBirth", updatedUser.getDateOfBirth() != null ? updatedUser.getDateOfBirth().toString() : "",
+            "documentId", updatedUser.getDocumentId() != null ? updatedUser.getDocumentId() : ""
         );
         auditLogService.logUpdate(currentUser, "USER", updatedUser.getId(), updatedUser.getEmail(), oldValues, newValues);
 

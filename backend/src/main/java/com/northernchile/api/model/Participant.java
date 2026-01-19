@@ -46,6 +46,10 @@ public class Participant {
     @Column(length = 255)
     private String email;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "saved_participant_id")
+    private SavedParticipant savedParticipant;
+
     @CreationTimestamp
     private Instant createdAt;
 
@@ -157,6 +161,14 @@ public class Participant {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public SavedParticipant getSavedParticipant() {
+        return savedParticipant;
+    }
+
+    public void setSavedParticipant(SavedParticipant savedParticipant) {
+        this.savedParticipant = savedParticipant;
     }
 
     public Instant getCreatedAt() {

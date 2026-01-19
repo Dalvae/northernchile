@@ -14,6 +14,7 @@ public record UserRes(
     String nationality,
     String phoneNumber,
     LocalDate dateOfBirth,
+    String documentId,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String authProvider,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Instant createdAt
 ) {}

@@ -99,7 +99,7 @@ class AuthServiceTest {
                 loginAttemptService
         );
 
-        // Set up test user using constructor (id, email, passwordHash, fullName, nationality, phoneNumber, dateOfBirth, role, authProvider, providerId)
+        // Set up test user using constructor (id, email, passwordHash, fullName, nationality, phoneNumber, dateOfBirth, documentId, role, authProvider, providerId)
         testUser = new User(
             UUID.randomUUID(),
             "test@example.com",
@@ -108,6 +108,7 @@ class AuthServiceTest {
             null,
             null,
             null,
+            null,  // documentId
             "ROLE_CLIENT",
             "LOCAL",
             null

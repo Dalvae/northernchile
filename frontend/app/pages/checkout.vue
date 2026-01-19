@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PaymentSessionRes } from 'api-client'
+import type { PaymentSessionRes, SavedParticipantRes } from 'api-client'
 import { PaymentProvider, PaymentMethod } from '~/types/payment'
 import { logger } from '~/utils/logger'
 
@@ -12,6 +12,7 @@ const { locale, t } = useI18n()
 const localePath = useLocalePath()
 const { phoneCodes, getCountryFlag } = useCountries()
 const { formatPrice } = useCurrency()
+const { participants: savedParticipants, fetchParticipants: fetchSavedParticipants } = useSavedParticipants()
 
 // SEO: Prevent indexing of checkout page
 useHead({
@@ -40,6 +41,9 @@ interface Participant {
   phoneCountryCode: string
   phoneNumber: string
   email: string
+  savedParticipantId?: string
+  markAsSelf?: boolean
+  saveForFuture?: boolean
 }
 
 // Step 1: Contact Information
@@ -64,6 +68,11 @@ const CHECKOUT_STEP_KEY = 'checkout_step'
 onMounted(async () => {
   // Fetch cart from backend to ensure we have latest data
   await cartStore.fetchCart()
+
+  // Fetch saved participants if authenticated
+  if (authStore.isAuthenticated) {
+    await fetchSavedParticipants()
+  }
 
   try {
     // Load contact form (except passwords)
@@ -235,23 +244,28 @@ function prevStep() {
 }
 
 // Update participant data
-function updateParticipant(index: number, data: Partial<{
-  fullName: string
-  documentId: string
-  nationality: string
-  dateOfBirth: string | null
-  pickupAddress: string
-  specialRequirements: string
-  phoneCountryCode: string
-  phoneNumber: string
-  email: string
-}>) {
+function updateParticipant(index: number, data: Partial<Participant>) {
   const current = participants.value[index]
   if (!current) return
+
+  // If marking this participant as self, unmark any other participant that was marked as self
+  if (data.markAsSelf === true) {
+    participants.value.forEach((p, i) => {
+      if (i !== index && p.markAsSelf) {
+        p.markAsSelf = false
+      }
+    })
+  }
+
   participants.value[index] = {
     ...current,
     ...data
   }
+}
+
+// Check if another participant slot has markAsSelf
+function hasSelfInOtherSlot(currentIndex: number): boolean {
+  return participants.value.some((p, i) => i !== currentIndex && p.markAsSelf === true)
 }
 
 // Copy first participant's common data to another participant
@@ -394,7 +408,10 @@ async function submitBooking() {
           pickupAddress: p.pickupAddress || null,
           specialRequirements: p.specialRequirements || null,
           phoneNumber: p.phoneNumber ? `${p.phoneCountryCode}${p.phoneNumber}` : null,
-          email: p.email || null
+          email: p.email || null,
+          savedParticipantId: p.savedParticipantId || null,
+          markAsSelf: p.markAsSelf || false,
+          saveForFuture: p.saveForFuture || false
         }))
       }
     })
@@ -790,6 +807,8 @@ const total = computed(() => cartStore.cart.cartTotal)
                   :participant="participant"
                   :index="index"
                   :total-participants="totalParticipants"
+                  :saved-participants="savedParticipants"
+                  :has-self-participant-in-other-slot="hasSelfInOtherSlot(index)"
                   @update="(data) => updateParticipant(index, data)"
                 >
                   <template #header>

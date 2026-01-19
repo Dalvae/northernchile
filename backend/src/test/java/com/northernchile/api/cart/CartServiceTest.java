@@ -100,6 +100,7 @@ class CartServiceTest {
             null,
             null,
             null,
+            null,  // documentId
             "ROLE_CLIENT",
             "LOCAL",
             null

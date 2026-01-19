@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 public record ParticipantReq(
     @NotBlank(message = "Full name is required")
@@ -40,5 +41,14 @@ public record ParticipantReq(
 
     @Email(message = "Invalid email format")
     @Size(max = 100, message = "Email must not exceed 100 characters")
-    String email
+    String email,
+
+    @Schema(description = "ID of a saved participant to use for this booking")
+    UUID savedParticipantId,
+
+    @Schema(description = "Mark this participant as the current user (syncs data to profile)")
+    Boolean markAsSelf,
+
+    @Schema(description = "Save this participant for future bookings")
+    Boolean saveForFuture
 ) {}

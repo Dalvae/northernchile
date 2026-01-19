@@ -20,6 +20,8 @@ import com.northernchile.api.model.User;
 import com.northernchile.api.notification.EmailService;
 import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
+import com.northernchile.api.user.SavedParticipantRepository;
+import com.northernchile.api.user.SavedParticipantService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -86,6 +88,12 @@ class BookingServiceTest {
     @Mock
     private AppProperties.Booking bookingProperties;
 
+    @Mock
+    private SavedParticipantService savedParticipantService;
+
+    @Mock
+    private SavedParticipantRepository savedParticipantRepository;
+
     private BookingService bookingService;
 
     private User testUser;
@@ -110,7 +118,9 @@ class BookingServiceTest {
                 availabilityValidator,
                 pricingService,
                 notificationConfig,
-                appProperties
+                appProperties,
+                savedParticipantService,
+                savedParticipantRepository
         );
 
         // Set up test user using constructor
@@ -122,6 +132,7 @@ class BookingServiceTest {
             null,
             null,
             null,
+            null,  // documentId
             "ROLE_CLIENT",
             "LOCAL",
             null
@@ -151,7 +162,10 @@ class BookingServiceTest {
             null,                // pickupAddress
             null,                // specialRequirements
             null,                // phoneNumber
-            "participant@example.com"  // email
+            "participant@example.com",  // email
+            null,                // savedParticipantId
+            null,                // markAsSelf
+            null                 // saveForFuture
         );
         validBookingRequest = new BookingCreateReq(
             testSchedule.getId(),
@@ -280,10 +294,10 @@ class BookingServiceTest {
         void shouldCreateBookingWithMultipleParticipants() {
             // Given
             ParticipantReq p1 = new ParticipantReq(
-                "Participant 1", "11111111-1", "CL", null, null, null, null, null, "p1@example.com"
+                "Participant 1", "11111111-1", "CL", null, null, null, null, null, "p1@example.com", null, null, null
             );
             ParticipantReq p2 = new ParticipantReq(
-                "Participant 2", "22222222-2", "AR", null, null, null, null, null, "p2@example.com"
+                "Participant 2", "22222222-2", "AR", null, null, null, null, null, "p2@example.com", null, null, null
             );
 
             // Create a new booking request with multiple participants
@@ -516,6 +530,7 @@ class BookingServiceTest {
                 null,
                 null,
                 null,
+                null,  // documentId
                 "ROLE_SUPER_ADMIN",
                 "LOCAL",
                 null
@@ -546,6 +561,7 @@ class BookingServiceTest {
                 null,
                 null,
                 null,
+                null,  // documentId
                 "ROLE_PARTNER_ADMIN",
                 "LOCAL",
                 null

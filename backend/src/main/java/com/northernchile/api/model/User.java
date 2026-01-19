@@ -34,6 +34,9 @@ public class User {
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
+    @Column(name = "document_id", length = 50)
+    private String documentId;
+
     @Column(nullable = false, length = 50)
     private String role;
 
@@ -60,7 +63,7 @@ public class User {
     }
 
     // All-argument constructor (excluding auto-generated fields)
-    public User(UUID id, String email, String passwordHash, String fullName, String nationality, String phoneNumber, LocalDate dateOfBirth, String role, String authProvider, String providerId) {
+    public User(UUID id, String email, String passwordHash, String fullName, String nationality, String phoneNumber, LocalDate dateOfBirth, String documentId, String role, String authProvider, String providerId) {
         this.id = id;
         this.email = email;
         this.passwordHash = passwordHash;
@@ -68,6 +71,7 @@ public class User {
         this.nationality = nationality;
         this.phoneNumber = phoneNumber;
         this.dateOfBirth = dateOfBirth;
+        this.documentId = documentId;
         this.role = role;
         this.authProvider = authProvider;
         this.providerId = providerId;
@@ -145,6 +149,14 @@ public class User {
         this.dateOfBirth = dateOfBirth;
     }
 
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
+
     public void setRole(String role) {
         this.role = role;
     }
@@ -201,6 +213,7 @@ public class User {
                ", nationality='" + nationality + "'" +
                ", phoneNumber='" + phoneNumber + "'" +
                ", dateOfBirth=" + dateOfBirth +
+               ", documentId='" + documentId + "'" +
                ", role='" + role + "'" +
                ", authProvider='" + authProvider + "'" +
                ", providerId='" + providerId + "'" +

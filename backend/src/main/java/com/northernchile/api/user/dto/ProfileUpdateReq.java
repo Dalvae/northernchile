@@ -12,5 +12,8 @@ public record ProfileUpdateReq(
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Schema(type = "string", format = "date", example = "1990-05-15")
-    LocalDate dateOfBirth
+    LocalDate dateOfBirth,
+
+    @Schema(description = "Document ID (passport, national ID, etc.)")
+    String documentId
 ) {}

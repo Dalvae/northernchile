@@ -9,6 +9,23 @@
     </template>
 
     <div class="space-y-4">
+      <!-- Saved Participant Selector (only for logged-in users) -->
+      <div v-if="isAuthenticated && savedParticipantOptions.length > 0" class="mb-4">
+        <UFormField
+          :label="t('booking.saved_participant') || 'Participante guardado'"
+          name="savedParticipant"
+        >
+          <USelect
+            :model-value="selectedSavedParticipantId"
+            :items="savedParticipantSelectItems"
+            placeholder="Seleccionar participante guardado..."
+            size="lg"
+            icon="i-lucide-users"
+            class="w-full"
+            @update:model-value="handleSavedParticipantSelect($event)"
+          />
+        </UFormField>
+      </div>
       <!-- Full Name -->
       <UFormField
         :label="t('booking.full_name')"
@@ -164,15 +181,41 @@
           />
         </UFormField>
       </div>
+
+      <!-- Save options (only for logged-in users) -->
+      <div v-if="isAuthenticated" class="pt-4 border-t border-neutral-200 dark:border-neutral-700 space-y-3">
+        <!-- Mark as Self checkbox -->
+        <div v-if="canMarkAsSelf" class="flex items-center gap-2">
+          <UCheckbox
+            :model-value="participant.markAsSelf"
+            :label="t('booking.mark_as_self') || 'Soy yo (sincronizar con mi perfil)'"
+            @update:model-value="handleMarkAsSelfChange($event)"
+          />
+          <UTooltip :text="t('booking.mark_as_self_tooltip') || 'Estos datos se guardarán en tu perfil'">
+            <UIcon name="i-lucide-info" class="w-4 h-4 text-neutral-400" />
+          </UTooltip>
+        </div>
+
+        <!-- Save for Future checkbox -->
+        <div class="flex items-center gap-2">
+          <UCheckbox
+            :model-value="participant.saveForFuture"
+            :label="t('booking.save_for_future') || 'Guardar para futuras reservas'"
+            @update:model-value="handleSaveForFutureChange($event)"
+          />
+        </div>
+      </div>
     </div>
   </UCard>
 </template>
 
 <script setup lang="ts">
+import type { SavedParticipantRes } from 'api-client'
 import { getTodayString } from '~/utils/dateUtils'
 
 const { t } = useI18n()
 const { phoneCodes, getPhoneCodeByCountry, getCountryFlag } = useCountries()
+const authStore = useAuthStore()
 
 const props = defineProps<{
   participant: {
@@ -185,9 +228,14 @@ const props = defineProps<{
     phoneCountryCode: string
     phoneNumber: string
     email: string
+    savedParticipantId?: string
+    markAsSelf?: boolean
+    saveForFuture?: boolean
   }
   index: number
   totalParticipants: number
+  savedParticipants?: SavedParticipantRes[]
+  hasSelfParticipantInOtherSlot?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -201,8 +249,79 @@ const emit = defineEmits<{
     phoneCountryCode: string
     phoneNumber: string
     email: string
+    savedParticipantId?: string
+    markAsSelf?: boolean
+    saveForFuture?: boolean
   }>]
 }>()
+
+// Auth state
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+
+// Saved participants
+const savedParticipantOptions = computed(() => props.savedParticipants || [])
+
+const selectedSavedParticipantId = computed(() => props.participant.savedParticipantId || '')
+
+const savedParticipantSelectItems = computed(() => {
+  const options = [
+    { label: 'Ingresar manualmente', value: '' }
+  ]
+
+  savedParticipantOptions.value.forEach(p => {
+    options.push({
+      label: p.isSelf ? `${p.fullName} (Yo)` : p.fullName,
+      value: p.id
+    })
+  })
+
+  return options
+})
+
+// Can mark as self: only if no other participant is already marked as self
+// and if the user doesn't already have a self participant (unless this is it)
+const canMarkAsSelf = computed(() => {
+  // Don't show if another participant slot already has markAsSelf
+  if (props.hasSelfParticipantInOtherSlot) {
+    return false
+  }
+
+  // Show the checkbox
+  return true
+})
+
+// Handle saved participant selection
+function handleSavedParticipantSelect(selectedId: string | undefined) {
+  if (!selectedId) {
+    // Clear the saved participant reference
+    emit('update', { savedParticipantId: undefined })
+    return
+  }
+
+  const savedParticipant = savedParticipantOptions.value.find(p => p.id === selectedId)
+  if (!savedParticipant) return
+
+  // Pre-fill the form with saved participant data
+  emit('update', {
+    savedParticipantId: selectedId,
+    fullName: savedParticipant.fullName,
+    documentId: savedParticipant.documentId || '',
+    nationality: savedParticipant.nationality || '',
+    dateOfBirth: savedParticipant.dateOfBirth || null,
+    phoneNumber: savedParticipant.phoneNumber?.replace(/^\+\d+/, '') || '',
+    email: savedParticipant.email || '',
+    markAsSelf: savedParticipant.isSelf
+  })
+}
+
+// Handle checkbox changes (UCheckbox can return 'indeterminate', so we convert to boolean)
+function handleMarkAsSelfChange(value: boolean | 'indeterminate') {
+  emit('update', { markAsSelf: value === true })
+}
+
+function handleSaveForFutureChange(value: boolean | 'indeterminate') {
+  emit('update', { saveForFuture: value === true })
+}
 
 // When nationality changes, auto-update phone country code
 function handleNationalityChange(nationality: string | undefined) {

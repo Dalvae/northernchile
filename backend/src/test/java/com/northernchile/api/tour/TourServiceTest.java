@@ -63,7 +63,7 @@ class TourServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Set up admin user using constructor (id, email, passwordHash, fullName, nationality, phoneNumber, dateOfBirth, role, authProvider, providerId)
+        // Set up admin user using constructor (id, email, passwordHash, fullName, nationality, phoneNumber, dateOfBirth, documentId, role, authProvider, providerId)
         adminUser = new User(
             UUID.randomUUID(),
             "admin@northernchile.com",
@@ -72,6 +72,7 @@ class TourServiceTest {
             null,
             null,
             null,
+            null,  // documentId
             "ROLE_SUPER_ADMIN",
             "LOCAL",
             null
@@ -86,6 +87,7 @@ class TourServiceTest {
             null,
             null,
             null,
+            null,  // documentId
             "ROLE_PARTNER_ADMIN",
             "LOCAL",
             null
