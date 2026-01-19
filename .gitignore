@@ -132,6 +132,10 @@ openapi.json
 # Playwright MCP screenshots
 .playwright-mcp/
 
-# Database backups
-*.sql
+# Database backups (but NOT Flyway migrations)
 backup_*.sql
+dump_*.sql
+*.dump.sql
+
+# Allow Flyway migrations
+!backend/src/main/resources/db/migration/*.sql
