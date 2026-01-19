@@ -11,16 +11,35 @@ function ensureArray<T>(obj: Record<string, T[]>, lang: string): T[] {
 }
 
 // Helpers de Itinerario
-const addItineraryItem = (lang: string) => {
+// El time se comparte entre idiomas, solo la descripción se traduce
+const addItineraryItem = () => {
   if (!state.itineraryTranslations) {
     state.itineraryTranslations = { es: [], en: [], pt: [] }
   }
-  ensureArray(state.itineraryTranslations, lang).push({ time: '', description: '' })
+  // Añade item en todos los idiomas con el mismo índice
+  const newItem = { time: '', description: '' }
+  state.itineraryTranslations.es = state.itineraryTranslations.es || []
+  state.itineraryTranslations.en = state.itineraryTranslations.en || []
+  state.itineraryTranslations.pt = state.itineraryTranslations.pt || []
+  state.itineraryTranslations.es.push({ ...newItem })
+  state.itineraryTranslations.en.push({ ...newItem })
+  state.itineraryTranslations.pt.push({ ...newItem })
 }
 
-const removeItineraryItem = (lang: string, index: number) => {
-  if (state.itineraryTranslations?.[lang]) {
-    state.itineraryTranslations[lang].splice(index, 1)
+const removeItineraryItem = (index: number) => {
+  // Elimina el item en todos los idiomas
+  state.itineraryTranslations?.es?.splice(index, 1)
+  state.itineraryTranslations?.en?.splice(index, 1)
+  state.itineraryTranslations?.pt?.splice(index, 1)
+}
+
+// Sincroniza el time desde ES a otros idiomas
+const syncItineraryTime = (index: number, time: string) => {
+  if (state.itineraryTranslations?.en?.[index]) {
+    state.itineraryTranslations.en[index].time = time
+  }
+  if (state.itineraryTranslations?.pt?.[index]) {
+    state.itineraryTranslations.pt[index].time = time
   }
 }
 
@@ -189,6 +208,7 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
                   v-model="item.time"
                   placeholder="19:30"
                   size="md"
+                  @update:model-value="syncItineraryTime(index, $event as string)"
                 />
               </UFormField>
               <UFormField
@@ -207,7 +227,7 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
                 variant="ghost"
                 size="md"
                 class="mt-6"
-                @click="removeItineraryItem('es', index)"
+                @click="removeItineraryItem(index)"
               />
             </div>
             <UButton
@@ -215,12 +235,15 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
               icon="i-heroicons-plus"
               color="primary"
               variant="outline"
-              @click="addItineraryItem('es')"
+              @click="addItineraryItem()"
             />
           </div>
         </template>
         <template #itinerary-en>
           <div class="pt-4 space-y-4">
+            <p v-if="!state.itineraryTranslations?.es?.length" class="text-sm text-muted">
+              Primero añade items en Español
+            </p>
             <div
               v-for="(item, index) in state.itineraryTranslations?.en || []"
               :key="index"
@@ -231,9 +254,10 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
                 class="w-32"
               >
                 <UInput
-                  v-model="item.time"
-                  placeholder="7:30 PM"
+                  :model-value="state.itineraryTranslations?.es?.[index]?.time || ''"
+                  disabled
                   size="md"
+                  class="opacity-60"
                 />
               </UFormField>
               <UFormField
@@ -246,26 +270,14 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
                   size="md"
                 />
               </UFormField>
-              <UButton
-                icon="i-heroicons-trash"
-                color="error"
-                variant="ghost"
-                size="md"
-                class="mt-6"
-                @click="removeItineraryItem('en', index)"
-              />
             </div>
-            <UButton
-              label="Add Item"
-              icon="i-heroicons-plus"
-              color="primary"
-              variant="outline"
-              @click="addItineraryItem('en')"
-            />
           </div>
         </template>
         <template #itinerary-pt>
           <div class="pt-4 space-y-4">
+            <p v-if="!state.itineraryTranslations?.es?.length" class="text-sm text-muted">
+              Primeiro adicione itens em Espanhol
+            </p>
             <div
               v-for="(item, index) in state.itineraryTranslations?.pt || []"
               :key="index"
@@ -276,9 +288,10 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
                 class="w-32"
               >
                 <UInput
-                  v-model="item.time"
-                  placeholder="19:30"
+                  :model-value="state.itineraryTranslations?.es?.[index]?.time || ''"
+                  disabled
                   size="md"
+                  class="opacity-60"
                 />
               </UFormField>
               <UFormField
@@ -291,22 +304,7 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
                   size="md"
                 />
               </UFormField>
-              <UButton
-                icon="i-heroicons-trash"
-                color="error"
-                variant="ghost"
-                size="md"
-                class="mt-6"
-                @click="removeItineraryItem('pt', index)"
-              />
             </div>
-            <UButton
-              label="Adicionar Item"
-              icon="i-heroicons-plus"
-              color="primary"
-              variant="outline"
-              @click="addItineraryItem('pt')"
-            />
           </div>
         </template>
       </UTabs>
