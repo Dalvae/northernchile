@@ -54,14 +54,6 @@ const debouncedCheckEmail = useDebounceFn(async (email: string) => {
   }
 }, 1000)
 
-// Watch email changes for verification
-watch(() => contactForm.value.email, (email) => {
-  // Only check if user is not authenticated
-  if (!authStore.isAuthenticated && email) {
-    debouncedCheckEmail(email)
-  }
-})
-
 // SEO: Prevent indexing of checkout page
 useHead({
   meta: [
@@ -102,6 +94,14 @@ const contactForm = ref({
   countryCode: '+56',
   password: '',
   confirmPassword: ''
+})
+
+// Watch email changes for verification (must be after contactForm definition)
+watch(() => contactForm.value.email, (email) => {
+  // Only check if user is not authenticated
+  if (!authStore.isAuthenticated && email) {
+    debouncedCheckEmail(email)
+  }
 })
 
 // Step 2: Participants
