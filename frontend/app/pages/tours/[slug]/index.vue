@@ -81,13 +81,6 @@ const translatedItinerary = computed(() => {
   return Array.isArray(itinerary) ? itinerary : []
 })
 
-const translatedDescription = computed(() => {
-  if (descriptionBlocks.value.length) {
-    return ''
-  }
-  return ''
-})
-
 const translatedName = computed(
   () =>
     tour.value?.nameTranslations?.[locale.value]
@@ -134,9 +127,6 @@ const seoDescription = computed(() => {
     if (firstTextBlock?.content) {
       return firstTextBlock.content.substring(0, 200)
     }
-  }
-  if (translatedDescription.value) {
-    return translatedDescription.value.substring(0, 200)
   }
   return `Descubre ${translatedName.value} en San Pedro de Atacama con Northern Chile Tours`
 })
@@ -560,25 +550,55 @@ watch(tour, (newTour) => {
                 v-if="descriptionBlocks.length"
                 class="space-y-6"
               >
-                <component
-                  :is="block.type === 'heading' ? 'h2' : 'p'"
+                <template
                   v-for="(block, index) in descriptionBlocks"
                   :key="index"
-                  :class="
-                    block.type === 'heading'
-                      ? 'text-3xl font-display font-bold text-white mt-8 mb-4'
-                      : 'text-neutral-200 leading-relaxed'
-                  "
                 >
-                  {{ block.content }}
-                </component>
+                  <!-- Heading -->
+                  <h2
+                    v-if="block.type === 'heading'"
+                    class="text-3xl font-display font-bold text-white mt-8 mb-4"
+                  >
+                    {{ block.content }}
+                  </h2>
+
+                  <!-- List -->
+                  <ul
+                    v-else-if="block.type === 'list'"
+                    class="space-y-2 text-neutral-200"
+                  >
+                    <li
+                      v-for="(item, itemIndex) in block.content?.split('\n').filter(Boolean)"
+                      :key="itemIndex"
+                      class="flex items-start gap-3"
+                    >
+                      <UIcon
+                        name="i-lucide-check"
+                        class="w-5 h-5 text-primary mt-0.5 shrink-0"
+                      />
+                      <span>{{ item }}</span>
+                    </li>
+                  </ul>
+
+                  <!-- Highlight -->
+                  <div
+                    v-else-if="block.type === 'highlight'"
+                    class="p-4 bg-primary/10 border-l-4 border-primary rounded-r-lg"
+                  >
+                    <p class="text-neutral-200">
+                      {{ block.content }}
+                    </p>
+                  </div>
+
+                  <!-- Paragraph (default) -->
+                  <p
+                    v-else
+                    class="text-neutral-200 leading-relaxed"
+                  >
+                    {{ block.content }}
+                  </p>
+                </template>
               </div>
-              <p
-                v-else-if="translatedDescription"
-                class="text-neutral-200 leading-relaxed"
-              >
-                {{ translatedDescription }}
-              </p>
             </div>
 
             <!-- Itinerary (Vertical Timeline) -->
