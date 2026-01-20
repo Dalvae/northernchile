@@ -4,6 +4,7 @@ import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.config.properties.AppProperties;
 import com.northernchile.api.config.properties.MailProperties;
 import com.northernchile.api.model.Booking;
+import com.northernchile.api.model.BookingStatus;
 import com.northernchile.api.model.TourSchedule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,7 @@ public class TourReminderService {
         // Find confirmed bookings for tours happening in the reminder window
         // Only select bookings that haven't received a reminder yet
         List<Booking> upcomingBookings = bookingRepository.findByStatusAndStartDateTimeBetweenAndReminderNotSent(
-                "CONFIRMED",
+                BookingStatus.CONFIRMED,
                 now,
                 reminderWindow.plus(1, ChronoUnit.HOURS) // +1 hour buffer
         );

@@ -1,10 +1,16 @@
 
 package com.northernchile.api.model;
 
+import com.northernchile.api.audit.AuditableEntity;
+import com.northernchile.api.audit.AuditEntityListener;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -12,7 +18,8 @@ import java.util.UUID;
 @Table(name = "tour_schedules", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"tour_id", "start_datetime"})
 })
-public class TourSchedule {
+@EntityListeners(AuditEntityListener.class)
+public class TourSchedule implements AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -28,8 +35,9 @@ public class TourSchedule {
     @Column(nullable = false)
     private Integer maxParticipants;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private String status = "OPEN";
+    private TourScheduleStatus status = TourScheduleStatus.OPEN;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_guide_id")
@@ -41,7 +49,7 @@ public class TourSchedule {
     public TourSchedule() {
     }
 
-    public TourSchedule(UUID id, Tour tour, Instant startDatetime, Integer maxParticipants, String status, User assignedGuide, Instant createdAt) {
+    public TourSchedule(UUID id, Tour tour, Instant startDatetime, Integer maxParticipants, TourScheduleStatus status, User assignedGuide, Instant createdAt) {
         this.id = id;
         this.tour = tour;
         this.startDatetime = startDatetime;
@@ -83,11 +91,11 @@ public class TourSchedule {
         this.maxParticipants = maxParticipants;
     }
 
-    public String getStatus() {
+    public TourScheduleStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(TourScheduleStatus status) {
         this.status = status;
     }
 
@@ -131,5 +139,31 @@ public class TourSchedule {
                 ", assignedGuide=" + assignedGuide +
                 ", createdAt=" + createdAt +
                 '}';
+    }
+
+    // ==================== AuditableEntity Implementation ====================
+
+    private static final DateTimeFormatter DATE_FORMATTER =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.of("America/Santiago"));
+
+    @Override
+    public String getAuditDescription() {
+        String tourName = tour != null ? tour.getDisplayName() : "Unknown Tour";
+        String dateStr = startDatetime != null ? DATE_FORMATTER.format(startDatetime) : "Unknown Date";
+        return tourName + " @ " + dateStr;
+    }
+
+    @Override
+    public String getAuditEntityType() {
+        return "SCHEDULE";
+    }
+
+    @Override
+    public Map<String, Object> getAuditSnapshot() {
+        Map<String, Object> snapshot = new HashMap<>();
+        snapshot.put("status", status);
+        snapshot.put("maxParticipants", maxParticipants);
+        snapshot.put("startDatetime", startDatetime != null ? startDatetime.toString() : null);
+        return snapshot;
     }
 }

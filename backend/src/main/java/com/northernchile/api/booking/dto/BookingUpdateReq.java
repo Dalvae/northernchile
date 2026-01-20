@@ -1,12 +1,13 @@
 package com.northernchile.api.booking.dto;
 
+import com.northernchile.api.model.BookingStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record BookingUpdateReq(
-    @NotBlank(message = "Status is required")
+    @NotNull(message = "Status is required")
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String status,
+    BookingStatus status,
 
     String specialRequests
 ) {}

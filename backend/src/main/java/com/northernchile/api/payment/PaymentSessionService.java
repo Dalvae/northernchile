@@ -4,17 +4,22 @@ import com.northernchile.api.availability.AvailabilityValidator;
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.booking.BookingService;
 import com.northernchile.api.cart.CartRepository;
+import com.northernchile.api.config.properties.AppProperties;
 import com.northernchile.api.config.properties.PaymentProperties;
+import com.northernchile.api.exception.BookingCutoffException;
 import com.northernchile.api.exception.PaymentProviderException;
 import com.northernchile.api.exception.ScheduleFullException;
 import com.northernchile.api.model.Booking;
+import com.northernchile.api.model.BookingStatus;
 import com.northernchile.api.model.Participant;
 import com.northernchile.api.model.TourSchedule;
+import com.northernchile.api.model.TourScheduleStatus;
 import com.northernchile.api.model.User;
 import com.northernchile.api.payment.dto.PaymentSessionReq;
 import com.northernchile.api.payment.dto.PaymentSessionRes;
 import com.northernchile.api.payment.model.*;
 import com.northernchile.api.payment.repository.PaymentSessionRepository;
+import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
 import com.northernchile.api.tour.TourUtils;
 import jakarta.persistence.EntityManager;
@@ -24,6 +29,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.northernchile.api.util.DateTimeUtils;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -55,6 +62,8 @@ public class PaymentSessionService {
     private final PaymentSessionPaymentAdapter paymentAdapter;
     private final AvailabilityValidator availabilityValidator;
     private final PaymentProperties paymentProperties;
+    private final PricingService pricingService;
+    private final AppProperties appProperties;
 
     public PaymentSessionService(
             PaymentSessionRepository sessionRepository,
@@ -64,7 +73,9 @@ public class PaymentSessionService {
             CartRepository cartRepository,
             PaymentSessionPaymentAdapter paymentAdapter,
             AvailabilityValidator availabilityValidator,
-            PaymentProperties paymentProperties) {
+            PaymentProperties paymentProperties,
+            PricingService pricingService,
+            AppProperties appProperties) {
         this.sessionRepository = sessionRepository;
         this.scheduleRepository = scheduleRepository;
         this.bookingRepository = bookingRepository;
@@ -73,6 +84,8 @@ public class PaymentSessionService {
         this.paymentAdapter = paymentAdapter;
         this.availabilityValidator = availabilityValidator;
         this.paymentProperties = paymentProperties;
+        this.pricingService = pricingService;
+        this.appProperties = appProperties;
     }
 
     /**
@@ -83,8 +96,9 @@ public class PaymentSessionService {
     public PaymentSessionRes createSession(PaymentSessionReq request, User user) {
         log.info("Creating payment session for user: {} with {} items", user.getId(), request.items().size());
 
-        // Validate all schedules exist and have availability
+        // Validate all schedules exist, have availability, and are within booking cutoff time
         validateAvailability(request);
+        validateBookingCutoffTimes(request);
 
         // Calculate total from schedule prices (don't trust client amounts)
         BigDecimal trustedTotal = calculateTrustedTotal(request);
@@ -507,7 +521,7 @@ public class PaymentSessionService {
                 .orElseThrow(() -> new IllegalArgumentException("Schedule not found: " + item.scheduleId()));
 
             // Check if schedule is bookable (must be OPEN)
-            if (!"OPEN".equals(schedule.getStatus())) {
+            if (schedule.getStatus() != TourScheduleStatus.OPEN) {
                 throw new IllegalStateException("Schedule is not available for booking: " + item.scheduleId());
             }
 
@@ -520,6 +534,27 @@ public class PaymentSessionService {
                 throw new IllegalStateException(
                     String.format("Not enough availability for schedule %s. Requested: %d, Available: %d",
                         item.scheduleId(), item.numParticipants(), availableSlots));
+            }
+        }
+    }
+
+    /**
+     * Validates that all schedules in the request are within the booking cutoff time.
+     * Users cannot create payment sessions for tours that start within the minimum hours limit.
+     * This prevents payment sessions being created for tours that will start before payment can complete.
+     */
+    private void validateBookingCutoffTimes(PaymentSessionReq request) {
+        Instant now = Instant.now();
+        int minHours = appProperties.getBooking().getMinHoursBeforeTour();
+
+        for (var item : request.items()) {
+            TourSchedule schedule = scheduleRepository.findById(item.scheduleId())
+                .orElseThrow(() -> new IllegalArgumentException("Schedule not found: " + item.scheduleId()));
+
+            Instant cutoffTime = schedule.getStartDatetime().minus(minHours, ChronoUnit.HOURS);
+
+            if (now.isAfter(cutoffTime)) {
+                throw new BookingCutoffException(schedule.getId(), cutoffTime, minHours);
             }
         }
     }
@@ -543,7 +578,7 @@ public class PaymentSessionService {
 
         // Get tour name using centralized utility
         String tourName = TourUtils.getTourName(schedule.getTour());
-        LocalDate tourDate = schedule.getStartDatetime().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+        LocalDate tourDate = schedule.getStartDatetime().atZone(DateTimeUtils.CHILE_ZONE).toLocalDate();
         BigDecimal pricePerPerson = schedule.getTour().getPrice();
         BigDecimal itemTotal = pricePerPerson.multiply(BigDecimal.valueOf(reqItem.numParticipants()));
 
@@ -596,15 +631,18 @@ public class PaymentSessionService {
                     ", Solicitados: " + item.numParticipants());
             }
 
-            // Create booking
+            // Create booking with proper tax calculation using PricingService
+            // Tour prices are tax-inclusive, so we need to back-calculate subtotal and tax
+            var pricing = pricingService.calculateFromTaxInclusiveAmount(item.itemTotal());
+
             Booking booking = new Booking();
             booking.setUser(user);
             booking.setSchedule(schedule);
             booking.setTourDate(item.tourDate());
-            booking.setStatus("CONFIRMED"); // Already paid!
-            booking.setSubtotal(item.itemTotal());
-            booking.setTaxAmount(BigDecimal.ZERO);
-            booking.setTotalAmount(item.itemTotal());
+            booking.setStatus(BookingStatus.CONFIRMED); // Already paid!
+            booking.setSubtotal(pricing.subtotal());
+            booking.setTaxAmount(pricing.taxAmount());
+            booking.setTotalAmount(pricing.totalAmount());
             booking.setLanguageCode(session.getLanguageCode());
             booking.setSpecialRequests(item.specialRequests());
             // Set createdAt manually to ensure it's available for async email

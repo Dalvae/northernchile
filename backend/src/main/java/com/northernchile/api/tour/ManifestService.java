@@ -2,6 +2,7 @@ package com.northernchile.api.tour;
 
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.model.Booking;
+import com.northernchile.api.model.BookingStatus;
 import com.northernchile.api.model.Participant;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.notification.EmailService;
@@ -54,7 +55,7 @@ public class ManifestService {
         // Get all CONFIRMED bookings for this schedule
         List<Booking> confirmedBookings = bookingRepository.findByScheduleId(schedule.getId())
                 .stream()
-                .filter(b -> "CONFIRMED".equals(b.getStatus()))
+                .filter(b -> b.getStatus() == BookingStatus.CONFIRMED)
                 .toList();
 
         if (confirmedBookings.isEmpty()) {

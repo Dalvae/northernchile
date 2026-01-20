@@ -5,6 +5,7 @@ import com.northernchile.api.availability.AvailabilityValidator;
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
+import com.northernchile.api.model.TourScheduleStatus;
 import com.northernchile.api.model.User;
 import com.northernchile.api.tour.dto.TourScheduleCreateReq;
 import com.northernchile.api.tour.dto.TourScheduleRes;
@@ -69,7 +70,7 @@ public class TourScheduleService {
         schedule.setStartDatetime(req.resolvedStartDatetime());
         schedule.setMaxParticipants(req.maxParticipants());
         schedule.setAssignedGuide(guide);
-        schedule.setStatus("OPEN");
+        schedule.setStatus(TourScheduleStatus.OPEN);
 
         TourSchedule savedSchedule = tourScheduleRepository.save(schedule);
 
@@ -142,16 +143,16 @@ public class TourScheduleService {
         authorizationService.checkOwnership(tour, "You do not have permission to cancel this schedule.");
 
         // Capture old status for audit
-        String oldStatus = schedule.getStatus();
+        TourScheduleStatus oldStatus = schedule.getStatus();
 
-        schedule.setStatus("CANCELLED");
+        schedule.setStatus(TourScheduleStatus.CANCELLED);
         TourSchedule savedSchedule = tourScheduleRepository.save(schedule);
 
         // Audit log
         String tourName = tour.getDisplayName();
         String description = tourName + " - " + savedSchedule.getStartDatetime().toString();
         Map<String, Object> oldValues = Map.of("status", oldStatus);
-        Map<String, Object> newValues = Map.of("status", "CANCELLED");
+        Map<String, Object> newValues = Map.of("status", TourScheduleStatus.CANCELLED);
         auditLogService.logUpdate(currentUser, "SCHEDULE", schedule.getId(), description, oldValues, newValues);
 
         return toTourScheduleRes(savedSchedule);

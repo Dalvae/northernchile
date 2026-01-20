@@ -7,6 +7,7 @@ import com.northernchile.api.user.dto.SavedParticipantReq;
 import com.northernchile.api.user.dto.SavedParticipantRes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,7 +75,7 @@ public class SavedParticipantService {
 
         // Verify ownership
         if (!participant.getUser().getId().equals(user.getId())) {
-            throw new SecurityException("You can only update your own saved participants");
+            throw new AccessDeniedException("You can only update your own saved participants");
         }
 
         populateFromReq(participant, req);
@@ -98,7 +99,7 @@ public class SavedParticipantService {
 
         // Verify ownership
         if (!participant.getUser().getId().equals(user.getId())) {
-            throw new SecurityException("You can only delete your own saved participants");
+            throw new AccessDeniedException("You can only delete your own saved participants");
         }
 
         savedParticipantRepository.delete(participant);

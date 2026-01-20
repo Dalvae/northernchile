@@ -30,6 +30,10 @@ const loading = ref(false)
 const selectorModalOpen = ref(false)
 const uploadModalOpen = ref(false)
 
+// Edit modal state
+const editModalOpen = ref(false)
+const selectedMediaForEdit = ref<MediaRes | null>(null)
+
 // Lightbox state
 const lightboxOpen = ref(false)
 const lightboxIndex = ref(0)
@@ -103,6 +107,25 @@ async function deleteMediaPermanently(mediaId: string) {
 function openLightbox(index: number) {
   lightboxIndex.value = index
   lightboxOpen.value = true
+}
+
+// Open edit modal for a specific media
+function openEditModal(media: MediaRes) {
+  selectedMediaForEdit.value = media
+  editModalOpen.value = true
+}
+
+// Handle successful edit
+async function onEditSuccess() {
+  editModalOpen.value = false
+  try {
+    await fetchGallery()
+    await invalidatePublicCache()
+  } catch (error) {
+    console.error('Error refreshing after edit:', error)
+    toast.add({ color: 'warning', title: 'Guardado, pero hubo un error al refrescar' })
+  }
+  emit('update')
 }
 
 // Set hero image
@@ -251,10 +274,10 @@ watch(() => [props.tourId, props.scheduleId], () => {
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h4 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+        <h4 class="text-lg font-semibold text-(--ui-text)">
           Galería de Fotos
         </h4>
-        <p class="text-sm text-neutral-600 dark:text-neutral-300">
+        <p class="text-sm text-(--ui-text-muted)">
           Gestiona las fotos de este {{ tourId ? 'tour' : 'programa' }}
         </p>
       </div>
@@ -396,6 +419,7 @@ watch(() => [props.tourId, props.scheduleId], () => {
               icon="i-heroicons-arrow-up"
               size="sm"
               color="neutral"
+              aria-label="Mover imagen arriba"
               @click.stop="moveUp(index)"
             />
 
@@ -405,6 +429,7 @@ watch(() => [props.tourId, props.scheduleId], () => {
               icon="i-heroicons-arrow-down"
               size="sm"
               color="neutral"
+              aria-label="Mover imagen abajo"
               @click.stop="moveDown(index)"
             />
 
@@ -424,6 +449,15 @@ watch(() => [props.tourId, props.scheduleId], () => {
               size="sm"
               :color="item.isFeatured ? 'error' : 'neutral'"
               @click.stop="item.id && toggleFeatured(item.id)"
+            />
+
+            <!-- Edit metadata -->
+            <UButton
+              icon="i-heroicons-pencil"
+              size="sm"
+              color="info"
+              title="Editar metadata"
+              @click.stop="openEditModal(item)"
             />
 
             <!-- Unassign from gallery (keeps file in S3) -->
@@ -480,6 +514,13 @@ watch(() => [props.tourId, props.scheduleId], () => {
       v-model="lightboxOpen"
       :media="gallery"
       :initial-index="lightboxIndex"
+    />
+
+    <!-- Edit metadata modal -->
+    <AdminMediaMediaEditModal
+      v-model="editModalOpen"
+      :media="selectedMediaForEdit"
+      @success="onEditSuccess"
     />
   </div>
 </template>

@@ -24,8 +24,9 @@ public class Cart {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private String status = "ACTIVE";
+    private CartStatus status = CartStatus.ACTIVE;
 
     private Instant expiresAt;
 
@@ -35,7 +36,7 @@ public class Cart {
     public Cart() {
     }
 
-    public Cart(UUID id, User user, List<CartItem> items, String status, Instant expiresAt, Instant createdAt) {
+    public Cart(UUID id, User user, List<CartItem> items, CartStatus status, Instant expiresAt, Instant createdAt) {
         this.id = id;
         this.user = user;
         this.items = items;
@@ -68,11 +69,11 @@ public class Cart {
         this.items = items;
     }
 
-    public String getStatus() {
+    public CartStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(CartStatus status) {
         this.status = status;
     }
 

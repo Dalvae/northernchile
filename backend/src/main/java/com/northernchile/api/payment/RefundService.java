@@ -9,6 +9,7 @@ import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.config.properties.PaymentProperties;
 import com.northernchile.api.exception.RefundException;
 import com.northernchile.api.model.Booking;
+import com.northernchile.api.model.BookingStatus;
 import com.northernchile.api.notification.EmailService;
 import com.northernchile.api.payment.dto.RefundRes;
 import com.northernchile.api.payment.model.PaymentProvider;
@@ -118,7 +119,7 @@ public class RefundService {
         RefundRes providerResult = processProviderRefund(paymentSession, refundAmount);
 
         // Update booking status
-        booking.setStatus("CANCELLED");
+        booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
 
         // Update payment session status
@@ -168,7 +169,7 @@ public class RefundService {
      */
     @Transactional
     public RefundRes cancelBookingWithoutProviderRefund(Booking booking, String reason) {
-        booking.setStatus("CANCELLED");
+        booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
 
         return new RefundRes(
@@ -183,7 +184,7 @@ public class RefundService {
 
     private void validateRefundEligibility(Booking booking, boolean isAdminOverride) {
         // Check booking status
-        if (!"CONFIRMED".equals(booking.getStatus())) {
+        if (booking.getStatus() != BookingStatus.CONFIRMED) {
             throw new RefundException("Cannot refund booking with status: " + booking.getStatus());
         }
 

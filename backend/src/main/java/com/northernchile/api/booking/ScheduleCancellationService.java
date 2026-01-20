@@ -6,7 +6,9 @@ import com.northernchile.api.booking.dto.CancellationReason;
 import com.northernchile.api.booking.dto.ScheduleCancellationResult;
 import com.northernchile.api.exception.ResourceNotFoundException;
 import com.northernchile.api.model.Booking;
+import com.northernchile.api.model.BookingStatus;
 import com.northernchile.api.model.TourSchedule;
+import com.northernchile.api.model.TourScheduleStatus;
 import com.northernchile.api.model.User;
 import com.northernchile.api.notification.EmailService;
 import com.northernchile.api.payment.RefundService;
@@ -80,7 +82,7 @@ public class ScheduleCancellationService {
                 .orElseThrow(() -> new ResourceNotFoundException("TourSchedule", scheduleId));
 
         // Check if already cancelled
-        if ("CANCELLED".equals(schedule.getStatus())) {
+        if (schedule.getStatus() == TourScheduleStatus.CANCELLED) {
             log.warn("Schedule {} is already cancelled", scheduleId);
             return new ScheduleCancellationResult(
                     scheduleId,
@@ -93,8 +95,8 @@ public class ScheduleCancellationService {
         }
 
         // Cancel the schedule first
-        String oldStatus = schedule.getStatus();
-        schedule.setStatus("CANCELLED");
+        TourScheduleStatus oldStatus = schedule.getStatus();
+        schedule.setStatus(TourScheduleStatus.CANCELLED);
         tourScheduleRepository.save(schedule);
 
         // Get tour name for emails and logs
@@ -107,7 +109,7 @@ public class ScheduleCancellationService {
                 scheduleId,
                 tourName + " - Cancelled with cascade refunds",
                 Map.of("status", oldStatus, "reason", reason.name()),
-                Map.of("status", "CANCELLED")
+                Map.of("status", TourScheduleStatus.CANCELLED)
         );
 
         // Load all bookings for this schedule
@@ -165,16 +167,16 @@ public class ScheduleCancellationService {
         log.info("Processing refund for booking: {}, customer: {}", bookingId, customerEmail);
 
         // Skip if already cancelled
-        if ("CANCELLED".equals(booking.getStatus())) {
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
             log.info("Booking {} is already cancelled, skipping", bookingId);
             return BookingRefundDetail.alreadyCancelled(bookingId, customerName, customerEmail);
         }
 
         // Skip if not confirmed (PENDING bookings haven't paid yet)
-        if (!"CONFIRMED".equals(booking.getStatus())) {
+        if (booking.getStatus() != BookingStatus.CONFIRMED) {
             log.info("Booking {} is not CONFIRMED (status={}), marking as cancelled without refund",
                     bookingId, booking.getStatus());
-            booking.setStatus("CANCELLED");
+            booking.setStatus(BookingStatus.CANCELLED);
             bookingRepository.save(booking);
 
             // Send cancellation email even for non-confirmed bookings
@@ -201,7 +203,7 @@ public class ScheduleCancellationService {
             log.error("Failed to process refund for booking {}: {}", bookingId, e.getMessage(), e);
 
             // Mark booking as cancelled even if refund failed (admin will handle manually)
-            booking.setStatus("CANCELLED");
+            booking.setStatus(BookingStatus.CANCELLED);
             bookingRepository.save(booking);
 
             // Send cancellation email noting refund issue

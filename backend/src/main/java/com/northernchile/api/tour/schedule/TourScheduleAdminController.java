@@ -207,7 +207,7 @@ public class TourScheduleAdminController {
                         participant.getNationality(),
                         participant.getAge(),
                         booking.getId(),
-                        booking.getStatus(),
+                        booking.getStatus() != null ? booking.getStatus().name() : null,
                         participant.getPickupAddress()
                 ));
             }
@@ -221,7 +221,7 @@ public class TourScheduleAdminController {
                 schedule.getId(),
                 schedule.getStartDatetime(),
                 tourName,
-                schedule.getStatus(),
+                schedule.getStatus() != null ? schedule.getStatus().name() : null,
                 bookings.size(),
                 participantsList.size(),
                 participantsList

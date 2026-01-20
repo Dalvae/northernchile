@@ -1,17 +1,19 @@
 
 package com.northernchile.api.model;
 
+import com.northernchile.api.audit.AuditableEntity;
+import com.northernchile.api.audit.AuditEntityListener;
+import com.northernchile.api.tour.dto.ContentBlock;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
-import com.northernchile.api.tour.dto.ContentBlock;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalTime;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -19,7 +21,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "tours")
-public class Tour implements OwnedEntity {
+@EntityListeners(AuditEntityListener.class)
+public class Tour implements OwnedEntity, AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -359,5 +362,28 @@ public class Tour implements OwnedEntity {
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
+    }
+
+    // ==================== AuditableEntity Implementation ====================
+
+    @Override
+    public String getAuditDescription() {
+        return getDisplayName();
+    }
+
+    @Override
+    public String getAuditEntityType() {
+        return "TOUR";
+    }
+
+    @Override
+    public Map<String, Object> getAuditSnapshot() {
+        Map<String, Object> snapshot = new HashMap<>();
+        snapshot.put("name", getDisplayName());
+        snapshot.put("status", status);
+        snapshot.put("price", price);
+        snapshot.put("category", category);
+        snapshot.put("deleted", deletedAt != null);
+        return snapshot;
     }
 }

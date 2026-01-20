@@ -1,6 +1,7 @@
 package com.northernchile.api.tour;
 
 import com.northernchile.api.model.TourSchedule;
+import com.northernchile.api.model.TourScheduleStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,7 +62,7 @@ public class ScheduleAutoCloseJob {
         for (TourSchedule schedule : schedulesToClose) {
             try {
                 // Close the schedule
-                schedule.setStatus("CLOSED");
+                schedule.setStatus(TourScheduleStatus.CLOSED);
                 tourScheduleRepository.save(schedule);
                 
                 log.info("Closed schedule {} for tour {} starting at {}", 

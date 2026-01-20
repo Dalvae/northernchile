@@ -1,17 +1,22 @@
 package com.northernchile.api.model;
 
+import com.northernchile.api.audit.AuditableEntity;
+import com.northernchile.api.audit.AuditEntityListener;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-public class User {
+@EntityListeners(AuditEntityListener.class)
+public class User implements AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -220,5 +225,27 @@ public class User {
                ", createdAt=" + createdAt +
                ", updatedAt=" + updatedAt +
                '}';
+    }
+
+    // ==================== AuditableEntity Implementation ====================
+
+    @Override
+    public String getAuditDescription() {
+        return email;
+    }
+
+    @Override
+    public String getAuditEntityType() {
+        return "USER";
+    }
+
+    @Override
+    public Map<String, Object> getAuditSnapshot() {
+        Map<String, Object> snapshot = new HashMap<>();
+        snapshot.put("email", email);
+        snapshot.put("role", role);
+        snapshot.put("emailVerified", emailVerified);
+        snapshot.put("deleted", deletedAt != null);
+        return snapshot;
     }
 }

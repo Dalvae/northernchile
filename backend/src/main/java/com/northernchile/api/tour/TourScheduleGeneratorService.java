@@ -8,6 +8,7 @@ import com.northernchile.api.external.LunarService;
 import com.northernchile.api.external.WeatherService;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
+import com.northernchile.api.model.TourScheduleStatus;
 import com.northernchile.api.tour.TourRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -226,7 +227,7 @@ public class TourScheduleGeneratorService {
         schedule.setTour(tour);
         schedule.setStartDatetime(startInstant);
         schedule.setMaxParticipants(tour.getDefaultMaxParticipants());
-        schedule.setStatus("OPEN");
+        schedule.setStatus(TourScheduleStatus.OPEN);
 
         tourScheduleRepository.save(schedule);
 

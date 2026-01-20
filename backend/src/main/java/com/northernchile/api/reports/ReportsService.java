@@ -3,6 +3,7 @@ package com.northernchile.api.reports;
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.config.properties.PaymentProperties;
 import com.northernchile.api.model.Booking;
+import com.northernchile.api.model.BookingStatus;
 import com.northernchile.api.payment.model.Payment;
 import com.northernchile.api.payment.model.PaymentProvider;
 import com.northernchile.api.payment.repository.PaymentRepository;
@@ -268,7 +269,7 @@ public class ReportsService {
 
     private long countCancelledBookings(List<Booking> bookings) {
         return bookings.stream()
-                .filter(b -> "CANCELLED".equals(b.getStatus()))
+                .filter(b -> b.getStatus() == BookingStatus.CANCELLED)
                 .count();
     }
 
@@ -287,7 +288,7 @@ public class ReportsService {
     }
 
     private boolean isConfirmedOrCompleted(Booking booking) {
-        String status = booking.getStatus();
-        return "CONFIRMED".equals(status) || "COMPLETED".equals(status);
+        BookingStatus status = booking.getStatus();
+        return status == BookingStatus.CONFIRMED || status == BookingStatus.COMPLETED;
     }
 }

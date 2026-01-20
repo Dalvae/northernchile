@@ -57,7 +57,7 @@ public class TourScheduleMapper {
                 schedule.getMaxParticipants(),
                 bookedParticipants,
                 availableSlots,
-                schedule.getStatus(),
+                schedule.getStatus() != null ? schedule.getStatus().name() : null,
                 assignedGuideId,
                 assignedGuideName,
                 schedule.getCreatedAt()

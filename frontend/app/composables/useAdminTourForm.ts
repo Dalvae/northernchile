@@ -61,6 +61,14 @@ const initialState: TourSchema = {
   descriptionBlocksTranslations: undefined
 }
 
+// Helper to ensure LocalTime strings have seconds for backend compatibility
+const HH_MM_LENGTH = 5 // "HH:mm" format length
+const formatTimeForBackend = (time?: string): string | undefined => {
+  if (!time) return undefined
+  // If HH:mm format, add :00 for seconds
+  return time.length === HH_MM_LENGTH ? `${time}:00` : time
+}
+
 export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event: 'success') => void) => {
   const { localTimeToString } = useDateTime()
   const { createAdminTour, updateAdminTour } = useAdminData()
@@ -159,7 +167,7 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
             durationHours: tour.durationHours,
             defaultStartTime: localTimeToString(tour.defaultStartTime),
             status: tour.status,
-            contentKey: tour.contentKey || '',
+            contentKey: tour.contentKey || tour.slug || '',
             guideName: tour.guideName || undefined,
             itineraryTranslations: tour.itineraryTranslations || undefined,
             equipmentTranslations: tour.equipmentTranslations || undefined,
@@ -234,7 +242,7 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
         price: event.data.price,
         defaultMaxParticipants: event.data.defaultMaxParticipants,
         durationHours: event.data.durationHours,
-        defaultStartTime: event.data.defaultStartTime,
+        defaultStartTime: formatTimeForBackend(event.data.defaultStartTime),
         status: event.data.status,
         contentKey: event.data.contentKey,
         guideName: event.data.guideName?.trim() || undefined,

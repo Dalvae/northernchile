@@ -137,8 +137,8 @@ public class PermissionAspect {
         // Get the resource ID from the method parameters
         UUID resourceId = extractResourceId(joinPoint, paramName);
         if (resourceId == null) {
-            log.warn("Could not extract resource ID from parameter: {}", paramName);
-            return; // If we can't get the ID, we skip the ownership check
+            log.error("Security: Could not extract resource ID from parameter '{}' - denying access", paramName);
+            throw new AccessDeniedException("Access Denied: Unable to verify resource ownership");
         }
 
         boolean isOwner = checkOwnership(resourceId, resourceType, currentUser);
@@ -203,7 +203,7 @@ public class PermissionAspect {
                 yield tour.getOwner() != null && tour.getOwner().getId().equals(currentUser.getId());
             }
             case SCHEDULE -> {
-                TourSchedule schedule = scheduleRepository.findById(resourceId)
+                TourSchedule schedule = scheduleRepository.findByIdWithTourAndOwner(resourceId)
                         .orElseThrow(() -> new EntityNotFoundException("Schedule not found: " + resourceId));
                 Tour tour = schedule.getTour();
                 yield tour != null && tour.getOwner() != null && tour.getOwner().getId().equals(currentUser.getId());

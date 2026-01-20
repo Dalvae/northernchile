@@ -3,26 +3,38 @@ package com.northernchile.api.availability;
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.cart.CartRepository;
 import com.northernchile.api.model.TourSchedule;
+import com.northernchile.api.payment.repository.PaymentSessionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.UUID;
 
 /**
  * Centralized service for validating tour schedule availability and preventing overbooking.
  * This service ensures consistency across all booking and cart operations.
+ *
+ * IMPORTANT: This validator counts slots from THREE sources:
+ * 1. Confirmed bookings (CONFIRMED status)
+ * 2. Items in shopping carts (soft reservation)
+ * 3. Pending payment sessions (payment in progress, not yet confirmed)
+ *
+ * This prevents overbooking when multiple users are attempting to book simultaneously.
  */
 @Service
 public class AvailabilityValidator {
 
     private final BookingRepository bookingRepository;
     private final CartRepository cartRepository;
+    private final PaymentSessionRepository paymentSessionRepository;
 
     public AvailabilityValidator(
             BookingRepository bookingRepository,
-            CartRepository cartRepository) {
+            CartRepository cartRepository,
+            PaymentSessionRepository paymentSessionRepository) {
         this.bookingRepository = bookingRepository;
         this.cartRepository = cartRepository;
+        this.paymentSessionRepository = paymentSessionRepository;
     }
 
     /**
@@ -76,8 +88,13 @@ public class AvailabilityValidator {
             participantsInCarts = 0;
         }
 
-        // Calculate availability
-        int totalReserved = bookedParticipants + participantsInCarts;
+        // Count participants in pending payment sessions (payment in progress)
+        // These are slots reserved while payment is being processed
+        int participantsInPaymentSessions = paymentSessionRepository
+            .countReservedSlotsByScheduleId(scheduleId, Instant.now());
+
+        // Calculate availability including all reservation sources
+        int totalReserved = bookedParticipants + participantsInCarts + participantsInPaymentSessions;
         int availableSlots = maxParticipants - totalReserved;
         boolean isAvailable = availableSlots >= requestedSlots;
 
@@ -86,6 +103,7 @@ public class AvailabilityValidator {
                 maxParticipants,
                 bookedParticipants,
                 participantsInCarts,
+                participantsInPaymentSessions,
                 availableSlots,
                 requestedSlots
         );
@@ -95,7 +113,7 @@ public class AvailabilityValidator {
      * Gets current availability status for a schedule without validating a specific request.
      *
      * @param scheduleId The tour schedule ID to check
-     * @return AvailabilityResult with current status
+     * @return AvailabilityStatus with current status
      */
     @Transactional(readOnly = true)
     public AvailabilityStatus getAvailabilityStatus(UUID scheduleId, int maxParticipants) {
@@ -109,13 +127,17 @@ public class AvailabilityValidator {
             participantsInCarts = 0;
         }
 
-        int totalReserved = bookedParticipants + participantsInCarts;
+        int participantsInPaymentSessions = paymentSessionRepository
+            .countReservedSlotsByScheduleId(scheduleId, Instant.now());
+
+        int totalReserved = bookedParticipants + participantsInCarts + participantsInPaymentSessions;
         int availableSlots = maxParticipants - totalReserved;
 
         return new AvailabilityStatus(
                 maxParticipants,
                 bookedParticipants,
                 participantsInCarts,
+                participantsInPaymentSessions,
                 availableSlots
         );
     }
@@ -128,6 +150,7 @@ public class AvailabilityValidator {
             int maxParticipants,
             int bookedParticipants,
             int participantsInCarts,
+            int participantsInPaymentSessions,
             int availableSlots,
             int requestedSlots
     ) {
@@ -140,8 +163,8 @@ public class AvailabilityValidator {
             }
             return String.format(
                     "No hay suficientes cupos disponibles. Solicitados: %d, Disponibles: %d " +
-                            "(Reservados: %d confirmados + %d en carritos)",
-                    requestedSlots, availableSlots, bookedParticipants, participantsInCarts
+                            "(Reservados: %d confirmados + %d en carritos + %d en proceso de pago)",
+                    requestedSlots, availableSlots, bookedParticipants, participantsInCarts, participantsInPaymentSessions
             );
         }
     }
@@ -153,6 +176,7 @@ public class AvailabilityValidator {
             int maxParticipants,
             int bookedParticipants,
             int participantsInCarts,
+            int participantsInPaymentSessions,
             int availableSlots
     ) {}
 }

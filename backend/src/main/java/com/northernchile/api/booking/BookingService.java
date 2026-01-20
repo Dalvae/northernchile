@@ -2,25 +2,17 @@ package com.northernchile.api.booking;
 
 import com.northernchile.api.audit.AuditLogService;
 import com.northernchile.api.booking.dto.BookingClientUpdateReq;
-import com.northernchile.api.booking.dto.BookingCreateReq;
 import com.northernchile.api.booking.dto.BookingRes;
-import com.northernchile.api.booking.dto.ParticipantRes;
 import com.northernchile.api.config.NotificationConfig;
-import com.northernchile.api.config.properties.AppProperties;
-import com.northernchile.api.exception.BookingCutoffException;
 import com.northernchile.api.exception.InvalidBookingStateException;
 import com.northernchile.api.exception.ResourceNotFoundException;
-import com.northernchile.api.exception.ScheduleFullException;
 import com.northernchile.api.model.Booking;
+import com.northernchile.api.model.BookingStatus;
 import com.northernchile.api.model.Participant;
-import com.northernchile.api.model.SavedParticipant;
 import com.northernchile.api.model.User;
 import com.northernchile.api.security.Role;
-import com.northernchile.api.user.SavedParticipantRepository;
-import com.northernchile.api.user.SavedParticipantService;
+import org.springframework.security.access.AccessDeniedException;
 import com.northernchile.api.notification.EmailService;
-import com.northernchile.api.pricing.PricingService;
-import com.northernchile.api.tour.TourScheduleRepository;
 import com.northernchile.api.tour.TourUtils;
 import com.northernchile.api.util.DateTimeUtils;
 import org.slf4j.Logger;
@@ -31,12 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,203 +36,22 @@ public class BookingService {
     private static final Logger log = LoggerFactory.getLogger(BookingService.class);
 
     private final BookingRepository bookingRepository;
-    private final TourScheduleRepository tourScheduleRepository;
     private final EmailService emailService;
     private final AuditLogService auditLogService;
     private final BookingMapper bookingMapper;
-    private final com.northernchile.api.availability.AvailabilityValidator availabilityValidator;
-    private final PricingService pricingService;
     private final NotificationConfig notificationConfig;
-    private final AppProperties appProperties;
-    private final SavedParticipantService savedParticipantService;
-    private final SavedParticipantRepository savedParticipantRepository;
 
     public BookingService(
             BookingRepository bookingRepository,
-            TourScheduleRepository tourScheduleRepository,
             EmailService emailService,
             AuditLogService auditLogService,
             BookingMapper bookingMapper,
-            com.northernchile.api.availability.AvailabilityValidator availabilityValidator,
-            PricingService pricingService,
-            NotificationConfig notificationConfig,
-            AppProperties appProperties,
-            SavedParticipantService savedParticipantService,
-            SavedParticipantRepository savedParticipantRepository) {
+            NotificationConfig notificationConfig) {
         this.bookingRepository = bookingRepository;
-        this.tourScheduleRepository = tourScheduleRepository;
         this.emailService = emailService;
         this.auditLogService = auditLogService;
         this.bookingMapper = bookingMapper;
-        this.availabilityValidator = availabilityValidator;
-        this.pricingService = pricingService;
         this.notificationConfig = notificationConfig;
-        this.appProperties = appProperties;
-        this.savedParticipantService = savedParticipantService;
-        this.savedParticipantRepository = savedParticipantRepository;
-    }
-
-    @Transactional
-    public BookingRes createBooking(BookingCreateReq req, User currentUser) {
-        // Use pessimistic locking to prevent race conditions instead of SERIALIZABLE isolation
-        var schedule = tourScheduleRepository.findByIdWithLock(req.scheduleId())
-                .orElseThrow(() -> new ResourceNotFoundException("TourSchedule", req.scheduleId()));
-
-        // Validate booking is not too close to tour start time
-        validateBookingCutoffTime(schedule);
-
-        // Exclude current user's cart from availability check (they're converting cart to booking)
-        UUID excludeUserId = currentUser != null ? currentUser.getId() : null;
-        validateAvailability(schedule, req.participants().size(), excludeUserId);
-
-        // Use centralized pricing service for consistent calculations
-        var pricing = pricingService.calculateLineItem(schedule.getTour().getPrice(), req.participants().size());
-
-        Booking booking = createBookingEntity(req, currentUser, schedule, pricing);
-        List<Participant> participants = createParticipantEntities(req, booking, currentUser);
-        booking.setParticipants(participants);
-
-        Booking savedBooking = bookingRepository.save(booking);
-        
-        // Note: Cart is cleared when payment is confirmed, not when booking is created.
-        // This ensures the cart is preserved if payment fails.
-        
-        // Note: Confirmation emails are sent when booking status changes to CONFIRMED
-        // (after successful payment), not when the booking is first created as PENDING.
-        // Admin notification is also sent after payment confirmation.
-
-        return bookingMapper.toBookingRes(savedBooking);
-    }
-
-    private void validateAvailability(com.northernchile.api.model.TourSchedule schedule, int requestedSlots, UUID excludeUserId) {
-        // Exclude the current user's cart items from availability check
-        // since those items are being converted to a booking
-        var availabilityResult = availabilityValidator.validateAvailability(schedule, requestedSlots, null, excludeUserId);
-        if (!availabilityResult.available()) {
-            throw new ScheduleFullException(availabilityResult.errorMessage());
-        }
-    }
-
-    private void validateBookingCutoffTime(com.northernchile.api.model.TourSchedule schedule) {
-        Instant now = Instant.now();
-        int minHours = appProperties.getBooking().getMinHoursBeforeTour();
-        Instant cutoffTime = schedule.getStartDatetime().minus(minHours, ChronoUnit.HOURS);
-
-        if (now.isAfter(cutoffTime)) {
-            throw new BookingCutoffException(schedule.getId(), cutoffTime, minHours);
-        }
-    }
-
-    private Booking createBookingEntity(BookingCreateReq req, User currentUser,
-                                        com.northernchile.api.model.TourSchedule schedule,
-                                        PricingService.PricingResult pricing) {
-        Booking booking = new Booking();
-        booking.setUser(currentUser);
-        booking.setSchedule(schedule);
-        booking.setTourDate(LocalDate.ofInstant(schedule.getStartDatetime(), DateTimeUtils.CHILE_ZONE));
-        booking.setStatus("PENDING");
-        booking.setSubtotal(pricing.subtotal());
-        booking.setTaxAmount(pricing.taxAmount());
-        booking.setTotalAmount(pricing.totalAmount());
-        booking.setLanguageCode(req.languageCode());
-        booking.setSpecialRequests(req.specialRequests());
-        return booking;
-    }
-
-    private List<Participant> createParticipantEntities(BookingCreateReq req, Booking booking, User currentUser) {
-        List<Participant> participants = new ArrayList<>();
-        for (var participantReq : req.participants()) {
-            Participant participant = new Participant();
-            participant.setBooking(booking);
-
-            // If savedParticipantId is provided, load from saved participant
-            if (participantReq.savedParticipantId() != null) {
-                SavedParticipant savedParticipant = savedParticipantRepository
-                        .findById(participantReq.savedParticipantId())
-                        .orElseThrow(() -> new ResourceNotFoundException(
-                                "SavedParticipant", participantReq.savedParticipantId()));
-
-                // Verify ownership if user is logged in
-                if (currentUser != null && !savedParticipant.getUser().getId().equals(currentUser.getId())) {
-                    throw new SecurityException("Cannot use saved participant from another user");
-                }
-
-                // Use saved participant data (can be overridden by request data)
-                participant.setFullName(participantReq.fullName() != null ?
-                        participantReq.fullName() : savedParticipant.getFullName());
-                participant.setDocumentId(participantReq.documentId() != null ?
-                        participantReq.documentId() : savedParticipant.getDocumentId());
-                participant.setNationality(participantReq.nationality() != null ?
-                        participantReq.nationality() : savedParticipant.getNationality());
-                participant.setPhoneNumber(participantReq.phoneNumber() != null ?
-                        participantReq.phoneNumber() : savedParticipant.getPhoneNumber());
-                participant.setEmail(participantReq.email() != null ?
-                        participantReq.email() : savedParticipant.getEmail());
-
-                if (participantReq.dateOfBirth() != null) {
-                    participant.setDateOfBirth(participantReq.dateOfBirth());
-                } else if (savedParticipant.getDateOfBirth() != null) {
-                    participant.setDateOfBirth(savedParticipant.getDateOfBirth());
-                } else if (participantReq.age() != null) {
-                    participant.setAge(participantReq.age());
-                }
-
-                participant.setSavedParticipant(savedParticipant);
-            } else {
-                // Use data from request
-                participant.setFullName(participantReq.fullName());
-                participant.setDocumentId(participantReq.documentId());
-                participant.setNationality(participantReq.nationality());
-                participant.setPhoneNumber(participantReq.phoneNumber());
-                participant.setEmail(participantReq.email());
-
-                if (participantReq.dateOfBirth() != null) {
-                    participant.setDateOfBirth(participantReq.dateOfBirth());
-                } else if (participantReq.age() != null) {
-                    participant.setAge(participantReq.age());
-                }
-            }
-
-            participant.setPickupAddress(participantReq.pickupAddress());
-            participant.setSpecialRequirements(participantReq.specialRequirements());
-
-            // Handle saveForFuture and markAsSelf for logged-in users
-            if (currentUser != null && Boolean.TRUE.equals(participantReq.saveForFuture())) {
-                boolean markAsSelf = Boolean.TRUE.equals(participantReq.markAsSelf());
-
-                SavedParticipant savedParticipant = savedParticipantService.createFromBookingData(
-                        currentUser,
-                        participant.getFullName(),
-                        participant.getDocumentId(),
-                        participant.getDateOfBirth(),
-                        participant.getNationality(),
-                        participant.getPhoneNumber(),
-                        participant.getEmail(),
-                        markAsSelf
-                );
-                participant.setSavedParticipant(savedParticipant);
-                log.info("Saved participant {} from booking for user {}, isSelf={}",
-                        savedParticipant.getId(), currentUser.getEmail(), markAsSelf);
-            } else if (currentUser != null && Boolean.TRUE.equals(participantReq.markAsSelf())) {
-                // Just mark as self without saving (sync data to profile)
-                SavedParticipant savedParticipant = savedParticipantService.createFromBookingData(
-                        currentUser,
-                        participant.getFullName(),
-                        participant.getDocumentId(),
-                        participant.getDateOfBirth(),
-                        participant.getNationality(),
-                        participant.getPhoneNumber(),
-                        participant.getEmail(),
-                        true
-                );
-                participant.setSavedParticipant(savedParticipant);
-                log.info("Synced self participant {} from booking for user {}",
-                        savedParticipant.getId(), currentUser.getEmail());
-            }
-
-            participants.add(participant);
-        }
-        return participants;
     }
 
     /**
@@ -318,6 +123,7 @@ public class BookingService {
         return getBookingsByUser(user.getId());
     }
 
+    @Transactional(readOnly = true)
     public Optional<BookingRes> getBookingById(UUID bookingId, User currentUser) {
         Booking booking = bookingRepository.findByIdWithDetails(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", bookingId));
@@ -340,33 +146,34 @@ public class BookingService {
      * @param newStatus The desired new status
      * @throws InvalidBookingStateException if the transition is not allowed
      */
-    private void validateStatusTransition(UUID bookingId, String currentStatus, String newStatus) {
+    private void validateStatusTransition(UUID bookingId, BookingStatus currentStatus, BookingStatus newStatus) {
         // Same status is always allowed (no-op)
-        if (currentStatus.equals(newStatus)) {
+        if (currentStatus == newStatus) {
             return;
         }
 
         // Define allowed transitions
-        Map<String, List<String>> allowedTransitions = Map.of(
-            "PENDING", List.of("CONFIRMED", "CANCELLED"),
-            "CONFIRMED", List.of("COMPLETED", "CANCELLED"),
-            "CANCELLED", List.of(), // No transitions from CANCELLED
-            "COMPLETED", List.of()  // No transitions from COMPLETED
+        Map<BookingStatus, List<BookingStatus>> allowedTransitions = Map.of(
+            BookingStatus.PENDING, List.of(BookingStatus.CONFIRMED, BookingStatus.CANCELLED),
+            BookingStatus.CONFIRMED, List.of(BookingStatus.COMPLETED, BookingStatus.CANCELLED),
+            BookingStatus.CANCELLED, List.of(), // No transitions from CANCELLED
+            BookingStatus.COMPLETED, List.of()  // No transitions from COMPLETED
         );
 
-        List<String> allowed = allowedTransitions.getOrDefault(currentStatus, List.of());
+        List<BookingStatus> allowed = allowedTransitions.getOrDefault(currentStatus, List.of());
 
         if (!allowed.contains(newStatus)) {
-            throw new InvalidBookingStateException(bookingId, currentStatus, newStatus, allowed);
+            List<String> allowedStrings = allowed.stream().map(Enum::name).collect(Collectors.toList());
+            throw new InvalidBookingStateException(bookingId, currentStatus.name(), newStatus.name(), allowedStrings);
         }
     }
 
     @Transactional
-    public BookingRes updateBookingStatus(UUID bookingId, String newStatus, User currentUser) {
+    public BookingRes updateBookingStatus(UUID bookingId, BookingStatus newStatus, User currentUser) {
         Booking booking = bookingRepository.findByIdWithDetails(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", bookingId));
 
-        String oldStatus = booking.getStatus();
+        BookingStatus oldStatus = booking.getStatus();
 
         // Validate status transition
         validateStatusTransition(bookingId, oldStatus, newStatus);
@@ -376,8 +183,8 @@ public class BookingService {
 
         String tourName = booking.getSchedule().getTour().getDisplayName();
         String description = tourName + " - " + booking.getUser().getFullName();
-        Map<String, Object> oldValues = Map.of("status", oldStatus);
-        Map<String, Object> newValues = Map.of("status", newStatus);
+        Map<String, Object> oldValues = Map.of("status", oldStatus.name());
+        Map<String, Object> newValues = Map.of("status", newStatus.name());
         auditLogService.logUpdate(currentUser, "BOOKING", booking.getId(), description, oldValues, newValues);
 
         return bookingMapper.toBookingRes(updatedBooking);
@@ -388,18 +195,18 @@ public class BookingService {
         Booking booking = bookingRepository.findByIdWithDetails(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", bookingId));
 
-        String oldStatus = booking.getStatus();
+        BookingStatus oldStatus = booking.getStatus();
 
         // Validate status transition
-        validateStatusTransition(bookingId, oldStatus, "CANCELLED");
+        validateStatusTransition(bookingId, oldStatus, BookingStatus.CANCELLED);
 
-        booking.setStatus("CANCELLED");
+        booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
 
         String tourName = booking.getSchedule().getTour().getDisplayName();
         String description = tourName + " - " + booking.getUser().getFullName();
-        Map<String, Object> oldValues = Map.of("status", oldStatus);
-        Map<String, Object> newValues = Map.of("status", "CANCELLED");
+        Map<String, Object> oldValues = Map.of("status", oldStatus.name());
+        Map<String, Object> newValues = Map.of("status", BookingStatus.CANCELLED.name());
         auditLogService.logUpdate(currentUser, "BOOKING", booking.getId(), description, oldValues, newValues);
     }
 
@@ -411,40 +218,17 @@ public class BookingService {
     }
 
     @Transactional
-    public BookingRes confirmBookingAfterMockPayment(UUID bookingId, User currentUser) {
-        Booking booking = bookingRepository.findByIdWithDetails(bookingId)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking", bookingId));
-
-        if (!"PENDING".equals(booking.getStatus())) {
-            throw new InvalidBookingStateException(
-                "Only PENDING bookings can be confirmed. Current status: " + booking.getStatus());
-        }
-
-        String oldStatus = booking.getStatus();
-        booking.setStatus("CONFIRMED");
-        Booking confirmedBooking = bookingRepository.save(booking);
-
-        String tourName = booking.getSchedule().getTour().getDisplayName();
-        String description = "Mock payment confirmation - " + tourName + " - " + booking.getUser().getFullName();
-        Map<String, Object> oldValues = Map.of("status", oldStatus);
-        Map<String, Object> newValues = Map.of("status", "CONFIRMED");
-        auditLogService.logUpdate(currentUser, "BOOKING", booking.getId(), description, oldValues, newValues);
-
-        return bookingMapper.toBookingRes(confirmedBooking);
-    }
-
-    @Transactional
     public BookingRes updateBookingDetails(UUID bookingId, BookingClientUpdateReq req, User currentUser) {
         Booking booking = bookingRepository.findByIdWithDetails(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking", bookingId));
 
         // Verify ownership
         if (!booking.getUser().getId().equals(currentUser.getId())) {
-            throw new SecurityException("You can only update your own bookings");
+            throw new AccessDeniedException("You can only update your own bookings");
         }
 
         // Only allow updates for PENDING or CONFIRMED bookings
-        if (!"PENDING".equals(booking.getStatus()) && !"CONFIRMED".equals(booking.getStatus())) {
+        if (booking.getStatus() != BookingStatus.PENDING && booking.getStatus() != BookingStatus.CONFIRMED) {
             throw new InvalidBookingStateException(
                 "Cannot update booking with status: " + booking.getStatus());
         }

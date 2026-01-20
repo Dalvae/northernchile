@@ -19,12 +19,20 @@ public final class DateTimeUtils {
 
     public static final ZoneId CHILE_ZONE = ZoneId.of("America/Santiago");
 
-    // Common formatters for display
+    // Common formatters for display (without zone - for LocalDate/LocalTime)
     public static final DateTimeFormatter DISPLAY_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     public static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("HH:mm");
     public static final DateTimeFormatter DISPLAY_DATETIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     public static final DateTimeFormatter ISO_DATE = DateTimeFormatter.ISO_LOCAL_DATE;
     public static final DateTimeFormatter ISO_TIME = DateTimeFormatter.ISO_LOCAL_TIME;
+
+    // Formatters pre-configured with Chile timezone (for Instant formatting)
+    public static final DateTimeFormatter DATE_FORMATTER =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(CHILE_ZONE);
+    public static final DateTimeFormatter TIME_FORMATTER =
+        DateTimeFormatter.ofPattern("HH:mm").withZone(CHILE_ZONE);
+    public static final DateTimeFormatter DATETIME_FORMATTER =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(CHILE_ZONE);
 
     private DateTimeUtils() {
         // Utility class, no instantiation

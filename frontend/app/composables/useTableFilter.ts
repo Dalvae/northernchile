@@ -11,8 +11,8 @@
  *   }
  * )
  */
-export function useTableFilter<T extends Record<string, unknown>>(
-  data: Ref<T[] | null | undefined>,
+export function useTableFilter<T extends object>(
+  data: Ref<T[] | null | undefined> | ComputedRef<T[]>,
   options: {
     searchFields: (keyof T)[]
     filterField?: keyof T

@@ -1,5 +1,7 @@
 package com.northernchile.api.model;
 
+import com.northernchile.api.audit.AuditableEntity;
+import com.northernchile.api.audit.AuditEntityListener;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -7,13 +9,15 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
 @Table(name = "bookings")
-public class Booking {
+@EntityListeners(AuditEntityListener.class)
+public class Booking implements AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,8 +37,9 @@ public class Booking {
     @Column(name = "tour_date", nullable = false)
     private LocalDate tourDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 30)
-    private String status = "PENDING";
+    private BookingStatus status = BookingStatus.PENDING;
 
     @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal subtotal;
@@ -68,7 +73,7 @@ public class Booking {
     public Booking() {
     }
 
-    public Booking(UUID id, User user, TourSchedule schedule, List<Participant> participants, LocalDate tourDate, String status, BigDecimal subtotal, BigDecimal taxAmount, BigDecimal totalAmount, String languageCode, String specialRequests, Instant createdAt, Instant updatedAt, Instant deletedAt, Instant reminderSentAt) {
+    public Booking(UUID id, User user, TourSchedule schedule, List<Participant> participants, LocalDate tourDate, BookingStatus status, BigDecimal subtotal, BigDecimal taxAmount, BigDecimal totalAmount, String languageCode, String specialRequests, Instant createdAt, Instant updatedAt, Instant deletedAt, Instant reminderSentAt) {
         this.id = id;
         this.user = user;
         this.schedule = schedule;
@@ -126,11 +131,11 @@ public class Booking {
         this.tourDate = tourDate;
     }
 
-    public String getStatus() {
+    public BookingStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(BookingStatus status) {
         this.status = status;
     }
 
@@ -246,5 +251,30 @@ public class Booking {
             ", deletedAt=" + deletedAt +
             ", reminderSentAt=" + reminderSentAt +
             '}';
+    }
+
+    // ==================== AuditableEntity Implementation ====================
+
+    @Override
+    public String getAuditDescription() {
+        String tourName = schedule != null && schedule.getTour() != null
+            ? schedule.getTour().getDisplayName()
+            : "Unknown Tour";
+        String userName = user != null ? user.getFullName() : "Unknown User";
+        return tourName + " - " + userName;
+    }
+
+    @Override
+    public String getAuditEntityType() {
+        return "BOOKING";
+    }
+
+    @Override
+    public Map<String, Object> getAuditSnapshot() {
+        Map<String, Object> snapshot = new HashMap<>();
+        snapshot.put("status", status);
+        snapshot.put("totalAmount", totalAmount);
+        snapshot.put("participantCount", participants != null ? participants.size() : 0);
+        return snapshot;
     }
 }

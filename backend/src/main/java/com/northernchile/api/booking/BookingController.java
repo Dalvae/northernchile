@@ -1,7 +1,6 @@
 package com.northernchile.api.booking;
 
 import com.northernchile.api.booking.dto.BookingClientUpdateReq;
-import com.northernchile.api.booking.dto.BookingCreateReq;
 import com.northernchile.api.booking.dto.BookingRes;
 import com.northernchile.api.booking.dto.BookingUpdateReq;
 import com.northernchile.api.config.security.annotation.CurrentUser;
@@ -37,17 +36,6 @@ public class BookingController {
     // ==================== CLIENT ENDPOINTS ====================
 
     /**
-     * Create a new booking (authenticated clients only)
-     */
-    @PostMapping("/bookings")
-    @RequiresPermission(Permission.CREATE_BOOKING)
-    public ResponseEntity<BookingRes> createBooking(@RequestBody BookingCreateReq req,
-                                                    @CurrentUser User currentUser) {
-        BookingRes createdBooking = bookingService.createBooking(req, currentUser);
-        return new ResponseEntity<>(createdBooking, HttpStatus.CREATED);
-    }
-
-    /**
      * Get all bookings for the current user
      */
     @GetMapping("/bookings")
@@ -68,17 +56,6 @@ public class BookingController {
         return bookingService.getBookingById(bookingId, currentUser)
                 .map(booking -> new ResponseEntity<>(booking, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
-
-    /**
-     * Confirm booking after mock payment (for testing)
-     */
-    @PostMapping("/bookings/{bookingId}/confirm-mock")
-    @RequiresPermission(Permission.VIEW_BOOKING) // Basic auth, ownership checked in service
-    public ResponseEntity<BookingRes> confirmMockPayment(@PathVariable UUID bookingId,
-                                                        @CurrentUser User currentUser) {
-        BookingRes confirmedBooking = bookingService.confirmBookingAfterMockPayment(bookingId, currentUser);
-        return new ResponseEntity<>(confirmedBooking, HttpStatus.OK);
     }
 
     /**

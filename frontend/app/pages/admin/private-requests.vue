@@ -1,4 +1,3 @@
-```
 <script setup lang="ts">
 import type { PrivateTourRequest } from 'api-client'
 import { PRIVATE_REQUEST_STATUS_OPTIONS, getStatusColor as getAdminStatusColor } from '~/utils/adminOptions'
@@ -41,33 +40,14 @@ const {
   }
 )
 
-// Filter and search
-const searchQuery = ref('')
-const filterByStatus = ref('')
-
-const filteredRequests = computed(() => {
-  if (!requests.value || !Array.isArray(requests.value)) return []
-
-  let filtered = requests.value
-
-  // Search
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(
-      r =>
-        (r.customerName?.toLowerCase().includes(query) || false)
-        || (r.customerEmail?.toLowerCase().includes(query) || false)
-        || (r.requestedTourType?.toLowerCase().includes(query) || false)
-    )
+// Use centralized table filtering composable
+const { searchQuery, filterValue: filterByStatus, filteredData: filteredRequests, clearFilters, hasActiveFilters } = useTableFilter(
+  computed(() => requests.value ?? []),
+  {
+    searchFields: ['customerName', 'customerEmail', 'requestedTourType'] as (keyof PrivateTourRequest)[],
+    filterField: 'status' as keyof PrivateTourRequest
   }
-
-  // Filter by status
-  if (filterByStatus.value) {
-    filtered = filtered.filter(r => r.status === filterByStatus.value)
-  }
-
-  return filtered
-})
+)
 
 // Stats
 const stats = computed(() => {
@@ -258,22 +238,32 @@ const formatCurrency = (value: number | null | undefined) => value != null ? for
       <div
         class="bg-elevated rounded-lg p-4 mb-6 border border-default"
       >
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex items-center gap-4">
           <UInput
             v-model="searchQuery"
             icon="i-lucide-search"
             placeholder="Buscar por nombre, email o tipo de tour..."
             size="lg"
+            class="flex-1"
           />
           <USelect
             v-model="filterByStatus"
-            :items="statusOptions as any"
+            :items="(statusOptions as unknown as { label: string; value: string }[])"
             option-attribute="label"
             value-attribute="value"
             placeholder="Filtrar por estado"
             size="lg"
-            clearable
+            class="w-48"
           />
+          <UButton
+            v-if="hasActiveFilters"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-x"
+            @click="clearFilters"
+          >
+            Limpiar filtros
+          </UButton>
         </div>
       </div>
 
@@ -520,7 +510,7 @@ const formatCurrency = (value: number | null | undefined) => value != null ? for
               <div class="space-y-3">
                 <USelect
                   v-model="statusForm.status"
-                  :items="statusOptions as any"
+                  :items="(statusOptions as unknown as { label: string; value: string }[])"
                   option-attribute="label"
                   value-attribute="value"
                   placeholder="Seleccionar estado"

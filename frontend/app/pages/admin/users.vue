@@ -29,8 +29,14 @@ const {
 
 const users = computed(() => usersPage.value?.content ?? [])
 
-const q = ref('')
-const roleFilter = ref<string>('ALL')
+// Use centralized table filtering composable
+const { searchQuery, filterValue, filteredData: filteredRows, clearFilters, hasActiveFilters } = useTableFilter(
+  users,
+  {
+    searchFields: ['email', 'fullName', 'id'] as (keyof UserRes)[],
+    filterField: 'role' as keyof UserRes
+  }
+)
 
 const columns: Array<{ id: string, accessorKey?: keyof UserRes, header: string, cell?: (ctx: { row: { original: UserRes, getValue: (key: keyof UserRes | string) => unknown } }) => ReturnType<typeof h> }> = [
   {
@@ -77,30 +83,6 @@ const columns: Array<{ id: string, accessorKey?: keyof UserRes, header: string, 
 
 const roleOptions = USER_ROLE_FILTER_OPTIONS
 
-const filteredRows = computed(() => {
-  if (!users.value || users.value.length === 0) return []
-
-  let rows = users.value
-
-  // Filter by search query
-  if (q.value) {
-    const query = q.value.toLowerCase()
-    rows = rows.filter(
-      user =>
-        user.email?.toLowerCase().includes(query)
-        || user.fullName?.toLowerCase().includes(query)
-        || user.id?.toLowerCase().includes(query)
-    )
-  }
-
-  // Filter by role
-  if (roleFilter.value && roleFilter.value !== 'ALL') {
-    rows = rows.filter(user => user.role === roleFilter.value)
-  }
-
-  return rows
-})
-
 const toast = useToast()
 
 async function handleDelete(user: UserRes) {
@@ -141,18 +123,27 @@ async function handleDelete(user: UserRes) {
         </div>
         <div class="flex items-center gap-3">
           <UInput
-            v-model="q"
+            v-model="searchQuery"
             icon="i-lucide-search"
             placeholder="Buscar usuario..."
             class="w-80"
           />
           <USelectMenu
-            v-model="roleFilter"
+            v-model="filterValue"
             :options="roleOptions"
             option-attribute="label"
             value-attribute="value"
             placeholder="Filtrar por rol"
           />
+          <UButton
+            v-if="hasActiveFilters"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-x"
+            @click="clearFilters"
+          >
+            Limpiar filtros
+          </UButton>
           <!-- Create User Modal - Lazy loaded -->
           <LazyAdminUsersUserFormModal @success="refresh" />
         </div>

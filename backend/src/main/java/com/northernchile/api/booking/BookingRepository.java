@@ -1,6 +1,7 @@
 package com.northernchile.api.booking;
 
 import com.northernchile.api.model.Booking;
+import com.northernchile.api.model.BookingStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -114,7 +115,7 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
            "LEFT JOIN FETCH b.participants " +
            "WHERE b.status = :status AND s.startDatetime BETWEEN :start AND :end AND b.reminderSentAt IS NULL")
     List<Booking> findByStatusAndStartDateTimeBetweenAndReminderNotSent(
-            @Param("status") String status,
+            @Param("status") BookingStatus status,
             @Param("start") Instant start,
             @Param("end") Instant end);
 

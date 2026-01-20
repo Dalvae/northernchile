@@ -84,8 +84,8 @@ export function useConfirmDialog() {
    */
   const ConfirmDialogProps = computed(() => ({
     'modelValue': isOpen.value,
-    'onUpdate:modelValue': (value: boolean) => {
-      isOpen.value = value
+    'onUpdate:modelValue': (value?: boolean) => {
+      isOpen.value = value ?? false
       if (!value) {
         handleCancel()
       }

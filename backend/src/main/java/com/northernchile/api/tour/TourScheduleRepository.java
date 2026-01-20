@@ -45,4 +45,14 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, UUID
            "LEFT JOIN FETCH s.tour " +
            "WHERE s.status = 'OPEN' AND s.startDatetime <= :cutoff")
     List<TourSchedule> findOpenSchedulesBeforeCutoff(@Param("cutoff") Instant cutoff);
+
+    /**
+     * Find schedule by ID with eagerly loaded Tour and Owner.
+     * Use this for ownership checks to avoid LazyInitializationException.
+     */
+    @Query("SELECT s FROM TourSchedule s " +
+           "LEFT JOIN FETCH s.tour t " +
+           "LEFT JOIN FETCH t.owner " +
+           "WHERE s.id = :id")
+    Optional<TourSchedule> findByIdWithTourAndOwner(@Param("id") UUID id);
 }

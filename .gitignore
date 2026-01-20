@@ -139,3 +139,6 @@ dump_*.sql
 
 # Allow Flyway migrations
 !backend/src/main/resources/db/migration/*.sql
+
+# Tour export artifacts (from admin tour JSON export)
+tour-*.json

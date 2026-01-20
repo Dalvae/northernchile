@@ -354,13 +354,20 @@ const toursMap = computed(() => {
   return map
 })
 
-// Watch para pre-llenar la hora cuando se selecciona un tour
+// Watch para pre-llenar la hora y cupo cuando se selecciona un tour
 watch(() => scheduleForm.value.tourId, (newTourId) => {
   if (!newTourId || isEditMode.value) return // No modificar en modo edición
 
   const selectedTour = toursMap.value.get(newTourId)
-  if (selectedTour?.defaultStartTime) {
-    scheduleForm.value.time = formatLocalTime(selectedTour.defaultStartTime)
+  if (selectedTour) {
+    // Auto-rellenar hora
+    if (selectedTour.defaultStartTime) {
+      scheduleForm.value.time = formatLocalTime(selectedTour.defaultStartTime)
+    }
+    // Auto-rellenar cupo máximo
+    if (selectedTour.defaultMaxParticipants) {
+      scheduleForm.value.maxParticipants = selectedTour.defaultMaxParticipants
+    }
   }
 })
 

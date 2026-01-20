@@ -1,6 +1,7 @@
 package com.northernchile.api.tour.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.northernchile.api.model.TourScheduleStatus;
 import com.northernchile.api.util.DateTimeUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
@@ -34,7 +35,7 @@ public record TourScheduleCreateReq(
     Integer maxParticipants,
 
     UUID assignedGuideId,
-    String status
+    TourScheduleStatus status
 ) {
     /**
      * Get the resolved start datetime as Instant.

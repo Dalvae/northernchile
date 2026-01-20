@@ -95,8 +95,13 @@ const columns = computed(() => {
     baseColumns.splice(1, 0, {
       id: 'description',
       header: 'Descripción',
-      cell: ({ row }: { row: { original: TourRes } }) =>
-        h('span', { class: 'text-sm text-default line-clamp-2' }, row.original.descriptionBlocksTranslations?.es?.[0]?.content || 'Sin descripción')
+      cell: ({ row }: { row: { original: TourRes } }) => {
+        const content = row.original.descriptionBlocksTranslations?.es?.[0]?.content || 'Sin descripción'
+        return h('span', {
+          class: 'text-sm text-default line-clamp-1 max-w-[200px] block',
+          title: content // Tooltip con texto completo
+        }, content)
+      }
     })
   }
 
@@ -147,9 +152,19 @@ async function onModalSuccess() {
 }
 
 const toast = useToast()
+const { confirm, ConfirmDialogProps, handleConfirm, handleCancel } = useConfirmDialog()
+
 async function handleDelete(tour: TourRes) {
   const tourName = tour.nameTranslations?.es || 'este tour'
-  if (confirm(`¿Estás seguro de que quieres eliminar "${tourName}"?`)) {
+  const confirmed = await confirm({
+    title: 'Eliminar tour',
+    message: `¿Estás seguro de que quieres eliminar "${tourName}"?`,
+    confirmLabel: 'Eliminar',
+    confirmColor: 'error',
+    icon: 'i-lucide-trash-2'
+  })
+
+  if (confirmed) {
     try {
       if (!tour.id) throw new Error('Missing tour id')
       await deleteAdminTour(tour.id)
@@ -234,6 +249,13 @@ async function handleDelete(tour: TourRes) {
       :tour="selectedTour"
       @success="onModalSuccess"
       @close="closeModals"
+    />
+
+    <!-- Confirm dialog for delete actions -->
+    <CommonConfirmDialog
+      v-bind="ConfirmDialogProps"
+      @confirm="handleConfirm"
+      @cancel="handleCancel"
     />
   </div>
 </template>

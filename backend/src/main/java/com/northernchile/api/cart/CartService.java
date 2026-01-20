@@ -7,6 +7,7 @@ import com.northernchile.api.exception.ResourceNotFoundException;
 import com.northernchile.api.exception.ScheduleFullException;
 import com.northernchile.api.model.Cart;
 import com.northernchile.api.model.CartItem;
+import com.northernchile.api.model.CartStatus;
 import com.northernchile.api.model.User;
 import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
@@ -148,7 +149,7 @@ public class CartService {
     private Cart createNewCart(User user) {
         Cart cart = new Cart();
         cart.setUser(user);
-        cart.setStatus("ACTIVE");
+        cart.setStatus(CartStatus.ACTIVE);
         cart.setExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS)); // Cart expires in 1 hour
         return cartRepository.save(cart);
     }
