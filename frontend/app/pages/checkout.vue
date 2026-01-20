@@ -806,7 +806,10 @@ const total = computed(() => cartStore.cart.cartTotal)
 
             <div class="space-y-4">
               <!-- Auth Mode Toggle (only if not authenticated) -->
-              <div v-if="!authStore.isAuthenticated" class="mb-6">
+              <div
+                v-if="!authStore.isAuthenticated"
+                class="mb-6"
+              >
                 <UTabs
                   v-model="authMode"
                   :items="authModeItems"

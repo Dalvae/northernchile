@@ -54,7 +54,10 @@ function calculateTotal(items: CartItemRes[]): number {
           <!-- Current Cart -->
           <div class="p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg">
             <h4 class="font-medium text-neutral-900 dark:text-white mb-3 flex items-center gap-2">
-              <UIcon name="i-lucide-shopping-cart" class="w-4 h-4" />
+              <UIcon
+                name="i-lucide-shopping-cart"
+                class="w-4 h-4"
+              />
               {{ t('checkout.cart_current') }}
             </h4>
             <div class="space-y-2 max-h-48 overflow-y-auto">
@@ -71,7 +74,10 @@ function calculateTotal(items: CartItemRes[]): number {
                   · {{ formatPrice(item.itemTotal || 0) }}
                 </p>
               </div>
-              <div v-if="currentCart.length === 0" class="text-neutral-500 dark:text-neutral-400 text-sm italic">
+              <div
+                v-if="currentCart.length === 0"
+                class="text-neutral-500 dark:text-neutral-400 text-sm italic"
+              >
                 {{ t('cart.empty') }}
               </div>
             </div>
@@ -85,7 +91,10 @@ function calculateTotal(items: CartItemRes[]): number {
           <!-- Saved Cart -->
           <div class="p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg">
             <h4 class="font-medium text-neutral-900 dark:text-white mb-3 flex items-center gap-2">
-              <UIcon name="i-lucide-archive" class="w-4 h-4" />
+              <UIcon
+                name="i-lucide-archive"
+                class="w-4 h-4"
+              />
               {{ t('checkout.cart_saved') }}
             </h4>
             <div class="space-y-2 max-h-48 overflow-y-auto">
@@ -102,7 +111,10 @@ function calculateTotal(items: CartItemRes[]): number {
                   · {{ formatPrice(item.itemTotal || 0) }}
                 </p>
               </div>
-              <div v-if="savedCart.length === 0" class="text-neutral-500 dark:text-neutral-400 text-sm italic">
+              <div
+                v-if="savedCart.length === 0"
+                class="text-neutral-500 dark:text-neutral-400 text-sm italic"
+              >
                 {{ t('cart.empty') }}
               </div>
             </div>

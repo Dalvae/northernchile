@@ -241,7 +241,10 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
         </template>
         <template #itinerary-en>
           <div class="pt-4 space-y-4">
-            <p v-if="!state.itineraryTranslations?.es?.length" class="text-sm text-muted">
+            <p
+              v-if="!state.itineraryTranslations?.es?.length"
+              class="text-sm text-muted"
+            >
               Primero añade items en Español
             </p>
             <div
@@ -275,7 +278,10 @@ const ensureDescriptionBlocks = (lang: string): ContentBlock[] => {
         </template>
         <template #itinerary-pt>
           <div class="pt-4 space-y-4">
-            <p v-if="!state.itineraryTranslations?.es?.length" class="text-sm text-muted">
+            <p
+              v-if="!state.itineraryTranslations?.es?.length"
+              class="text-sm text-muted"
+            >
               Primeiro adicione itens em Espanhol
             </p>
             <div
