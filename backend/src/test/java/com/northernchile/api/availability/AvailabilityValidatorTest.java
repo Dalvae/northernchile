@@ -4,6 +4,7 @@ import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.cart.CartRepository;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
+import com.northernchile.api.payment.repository.PaymentSessionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,8 @@ import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,6 +31,9 @@ class AvailabilityValidatorTest {
     @Mock
     private CartRepository cartRepository;
 
+    @Mock
+    private PaymentSessionRepository paymentSessionRepository;
+
     @InjectMocks
     private AvailabilityValidator availabilityValidator;
 
@@ -39,6 +45,8 @@ class AvailabilityValidatorTest {
     void setUp() {
         scheduleId = UUID.randomUUID();
         schedule = createMockSchedule(scheduleId, MAX_PARTICIPANTS);
+        // Default: no pending payment sessions
+        when(paymentSessionRepository.countReservedSlotsByScheduleId(eq(scheduleId), any(Instant.class))).thenReturn(0);
     }
 
     @Test
@@ -279,7 +287,7 @@ class AvailabilityValidatorTest {
         // Then
         assertThat(result.errorMessage()).isEqualTo(
                 "No hay suficientes cupos disponibles. Solicitados: 5, Disponibles: 1 " +
-                        "(Reservados: 6 confirmados + 3 en carritos)"
+                        "(Reservados: 6 confirmados + 3 en carritos + 0 en proceso de pago)"
         );
     }
 

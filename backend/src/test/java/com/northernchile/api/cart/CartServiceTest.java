@@ -9,6 +9,7 @@ import com.northernchile.api.exception.ResourceNotFoundException;
 import com.northernchile.api.exception.ScheduleFullException;
 import com.northernchile.api.model.Cart;
 import com.northernchile.api.model.CartItem;
+import com.northernchile.api.model.CartStatus;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.User;
@@ -87,7 +88,7 @@ class CartServiceTest {
         // Set up test cart
         testCart = new Cart();
         testCart.setId(UUID.randomUUID());
-        testCart.setStatus("ACTIVE");
+        testCart.setStatus(CartStatus.ACTIVE);
         testCart.setItems(new ArrayList<>());
         testCart.setExpiresAt(Instant.now().plus(30, ChronoUnit.DAYS));
 
@@ -192,7 +193,7 @@ class CartServiceTest {
             when(tourScheduleRepository.findById(testSchedule.getId()))
                     .thenReturn(Optional.of(testSchedule));
             when(availabilityValidator.validateAvailability(any(), anyInt(), any(), any()))
-                    .thenReturn(new AvailabilityResult(true, 10, 2, 0, 8, 2));
+                    .thenReturn(new AvailabilityResult(true, 10, 2, 0, 0, 8, 2));
             when(cartRepository.save(any(Cart.class))).thenReturn(testCart);
             when(cartRepository.findByIdWithDetails(testCart.getId()))
                     .thenReturn(Optional.of(testCart));
@@ -228,7 +229,7 @@ class CartServiceTest {
             when(tourScheduleRepository.findById(testSchedule.getId()))
                     .thenReturn(Optional.of(testSchedule));
             when(availabilityValidator.validateAvailability(any(), anyInt(), any(), any()))
-                    .thenReturn(new AvailabilityResult(false, 10, 10, 0, 0, 15));
+                    .thenReturn(new AvailabilityResult(false, 10, 10, 0, 0, 0, 15));
 
             // When/Then
             assertThatThrownBy(() -> cartService.addItemToCart(testCart, itemReq))
@@ -253,7 +254,7 @@ class CartServiceTest {
                     .thenReturn(Optional.of(testSchedule));
             // Validator should receive total: 3 existing + 2 new = 5
             when(availabilityValidator.validateAvailability(eq(testSchedule), eq(5), eq(testCart.getId()), any()))
-                    .thenReturn(new AvailabilityResult(true, 10, 0, 5, 5, 5));
+                    .thenReturn(new AvailabilityResult(true, 10, 0, 5, 0, 5, 5));
             when(cartRepository.save(any(Cart.class))).thenReturn(testCart);
             when(cartRepository.findByIdWithDetails(testCart.getId()))
                     .thenReturn(Optional.of(testCart));

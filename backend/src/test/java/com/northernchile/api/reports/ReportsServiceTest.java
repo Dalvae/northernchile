@@ -3,6 +3,7 @@ package com.northernchile.api.reports;
 import com.northernchile.api.booking.BookingRepository;
 import com.northernchile.api.config.properties.PaymentProperties;
 import com.northernchile.api.model.Booking;
+import com.northernchile.api.model.BookingStatus;
 import com.northernchile.api.model.Participant;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
@@ -298,25 +299,25 @@ class ReportsServiceTest {
         List<Booking> bookings = new ArrayList<>();
 
         // Confirmed booking 1
-        Booking confirmed1 = createBooking("CONFIRMED", new BigDecimal("100.00"), 2);
+        Booking confirmed1 = createBooking(BookingStatus.CONFIRMED, new BigDecimal("100.00"), 2);
         bookings.add(confirmed1);
 
         // Confirmed booking 2
-        Booking confirmed2 = createBooking("CONFIRMED", new BigDecimal("200.00"), 2);
+        Booking confirmed2 = createBooking(BookingStatus.CONFIRMED, new BigDecimal("200.00"), 2);
         bookings.add(confirmed2);
 
         // Pending booking
-        Booking pending = createBooking("PENDING", new BigDecimal("150.00"), 1);
+        Booking pending = createBooking(BookingStatus.PENDING, new BigDecimal("150.00"), 1);
         bookings.add(pending);
 
         // Cancelled booking
-        Booking cancelled = createBooking("CANCELLED", new BigDecimal("180.00"), 2);
+        Booking cancelled = createBooking(BookingStatus.CANCELLED, new BigDecimal("180.00"), 2);
         bookings.add(cancelled);
 
         return bookings;
     }
 
-    private Booking createBooking(String status, BigDecimal totalAmount, int participantCount) {
+    private Booking createBooking(BookingStatus status, BigDecimal totalAmount, int participantCount) {
         Booking booking = new Booking();
         booking.setStatus(status);
         booking.setTotalAmount(totalAmount);

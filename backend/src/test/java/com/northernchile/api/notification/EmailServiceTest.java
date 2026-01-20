@@ -2,6 +2,7 @@ package com.northernchile.api.notification;
 
 import com.northernchile.api.config.properties.MailProperties;
 import com.northernchile.api.model.Booking;
+import com.northernchile.api.model.BookingStatus;
 import com.northernchile.api.model.ContactMessage;
 import com.northernchile.api.model.PrivateTourRequest;
 import com.northernchile.api.model.Tour;
@@ -456,7 +457,7 @@ class EmailServiceTest {
         booking.setId(UUID.randomUUID());
         booking.setUser(user);
         booking.setSchedule(schedule);
-        booking.setStatus("PENDING");
+        booking.setStatus(BookingStatus.PENDING);
         booking.setTourDate(LocalDate.now().plusDays(7));
         booking.setSubtotal(new BigDecimal("84034"));
         booking.setTaxAmount(new BigDecimal("15966"));
