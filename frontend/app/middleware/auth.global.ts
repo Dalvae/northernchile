@@ -14,17 +14,23 @@ export default defineNuxtRouteMiddleware(async (to, _from) => {
   // El plugin auth.ts ya llama initializeAuth() una vez al cargar la app
   if (import.meta.client && authStore.loading) {
     await new Promise<void>((resolve) => {
-      let attempts = 0
-      const maxAttempts = 100 // 5 seconds max (100 * 50ms)
-      const checkLoading = () => {
-        if (!authStore.loading || attempts >= maxAttempts) {
-          resolve()
-        } else {
-          attempts++
-          setTimeout(checkLoading, 50)
-        }
-      }
-      checkLoading()
+      // Use reactive watcher instead of polling
+      const unwatch = watch(
+        () => authStore.loading,
+        (isLoading) => {
+          if (!isLoading) {
+            unwatch()
+            resolve()
+          }
+        },
+        { immediate: true }
+      )
+
+      // Safety timeout after 5 seconds
+      setTimeout(() => {
+        unwatch()
+        resolve()
+      }, 5000)
     })
   }
 

@@ -29,13 +29,25 @@ const schema = z.object({
   recurrenceRule: z.string().optional()
 }).passthrough()
 
+// Zod schemas for structured content types
+const itineraryItemSchema = z.object({
+  time: z.string().optional(),
+  description: z.string().optional()
+})
+
+const contentBlockSchema = z.object({
+  type: z.string().optional(),
+  content: z.string().optional(),
+  items: z.array(z.string()).optional()
+})
+
 // Extended schema
 export const fullSchema = schema.extend({
   guideName: z.string().optional().or(z.literal('')),
-  itineraryTranslations: z.record(z.string(), z.array(z.any())).optional(),
+  itineraryTranslations: z.record(z.string(), z.array(itineraryItemSchema)).optional(),
   equipmentTranslations: z.record(z.string(), z.array(z.string())).optional(),
   additionalInfoTranslations: z.record(z.string(), z.array(z.string())).optional(),
-  descriptionBlocksTranslations: z.record(z.string(), z.array(z.any())).optional()
+  descriptionBlocksTranslations: z.record(z.string(), z.array(contentBlockSchema)).optional()
 })
 
 export type TourSchema = z.output<typeof fullSchema>
@@ -342,16 +354,10 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
     guideName: z.string().optional(),
     recurring: z.boolean().optional(),
     recurrenceRule: z.string().optional(),
-    itineraryTranslations: z.record(z.string(), z.array(z.object({
-      time: z.string().optional(),
-      description: z.string().optional()
-    }))).optional(),
+    itineraryTranslations: z.record(z.string(), z.array(itineraryItemSchema)).optional(),
     equipmentTranslations: z.record(z.string(), z.array(z.string())).optional(),
     additionalInfoTranslations: z.record(z.string(), z.array(z.string())).optional(),
-    descriptionBlocksTranslations: z.record(z.string(), z.array(z.object({
-      type: z.string().optional(),
-      content: z.string().optional()
-    }))).optional()
+    descriptionBlocksTranslations: z.record(z.string(), z.array(contentBlockSchema)).optional()
   })
 
   // Import JSON from file

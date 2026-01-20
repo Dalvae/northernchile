@@ -57,6 +57,13 @@ public class BookingService {
     /**
      * Send booking confirmation emails to customer and admin.
      * Should only be called after payment is confirmed (status = CONFIRMED).
+     *
+     * <p><strong>Important:</strong> The booking parameter must be loaded with all required associations
+     * (schedule, tour, owner, user, participants) to avoid N+1 queries. Use
+     * {@code BookingRepository.findByIdWithDetails()} or ensure the booking was fetched
+     * with appropriate JOIN FETCH clauses.</p>
+     *
+     * @param booking The booking entity with all associations eagerly loaded
      */
     public void sendBookingConfirmationNotifications(Booking booking) {
         var schedule = booking.getSchedule();

@@ -152,17 +152,18 @@ public class PaymentService {
         }
 
         // Check 24-hour cancellation policy
-        try {
-            Instant tourStart = payment.getBooking().getSchedule().getStartDatetime();
-            long hoursUntilTour = ChronoUnit.HOURS.between(Instant.now(), tourStart);
+        if (payment.getBooking() == null || payment.getBooking().getSchedule() == null
+                || payment.getBooking().getSchedule().getStartDatetime() == null) {
+            throw new IllegalStateException("Cannot process refund - tour schedule information is missing");
+        }
 
-            if (hoursUntilTour < 24) {
-                throw new IllegalStateException(
-                    String.format("Cannot refund less than 24 hours before tour. Hours remaining: %d", hoursUntilTour)
-                );
-            }
-        } catch (NullPointerException e) {
-            throw new IllegalStateException("Cannot process refund - tour schedule information is missing", e);
+        Instant tourStart = payment.getBooking().getSchedule().getStartDatetime();
+        long hoursUntilTour = ChronoUnit.HOURS.between(Instant.now(), tourStart);
+
+        if (hoursUntilTour < 24) {
+            throw new IllegalStateException(
+                String.format("Cannot refund less than 24 hours before tour. Hours remaining: %d", hoursUntilTour)
+            );
         }
     }
 }
