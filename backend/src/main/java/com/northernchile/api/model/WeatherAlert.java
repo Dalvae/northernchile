@@ -35,8 +35,9 @@ public class WeatherAlert {
     @Column(nullable = false)
     private Instant createdAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status; // "PENDING", "REVIEWED", "RESOLVED"
+    private WeatherAlertStatus status;
 
     @Column
     private Instant resolvedAt;
@@ -59,7 +60,7 @@ public class WeatherAlert {
 
     public WeatherAlert() {
         this.createdAt = Instant.now();
-        this.status = "PENDING";
+        this.status = WeatherAlertStatus.PENDING;
     }
 
     public UUID getId() {
@@ -110,11 +111,11 @@ public class WeatherAlert {
         this.createdAt = createdAt;
     }
 
-    public String getStatus() {
+    public WeatherAlertStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(WeatherAlertStatus status) {
         this.status = status;
     }
 

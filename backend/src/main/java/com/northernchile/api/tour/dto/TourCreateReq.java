@@ -2,6 +2,7 @@ package com.northernchile.api.tour.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.northernchile.api.model.TourStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -52,7 +53,7 @@ public record TourCreateReq(
 
     @NotNull
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    String status,
+    TourStatus status,
 
     @NotNull
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

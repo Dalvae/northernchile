@@ -1,6 +1,8 @@
 package com.northernchile.api.tour;
 
 import com.northernchile.api.model.TourSchedule;
+import com.northernchile.api.model.TourScheduleStatus;
+import com.northernchile.api.model.TourStatus;
 import com.northernchile.api.tour.dto.TourScheduleRes;
 import com.northernchile.api.util.DateTimeUtils;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -48,11 +50,13 @@ public class TourSchedulePublicController {
                 endInstant
         );
 
-        // Filter by tourId and only include OPEN schedules
+        // Filter by tourId and only include OPEN schedules for PUBLISHED tours
         // (ScheduleAutoCloseJob handles closing schedules within cutoff window)
         List<TourScheduleRes> response = schedules.stream()
+                .filter(s -> s.getTour() != null)
                 .filter(s -> s.getTour().getId().equals(tourId))
-                .filter(s -> "OPEN".equals(s.getStatus()))
+                .filter(s -> TourStatus.PUBLISHED.equals(s.getTour().getStatus()))
+                .filter(s -> TourScheduleStatus.OPEN.equals(s.getStatus()))
                 .map(tourScheduleService::toScheduleResWithAvailability)
                 .collect(Collectors.toList());
 

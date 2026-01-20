@@ -2,6 +2,7 @@ package com.northernchile.api.tour.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.northernchile.api.model.TourStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 
@@ -23,7 +24,7 @@ public record TourUpdateReq(
     @JsonFormat(pattern = "HH:mm:ss")
     @Schema(type = "string", format = "time", example = "14:30:00")
     LocalTime defaultStartTime,
-    String status,
+    TourStatus status,
     String contentKey,
     String guideName,
     @Valid Map<String, List<@Valid ItineraryItem>> itineraryTranslations,

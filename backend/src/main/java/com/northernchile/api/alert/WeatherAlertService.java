@@ -8,8 +8,10 @@ import com.northernchile.api.external.WeatherService;
 import com.northernchile.api.external.dto.DailyForecast;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
+import com.northernchile.api.model.TourScheduleStatus;
 import com.northernchile.api.model.User;
 import com.northernchile.api.model.WeatherAlert;
+import com.northernchile.api.model.WeatherAlertStatus;
 import com.northernchile.api.tour.TourScheduleRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +90,7 @@ public class WeatherAlertService {
         List<TourSchedule> upcomingSchedules = scheduleRepository
                 .findByStartDatetimeBetween(startInstant, endInstant)
                 .stream()
-                .filter(schedule -> !"CANCELLED".equals(schedule.getStatus()))
+                .filter(schedule -> schedule.getStatus() != TourScheduleStatus.CANCELLED)
                 .toList();
 
         logger.info("Encontrados {} schedules en los próximos {} días", upcomingSchedules.size(), DAYS_TO_CHECK);
@@ -227,7 +229,7 @@ public class WeatherAlertService {
         WeatherAlert alert = alertRepository.findById(java.util.UUID.fromString(alertId))
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Alert not found with id: " + alertId));
 
-        alert.setStatus("RESOLVED");
+        alert.setStatus(WeatherAlertStatus.RESOLVED);
         alert.setResolution(resolution);
         alert.setResolvedBy(adminId);
         alert.setResolvedAt(Instant.now());
@@ -255,7 +257,7 @@ public class WeatherAlertService {
         WeatherAlert alert = alertRepository.findById(java.util.UUID.fromString(alertId))
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Alert not found with id: " + alertId));
 
-        if (!"PENDING".equals(alert.getStatus())) {
+        if (alert.getStatus() != WeatherAlertStatus.PENDING) {
             throw new IllegalStateException("Alert is not in PENDING status: " + alert.getStatus());
         }
 
@@ -285,7 +287,7 @@ public class WeatherAlertService {
         }
 
         // Update alert status
-        alert.setStatus("RESOLVED");
+        alert.setStatus(WeatherAlertStatus.RESOLVED);
         alert.setResolvedBy(currentUser.getId().toString());
         alert.setResolvedAt(Instant.now());
         alertRepository.save(alert);

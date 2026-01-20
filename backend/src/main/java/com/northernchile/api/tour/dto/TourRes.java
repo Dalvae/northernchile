@@ -1,6 +1,7 @@
 package com.northernchile.api.tour.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.northernchile.api.model.TourStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
@@ -19,7 +20,7 @@ public record TourRes(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Integer defaultMaxParticipants,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Integer durationHours,
     LocalTime defaultStartTime,
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String status,
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED) TourStatus status,
     List<TourImageRes> images,
     @JsonProperty("isMoonSensitive") boolean isMoonSensitive,
     @JsonProperty("isWindSensitive") boolean isWindSensitive,

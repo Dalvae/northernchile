@@ -71,7 +71,8 @@ function formatScheduleDate(datetime: string) {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
+    timeZone: 'America/Santiago'
   })
 }
 
@@ -79,7 +80,8 @@ function formatScheduleTime(datetime: string) {
   const date = new Date(datetime)
   return date.toLocaleTimeString(locale.value, {
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
+    timeZone: 'America/Santiago'
   })
 }
 

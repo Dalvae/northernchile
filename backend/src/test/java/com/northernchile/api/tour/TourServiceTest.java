@@ -3,6 +3,7 @@ package com.northernchile.api.tour;
 import com.northernchile.api.audit.AuditLogService;
 import com.northernchile.api.media.repository.MediaRepository;
 import com.northernchile.api.model.Tour;
+import com.northernchile.api.model.TourStatus;
 import com.northernchile.api.model.User;
 import com.northernchile.api.tour.dto.TourCreateReq;
 import com.northernchile.api.tour.dto.TourRes;
@@ -102,7 +103,7 @@ class TourServiceTest {
         testTour.setPrice(new BigDecimal("75000"));
         testTour.setDefaultMaxParticipants(12);
         testTour.setDurationHours(3);
-        testTour.setStatus("PUBLISHED");
+        testTour.setStatus(TourStatus.PUBLISHED);
         testTour.setSlug("tour-astronomico");
 
         // Set up test tour response using record constructor
@@ -203,7 +204,7 @@ class TourServiceTest {
                 8,         // defaultMaxParticipants
                 4,         // durationHours
                 null,      // defaultStartTime
-                "DRAFT",   // status
+                TourStatus.DRAFT,   // status
                 "content-key", // contentKey
                 null,      // guideName
                 null,      // itineraryTranslations
@@ -237,7 +238,7 @@ class TourServiceTest {
                 Map.of("es", "Tour Astronómico"), // nameTranslations
                 Map.of(),  // descriptionBlocksTranslations
                 false, false, false, // sensitivity flags
-                "astronomy", new BigDecimal("60000"), 8, 4, null, "DRAFT", "content-key", null, null, null, null
+                "astronomy", new BigDecimal("60000"), 8, 4, null, TourStatus.DRAFT, "content-key", null, null, null, null
             );
 
             when(slugGenerator.generateSlug("Tour Astronómico")).thenReturn("tour-astronomico");
@@ -268,7 +269,7 @@ class TourServiceTest {
             // Given - using record constructor
             TourCreateReq createReq = new TourCreateReq(
                 Map.of("es", "Mi Tour"), Map.of(), false, false, false,
-                "nature", new BigDecimal("50000"), 10, 2, null, "DRAFT", "content-key", null, null, null, null
+                "nature", new BigDecimal("50000"), 10, 2, null, TourStatus.DRAFT, "content-key", null, null, null, null
             );
 
             when(slugGenerator.generateSlug("Mi Tour")).thenReturn("mi-tour");
@@ -302,7 +303,7 @@ class TourServiceTest {
             TourUpdateReq updateReq = new TourUpdateReq(
                 Map.of("es", "Tour Astronómico Premium", "en", "Premium Astronomy Tour"),
                 Map.of(), false, false, false, "astronomy",
-                new BigDecimal("90000"), 10, 4, null, "PUBLISHED", null, null, null, null, null
+                new BigDecimal("90000"), 10, 4, null, TourStatus.PUBLISHED, null, null, null, null, null
             );
 
             when(tourRepository.findByIdNotDeleted(testTour.getId()))
@@ -462,7 +463,7 @@ class TourServiceTest {
             12,                 // defaultMaxParticipants
             3,                  // durationHours
             null,               // defaultStartTime
-            "PUBLISHED",        // status
+            TourStatus.PUBLISHED,        // status
             List.of(),          // images
             false,              // isMoonSensitive
             false,              // isWindSensitive

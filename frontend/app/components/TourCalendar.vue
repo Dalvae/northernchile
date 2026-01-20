@@ -284,7 +284,8 @@ const calendarEvents = computed(() => {
       id: schedule.id,
       title: `${tourName} - ${startDate.toLocaleTimeString(locale.value, {
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: 'America/Santiago'
       })}`,
       start: schedule.startDatetime,
       allDay: false,
@@ -355,6 +356,7 @@ const calendarEvents = computed(() => {
 const calendarOptions = computed<CalendarOptions>(() => ({
   plugins: [dayGridPlugin, interactionPlugin, listPlugin],
   initialView: isMobile.value ? 'listMonth' : props.initialView,
+  timeZone: 'America/Santiago',
   locale:
     locale.value === 'es'
       ? esLocale

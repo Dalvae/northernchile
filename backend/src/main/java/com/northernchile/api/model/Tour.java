@@ -86,8 +86,9 @@ public class Tour implements OwnedEntity, AuditableEntity {
     @Column(length = 100)
     private String recurrenceRule;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
-    private String status = "DRAFT";
+    private TourStatus status = TourStatus.DRAFT;
 
     @CreationTimestamp
     private Instant createdAt;
@@ -101,7 +102,7 @@ public class Tour implements OwnedEntity, AuditableEntity {
     public Tour() {
     }
 
-    public Tour(UUID id, User owner, Map<String, String> nameTranslations, boolean windSensitive, boolean moonSensitive, boolean cloudSensitive, String contentKey, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, LocalTime defaultStartTime, Boolean recurring, String recurrenceRule, String status, Instant createdAt, Instant updatedAt) {
+    public Tour(UUID id, User owner, Map<String, String> nameTranslations, boolean windSensitive, boolean moonSensitive, boolean cloudSensitive, String contentKey, String category, BigDecimal price, Integer defaultMaxParticipants, Integer durationHours, LocalTime defaultStartTime, Boolean recurring, String recurrenceRule, TourStatus status, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.owner = owner;
         this.nameTranslations = nameTranslations;
@@ -251,11 +252,11 @@ public class Tour implements OwnedEntity, AuditableEntity {
         this.recurrenceRule = recurrenceRule;
     }
 
-    public String getStatus() {
+    public TourStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(TourStatus status) {
         this.status = status;
     }
 
