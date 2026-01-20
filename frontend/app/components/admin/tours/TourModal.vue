@@ -17,8 +17,25 @@ const emit = defineEmits<{
 
 const isEditing = computed(() => !!props.tour)
 
-const { state, schema, loading, formErrors, onSubmit, onError, hasDraft, discardDraft }
+const { state, schema, loading, formErrors, onSubmit, onError, hasDraft, discardDraft, exportToJson, importFromJson }
   = useAdminTourForm(props, emit)
+
+// File input ref for import
+const fileInput = ref<HTMLInputElement | null>(null)
+
+const handleImportClick = () => {
+  fileInput.value?.click()
+}
+
+const handleFileChange = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (file) {
+    await importFromJson(file)
+    // Reset input so same file can be selected again
+    target.value = ''
+  }
+}
 
 provide('tour-form-state', state)
 provide('tour-form-errors', formErrors)
@@ -87,10 +104,34 @@ const handleSubmit = () => {
     </template>
 
     <template #footer>
+      <!-- Hidden file input for JSON import -->
+      <input
+        ref="fileInput"
+        type="file"
+        accept=".json,application/json"
+        class="hidden"
+        @change="handleFileChange"
+      >
+
       <div class="flex justify-between items-center w-full">
-        <span class="text-sm text-muted">
-          Revisa los campos antes de guardar
-        </span>
+        <div class="flex gap-2">
+          <UButton
+            icon="i-heroicons-arrow-up-tray"
+            label="Importar"
+            size="sm"
+            color="neutral"
+            variant="ghost"
+            @click="handleImportClick"
+          />
+          <UButton
+            icon="i-heroicons-arrow-down-tray"
+            label="Exportar"
+            size="sm"
+            color="neutral"
+            variant="ghost"
+            @click="exportToJson"
+          />
+        </div>
         <div class="flex gap-3">
           <UButton
             label="Cancelar"

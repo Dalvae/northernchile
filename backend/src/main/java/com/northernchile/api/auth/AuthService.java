@@ -212,6 +212,13 @@ public class AuthService {
     }
 
     /**
+     * Check if an email is already registered
+     */
+    public boolean emailExists(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
+
+    /**
      * Resend verification email
      */
     @Transactional

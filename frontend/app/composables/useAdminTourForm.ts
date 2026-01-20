@@ -292,6 +292,97 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
     })
   }
 
+  // Export current state as JSON
+  const exportToJson = () => {
+    const exportData = { ...state }
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    const tourName = state.nameTranslations?.es || state.contentKey || 'tour'
+    const safeName = tourName.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 50)
+    a.download = `tour-${safeName}-${Date.now()}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    toast.add({
+      title: 'JSON exportado',
+      description: 'El archivo se ha descargado correctamente.',
+      color: 'success',
+      icon: 'i-heroicons-arrow-down-tray'
+    })
+  }
+
+  // Import JSON from file
+  const importFromJson = (file: File): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target?.result as string) as TourSchema
+          // Validate essential fields exist
+          if (!data.nameTranslations || !data.category) {
+            toast.add({
+              title: 'JSON inválido',
+              description: 'El archivo no contiene la estructura de tour esperada.',
+              color: 'error',
+              icon: 'i-heroicons-exclamation-triangle'
+            })
+            resolve(false)
+            return
+          }
+          // Merge imported data with state
+          Object.assign(state, {
+            nameTranslations: data.nameTranslations || initialState.nameTranslations,
+            moonSensitive: data.moonSensitive ?? false,
+            windSensitive: data.windSensitive ?? false,
+            cloudSensitive: data.cloudSensitive ?? false,
+            category: data.category || initialState.category,
+            price: data.price || initialState.price,
+            defaultMaxParticipants: data.defaultMaxParticipants || initialState.defaultMaxParticipants,
+            durationHours: data.durationHours || initialState.durationHours,
+            defaultStartTime: data.defaultStartTime || undefined,
+            status: data.status || initialState.status,
+            contentKey: data.contentKey || '',
+            guideName: data.guideName || undefined,
+            recurring: data.recurring ?? false,
+            recurrenceRule: data.recurrenceRule || undefined,
+            itineraryTranslations: data.itineraryTranslations || undefined,
+            equipmentTranslations: data.equipmentTranslations || undefined,
+            additionalInfoTranslations: data.additionalInfoTranslations || undefined,
+            descriptionBlocksTranslations: data.descriptionBlocksTranslations || undefined
+          })
+          toast.add({
+            title: 'JSON importado',
+            description: 'Los datos se han cargado correctamente.',
+            color: 'success',
+            icon: 'i-heroicons-arrow-up-tray'
+          })
+          resolve(true)
+        } catch {
+          toast.add({
+            title: 'Error al leer JSON',
+            description: 'El archivo no es un JSON válido.',
+            color: 'error',
+            icon: 'i-heroicons-exclamation-triangle'
+          })
+          resolve(false)
+        }
+      }
+      reader.onerror = () => {
+        toast.add({
+          title: 'Error al leer archivo',
+          description: 'No se pudo leer el archivo seleccionado.',
+          color: 'error',
+          icon: 'i-heroicons-exclamation-triangle'
+        })
+        resolve(false)
+      }
+      reader.readAsText(file)
+    })
+  }
+
   return {
     state,
     schema: fullSchema,
@@ -301,6 +392,9 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
     onError,
     // Draft management
     hasDraft,
-    discardDraft
+    discardDraft,
+    // JSON import/export
+    exportToJson,
+    importFromJson
   }
 }

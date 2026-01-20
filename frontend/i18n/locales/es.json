@@ -333,6 +333,13 @@
     "register": "Registrarse",
     "register_description": "Crea tu cuenta para reservar tours",
     "logout": "Cerrar Sesión",
+    "create_account": "Crear cuenta",
+    "have_account": "Ya tengo cuenta",
+    "creating_account": "Creando tu cuenta...",
+    "logging_in": "Iniciando sesión...",
+    "login_instead": "Iniciar sesión",
+    "register_instead": "Crear cuenta",
+    "welcome": "¡Bienvenido!",
     "forgot_password": "¿Olvidaste tu contraseña?",
     "forgot_password_description": "Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña",
     "reset_password": "Restablecer Contraseña",
@@ -874,7 +881,16 @@
       "processing_error": "Hubo un error procesando tu reserva.",
       "no_slots_available": "No hay suficientes cupos disponibles para esta fecha.",
       "tour_not_available": "El tour seleccionado ya no está disponible."
-    }
+    },
+    "email_exists": "Este email ya tiene cuenta.",
+    "email_not_found": "No encontramos esta cuenta.",
+    "cart_conflict_title": "Tienes un carrito guardado",
+    "cart_conflict_description": "Encontramos un carrito de una sesión anterior. ¿Qué deseas hacer?",
+    "cart_current": "Carrito actual",
+    "cart_saved": "Carrito guardado",
+    "use_current": "Usar actual",
+    "use_saved": "Usar guardado",
+    "merge_carts": "Combinar"
   },
   "errors": {
     "bad_request": "Solicitud inválida",

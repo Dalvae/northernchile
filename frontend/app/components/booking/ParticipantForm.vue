@@ -10,7 +10,10 @@
 
     <div class="space-y-4">
       <!-- Saved Participant Selector (only for logged-in users) -->
-      <div v-if="isAuthenticated && savedParticipantOptions.length > 0" class="mb-4">
+      <div
+        v-if="isAuthenticated && savedParticipantOptions.length > 0"
+        class="mb-4"
+      >
         <UFormField
           :label="t('booking.saved_participant') || 'Participante guardado'"
           name="savedParticipant"
@@ -183,16 +186,25 @@
       </div>
 
       <!-- Save options (only for logged-in users) -->
-      <div v-if="isAuthenticated" class="pt-4 border-t border-neutral-200 dark:border-neutral-700 space-y-3">
+      <div
+        v-if="isAuthenticated"
+        class="pt-4 border-t border-neutral-200 dark:border-neutral-700 space-y-3"
+      >
         <!-- Mark as Self checkbox -->
-        <div v-if="canMarkAsSelf" class="flex items-center gap-2">
+        <div
+          v-if="canMarkAsSelf"
+          class="flex items-center gap-2"
+        >
           <UCheckbox
             :model-value="participant.markAsSelf"
             :label="t('booking.mark_as_self') || 'Soy yo (sincronizar con mi perfil)'"
             @update:model-value="handleMarkAsSelfChange($event)"
           />
           <UTooltip :text="t('booking.mark_as_self_tooltip') || 'Estos datos se guardarán en tu perfil'">
-            <UIcon name="i-lucide-info" class="w-4 h-4 text-neutral-400" />
+            <UIcon
+              name="i-lucide-info"
+              class="w-4 h-4 text-neutral-400"
+            />
           </UTooltip>
         </div>
 
@@ -268,7 +280,7 @@ const savedParticipantSelectItems = computed(() => {
     { label: 'Ingresar manualmente', value: '' }
   ]
 
-  savedParticipantOptions.value.forEach(p => {
+  savedParticipantOptions.value.forEach((p) => {
     options.push({
       label: p.isSelf ? `${p.fullName} (Yo)` : p.fullName,
       value: p.id
