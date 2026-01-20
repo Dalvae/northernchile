@@ -314,25 +314,78 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
     })
   }
 
+  // Relaxed schema for import validation (allows partial data)
+  const importSchema = z.object({
+    nameTranslations: z.object({
+      es: z.string().optional().default(''),
+      en: z.string().optional().default(''),
+      pt: z.string().optional().default('')
+    }).optional(),
+    category: z.string().optional(),
+    moonSensitive: z.boolean().optional(),
+    windSensitive: z.boolean().optional(),
+    cloudSensitive: z.boolean().optional(),
+    price: z.number().optional(),
+    defaultMaxParticipants: z.number().optional(),
+    durationHours: z.number().optional(),
+    defaultStartTime: z.string().optional(),
+    status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional(),
+    contentKey: z.string().optional(),
+    guideName: z.string().optional(),
+    recurring: z.boolean().optional(),
+    recurrenceRule: z.string().optional(),
+    itineraryTranslations: z.record(z.string(), z.array(z.object({
+      time: z.string().optional(),
+      description: z.string().optional()
+    }))).optional(),
+    equipmentTranslations: z.record(z.string(), z.array(z.string())).optional(),
+    additionalInfoTranslations: z.record(z.string(), z.array(z.string())).optional(),
+    descriptionBlocksTranslations: z.record(z.string(), z.array(z.object({
+      type: z.string().optional(),
+      content: z.string().optional()
+    }))).optional()
+  })
+
   // Import JSON from file
   const importFromJson = (file: File): Promise<boolean> => {
     return new Promise((resolve) => {
       const reader = new FileReader()
       reader.onload = (e) => {
         try {
-          const data = JSON.parse(e.target?.result as string) as TourSchema
-          // Validate essential fields exist
-          if (!data.nameTranslations || !data.category) {
+          const rawData = JSON.parse(e.target?.result as string)
+
+          // Validate structure using Zod
+          const parseResult = importSchema.safeParse(rawData)
+          if (!parseResult.success) {
+            const errorMessages = parseResult.error.issues
+              .slice(0, 3)
+              .map(err => `${String(err.path.join('.'))}: ${err.message}`)
+              .join(', ')
             toast.add({
               title: 'JSON inválido',
-              description: 'El archivo no contiene la estructura de tour esperada.',
+              description: `Estructura incorrecta: ${errorMessages}`,
               color: 'error',
               icon: 'i-heroicons-exclamation-triangle'
             })
             resolve(false)
             return
           }
-          // Merge imported data with state
+
+          const data = parseResult.data
+
+          // Check that at least nameTranslations or category exists (basic requirement)
+          if (!data.nameTranslations && !data.category) {
+            toast.add({
+              title: 'JSON inválido',
+              description: 'El archivo no contiene la estructura de tour esperada (falta nameTranslations y category).',
+              color: 'error',
+              icon: 'i-heroicons-exclamation-triangle'
+            })
+            resolve(false)
+            return
+          }
+
+          // Merge imported data with state (only defined values)
           Object.assign(state, {
             nameTranslations: data.nameTranslations || initialState.nameTranslations,
             moonSensitive: data.moonSensitive ?? false,

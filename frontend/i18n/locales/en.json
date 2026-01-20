@@ -239,7 +239,11 @@
     "document": "Document",
     "years_old": "years old",
     "address": "Address",
-    "special_requests": "Special Requests"
+    "special_requests": "Special Requests",
+    "saved_participant": "Saved participant",
+    "mark_as_self": "This is me (sync with my profile)",
+    "mark_as_self_tooltip": "This data will be saved to your profile",
+    "save_for_future": "Save for future bookings"
   },
   "cart": {
     "title": "Shopping Cart",

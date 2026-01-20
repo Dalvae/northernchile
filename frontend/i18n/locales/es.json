@@ -239,7 +239,11 @@
     "document": "Documento",
     "years_old": "años",
     "address": "Dirección",
-    "special_requests": "Solicitudes Especiales"
+    "special_requests": "Solicitudes Especiales",
+    "saved_participant": "Participante guardado",
+    "mark_as_self": "Soy yo (sincronizar con mi perfil)",
+    "mark_as_self_tooltip": "Estos datos se guardarán en tu perfil",
+    "save_for_future": "Guardar para futuras reservas"
   },
   "cart": {
     "title": "Carrito de Compras",

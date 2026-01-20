@@ -15,7 +15,7 @@
         class="mb-4"
       >
         <UFormField
-          :label="t('booking.saved_participant') || 'Participante guardado'"
+          :label="t('booking.saved_participant')"
           name="savedParticipant"
         >
           <USelect
@@ -197,10 +197,10 @@
         >
           <UCheckbox
             :model-value="participant.markAsSelf"
-            :label="t('booking.mark_as_self') || 'Soy yo (sincronizar con mi perfil)'"
+            :label="t('booking.mark_as_self')"
             @update:model-value="handleMarkAsSelfChange($event)"
           />
-          <UTooltip :text="t('booking.mark_as_self_tooltip') || 'Estos datos se guardarán en tu perfil'">
+          <UTooltip :text="t('booking.mark_as_self_tooltip')">
             <UIcon
               name="i-lucide-info"
               class="w-4 h-4 text-neutral-400"
@@ -212,7 +212,7 @@
         <div class="flex items-center gap-2">
           <UCheckbox
             :model-value="participant.saveForFuture"
-            :label="t('booking.save_for_future') || 'Guardar para futuras reservas'"
+            :label="t('booking.save_for_future')"
             @update:model-value="handleSaveForFutureChange($event)"
           />
         </div>
@@ -302,6 +302,35 @@ const canMarkAsSelf = computed(() => {
   return true
 })
 
+/**
+ * Parse phone number to extract local number and country code.
+ * Handles various formats: +56912345678, +56 9 1234 5678, 912345678, etc.
+ */
+function parsePhoneNumber(fullPhone: string | undefined | null): { countryCode: string, localNumber: string } {
+  if (!fullPhone) {
+    return { countryCode: '+56', localNumber: '' }
+  }
+
+  // Normalize: remove spaces and dashes
+  const normalized = fullPhone.replace(/[\s-]/g, '')
+
+  // Try to match international format: +XX... or +XXX...
+  const intlMatch = normalized.match(/^(\+\d{1,3})(.*)$/)
+  if (intlMatch) {
+    const code = intlMatch[1] || '+56'
+    const local = intlMatch[2] || ''
+    // Find matching country code from our list
+    const matchedCode = phoneCodes.find(pc => pc.code === code)
+    return {
+      countryCode: matchedCode ? code : '+56',
+      localNumber: local
+    }
+  }
+
+  // No country code prefix, return as-is
+  return { countryCode: '+56', localNumber: normalized }
+}
+
 // Handle saved participant selection
 function handleSavedParticipantSelect(selectedId: string | undefined) {
   if (!selectedId) {
@@ -313,6 +342,9 @@ function handleSavedParticipantSelect(selectedId: string | undefined) {
   const savedParticipant = savedParticipantOptions.value.find(p => p.id === selectedId)
   if (!savedParticipant) return
 
+  // Parse phone number properly
+  const { countryCode, localNumber } = parsePhoneNumber(savedParticipant.phoneNumber)
+
   // Pre-fill the form with saved participant data
   emit('update', {
     savedParticipantId: selectedId,
@@ -320,7 +352,8 @@ function handleSavedParticipantSelect(selectedId: string | undefined) {
     documentId: savedParticipant.documentId || '',
     nationality: savedParticipant.nationality || '',
     dateOfBirth: savedParticipant.dateOfBirth || null,
-    phoneNumber: savedParticipant.phoneNumber?.replace(/^\+\d+/, '') || '',
+    phoneCountryCode: countryCode,
+    phoneNumber: localNumber,
     email: savedParticipant.email || '',
     markAsSelf: savedParticipant.isSelf
   })

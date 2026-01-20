@@ -111,6 +111,39 @@ const participants = ref<Participant[]>([])
 const CHECKOUT_CONTACT_KEY = 'checkout_contact'
 const CHECKOUT_PARTICIPANTS_KEY = 'checkout_participants'
 const CHECKOUT_STEP_KEY = 'checkout_step'
+const CHECKOUT_TIMESTAMP_KEY = 'checkout_timestamp'
+
+// Checkout data expires after 24 hours (in milliseconds)
+const CHECKOUT_EXPIRY_MS = 24 * 60 * 60 * 1000
+
+/**
+ * Check if checkout data has expired (older than 24 hours)
+ */
+function isCheckoutDataExpired(): boolean {
+  if (!import.meta.client) return true
+  try {
+    const timestamp = localStorage.getItem(CHECKOUT_TIMESTAMP_KEY)
+    if (!timestamp) return true
+    const savedTime = parseInt(timestamp, 10)
+    if (isNaN(savedTime)) return true
+    return Date.now() - savedTime > CHECKOUT_EXPIRY_MS
+  } catch {
+    return true
+  }
+}
+
+/**
+ * Update the checkout timestamp
+ */
+function updateCheckoutTimestamp(): void {
+  if (import.meta.client) {
+    try {
+      localStorage.setItem(CHECKOUT_TIMESTAMP_KEY, String(Date.now()))
+    } catch {
+      // Ignore storage errors
+    }
+  }
+}
 
 // Load saved checkout data on mount
 onMounted(async () => {
@@ -123,37 +156,42 @@ onMounted(async () => {
   }
 
   try {
-    // Load contact form (except passwords)
-    const savedContact = localStorage.getItem(CHECKOUT_CONTACT_KEY)
-    if (savedContact) {
-      const parsed = JSON.parse(savedContact)
-      contactForm.value = {
-        ...contactForm.value,
-        email: parsed.email || contactForm.value.email,
-        fullName: parsed.fullName || contactForm.value.fullName,
-        phone: parsed.phone || '',
-        countryCode: parsed.countryCode || '+56',
-        password: '',
-        confirmPassword: ''
+    // Check if saved data has expired (older than 24 hours)
+    if (isCheckoutDataExpired()) {
+      clearCheckoutData()
+    } else {
+      // Load contact form (except passwords)
+      const savedContact = localStorage.getItem(CHECKOUT_CONTACT_KEY)
+      if (savedContact) {
+        const parsed = JSON.parse(savedContact)
+        contactForm.value = {
+          ...contactForm.value,
+          email: parsed.email || contactForm.value.email,
+          fullName: parsed.fullName || contactForm.value.fullName,
+          phone: parsed.phone || '',
+          countryCode: parsed.countryCode || '+56',
+          password: '',
+          confirmPassword: ''
+        }
       }
-    }
 
-    // Load participants
-    const savedParticipants = localStorage.getItem(CHECKOUT_PARTICIPANTS_KEY)
-    if (savedParticipants) {
-      const parsed = JSON.parse(savedParticipants) as Participant[]
-      // Only restore if participant count matches current cart
-      if (parsed.length === cartStore.totalItems) {
-        participants.value = parsed
+      // Load participants
+      const savedParticipants = localStorage.getItem(CHECKOUT_PARTICIPANTS_KEY)
+      if (savedParticipants) {
+        const parsed = JSON.parse(savedParticipants) as Participant[]
+        // Only restore if participant count matches current cart
+        if (parsed.length === cartStore.totalItems) {
+          participants.value = parsed
+        }
       }
-    }
 
-    // Load step
-    const savedStep = localStorage.getItem(CHECKOUT_STEP_KEY)
-    if (savedStep) {
-      const step = parseInt(savedStep, 10)
-      if (step >= 1 && step <= totalSteps) {
-        currentStep.value = step
+      // Load step
+      const savedStep = localStorage.getItem(CHECKOUT_STEP_KEY)
+      if (savedStep) {
+        const step = parseInt(savedStep, 10)
+        if (step >= 1 && step <= totalSteps) {
+          currentStep.value = step
+        }
       }
     }
   } catch (e) {
@@ -173,6 +211,7 @@ const contactFormForSave = computed(() => JSON.stringify({
 watch(contactFormForSave, (json) => {
   if (import.meta.client) {
     localStorage.setItem(CHECKOUT_CONTACT_KEY, json)
+    updateCheckoutTimestamp()
   }
 })
 
@@ -185,6 +224,7 @@ const participantsForSave = computed(() =>
 watch(participantsForSave, (json) => {
   if (import.meta.client && json) {
     localStorage.setItem(CHECKOUT_PARTICIPANTS_KEY, json)
+    updateCheckoutTimestamp()
   }
 })
 
@@ -192,6 +232,7 @@ watch(participantsForSave, (json) => {
 watch(currentStep, (newVal) => {
   if (import.meta.client) {
     localStorage.setItem(CHECKOUT_STEP_KEY, String(newVal))
+    updateCheckoutTimestamp()
   }
 })
 
@@ -201,6 +242,7 @@ function clearCheckoutData() {
     localStorage.removeItem(CHECKOUT_CONTACT_KEY)
     localStorage.removeItem(CHECKOUT_PARTICIPANTS_KEY)
     localStorage.removeItem(CHECKOUT_STEP_KEY)
+    localStorage.removeItem(CHECKOUT_TIMESTAMP_KEY)
   }
 }
 

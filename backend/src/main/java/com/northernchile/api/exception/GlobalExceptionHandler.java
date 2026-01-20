@@ -161,6 +161,16 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles SecurityException (ownership validation failures)
+     * Returns HTTP 403 Forbidden
+     */
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<ErrorResponse> handleSecurityException(SecurityException ex, WebRequest request) {
+        log.warn("Security violation: {} - {}", extractPath(request), ex.getMessage());
+        return buildErrorResponse(ex, request, HttpStatus.FORBIDDEN);
+    }
+
+    /**
      * Handles ScheduleFullException - when tour schedule has no availability
      * Returns HTTP 409 Conflict
      */

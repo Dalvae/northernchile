@@ -235,7 +235,11 @@
     "document": "Documento",
     "years_old": "anos",
     "address": "Endereço",
-    "special_requests": "Solicitações Especiais"
+    "special_requests": "Solicitações Especiais",
+    "saved_participant": "Participante salvo",
+    "mark_as_self": "Sou eu (sincronizar com meu perfil)",
+    "mark_as_self_tooltip": "Estes dados serão salvos no seu perfil",
+    "save_for_future": "Salvar para reservas futuras"
   },
   "cart": {
     "title": "Carrinho de Compras",

@@ -133,6 +133,13 @@ function getPlaceholder(type: string): string {
               class="w-full"
               @update:model-value="(value: string) => updateBlock(index, 'content', value)"
             />
+            <!-- Help text for list type -->
+            <p
+              v-if="block.type === 'list'"
+              class="text-xs text-neutral-500 dark:text-neutral-400 mt-1"
+            >
+              Cada línea será un elemento de la lista. Presiona Enter para agregar un nuevo elemento.
+            </p>
           </div>
 
           <!-- Botón eliminar -->

@@ -179,24 +179,35 @@ public class Participant {
         this.createdAt = createdAt;
     }
 
+    /**
+     * Equals based on id only, following JPA best practices.
+     * This prevents issues with lazy loading and detached entity comparison.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Participant that = (Participant) o;
-        return Objects.equals(id, that.id) && Objects.equals(booking, that.booking) && Objects.equals(fullName, that.fullName) && Objects.equals(documentId, that.documentId) && Objects.equals(nationality, that.nationality) && Objects.equals(dateOfBirth, that.dateOfBirth) && Objects.equals(age, that.age) && Objects.equals(pickupAddress, that.pickupAddress) && Objects.equals(specialRequirements, that.specialRequirements) && Objects.equals(phoneNumber, that.phoneNumber) && Objects.equals(email, that.email) && Objects.equals(createdAt, that.createdAt);
+        // For new entities (id is null), use identity comparison
+        if (id == null) return false;
+        return Objects.equals(id, that.id);
     }
 
+    /**
+     * HashCode based on id only, following JPA best practices.
+     * Returns a constant for new entities to maintain hashCode/equals contract.
+     */
     @Override
     public int hashCode() {
-        return Objects.hash(id, booking, fullName, documentId, nationality, dateOfBirth, age, pickupAddress, specialRequirements, phoneNumber, email, createdAt);
+        // Use a constant for new entities to maintain consistency
+        // Once persisted, the id-based hash will be used
+        return id != null ? Objects.hash(id) : 31;
     }
 
     @Override
     public String toString() {
         return "Participant{" +
                 "id=" + id +
-                ", booking=" + booking +
                 ", fullName='" + fullName + '\'' +
                 ", documentId='" + documentId + '\'' +
                 ", nationality='" + nationality + '\'' +

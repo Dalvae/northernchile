@@ -286,15 +286,39 @@ export const useCartStore = defineStore('cart', () => {
 
   // === CART CONFLICT HANDLING (for login during checkout) ===
 
+  // SessionStorage key for pre-login cart persistence
+  const PRE_LOGIN_CART_KEY = 'preLoginCart'
+
   // Store the pre-login cart for conflict detection
   const preLoginCart = ref<CartItemRes[]>([])
+
+  // Restore pre-login cart from sessionStorage on initialization
+  if (import.meta.client) {
+    try {
+      const stored = sessionStorage.getItem(PRE_LOGIN_CART_KEY)
+      if (stored) {
+        preLoginCart.value = JSON.parse(stored)
+      }
+    } catch {
+      // Ignore parsing errors
+    }
+  }
 
   /**
    * Save current cart state before login attempt.
    * Called before authentication to preserve local cart.
+   * Persists to sessionStorage to survive page refreshes.
    */
   function savePreLoginCart(): void {
-    preLoginCart.value = JSON.parse(JSON.stringify(_cart.value.items || []))
+    const items = JSON.parse(JSON.stringify(_cart.value.items || []))
+    preLoginCart.value = items
+    if (import.meta.client) {
+      try {
+        sessionStorage.setItem(PRE_LOGIN_CART_KEY, JSON.stringify(items))
+      } catch {
+        // Ignore storage errors
+      }
+    }
   }
 
   /**
@@ -347,12 +371,26 @@ export const useCartStore = defineStore('cart', () => {
    * Resolve cart conflict based on user choice.
    * @param choice - 'current' (keep backend cart), 'saved' (use pre-login cart), or 'merge'
    */
+  /**
+   * Clear the pre-login cart from memory and sessionStorage.
+   */
+  function clearPreLoginCart(): void {
+    preLoginCart.value = []
+    if (import.meta.client) {
+      try {
+        sessionStorage.removeItem(PRE_LOGIN_CART_KEY)
+      } catch {
+        // Ignore storage errors
+      }
+    }
+  }
+
   async function resolveCartConflict(choice: 'current' | 'saved' | 'merge'): Promise<void> {
     const savedItems = preLoginCart.value
 
     if (choice === 'current') {
       // Keep current backend cart - nothing to do
-      preLoginCart.value = []
+      clearPreLoginCart()
       return
     }
 
@@ -366,7 +404,7 @@ export const useCartStore = defineStore('cart', () => {
           numParticipants: item.numParticipants
         })
       }
-      preLoginCart.value = []
+      clearPreLoginCart()
       return
     }
 
@@ -385,7 +423,7 @@ export const useCartStore = defineStore('cart', () => {
         // If item already exists, we could optionally increase participant count
         // For now, we skip duplicates to avoid overbooking issues
       }
-      preLoginCart.value = []
+      clearPreLoginCart()
     }
   }
 
