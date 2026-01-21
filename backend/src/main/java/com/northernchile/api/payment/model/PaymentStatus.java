@@ -1,5 +1,7 @@
 package com.northernchile.api.payment.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * Payment status enumeration.
  * Represents the lifecycle states of a payment transaction.
@@ -43,5 +45,10 @@ public enum PaymentStatus {
     /**
      * Payment is expired (e.g., PIX QR code expired)
      */
-    EXPIRED
+    EXPIRED;
+
+    @JsonValue
+    public String toValue() {
+        return this.name();
+    }
 }

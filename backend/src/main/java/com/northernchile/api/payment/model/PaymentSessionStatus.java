@@ -1,5 +1,7 @@
 package com.northernchile.api.payment.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * Status of a payment session.
  */
@@ -32,5 +34,10 @@ public enum PaymentSessionStatus {
     /**
      * Payment was refunded
      */
-    REFUNDED
+    REFUNDED;
+
+    @JsonValue
+    public String toValue() {
+        return this.name();
+    }
 }

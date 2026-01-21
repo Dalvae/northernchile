@@ -1,5 +1,7 @@
 package com.northernchile.api.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * Status values for bookings.
  *
@@ -16,5 +18,10 @@ public enum BookingStatus {
     CONFIRMED,
     CANCELLED,
     COMPLETED,
-    REFUNDED
+    REFUNDED;
+
+    @JsonValue
+    public String toValue() {
+        return this.name();
+    }
 }

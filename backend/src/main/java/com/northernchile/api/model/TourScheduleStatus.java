@@ -1,5 +1,7 @@
 package com.northernchile.api.model;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * Status values for tour schedules.
  *
@@ -12,5 +14,10 @@ public enum TourScheduleStatus {
     OPEN,
     CLOSED,
     CANCELLED,
-    FULL
+    FULL;
+
+    @JsonValue
+    public String toValue() {
+        return this.name();
+    }
 }
