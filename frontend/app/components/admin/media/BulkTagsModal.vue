@@ -6,38 +6,24 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue', 'success'])
 
-const { showSuccessToast, showErrorToast } = useApiError()
+const toast = useToast()
 const { updateAdminMedia, fetchAdminMediaById } = useAdminData()
-
-const isOpen = computed({
-  get: () => props.modelValue,
-  set: value => emit('update:modelValue', value)
-})
 
 // State
 const tags = ref<string[]>([])
 const mode = ref<'add' | 'replace'>('add')
-const saving = ref(false)
 
-// Reset on open
-watch(isOpen, (open) => {
-  if (open) {
-    tags.value = []
-    mode.value = 'add'
-  }
-})
+const { isOpen, isSubmitting, handleSubmit } = useControlledModalForm({
+  modelValue: toRef(props, 'modelValue'),
+  onUpdateModelValue: v => emit('update:modelValue', v),
+  onSubmit: async () => {
+    if (tags.value.length === 0) {
+      throw new Error('Añade al menos una etiqueta')
+    }
 
-async function save() {
-  if (tags.value.length === 0) {
-    showErrorToast({ message: 'Añade al menos una etiqueta' })
-    return
-  }
+    let updated = 0
+    let failed = 0
 
-  saving.value = true
-  let updated = 0
-  let failed = 0
-
-  try {
     for (const mediaId of props.mediaIds) {
       try {
         let finalTags = tags.value
@@ -58,21 +44,31 @@ async function save() {
       }
     }
 
-    if (failed === 0) {
-      showSuccessToast(`Etiquetas ${mode.value === 'add' ? 'añadidas' : 'reemplazadas'} en ${updated} ${updated === 1 ? 'medio' : 'medios'}`)
-    } else {
-      showErrorToast({ message: `${updated} actualizados, ${failed} fallaron` })
+    if (failed > 0) {
+      toast.add({
+        color: 'warning',
+        title: `${updated} actualizados, ${failed} fallaron`
+      })
     }
 
+    return { updated, failed }
+  },
+  onSuccess: () => {
+    tags.value = []
+    mode.value = 'add'
     emit('success')
-    isOpen.value = false
-  } catch (error) {
-    console.error('Error updating tags:', error)
-    showErrorToast(error, 'Error al actualizar etiquetas')
-  } finally {
-    saving.value = false
+  },
+  successMessage: `Etiquetas ${mode.value === 'add' ? 'añadidas' : 'reemplazadas'} en ${props.mediaIds.length} ${props.mediaIds.length === 1 ? 'medio' : 'medios'}`,
+  errorMessage: 'Error al actualizar etiquetas'
+})
+
+// Reset on open
+watch(() => props.modelValue, (open) => {
+  if (open) {
+    tags.value = []
+    mode.value = 'add'
   }
-}
+})
 </script>
 
 <template>
@@ -82,9 +78,9 @@ async function save() {
     :subtitle="`${mediaIds.length} ${mediaIds.length === 1 ? 'medio seleccionado' : 'medios seleccionados'}`"
     size="md"
     :submit-label="mode === 'add' ? 'Añadir Etiquetas' : 'Reemplazar Etiquetas'"
-    :submit-loading="saving"
+    :submit-loading="isSubmitting"
     :submit-disabled="tags.length === 0"
-    @submit="save"
+    @submit="handleSubmit"
   >
     <div class="space-y-4">
       <!-- Mode selector -->
