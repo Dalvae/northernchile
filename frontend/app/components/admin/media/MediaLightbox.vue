@@ -73,7 +73,7 @@ function getTypeBadgeColor(type?: string): BadgeColor {
     <template #content>
       <div class="relative bg-neutral-900 dark:bg-neutral-950">
         <!-- Close button -->
-        <div class="absolute top-4 right-4 z-10">
+        <div class="absolute top-4 right-4 z-20">
           <UButton
             icon="i-heroicons-x-mark"
             color="neutral"
