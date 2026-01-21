@@ -42,7 +42,7 @@
       </div>
 
       <div
-        class="flex-1 w-full flex flex-col justify-start sm:justify-center items-center pt-[40vh] sm:pt-0 pb-10 z-40"
+        class="flex-1 w-full flex flex-col justify-center items-center pb-10 z-40"
       >
         <div class="text-center w-full animate-fade-in-up">
           <!-- TITULO -->
