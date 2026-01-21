@@ -16,6 +16,34 @@
 export const CHILE_TIMEZONE = 'America/Santiago'
 
 /**
+ * Convert an Instant (UTC timestamp) to Chile local time string for FullCalendar.
+ *
+ * FullCalendar uses the date portion of the ISO string to determine which calendar day
+ * to show the event, even when timeZone is configured. This function converts UTC to
+ * local time BEFORE passing to FullCalendar to ensure correct day placement.
+ *
+ * @example
+ * // Backend sends: "2026-01-24T00:02:00Z" (UTC)
+ * // In Chile this is: "2026-01-23T21:02:00" (day 23, not 24)
+ * instantToChileLocalString("2026-01-24T00:02:00Z")
+ * // Returns: "2026-01-23T21:02:00"
+ */
+export function instantToChileLocalString(utcInstant: string): string {
+  const date = new Date(utcInstant)
+
+  // Format as ISO string in Chile timezone
+  return date.toLocaleString('sv-SE', {
+    timeZone: CHILE_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).replace(' ', 'T')
+}
+
+/**
  * Get today's date as YYYY-MM-DD string in local timezone.
  * Use this instead of: new Date().toISOString().split('T')[0]
  */
