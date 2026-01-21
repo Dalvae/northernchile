@@ -54,16 +54,33 @@ public class WebhookController {
             @SuppressWarnings("unchecked")
             Map<String, Object> payload = new com.fasterxml.jackson.databind.ObjectMapper().readValue(rawBody, Map.class);
 
-            // 2. Extract data.id from payload for signature verification
+            // 2. Extract payment ID from payload for signature verification
+            // MercadoPago sends different payload formats:
+            // Format 1: { "id": "12345", "type": "payment", ... }
+            // Format 2: { "data": { "id": "12345" }, "type": "payment", ... }
             String dataId = null;
-            Object dataObj = payload.get("data");
-            if (dataObj instanceof Map) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> data = (Map<String, Object>) dataObj;
-                Object id = data.get("id");
-                if (id != null) {
-                    dataId = id.toString();
+
+            // Try root level "id" first (most common format)
+            Object rootId = payload.get("id");
+            if (rootId != null) {
+                dataId = rootId.toString();
+                log.debug("Found payment ID at root level: {}", dataId);
+            } else {
+                // Try nested "data.id"
+                Object dataObj = payload.get("data");
+                if (dataObj instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> data = (Map<String, Object>) dataObj;
+                    Object id = data.get("id");
+                    if (id != null) {
+                        dataId = id.toString();
+                        log.debug("Found payment ID in data object: {}", dataId);
+                    }
                 }
+            }
+
+            if (dataId == null) {
+                log.warn("Mercado Pago webhook payload: {}", payload);
             }
 
             // 3. Verify signature using the correct method with data.id, request-id, and x-signature

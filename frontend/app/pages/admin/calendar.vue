@@ -599,6 +599,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
     selectMirror: true,
     dayMaxEvents: true,
     weekends: true,
+    displayEventTime: false, // Don't show time prefix (we include it in title)
     eventClick: handleEventClick,
     dateClick: handleDateClick,
 

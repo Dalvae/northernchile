@@ -378,7 +378,7 @@ const calendarOptions = computed<CalendarOptions>(() => ({
   eventContent: renderEventContent,
   height: isMobile.value ? 'auto' : props.height,
   eventDisplay: 'block',
-  displayEventTime: true,
+  displayEventTime: false, // Don't show time prefix (we include it in title)
   eventTimeFormat: {
     hour: '2-digit',
     minute: '2-digit',
