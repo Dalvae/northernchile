@@ -563,7 +563,9 @@ async function handleSubmit(_event: FormSubmitEvent<z.infer<typeof schema.value>
         color: 'success'
       })
 
-      await router.push(localePath('/'))
+      // Redirect admins to /admin, regular users to home
+      const redirectPath = authStore.isAdmin ? '/admin' : '/'
+      await router.push(localePath(redirectPath))
     } else {
       // TODO: dateOfBirth is captured but not sent - need to decide if user can be participant
       // and if we should store participant data for frictionless rebooking

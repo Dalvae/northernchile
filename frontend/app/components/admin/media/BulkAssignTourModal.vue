@@ -2,7 +2,7 @@
 const props = defineProps<{
   modelValue: boolean
   mediaIds: string[]
-  tourOptions: Array<{ label: string; value: string | undefined }>
+  tourOptions: Array<{ label: string, value: string | undefined }>
 }>()
 
 const emit = defineEmits(['update:modelValue', 'success'])

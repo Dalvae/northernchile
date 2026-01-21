@@ -6,6 +6,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Represents a single item in a payment session (one tour booking).
  * This is stored as JSON in the payment_sessions.items column.
@@ -23,7 +25,9 @@ public record PaymentSessionItem(
 
     /**
      * Participant data snapshot stored in the payment session.
+     * Includes flags for saving participant data to user profile.
      */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record ParticipantData(
             String fullName,
             String documentId,
@@ -32,6 +36,9 @@ public record PaymentSessionItem(
             String pickupAddress,
             String specialRequirements,
             String phoneNumber,
-            String email
+            String email,
+            UUID savedParticipantId,
+            Boolean markAsSelf,
+            Boolean saveForFuture
     ) implements Serializable {}
 }

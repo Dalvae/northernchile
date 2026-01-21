@@ -5,6 +5,7 @@ export const useAdminToursData = () => {
 
   return useAsyncData<TourRes[]>('admin-tours-data', () => adminStore.fetchTours(), {
     server: false,
-    lazy: true
+    lazy: true,
+    default: () => []
   })
 }

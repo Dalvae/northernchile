@@ -29,8 +29,7 @@ const {
 // Load tour by slug (depends on tours being loaded)
 const {
   data: tour,
-  pending: tourLoading,
-  refresh: _refresh
+  pending: tourLoading
 } = useAsyncData(
   `media-tour-${slug.value}`,
   async () => {
@@ -60,7 +59,7 @@ const {
   },
   {
     server: false,
-    watch: [slug, () => adminStore.initialized]
+    watch: [slug]
   }
 )
 

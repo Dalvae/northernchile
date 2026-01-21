@@ -3,8 +3,8 @@ import type { TourRes, TourScheduleRes } from 'api-client'
 export interface MediaModalData {
   tours: Ref<TourRes[]>
   schedules: Ref<TourScheduleRes[]>
-  tourOptions: ComputedRef<Array<{ label: string; value: string | undefined }>>
-  scheduleOptions: ComputedRef<Array<{ label: string; value: string | undefined }>>
+  tourOptions: ComputedRef<Array<{ label: string, value: string | undefined }>>
+  scheduleOptions: ComputedRef<Array<{ label: string, value: string | undefined }>>
   loading: Ref<boolean>
   loaded: Ref<boolean>
   load: () => Promise<void>

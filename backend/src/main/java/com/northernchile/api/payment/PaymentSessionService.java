@@ -22,6 +22,7 @@ import com.northernchile.api.payment.repository.PaymentSessionRepository;
 import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
 import com.northernchile.api.tour.TourUtils;
+import com.northernchile.api.user.SavedParticipantService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
@@ -64,6 +65,7 @@ public class PaymentSessionService {
     private final PaymentProperties paymentProperties;
     private final PricingService pricingService;
     private final AppProperties appProperties;
+    private final SavedParticipantService savedParticipantService;
 
     public PaymentSessionService(
             PaymentSessionRepository sessionRepository,
@@ -75,7 +77,8 @@ public class PaymentSessionService {
             AvailabilityValidator availabilityValidator,
             PaymentProperties paymentProperties,
             PricingService pricingService,
-            AppProperties appProperties) {
+            AppProperties appProperties,
+            SavedParticipantService savedParticipantService) {
         this.sessionRepository = sessionRepository;
         this.scheduleRepository = scheduleRepository;
         this.bookingRepository = bookingRepository;
@@ -86,6 +89,7 @@ public class PaymentSessionService {
         this.paymentProperties = paymentProperties;
         this.pricingService = pricingService;
         this.appProperties = appProperties;
+        this.savedParticipantService = savedParticipantService;
     }
 
     /**
@@ -582,7 +586,7 @@ public class PaymentSessionService {
         BigDecimal pricePerPerson = schedule.getTour().getPrice();
         BigDecimal itemTotal = pricePerPerson.multiply(BigDecimal.valueOf(reqItem.numParticipants()));
 
-        // Convert participants to record instances
+        // Convert participants to record instances (including save flags for profile sync)
         List<PaymentSessionItem.ParticipantData> participants = reqItem.participants().stream()
             .map(p -> new PaymentSessionItem.ParticipantData(
                 p.fullName(),
@@ -592,7 +596,10 @@ public class PaymentSessionService {
                 p.pickupAddress(),
                 p.specialRequirements(),
                 p.phoneNumber(),
-                p.email()
+                p.email(),
+                p.savedParticipantId(),
+                p.markAsSelf(),
+                p.saveForFuture()
             ))
             .collect(Collectors.toList());
 
@@ -663,6 +670,30 @@ public class PaymentSessionService {
                 participant.setPhoneNumber(pd.phoneNumber());
                 participant.setEmail(pd.email());
                 participants.add(participant);
+
+                // Process markAsSelf and saveForFuture flags
+                // This syncs participant data to user profile and/or saves for future bookings
+                boolean shouldSave = Boolean.TRUE.equals(pd.saveForFuture()) || Boolean.TRUE.equals(pd.markAsSelf());
+                if (shouldSave) {
+                    try {
+                        savedParticipantService.createFromBookingData(
+                            user,
+                            pd.fullName(),
+                            pd.documentId(),
+                            pd.dateOfBirth(),
+                            pd.nationality(),
+                            pd.phoneNumber(),
+                            pd.email(),
+                            Boolean.TRUE.equals(pd.markAsSelf())
+                        );
+                        log.info("Saved participant data for user {}, markAsSelf={}, saveForFuture={}",
+                            user.getEmail(), pd.markAsSelf(), pd.saveForFuture());
+                    } catch (Exception e) {
+                        // Don't fail the booking if saved participant creation fails
+                        log.error("Failed to save participant data for user {}: {}",
+                            user.getEmail(), e.getMessage());
+                    }
+                }
             }
             booking.setParticipants(participants);
 

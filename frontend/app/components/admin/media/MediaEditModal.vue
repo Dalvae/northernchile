@@ -5,8 +5,8 @@ import { formatFileSize, formatDateTime, getMediaTypeLabel, getMediaTypeBadgeCol
 const props = defineProps<{
   modelValue: boolean
   media: MediaRes | null
-  tourOptions: Array<{ label: string; value: string | undefined }>
-  scheduleOptions: Array<{ label: string; value: string | undefined }>
+  tourOptions: Array<{ label: string, value: string | undefined }>
+  scheduleOptions: Array<{ label: string, value: string | undefined }>
 }>()
 
 const emit = defineEmits(['update:modelValue', 'success'])

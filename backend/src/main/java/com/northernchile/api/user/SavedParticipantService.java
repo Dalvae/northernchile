@@ -185,31 +185,36 @@ public class SavedParticipantService {
 
     /**
      * Sync saved participant data to user profile.
+     * Only updates user fields that are currently empty/null (doesn't overwrite existing data).
      * Updates user's documentId, dateOfBirth, nationality, phoneNumber.
      */
     private void syncToUserProfile(User user, SavedParticipant participant) {
         boolean updated = false;
 
-        if (participant.getDocumentId() != null && !participant.getDocumentId().equals(user.getDocumentId())) {
+        // Only update if user's field is empty and participant has a value
+        if (participant.getDocumentId() != null && !participant.getDocumentId().isBlank()
+                && (user.getDocumentId() == null || user.getDocumentId().isBlank())) {
             user.setDocumentId(participant.getDocumentId());
             updated = true;
         }
-        if (participant.getDateOfBirth() != null && !participant.getDateOfBirth().equals(user.getDateOfBirth())) {
+        if (participant.getDateOfBirth() != null && user.getDateOfBirth() == null) {
             user.setDateOfBirth(participant.getDateOfBirth());
             updated = true;
         }
-        if (participant.getNationality() != null && !participant.getNationality().equals(user.getNationality())) {
+        if (participant.getNationality() != null && !participant.getNationality().isBlank()
+                && (user.getNationality() == null || user.getNationality().isBlank())) {
             user.setNationality(participant.getNationality());
             updated = true;
         }
-        if (participant.getPhoneNumber() != null && !participant.getPhoneNumber().equals(user.getPhoneNumber())) {
+        if (participant.getPhoneNumber() != null && !participant.getPhoneNumber().isBlank()
+                && (user.getPhoneNumber() == null || user.getPhoneNumber().isBlank())) {
             user.setPhoneNumber(participant.getPhoneNumber());
             updated = true;
         }
 
         if (updated) {
             userRepository.save(user);
-            log.info("Synced self participant data to user profile for {}", user.getEmail());
+            log.info("Synced self participant data to user profile for {} (only empty fields)", user.getEmail());
         }
     }
 
