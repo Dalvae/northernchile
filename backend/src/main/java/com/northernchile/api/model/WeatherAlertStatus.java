@@ -1,7 +1,5 @@
 package com.northernchile.api.model;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 /**
  * Status values for weather alerts.
  *
@@ -12,10 +10,5 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum WeatherAlertStatus {
     PENDING,
     REVIEWED,
-    RESOLVED;
-
-    @JsonValue
-    public String toValue() {
-        return this.name();
-    }
+    RESOLVED
 }

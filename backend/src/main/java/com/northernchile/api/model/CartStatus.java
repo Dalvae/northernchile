@@ -1,7 +1,5 @@
 package com.northernchile.api.model;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 /**
  * Status values for shopping carts.
  *
@@ -12,10 +10,5 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum CartStatus {
     ACTIVE,
     EXPIRED,
-    CONVERTED;
-
-    @JsonValue
-    public String toValue() {
-        return this.name();
-    }
+    CONVERTED
 }
