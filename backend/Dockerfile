@@ -24,8 +24,12 @@ RUN apk add --no-cache tzdata
 # Copiar el JAR compilado desde la etapa de build
 COPY --from=build /build/target/*.jar app.jar
 
+# Crear directorio de logs
+RUN mkdir -p /app/logs
+
 # Crear usuario no-root para seguridad
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN addgroup -S spring && adduser -S spring -G spring && \
+    chown -R spring:spring /app/logs
 USER spring:spring
 
 # Exponer puerto

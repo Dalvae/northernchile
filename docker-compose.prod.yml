@@ -1,0 +1,64 @@
+# docker-compose.prod.yml
+# Configuración para PRODUCCIÓN
+# Uso: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  database:
+    # No exponer puerto en producción (solo acceso interno)
+    expose:
+      - "5432"
+
+  backend:
+    image: northernchile-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      # Bind mount para logs persistentes (acceso directo desde host)
+      - ./logs/backend:/app/logs
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    # Logging de Docker como respaldo
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Límites de recursos (VPS 1GB RAM)
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  frontend:
+    image: northernchile-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M

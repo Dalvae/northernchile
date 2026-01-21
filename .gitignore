@@ -106,6 +106,7 @@ coverage/
 # Logs & Temp Files
 # ======================
 logs/
+!logs/**/.gitkeep
 *.log
 tmp/
 temp/

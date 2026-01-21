@@ -12,22 +12,45 @@
         <logger name="com.northernchile" level="DEBUG"/>
     </springProfile>
 
-    <!-- JSON appender for production (machine-parseable) -->
+    <!-- Production: JSON to console + file with rotation -->
     <springProfile name="!dev &amp; !local">
+        <!-- Console JSON (for docker logs) -->
         <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-                <!-- Include MDC keys for request tracing -->
                 <includeMdcKeyName>requestId</includeMdcKeyName>
                 <includeMdcKeyName>userId</includeMdcKeyName>
                 <includeMdcKeyName>traceId</includeMdcKeyName>
-                <!-- Add application context -->
                 <customFields>{"application":"northernchile-api"}</customFields>
             </encoder>
         </appender>
+
+        <!-- File appender with rotation (low memory footprint) -->
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>/app/logs/app.log</file>
+            <!-- Small buffer = less RAM usage -->
+            <immediateFlush>false</immediateFlush>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <!-- Daily rotation + size limit -->
+                <fileNamePattern>/app/logs/app.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>20MB</maxFileSize>
+                <!-- Keep 14 days of logs -->
+                <maxHistory>14</maxHistory>
+                <!-- Max 500MB total (comprimido ~100MB real) -->
+                <totalSizeCap>500MB</totalSizeCap>
+                <!-- Clean old logs on startup -->
+                <cleanHistoryOnStart>true</cleanHistoryOnStart>
+            </rollingPolicy>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdcKeyName>requestId</includeMdcKeyName>
+                <includeMdcKeyName>userId</includeMdcKeyName>
+                <customFields>{"application":"northernchile-api"}</customFields>
+            </encoder>
+        </appender>
+
         <root level="INFO">
             <appender-ref ref="JSON"/>
+            <appender-ref ref="FILE"/>
         </root>
-        <!-- Less verbose in production -->
         <logger name="com.northernchile" level="INFO"/>
     </springProfile>
 
