@@ -370,6 +370,12 @@ async function handleBulkSuccess() {
   rowSelection.value = {}
   await fetchMedia()
 }
+
+// Open bulk assign tour modal
+async function openBulkAssignTourModal() {
+  await loadModalData()
+  bulkAssignTourModalOpen.value = true
+}
 </script>
 
 <template>
@@ -456,7 +462,7 @@ async function handleBulkSuccess() {
           icon="i-heroicons-photo"
           color="primary"
           variant="soft"
-          @click="bulkAssignTourModalOpen = true"
+          @click="openBulkAssignTourModal"
         >
           Asignar a Tour
         </UButton>
@@ -538,6 +544,7 @@ async function handleBulkSuccess() {
     <LazyAdminMediaBulkAssignTourModal
       v-model="bulkAssignTourModalOpen"
       :media-ids="selectedItems"
+      :tour-options="modalTourOptions"
       @success="handleBulkSuccess"
     />
 
