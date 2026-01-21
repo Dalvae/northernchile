@@ -9,17 +9,24 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue', 'success'])
 
-const { showSuccessToast, showErrorToast } = useApiError()
+const toast = useToast()
 const { uploadAdminMedia } = useAdminData()
 const { optimizeImages } = useImageOptimizer()
 const fileInput = ref<HTMLInputElement | null>(null)
 
-const isOpen = computed({
-  get: () => props.modelValue,
-  set: value => emit('update:modelValue', value)
+// Modal state using useControlledModalForm (for consistent open/close behavior)
+const { isOpen } = useControlledModalForm({
+  modelValue: toRef(props, 'modelValue'),
+  onUpdateModelValue: v => emit('update:modelValue', v),
+  onSubmit: async () => {
+    // Not used - we handle upload manually due to complex file-by-file logic
+  },
+  onSuccess: () => {
+    // Not used
+  }
 })
 
-// State
+// File upload state
 const isOptimizing = ref(false)
 const uploadingFiles = ref<Array<{
   file: File
@@ -40,6 +47,19 @@ const metadata = ref({
 
 const isUploading = computed(() => uploadingFiles.value.some(f => f.status === 'uploading'))
 
+// Reset state when modal closes
+watch(isOpen, (open) => {
+  if (!open) {
+    uploadingFiles.value = []
+    metadata.value = {
+      altTranslations: { es: '', en: '', pt: '' },
+      captionTranslations: { es: '', en: '', pt: '' },
+      tags: [],
+      takenAt: ''
+    }
+  }
+})
+
 // File handling
 async function onFilesSelected(event: Event) {
   const target = event.target as HTMLInputElement
@@ -52,7 +72,7 @@ async function processFiles(files: File[]) {
   // Validate type only (size validation happens AFTER optimization)
   const imageFiles = files.filter((file) => {
     if (!file.type.startsWith('image/')) {
-      showErrorToast({ message: `Archivo inválido: ${file.name}. Solo se permiten imágenes.` })
+      toast.add({ color: 'error', title: `Archivo inválido: ${file.name}. Solo se permiten imágenes.` })
       return false
     }
     return true
@@ -75,7 +95,7 @@ async function processFiles(files: File[]) {
     const maxSize = 10 * 1024 * 1024
     const validResults = optimizedResults.filter((result) => {
       if (result.file.size > maxSize) {
-        showErrorToast({ message: `Archivo muy grande: ${result.file.name}. Incluso después de optimizar supera 10MB (${formatFileSize(result.file.size)})` })
+        toast.add({ color: 'error', title: `Archivo muy grande: ${result.file.name}. Incluso después de optimizar supera 10MB (${formatFileSize(result.file.size)})` })
         return false
       }
       return true
@@ -98,18 +118,18 @@ async function processFiles(files: File[]) {
       const avgSavings = totalSavings / validResults.length
 
       if (avgSavings > 5) {
-        showSuccessToast(`${validResults.length} imágenes optimizadas`, `Reducción promedio: ${avgSavings.toFixed(0)}%`)
+        toast.add({ color: 'success', title: `${validResults.length} imágenes optimizadas`, description: `Reducción promedio: ${avgSavings.toFixed(0)}%` })
       }
     }
   } catch (error) {
     console.error('Error optimizing images:', error)
-    showErrorToast(error, 'Error al optimizar imágenes. Las imágenes se subirán sin optimizar.')
+    toast.add({ color: 'error', title: 'Error al optimizar imágenes', description: 'Las imágenes se subirán sin optimizar.' })
 
     // Add original files if optimization fails (with size check)
     const maxSize = 10 * 1024 * 1024
     imageFiles.forEach((file) => {
       if (file.size > maxSize) {
-        showErrorToast({ message: `Archivo muy grande: ${file.name}. Máximo 10MB.` })
+        toast.add({ color: 'error', title: `Archivo muy grande: ${file.name}. Máximo 10MB.` })
         return
       }
       uploadingFiles.value.push({
@@ -172,7 +192,7 @@ async function startUpload() {
   const successCount = uploadingFiles.value.filter(f => f.status === 'success').length
 
   if (successCount > 0) {
-    showSuccessToast(`${successCount} ${successCount === 1 ? 'foto subida' : 'fotos subidas'} con éxito`)
+    toast.add({ color: 'success', title: `${successCount} ${successCount === 1 ? 'foto subida' : 'fotos subidas'} con éxito` })
     emit('success')
   }
 
@@ -180,13 +200,6 @@ async function startUpload() {
   const hasErrors = uploadingFiles.value.some(f => f.status === 'error')
   if (!hasErrors) {
     isOpen.value = false
-    uploadingFiles.value = []
-    metadata.value = {
-      altTranslations: { es: '', en: '', pt: '' },
-      captionTranslations: { es: '', en: '', pt: '' },
-      tags: [],
-      takenAt: ''
-    }
   }
 }
 
