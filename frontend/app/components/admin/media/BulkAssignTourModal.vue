@@ -25,7 +25,7 @@ const { isOpen, isSubmitting, handleSubmit } = useControlledModalForm({
     selectedTourId.value = undefined
     emit('success')
   },
-  successMessage: `${props.mediaIds.length} ${props.mediaIds.length === 1 ? 'medio asignado' : 'medios asignados'} al tour`,
+  successMessage: () => `${props.mediaIds.length} ${props.mediaIds.length === 1 ? 'medio asignado' : 'medios asignados'} al tour`,
   errorMessage: 'Error al asignar medios'
 })
 

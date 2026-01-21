@@ -14,16 +14,10 @@ const { uploadAdminMedia } = useAdminData()
 const { optimizeImages } = useImageOptimizer()
 const fileInput = ref<HTMLInputElement | null>(null)
 
-// Modal state using useControlledModalForm (for consistent open/close behavior)
-const { isOpen } = useControlledModalForm({
-  modelValue: toRef(props, 'modelValue'),
-  onUpdateModelValue: v => emit('update:modelValue', v),
-  onSubmit: async () => {
-    // Not used - we handle upload manually due to complex file-by-file logic
-  },
-  onSuccess: () => {
-    // Not used
-  }
+// Modal open state (manual pattern - upload flow is too complex for useControlledModalForm)
+const isOpen = computed({
+  get: () => props.modelValue,
+  set: (value: boolean) => emit('update:modelValue', value)
 })
 
 // File upload state

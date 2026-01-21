@@ -44,10 +44,17 @@ const { isOpen, isSubmitting, handleSubmit } = useControlledModalForm({
       }
     }
 
+    // Show appropriate toast based on results
     if (failed > 0) {
       toast.add({
         color: 'warning',
         title: `${updated} actualizados, ${failed} fallaron`
+      })
+    } else {
+      const action = mode.value === 'add' ? 'añadidas' : 'reemplazadas'
+      toast.add({
+        color: 'success',
+        title: `Etiquetas ${action} en ${updated} ${updated === 1 ? 'medio' : 'medios'}`
       })
     }
 
@@ -58,7 +65,7 @@ const { isOpen, isSubmitting, handleSubmit } = useControlledModalForm({
     mode.value = 'add'
     emit('success')
   },
-  successMessage: `Etiquetas ${mode.value === 'add' ? 'añadidas' : 'reemplazadas'} en ${props.mediaIds.length} ${props.mediaIds.length === 1 ? 'medio' : 'medios'}`,
+  showSuccessToast: false, // We handle toasts manually above
   errorMessage: 'Error al actualizar etiquetas'
 })
 
