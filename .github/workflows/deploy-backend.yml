@@ -144,8 +144,8 @@ jobs:
           SSH_CMD: ssh -i ~/.ssh/key -o StrictHostKeyChecking=no -o ConnectTimeout=30 ${{ env.VPS_USER }}@${{ env.VPS_HOST }}
           SCP_CMD: scp -i ~/.ssh/key -o StrictHostKeyChecking=no -o ConnectTimeout=30
         run: |
-          # Create directories
-          $SSH_CMD "mkdir -p ${{ env.APP_DIR }}/logs"
+          # Create directories with proper permissions for spring user
+          $SSH_CMD "mkdir -p ${{ env.APP_DIR }}/logs && chmod 777 ${{ env.APP_DIR }}/logs"
 
           # Copy files
           $SCP_CMD .env ${{ env.VPS_USER }}@${{ env.VPS_HOST }}:${{ env.APP_DIR }}/
