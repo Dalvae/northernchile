@@ -9,8 +9,10 @@ const toast = useToast()
 const cartStore = useCartStore()
 
 const { data: allTours } = await useFetch<TourRes[]>('/api/tours', {
+  lazy: true,
+  server: true,
   transform: (tours: TourRes[]) => {
-    return tours.map(tour => ({
+    return (tours || []).map(tour => ({
       ...tour,
       // Pass hero, featured, or first image - need flags for image selection
       images: tour.images
