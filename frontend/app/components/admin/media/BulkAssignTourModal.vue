@@ -2,63 +2,42 @@
 const props = defineProps<{
   modelValue: boolean
   mediaIds: string[]
+  tourOptions: Array<{ label: string; value: string | undefined }>
 }>()
 
 const emit = defineEmits(['update:modelValue', 'success'])
 
-const { showSuccessToast, showErrorToast } = useApiError()
 const { assignMediaToTour } = useAdminData()
-
-const isOpen = computed({
-  get: () => props.modelValue,
-  set: value => emit('update:modelValue', value)
-})
 
 // State
 const selectedTourId = ref<string | undefined>(undefined)
-const saving = ref(false)
 
-const adminStore = useAdminStore()
-
-// Fetch tours
-const { status } = useAdminToursData()
-
-const tours = computed(() => adminStore.tours)
-
-const tourOptions = computed(() =>
-  tours.value?.map(t => ({
-    label: t.nameTranslations?.es || 'Sin nombre',
-    value: t.id
-  })) || []
-)
-
-// Reset on open
-watch(isOpen, (open) => {
-  if (open) {
+const { isOpen, isSubmitting, handleSubmit } = useControlledModalForm({
+  modelValue: toRef(props, 'modelValue'),
+  onUpdateModelValue: v => emit('update:modelValue', v),
+  onSubmit: async () => {
+    if (!selectedTourId.value) {
+      throw new Error('Selecciona un tour')
+    }
+    await assignMediaToTour(selectedTourId.value, props.mediaIds)
+  },
+  onSuccess: () => {
     selectedTourId.value = undefined
-  }
+    emit('success')
+  },
+  successMessage: `${props.mediaIds.length} ${props.mediaIds.length === 1 ? 'medio asignado' : 'medios asignados'} al tour`,
+  errorMessage: 'Error al asignar medios'
 })
 
-async function save() {
-  if (!selectedTourId.value) {
-    showErrorToast({ message: 'Selecciona un tour' })
-    return
-  }
+// Reset on open
+watch(() => props.modelValue, (open) => {
+  if (open) selectedTourId.value = undefined
+})
 
-  saving.value = true
-  try {
-    await assignMediaToTour(selectedTourId.value, props.mediaIds)
-
-    showSuccessToast(`${props.mediaIds.length} ${props.mediaIds.length === 1 ? 'medio asignado' : 'medios asignados'} al tour`)
-    emit('success')
-    isOpen.value = false
-  } catch (error) {
-    console.error('Error assigning media to tour:', error)
-    showErrorToast(error, 'Error al asignar medios')
-  } finally {
-    saving.value = false
-  }
-}
+// Filter out the "Sin asignar" option for bulk assign (only show actual tours)
+const filteredTourOptions = computed(() =>
+  props.tourOptions.filter(opt => opt.value !== undefined)
+)
 </script>
 
 <template>
@@ -68,9 +47,9 @@ async function save() {
     :subtitle="`${mediaIds.length} ${mediaIds.length === 1 ? 'medio seleccionado' : 'medios seleccionados'}`"
     size="md"
     submit-label="Asignar"
-    :submit-loading="saving"
+    :submit-loading="isSubmitting"
     :submit-disabled="!selectedTourId"
-    @submit="save"
+    @submit="handleSubmit"
   >
     <div>
       <label class="block text-sm font-medium text-default mb-2">
@@ -79,13 +58,12 @@ async function save() {
 
       <USelect
         v-model="selectedTourId"
-        :items="tourOptions"
+        :items="filteredTourOptions"
         option-attribute="label"
         value-attribute="value"
         placeholder="Selecciona un tour"
         size="lg"
         class="w-full"
-        :loading="status === 'pending'"
       />
 
       <p class="text-xs text-muted mt-2">
