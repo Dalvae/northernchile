@@ -88,6 +88,7 @@ const {
   () => fetchAdminMedia({
     page: (page.value - 1).toString(),
     size: pageSize.value.toString(),
+    sort: 'uploadedAt,desc',
     search: filters.value.search || undefined,
     type: filters.value.type || undefined,
     tourId: filters.value.tourId || undefined
@@ -161,6 +162,7 @@ async function loadMoreForLightbox() {
     const response = await fetchAdminMedia({
       page: nextPage.toString(),
       size: pageSize.value.toString(),
+      sort: 'uploadedAt,desc',
       search: filters.value.search || undefined,
       type: filters.value.type || undefined,
       tourId: filters.value.tourId || undefined
