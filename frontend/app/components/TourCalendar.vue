@@ -267,6 +267,19 @@ const calendarEvents = computed(() => {
 
   schedules.value.forEach((schedule) => {
     const startDate = new Date(schedule.startDatetime)
+
+    // Convert UTC to Santiago timezone for correct day placement in calendar
+    // Example: "2026-01-24T00:02:00Z" in UTC is "2026-01-23T21:02:00" in Santiago (UTC-3)
+    const startInSantiago = startDate.toLocaleString('sv-SE', {
+      timeZone: 'America/Santiago',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }).replace(' ', 'T')
+
     // Use tourNameTranslations from TourScheduleRes directly (no need for tour.nameTranslations)
     const tourName
       = schedule.tourNameTranslations?.[locale.value]
@@ -281,7 +294,7 @@ const calendarEvents = computed(() => {
         minute: '2-digit',
         timeZone: 'America/Santiago'
       })}`,
-      start: schedule.startDatetime,
+      start: startInSantiago,
       allDay: false,
       backgroundColor: getTourColor(schedule.tourId),
       borderColor: getTourColor(schedule.tourId),
