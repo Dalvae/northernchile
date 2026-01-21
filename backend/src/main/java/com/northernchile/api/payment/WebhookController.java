@@ -59,23 +59,21 @@ public class WebhookController {
             // Format 1: { "id": "12345", "type": "payment", ... }
             // Format 2: { "data": { "id": "12345" }, "type": "payment", ... }
             String dataId = null;
+            Object dataObj = payload.get("data"); // Extract data object for later use
 
             // Try root level "id" first (most common format)
             Object rootId = payload.get("id");
             if (rootId != null) {
                 dataId = rootId.toString();
                 log.debug("Found payment ID at root level: {}", dataId);
-            } else {
+            } else if (dataObj instanceof Map) {
                 // Try nested "data.id"
-                Object dataObj = payload.get("data");
-                if (dataObj instanceof Map) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> data = (Map<String, Object>) dataObj;
-                    Object id = data.get("id");
-                    if (id != null) {
-                        dataId = id.toString();
-                        log.debug("Found payment ID in data object: {}", dataId);
-                    }
+                @SuppressWarnings("unchecked")
+                Map<String, Object> data = (Map<String, Object>) dataObj;
+                Object id = data.get("id");
+                if (id != null) {
+                    dataId = id.toString();
+                    log.debug("Found payment ID in data object: {}", dataId);
                 }
             }
 
