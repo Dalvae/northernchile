@@ -204,14 +204,14 @@ public class WeatherAlertService {
     public int checkWeatherAlertsManually() {
         logger.info("Verificación manual de alertas iniciada por administrador");
         checkWeatherAlertsAutomatically();
-        return alertRepository.findByStatus("PENDING").size();
+        return alertRepository.findByStatus(WeatherAlertStatus.PENDING).size();
     }
 
     /**
      * Obtiene todas las alertas pendientes
      */
     public List<WeatherAlert> getPendingAlerts() {
-        return alertRepository.findByStatus("PENDING");
+        return alertRepository.findByStatus(WeatherAlertStatus.PENDING);
     }
 
     /**

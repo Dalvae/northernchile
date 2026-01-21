@@ -92,7 +92,7 @@ public class TourService {
     @Transactional(readOnly = true)
     @Cacheable(value = "tour-list", key = "'all-published'")
     public List<TourRes> getPublishedTours() {
-        List<TourRes> tours = tourRepository.findByStatusNotDeletedWithImages("PUBLISHED").stream()
+        List<TourRes> tours = tourRepository.findByStatusNotDeletedWithImages(TourStatus.PUBLISHED).stream()
                 .map(tourMapper::toTourRes)
                 .collect(Collectors.toList());
 

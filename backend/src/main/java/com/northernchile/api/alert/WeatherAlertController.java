@@ -43,7 +43,7 @@ public class WeatherAlertController {
      */
     @GetMapping
     public List<WeatherAlertRes> getPendingAlerts() {
-        List<WeatherAlert> alerts = alertRepository.findByStatusWithScheduleAndTour("PENDING");
+        List<WeatherAlert> alerts = alertRepository.findByStatusWithScheduleAndTour(WeatherAlertStatus.PENDING);
         return alertMapper.toResList(alerts);
     }
 
