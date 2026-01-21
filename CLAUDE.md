@@ -117,6 +117,32 @@ pnpm generate-api-client
 ```
 This fetches the spec from `http://localhost:8080/api-docs` and generates a TypeScript Axios client in `lib/api-client/`.
 
+### Production Server Logs
+To check production logs, SSH into the server (IP stored in `.server-config`, gitignored):
+```bash
+# Read server IP
+SERVER_IP=$(cat .server-config)
+
+# View recent logs
+ssh root@$SERVER_IP "docker logs --tail 50 northernchile-backend-1"
+
+# View persistent log file
+ssh root@$SERVER_IP "tail -50 /app/northernchile/logs/app.log"
+
+# Check container status
+ssh root@$SERVER_IP "docker ps"
+```
+
+**Note**: Requires ssh-agent with key loaded. If passphrase needed:
+```bash
+eval $(ssh-agent -s)
+ssh-add ~/.ssh/id_rsa
+```
+
+When asked to "check production logs", give a brief summary:
+- ✅ App ok, no errors
+- ❌ Error: [brief description]
+
 ## Core Domain Concepts
 
 ### Tour vs. Schedule Model
