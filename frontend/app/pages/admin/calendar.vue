@@ -271,7 +271,7 @@ import type {
 import esLocale from '@fullcalendar/core/locales/es'
 import type { TourRes, TourScheduleRes, TourScheduleCreateReq, WeatherAlertRes } from 'api-client'
 import type { DailyWeather, MoonPhase } from '~/composables/useCalendarData'
-import { getLocalDateString, CHILE_TIMEZONE } from '~/utils/dateUtils'
+import { getLocalDateString, CHILE_TIMEZONE, instantToChileLocalString } from '~/utils/dateUtils'
 
 definePageMeta({
   layout: 'admin'
@@ -607,6 +607,9 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
       ? schedules.map((schedule: TourScheduleRes) => {
           const start = new Date(schedule.startDatetime)
 
+          // Convert UTC to Chile local time for correct calendar day placement
+          const startInChile = instantToChileLocalString(schedule.startDatetime)
+
           // Color único para todos los tours activos
           let backgroundColor = 'var(--color-atacama-dorado-500)'
 
@@ -641,7 +644,7 @@ const calendarOptions = computed<CalendarOptions | null>(() => {
           return {
             id: schedule.id,
             title: `${timeStr} - ${truncatedName}`,
-            start: start,
+            start: startInChile,
             allDay: false,
             backgroundColor,
             borderColor: backgroundColor,
