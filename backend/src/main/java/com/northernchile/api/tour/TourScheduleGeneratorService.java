@@ -9,6 +9,7 @@ import com.northernchile.api.external.WeatherService;
 import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.TourScheduleStatus;
+import com.northernchile.api.model.TourStatus;
 import com.northernchile.api.tour.TourRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +72,7 @@ public class TourScheduleGeneratorService {
         LocalDate today = LocalDate.now(DateTimeUtils.CHILE_ZONE);
 
         // Solo tours recurrentes y publicados
-        List<Tour> recurringTours = tourRepository.findByRecurringTrueAndStatus("PUBLISHED");
+        List<Tour> recurringTours = tourRepository.findByRecurringTrueAndStatus(TourStatus.PUBLISHED);
 
         logger.info("Encontrados {} tours recurrentes publicados", recurringTours.size());
 

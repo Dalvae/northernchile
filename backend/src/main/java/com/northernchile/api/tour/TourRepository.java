@@ -1,6 +1,7 @@
 package com.northernchile.api.tour;
 
 import com.northernchile.api.model.Tour;
+import com.northernchile.api.model.TourStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,9 +14,9 @@ import java.util.UUID;
 
 @Repository
 public interface TourRepository extends JpaRepository<Tour, UUID> {
-    List<Tour> findByStatus(String status);
-    List<Tour> findByRecurringAndStatus(boolean recurring, String status);
-    List<Tour> findByRecurringTrueAndStatus(String status);
+    List<Tour> findByStatus(TourStatus status);
+    List<Tour> findByRecurringAndStatus(boolean recurring, TourStatus status);
+    List<Tour> findByRecurringTrueAndStatus(TourStatus status);
 
     // Queries excluding soft-deleted tours
     @Query("SELECT t FROM Tour t WHERE t.deletedAt IS NULL")
@@ -25,7 +26,7 @@ public interface TourRepository extends JpaRepository<Tour, UUID> {
     Optional<Tour> findByIdNotDeleted(@Param("id") UUID id);
 
     @Query("SELECT t FROM Tour t WHERE t.status = :status AND t.deletedAt IS NULL")
-    List<Tour> findByStatusNotDeleted(@Param("status") String status);
+    List<Tour> findByStatusNotDeleted(@Param("status") TourStatus status);
 
     // Queries for multi-tenant filtering (PARTNER_ADMIN only sees their own tours)
     @Query("SELECT t FROM Tour t WHERE t.owner.id = :ownerId AND t.deletedAt IS NULL")
@@ -38,7 +39,7 @@ public interface TourRepository extends JpaRepository<Tour, UUID> {
     @Query("SELECT t FROM Tour t WHERE t.slug = :slug AND t.deletedAt IS NULL")
     Optional<Tour> findBySlugNotDeleted(@Param("slug") String slug);
 
-    @Query("SELECT t FROM Tour t WHERE t.slug = :slug AND t.status = 'PUBLISHED' AND t.deletedAt IS NULL")
+    @Query("SELECT t FROM Tour t WHERE t.slug = :slug AND t.status = com.northernchile.api.model.TourStatus.PUBLISHED AND t.deletedAt IS NULL")
     Optional<Tour> findBySlugPublished(@Param("slug") String slug);
 
     Optional<Tour> findBySlug(String slug);
@@ -46,7 +47,7 @@ public interface TourRepository extends JpaRepository<Tour, UUID> {
     // Queries with EntityGraph to avoid N+1 (eagerly fetch owner)
     @EntityGraph(attributePaths = {"owner"})
     @Query("SELECT t FROM Tour t WHERE t.status = :status AND t.deletedAt IS NULL")
-    List<Tour> findByStatusNotDeletedWithImages(@Param("status") String status);
+    List<Tour> findByStatusNotDeletedWithImages(@Param("status") TourStatus status);
 
     @EntityGraph(attributePaths = {"owner"})
     @Query("SELECT t FROM Tour t WHERE t.deletedAt IS NULL")

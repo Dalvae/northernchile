@@ -10,6 +10,7 @@ import com.northernchile.api.common.dto.MessageRes;
 import com.northernchile.api.config.security.annotation.CurrentUser;
 import com.northernchile.api.model.User;
 import com.northernchile.api.model.WeatherAlert;
+import com.northernchile.api.model.WeatherAlertStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

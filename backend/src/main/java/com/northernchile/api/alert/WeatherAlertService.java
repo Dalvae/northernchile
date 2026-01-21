@@ -104,7 +104,7 @@ public class WeatherAlertService {
 
                 // Verificar si ya existe una alerta pendiente para este schedule
                 boolean hasPendingAlert = !alertRepository
-                        .findByTourSchedule_IdAndStatus(schedule.getId(), "PENDING")
+                        .findByTourSchedule_IdAndStatus(schedule.getId(), WeatherAlertStatus.PENDING)
                         .isEmpty();
 
                 if (hasPendingAlert) {
@@ -218,7 +218,7 @@ public class WeatherAlertService {
      * Cuenta alertas pendientes
      */
     public long countPendingAlerts() {
-        return alertRepository.countByStatus("PENDING");
+        return alertRepository.countByStatus(WeatherAlertStatus.PENDING);
     }
 
     /**

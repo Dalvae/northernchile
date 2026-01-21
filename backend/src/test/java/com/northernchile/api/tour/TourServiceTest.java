@@ -118,7 +118,7 @@ class TourServiceTest {
         @DisplayName("Should return only published tours")
         void shouldReturnOnlyPublishedTours() {
             // Given
-            when(tourRepository.findByStatusNotDeletedWithImages("PUBLISHED"))
+            when(tourRepository.findByStatusNotDeletedWithImages(TourStatus.PUBLISHED))
                     .thenReturn(List.of(testTour));
             when(tourMapper.toTourRes(testTour)).thenReturn(testTourRes);
             when(mediaRepository.findByTourIdOrderByDisplayOrderAsc(any()))
@@ -129,14 +129,14 @@ class TourServiceTest {
 
             // Then
             assertThat(result).hasSize(1);
-            verify(tourRepository).findByStatusNotDeletedWithImages("PUBLISHED");
+            verify(tourRepository).findByStatusNotDeletedWithImages(TourStatus.PUBLISHED);
         }
 
         @Test
         @DisplayName("Should return empty list when no published tours")
         void shouldReturnEmptyListWhenNoPublishedTours() {
             // Given
-            when(tourRepository.findByStatusNotDeletedWithImages("PUBLISHED"))
+            when(tourRepository.findByStatusNotDeletedWithImages(TourStatus.PUBLISHED))
                     .thenReturn(List.of());
 
             // When

@@ -3,6 +3,7 @@ package com.northernchile.api.tour;
 import com.northernchile.api.audit.AuditLogService;
 import com.northernchile.api.media.repository.MediaRepository;
 import com.northernchile.api.model.Tour;
+import com.northernchile.api.model.TourStatus;
 import com.northernchile.api.model.User;
 import com.northernchile.api.security.Role;
 import com.northernchile.api.tour.dto.TourCreateReq;
