@@ -62,5 +62,39 @@ public class TourSchedulePublicController {
 
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * GET /api/tours/schedules/all?start=2025-11-01&end=2025-12-31&tourIds=uuid1,uuid2,uuid3
+     * Public endpoint para obtener schedules de múltiples tours en una sola llamada
+     * Si no se proveen tourIds, devuelve schedules de todos los tours publicados
+     */
+    @GetMapping("/schedules/all")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<TourScheduleRes>> getAllTourSchedules(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            @RequestParam(required = false) List<UUID> tourIds) {
+
+        Instant startInstant = DateTimeUtils.toInstantStartOfDay(start);
+        Instant endInstant = DateTimeUtils.toInstantEndOfDay(end);
+
+        // Use JOIN FETCH to avoid LazyInitializationException
+        List<TourSchedule> schedules = tourScheduleRepository.findByStartDatetimeBetweenWithTour(
+                startInstant,
+                endInstant
+        );
+
+        // Filter schedules: only OPEN schedules for PUBLISHED tours
+        List<TourScheduleRes> response = schedules.stream()
+                .filter(s -> s.getTour() != null)
+                .filter(s -> TourStatus.PUBLISHED.equals(s.getTour().getStatus()))
+                .filter(s -> TourScheduleStatus.OPEN.equals(s.getStatus()))
+                // If tourIds provided, filter by them; otherwise include all
+                .filter(s -> tourIds == null || tourIds.isEmpty() || tourIds.contains(s.getTour().getId()))
+                .map(tourScheduleService::toScheduleResWithAvailability)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
+    }
 }
 

@@ -98,27 +98,21 @@ async function fetchSchedules() {
     const end = new Date()
     end.setDate(end.getDate() + 90)
 
-    // Fetch schedules for all tours - TourScheduleRes already contains tourId/tourName
-    const allSchedules = await Promise.all(
-      props.tours.map(async (tour) => {
-        try {
-          const response = await $fetch<TourScheduleRes[]>(
-            `/api/tours/${tour.id}/schedules`,
-            {
-              params: {
-                start: getLocalDateString(start),
-                end: getLocalDateString(end)
-              }
-            }
-          )
-          return response
-        } catch {
-          return []
-        }
-      })
+    // Extract tour IDs to filter schedules
+    const tourIds = props.tours.map(tour => tour.id)
+
+    // Build query string with multiple tourIds parameters
+    const params = new URLSearchParams()
+    params.append('start', getLocalDateString(start))
+    params.append('end', getLocalDateString(end))
+    tourIds.forEach(id => params.append('tourIds', id))
+
+    // Single API call to fetch all schedules for all tours at once
+    const response = await $fetch<TourScheduleRes[]>(
+      `/api/tours/schedules/all?${params.toString()}`
     )
 
-    schedules.value = allSchedules.flat()
+    schedules.value = response
   } catch (e) {
     logger.error('Failed to fetch schedules', e)
     schedules.value = []
