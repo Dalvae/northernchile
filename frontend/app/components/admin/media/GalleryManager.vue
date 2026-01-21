@@ -34,6 +34,13 @@ const uploadModalOpen = ref(false)
 const editModalOpen = ref(false)
 const selectedMediaForEdit = ref<MediaRes | null>(null)
 
+// Media modal data (shared dropdown data for edit modal)
+const {
+  tourOptions,
+  scheduleOptions,
+  load: loadModalData
+} = useMediaModalData()
+
 // Lightbox state
 const lightboxOpen = ref(false)
 const lightboxIndex = ref(0)
@@ -110,8 +117,9 @@ function openLightbox(index: number) {
 }
 
 // Open edit modal for a specific media
-function openEditModal(media: MediaRes) {
+async function openEditModal(media: MediaRes) {
   selectedMediaForEdit.value = media
+  await loadModalData() // Load dropdown data before opening
   editModalOpen.value = true
 }
 
@@ -517,9 +525,11 @@ watch(() => [props.tourId, props.scheduleId], () => {
     />
 
     <!-- Edit metadata modal -->
-    <AdminMediaMediaEditModal
+    <AdminMediaEditModal
       v-model="editModalOpen"
       :media="selectedMediaForEdit"
+      :tour-options="tourOptions"
+      :schedule-options="scheduleOptions"
       @success="onEditSuccess"
     />
   </div>
