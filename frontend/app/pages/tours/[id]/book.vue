@@ -325,10 +325,10 @@
 // Fetch tour data
 import type {
   TourRes,
-  BookingCreateReq,
   BookingRes,
   TourScheduleRes
 } from 'api-client'
+import type { BookingCreateReq } from '../../../../lib/api-client/custom-types'
 import { logger } from '~/utils/logger'
 
 const route = useRoute()

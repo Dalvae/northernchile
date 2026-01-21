@@ -23,7 +23,7 @@ const schema = z.object({
     .min(1, 'Debe ser al menos 1 participante'),
   durationHours: z.number().int().min(1, 'Debe ser al menos 1 hora'),
   defaultStartTime: z.string().optional(),
-  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
+  status: z.enum(['DRAFT', 'PUBLISHED']),
   contentKey: z.string().min(1, 'La clave de contenido es requerida'),
   recurring: z.boolean().optional(),
   recurrenceRule: z.string().optional()

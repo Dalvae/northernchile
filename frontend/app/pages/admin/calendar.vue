@@ -269,7 +269,7 @@ import type {
   EventClickArg
 } from '@fullcalendar/core'
 import esLocale from '@fullcalendar/core/locales/es'
-import type { TourRes, TourScheduleRes, TourScheduleCreateReq, WeatherAlertRes } from 'api-client'
+import type { TourRes, TourScheduleRes, TourScheduleCreateReq, TourScheduleCreateReqStatusEnum, WeatherAlertRes } from 'api-client'
 import type { DailyWeather, MoonPhase } from '~/composables/useCalendarData'
 import { getLocalDateString, CHILE_TIMEZONE, instantToChileLocalString } from '~/utils/dateUtils'
 
@@ -523,7 +523,7 @@ const saveSchedule = async () => {
 
   try {
     // Send date and time separately - backend handles Chile timezone conversion
-    const payload: TourScheduleCreateReq & { status?: string, date?: string, time?: string } = {
+    const payload: TourScheduleCreateReq & { date?: string, time?: string } = {
       tourId: scheduleForm.value.tourId,
       date: scheduleForm.value.date,
       time: scheduleForm.value.time.length === 5 ? `${scheduleForm.value.time}:00` : scheduleForm.value.time,
@@ -532,7 +532,7 @@ const saveSchedule = async () => {
 
     // En modo edición, incluir el status
     if (isEditMode.value) {
-      payload.status = scheduleForm.value.status
+      payload.status = scheduleForm.value.status as TourScheduleCreateReqStatusEnum
 
       // Update existing schedule
       await $fetch(
