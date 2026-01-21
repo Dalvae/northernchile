@@ -5,11 +5,13 @@ import { formatFileSize, formatDateTime, getMediaTypeLabel, getMediaTypeBadgeCol
 const props = defineProps<{
   modelValue: boolean
   media: MediaRes | null
+  tourOptions: Array<{ label: string; value: string | undefined }>
+  scheduleOptions: Array<{ label: string; value: string | undefined }>
 }>()
 
 const emit = defineEmits(['update:modelValue', 'success'])
 
-const { fetchAdminSchedules, updateAdminMedia } = useAdminData()
+const { updateAdminMedia } = useAdminData()
 
 // Form state
 const state = ref({
@@ -20,34 +22,6 @@ const state = ref({
   tourId: undefined as string | undefined,
   scheduleId: undefined as string | undefined
 })
-
-const adminStore = useAdminStore()
-
-// Fetch tours for assignment
-const { data: tours } = useAsyncData('admin-tours-data', () => adminStore.fetchTours(), {
-  server: false,
-  lazy: true,
-  default: () => []
-})
-
-const { data: schedules } = useAsyncData('schedules-for-media', () => fetchAdminSchedules({ mode: 'past' }), {
-  server: false,
-  lazy: true,
-  default: () => []
-})
-
-const tourOptions = computed(() => [
-  { label: 'Sin asignar', value: undefined },
-  ...(tours.value?.map(t => ({ label: t.nameTranslations?.es || 'Sin nombre', value: t.id })) || [])
-])
-
-const scheduleOptions = computed(() => [
-  { label: 'Sin asignar', value: undefined },
-  ...(schedules.value?.map(s => ({
-    label: `${s.tourName} - ${s.startDatetime ? new Date(s.startDatetime).toLocaleDateString('es-CL') : ''}`,
-    value: s.id
-  })) || [])
-])
 
 // Load media data
 watch(() => props.media, (media) => {
@@ -252,7 +226,7 @@ const { isOpen, isSubmitting, handleSubmit } = useControlledModalForm({
 
         <USelect
           v-model="state.tourId"
-          :items="tourOptions"
+          :items="props.tourOptions"
           option-attribute="label"
           value-attribute="value"
           placeholder="Selecciona un tour"
@@ -273,7 +247,7 @@ const { isOpen, isSubmitting, handleSubmit } = useControlledModalForm({
 
         <USelect
           v-model="state.scheduleId"
-          :items="scheduleOptions"
+          :items="props.scheduleOptions"
           option-attribute="label"
           value-attribute="value"
           placeholder="Selecciona una salida"
