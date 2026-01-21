@@ -27,6 +27,13 @@ const lightboxIndex = ref(0)
 const bulkAssignTourModalOpen = ref(false)
 const bulkTagsModalOpen = ref(false)
 
+// Media modal data (shared dropdown data for edit modal)
+const {
+  tourOptions: modalTourOptions,
+  scheduleOptions: modalScheduleOptions,
+  load: loadModalData
+} = useMediaModalData()
+
 // Row selection state (TanStack Table format: { rowIndex: true })
 const rowSelection = ref<Record<string, boolean>>({})
 
@@ -316,8 +323,9 @@ async function deleteMediaItem(id: string) {
   }
 }
 
-function openEditModal(mediaItem: MediaRes) {
+async function openEditModal(mediaItem: MediaRes) {
   selectedMedia.value = mediaItem
+  await loadModalData() // Load dropdown data before opening
   editModalOpen.value = true
 }
 
@@ -512,6 +520,8 @@ async function handleBulkSuccess() {
     <LazyAdminMediaEditModal
       v-model="editModalOpen"
       :media="selectedMedia"
+      :tour-options="modalTourOptions"
+      :schedule-options="modalScheduleOptions"
       @success="fetchMedia"
     />
 
