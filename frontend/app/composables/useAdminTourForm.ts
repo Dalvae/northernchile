@@ -1,5 +1,6 @@
 // composables/useAdminTourForm.ts
 import { z } from 'zod'
+import { useDebounceFn } from '@vueuse/core'
 import type { FormSubmitEvent, FormErrorEvent, FormError } from '@nuxt/ui'
 import type { TourRes, TourCreateReq, TourUpdateReq, ContentBlock, ItineraryItem } from 'api-client'
 
@@ -150,15 +151,16 @@ export const useAdminTourForm = (props: { tour?: TourRes | null }, emit: (event:
   })
 
   // Auto-save draft on state changes (create mode only, debounced)
-  let saveTimeout: ReturnType<typeof setTimeout> | null = null
+  // Using useDebounceFn ensures proper cleanup on component unmount
+  const debouncedSaveDraft = useDebounceFn(() => {
+    if (!props.tour) {
+      saveDraft()
+    }
+  }, 1000)
+
   watch(
     () => state,
-    () => {
-      if (!props.tour) {
-        if (saveTimeout) clearTimeout(saveTimeout)
-        saveTimeout = setTimeout(saveDraft, 1000) // Save after 1s of inactivity
-      }
-    },
+    () => debouncedSaveDraft(),
     { deep: true }
   )
 
