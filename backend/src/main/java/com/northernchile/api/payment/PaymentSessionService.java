@@ -1,17 +1,12 @@
 package com.northernchile.api.payment;
 
-import com.northernchile.api.availability.AvailabilityValidator;
+import com.northernchile.api.booking.BookingCreationService;
 import com.northernchile.api.booking.BookingRepository;
-import com.northernchile.api.booking.BookingService;
 import com.northernchile.api.cart.CartRepository;
 import com.northernchile.api.config.properties.AppProperties;
 import com.northernchile.api.config.properties.PaymentProperties;
 import com.northernchile.api.exception.BookingCutoffException;
 import com.northernchile.api.exception.PaymentProviderException;
-import com.northernchile.api.exception.ScheduleFullException;
-import com.northernchile.api.model.Booking;
-import com.northernchile.api.model.BookingStatus;
-import com.northernchile.api.model.Participant;
 import com.northernchile.api.model.TourSchedule;
 import com.northernchile.api.model.TourScheduleStatus;
 import com.northernchile.api.model.User;
@@ -19,15 +14,10 @@ import com.northernchile.api.payment.dto.PaymentSessionReq;
 import com.northernchile.api.payment.dto.PaymentSessionRes;
 import com.northernchile.api.payment.model.*;
 import com.northernchile.api.payment.repository.PaymentSessionRepository;
-import com.northernchile.api.pricing.PricingService;
 import com.northernchile.api.tour.TourScheduleRepository;
 import com.northernchile.api.tour.TourUtils;
-import com.northernchile.api.user.SavedParticipantService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,44 +42,32 @@ public class PaymentSessionService {
     private static final Logger log = LoggerFactory.getLogger(PaymentSessionService.class);
     private static final int SESSION_EXPIRATION_MINUTES = 30;
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
     private final PaymentSessionRepository sessionRepository;
     private final TourScheduleRepository scheduleRepository;
     private final BookingRepository bookingRepository;
-    private final BookingService bookingService;
+    private final BookingCreationService bookingCreationService;
     private final CartRepository cartRepository;
     private final PaymentSessionPaymentAdapter paymentAdapter;
-    private final AvailabilityValidator availabilityValidator;
     private final PaymentProperties paymentProperties;
-    private final PricingService pricingService;
     private final AppProperties appProperties;
-    private final SavedParticipantService savedParticipantService;
 
     public PaymentSessionService(
             PaymentSessionRepository sessionRepository,
             TourScheduleRepository scheduleRepository,
             BookingRepository bookingRepository,
-            @Lazy BookingService bookingService,
+            BookingCreationService bookingCreationService,
             CartRepository cartRepository,
             PaymentSessionPaymentAdapter paymentAdapter,
-            AvailabilityValidator availabilityValidator,
             PaymentProperties paymentProperties,
-            PricingService pricingService,
-            AppProperties appProperties,
-            SavedParticipantService savedParticipantService) {
+            AppProperties appProperties) {
         this.sessionRepository = sessionRepository;
         this.scheduleRepository = scheduleRepository;
         this.bookingRepository = bookingRepository;
-        this.bookingService = bookingService;
+        this.bookingCreationService = bookingCreationService;
         this.cartRepository = cartRepository;
         this.paymentAdapter = paymentAdapter;
-        this.availabilityValidator = availabilityValidator;
         this.paymentProperties = paymentProperties;
-        this.pricingService = pricingService;
         this.appProperties = appProperties;
-        this.savedParticipantService = savedParticipantService;
     }
 
     /**
@@ -254,7 +232,7 @@ public class PaymentSessionService {
         }
 
         // Payment successful - create bookings
-        List<UUID> bookingIds = createBookingsFromSession(session);
+        List<UUID> bookingIds = bookingCreationService.createBookingsFromPaymentSession(session, session.getUser());
 
         // Update session status
         session.setStatus(PaymentSessionStatus.COMPLETED);
@@ -467,7 +445,7 @@ public class PaymentSessionService {
         }
 
         // Create bookings
-        List<UUID> bookingIds = createBookingsFromSession(session);
+        List<UUID> bookingIds = bookingCreationService.createBookingsFromPaymentSession(session, session.getUser());
 
         session.setStatus(PaymentSessionStatus.COMPLETED);
         sessionRepository.save(session);
@@ -613,110 +591,6 @@ public class PaymentSessionService {
             reqItem.specialRequests(),
             participants
         );
-    }
-
-    private List<UUID> createBookingsFromSession(PaymentSession session) {
-        List<UUID> bookingIds = new ArrayList<>();
-        User user = session.getUser();
-
-        for (PaymentSessionItem item : session.getItems()) {
-            // Use pessimistic lock to prevent overbooking race conditions
-            TourSchedule schedule = scheduleRepository.findByIdWithLock(item.scheduleId())
-                .orElseThrow(() -> new IllegalStateException("Schedule not found: " + item.scheduleId()));
-
-            // Re-validate availability with lock held (critical for preventing overbooking!)
-            // Exclude this user's cart since it's being converted to booking
-            var availability = availabilityValidator.validateAvailability(
-                schedule, item.numParticipants(), null, user.getId());
-            
-            if (!availability.available()) {
-                log.error("Overbooking prevented! Session {} item for schedule {} - {}", 
-                    session.getId(), schedule.getId(), availability.errorMessage());
-                throw new ScheduleFullException(
-                    "No hay suficientes cupos disponibles para " + item.tourName() + 
-                    ". Disponibles: " + availability.availableSlots() + 
-                    ", Solicitados: " + item.numParticipants());
-            }
-
-            // Create booking with proper tax calculation using PricingService
-            // Tour prices are tax-inclusive, so we need to back-calculate subtotal and tax
-            var pricing = pricingService.calculateFromTaxInclusiveAmount(item.itemTotal());
-
-            Booking booking = new Booking();
-            booking.setUser(user);
-            booking.setSchedule(schedule);
-            booking.setTourDate(item.tourDate());
-            booking.setStatus(BookingStatus.CONFIRMED); // Already paid!
-            booking.setSubtotal(pricing.subtotal());
-            booking.setTaxAmount(pricing.taxAmount());
-            booking.setTotalAmount(pricing.totalAmount());
-            booking.setLanguageCode(session.getLanguageCode());
-            booking.setSpecialRequests(item.specialRequests());
-            // Set createdAt manually to ensure it's available for async email
-            // (Hibernate's @CreationTimestamp only populates during flush)
-            booking.setCreatedAt(java.time.Instant.now());
-
-            // Create participants
-            List<Participant> participants = new ArrayList<>();
-            for (PaymentSessionItem.ParticipantData pd : item.participants()) {
-                Participant participant = new Participant();
-                participant.setBooking(booking);
-                participant.setFullName(pd.fullName());
-                participant.setDocumentId(pd.documentId());
-                participant.setNationality(pd.nationality());
-                participant.setDateOfBirth(pd.dateOfBirth());
-                participant.setPickupAddress(pd.pickupAddress());
-                participant.setSpecialRequirements(pd.specialRequirements());
-                participant.setPhoneNumber(pd.phoneNumber());
-                participant.setEmail(pd.email());
-                participants.add(participant);
-
-                // Process markAsSelf and saveForFuture flags
-                // This syncs participant data to user profile and/or saves for future bookings
-                boolean shouldSave = Boolean.TRUE.equals(pd.saveForFuture()) || Boolean.TRUE.equals(pd.markAsSelf());
-                if (shouldSave) {
-                    try {
-                        savedParticipantService.createFromBookingData(
-                            user,
-                            pd.fullName(),
-                            pd.documentId(),
-                            pd.dateOfBirth(),
-                            pd.nationality(),
-                            pd.phoneNumber(),
-                            pd.email(),
-                            Boolean.TRUE.equals(pd.markAsSelf())
-                        );
-                        log.info("Saved participant data for user {}, markAsSelf={}, saveForFuture={}",
-                            user.getEmail(), pd.markAsSelf(), pd.saveForFuture());
-                    } catch (Exception e) {
-                        // Don't fail the booking if saved participant creation fails
-                        log.error("Failed to save participant data for user {}: {}",
-                            user.getEmail(), e.getMessage());
-                    }
-                }
-            }
-            booking.setParticipants(participants);
-
-            booking = bookingRepository.saveAndFlush(booking);
-            bookingIds.add(booking.getId());
-
-            log.info("Created booking {} from payment session {}", booking.getId(), session.getId());
-
-            // Detach entity from persistence context to force fresh load with all relations
-            // This ensures lazy associations are properly loaded for async email processing
-            UUID bookingId = booking.getId();
-            entityManager.detach(booking);
-
-            try {
-                Booking reloadedBooking = bookingRepository.findByIdWithDetails(bookingId)
-                    .orElseThrow(() -> new IllegalStateException("Booking not found after save: " + bookingId));
-                bookingService.sendBookingConfirmationNotifications(reloadedBooking);
-            } catch (Exception e) {
-                log.error("Failed to send confirmation email for booking {}", bookingId, e);
-            }
-        }
-
-        return bookingIds;
     }
 
     private PaymentSessionRes buildCompletedResponse(PaymentSession session) {
