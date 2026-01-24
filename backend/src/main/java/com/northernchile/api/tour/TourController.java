@@ -1,7 +1,6 @@
 package com.northernchile.api.tour;
 
 import com.northernchile.api.config.security.annotation.CurrentUser;
-import com.northernchile.api.model.Tour;
 import com.northernchile.api.model.User;
 import com.northernchile.api.security.AuthorizationService;
 import com.northernchile.api.security.Permission;
@@ -9,7 +8,6 @@ import com.northernchile.api.security.annotations.RequiresPermission;
 import com.northernchile.api.tour.dto.TourCreateReq;
 import com.northernchile.api.tour.dto.TourRes;
 import com.northernchile.api.tour.dto.TourUpdateReq;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,18 +20,12 @@ import java.util.UUID;
 public class TourController {
 
     private final TourService tourService;
-    private final TourRepository tourRepository;
-    private final TourMapper tourMapper;
     private final AuthorizationService authorizationService;
 
     public TourController(
             TourService tourService,
-            TourRepository tourRepository,
-            TourMapper tourMapper,
             AuthorizationService authorizationService) {
         this.tourService = tourService;
-        this.tourRepository = tourRepository;
-        this.tourMapper = tourMapper;
         this.authorizationService = authorizationService;
     }
 
@@ -80,11 +72,8 @@ public class TourController {
 
     @GetMapping("/tours/{id}")
     public ResponseEntity<TourRes> getTourByIdPublic(@PathVariable UUID id) {
-        Tour tour = tourRepository.findByIdNotDeleted(id)
-                .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + id));
-
-        TourRes tourRes = tourMapper.toTourRes(tour);
-        return new ResponseEntity<>(tourRes, HttpStatus.OK);
+        TourRes tourRes = tourService.getTourByIdPublic(id);
+        return ResponseEntity.ok(tourRes);
     }
 
     @PutMapping("/admin/tours/{id}")

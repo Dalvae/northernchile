@@ -214,6 +214,19 @@ public class TourService {
         return populateImages(tourRes);
     }
 
+    /**
+     * Get a published tour by ID for public access (no authentication required).
+     * Only returns tours that are not deleted.
+     */
+    @Transactional(readOnly = true)
+    public TourRes getTourByIdPublic(UUID id) {
+        Tour tour = tourRepository.findByIdNotDeleted(id)
+                .orElseThrow(() -> new EntityNotFoundException("Tour not found with id: " + id));
+
+        TourRes tourRes = tourMapper.toTourRes(tour);
+        return populateImages(tourRes);
+    }
+
     private String generateUniqueSlug(String baseName) {
         return generateUniqueSlug(baseName, null);
     }
