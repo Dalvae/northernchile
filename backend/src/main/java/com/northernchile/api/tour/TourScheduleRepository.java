@@ -55,4 +55,17 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, UUID
            "LEFT JOIN FETCH t.owner " +
            "WHERE s.id = :id")
     Optional<TourSchedule> findByIdWithTourAndOwner(@Param("id") UUID id);
+
+    /**
+     * Batch query to find all existing schedule dates for multiple tours.
+     * Returns tour ID and start datetime pairs for efficient in-memory lookup.
+     * Used by TourScheduleGeneratorService to avoid N+1 queries.
+     */
+    @Query("SELECT s.tour.id, s.startDatetime FROM TourSchedule s " +
+           "WHERE s.tour.id IN :tourIds AND s.startDatetime BETWEEN :start AND :end")
+    List<Object[]> findExistingScheduleDatesByTourIds(
+        @Param("tourIds") List<UUID> tourIds,
+        @Param("start") Instant start,
+        @Param("end") Instant end
+    );
 }

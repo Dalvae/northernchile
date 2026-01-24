@@ -20,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.northernchile.api.util.DateTimeUtils;
 
 import java.time.*;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.cronutils.model.CronType.UNIX;
 
@@ -70,31 +70,57 @@ public class TourScheduleGeneratorService {
         logger.info("Iniciando generación automática de schedules");
 
         LocalDate today = LocalDate.now(DateTimeUtils.CHILE_ZONE);
+        LocalDate endDate = today.plusDays(DAYS_AHEAD_ALL);
 
         // Solo tours recurrentes y publicados
         List<Tour> recurringTours = tourRepository.findByRecurringTrueAndStatus(TourStatus.PUBLISHED);
 
+        if (recurringTours.isEmpty()) {
+            logger.info("No hay tours recurrentes publicados");
+            return;
+        }
+
         logger.info("Encontrados {} tours recurrentes publicados", recurringTours.size());
+
+        // Batch load ALL existing schedules for the 90-day window in one query
+        List<UUID> tourIds = recurringTours.stream().map(Tour::getId).toList();
+        Instant startInstant = today.atStartOfDay(DateTimeUtils.CHILE_ZONE).toInstant();
+        Instant endInstant = endDate.atStartOfDay(DateTimeUtils.CHILE_ZONE).toInstant();
+
+        Set<String> existingSchedules = tourScheduleRepository
+            .findExistingScheduleDatesByTourIds(tourIds, startInstant, endInstant)
+            .stream()
+            .map(row -> {
+                UUID tourId = (UUID) row[0];
+                Instant scheduleInstant = (Instant) row[1];
+                LocalDate scheduleDate = scheduleInstant.atZone(DateTimeUtils.CHILE_ZONE).toLocalDate();
+                return tourId + "_" + scheduleDate;
+            })
+            .collect(Collectors.toSet());
+
+        logger.debug("Encontrados {} schedules existentes en la ventana", existingSchedules.size());
+
+        // Cache parsed cron rules to avoid repeated parsing
+        Map<UUID, Cron> cronCache = new HashMap<>();
 
         int schedulesCreated = 0;
         int schedulesSkipped = 0;
 
         for (Tour tour : recurringTours) {
-            // Determinar límite de días hacia adelante
-            int daysToGenerate = getDaysToGenerate(tour);
-            LocalDate endDate = today.plusDays(daysToGenerate);
-
-            logger.debug("Tour {}: Generando schedules para {} días", tour.getId(), daysToGenerate);
+            logger.debug("Tour {}: Generando schedules para {} días", tour.getId(), DAYS_AHEAD_ALL);
 
             for (LocalDate date = today; date.isBefore(endDate); date = date.plusDays(1)) {
                 try {
-                    if (shouldGenerateScheduleForDate(tour, date)) {
-                        if (!scheduleExists(tour, date)) {
-                            createScheduleInstance(tour, date);
-                            schedulesCreated++;
-                        } else {
-                            schedulesSkipped++;
-                        }
+                    // Fast in-memory check instead of database query
+                    String scheduleKey = tour.getId() + "_" + date;
+                    if (existingSchedules.contains(scheduleKey)) {
+                        schedulesSkipped++;
+                        continue;
+                    }
+
+                    if (shouldGenerateScheduleForDate(tour, date, cronCache)) {
+                        createScheduleInstance(tour, date);
+                        schedulesCreated++;
                     }
                 } catch (Exception e) {
                     logger.error("Error generando schedule para tour {} en fecha {}: {}",
@@ -107,21 +133,13 @@ public class TourScheduleGeneratorService {
                 schedulesCreated, schedulesSkipped);
     }
 
-    /**
-     * Determina cuántos días adelante generar schedules.
-     * Ahora usamos una ventana fija para simplificar: siempre 90 días.
-     */
-    private int getDaysToGenerate(Tour tour) {
-        return DAYS_AHEAD_ALL;
-    }
-
 
     /**
      * Determina si se debe generar un schedule para un tour en una fecha específica
      */
-    private boolean shouldGenerateScheduleForDate(Tour tour, LocalDate date) {
+    private boolean shouldGenerateScheduleForDate(Tour tour, LocalDate date, Map<UUID, Cron> cronCache) {
         // 1. Verificar si coincide con la regla de recurrencia (cron)
-        if (!matchesCronRule(date, tour.getRecurrenceRule())) {
+        if (!matchesCronRule(date, tour, cronCache)) {
             return false;
         }
 
@@ -130,16 +148,32 @@ public class TourScheduleGeneratorService {
     }
 
     /**
-     * Verifica si una fecha coincide con una regla cron
+     * Verifica si una fecha coincide con una regla cron.
+     * Uses a cache to avoid repeated parsing of the same cron expression.
      */
-    private boolean matchesCronRule(LocalDate date, String recurrenceRule) {
+    private boolean matchesCronRule(LocalDate date, Tour tour, Map<UUID, Cron> cronCache) {
+        String recurrenceRule = tour.getRecurrenceRule();
         if (recurrenceRule == null || recurrenceRule.isEmpty()) {
             // Sin regla, asumir diario
             return true;
         }
 
+        // Use cached cron or parse and cache it
+        Cron cron = cronCache.computeIfAbsent(tour.getId(), id -> {
+            try {
+                return cronParser.parse(recurrenceRule);
+            } catch (Exception e) {
+                logger.warn("Error parseando cron rule '{}' for tour {}: {}", recurrenceRule, id, e.getMessage());
+                return null;
+            }
+        });
+
+        // If parsing failed, default to daily
+        if (cron == null) {
+            return true;
+        }
+
         try {
-            Cron cron = cronParser.parse(recurrenceRule);
             ExecutionTime executionTime = ExecutionTime.forCron(cron);
 
             // Verificar si la fecha coincide con la expresión cron
@@ -148,8 +182,7 @@ public class TourScheduleGeneratorService {
 
             return nextExecution.isPresent() && nextExecution.get().toLocalDate().equals(date);
         } catch (Exception e) {
-            logger.warn("Error parseando cron rule '{}': {}", recurrenceRule, e.getMessage());
-            // Si falla el parsing, asumir que aplica diario
+            logger.warn("Error evaluating cron rule for tour {}: {}", tour.getId(), e.getMessage());
             return true;
         }
     }
@@ -196,22 +229,6 @@ public class TourScheduleGeneratorService {
         return true;
     }
 
-    /**
-     * Verifica si ya existe un schedule para este tour en esta fecha
-     */
-    private boolean scheduleExists(Tour tour, LocalDate date) {
-        ZonedDateTime startOfDay = date.atStartOfDay(DateTimeUtils.CHILE_ZONE);
-        ZonedDateTime endOfDay = date.plusDays(1).atStartOfDay(DateTimeUtils.CHILE_ZONE);
-
-        Instant startInstant = startOfDay.toInstant();
-        Instant endInstant = endOfDay.toInstant();
-
-        return !tourScheduleRepository.findByTourIdAndStartDatetimeBetweenOrderByStartDatetimeDesc(
-                tour.getId(),
-                startInstant,
-                endInstant
-        ).isEmpty();
-    }
 
     /**
      * Crea una instancia de schedule para un tour en una fecha específica
