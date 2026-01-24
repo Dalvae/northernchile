@@ -61,10 +61,7 @@ useHead({
   ]
 })
 
-// Redirect if cart is empty
-if (cartStore.cart.items.length === 0) {
-  router.push(localePath('/cart'))
-}
+// Cart empty redirect is handled in onMounted after hydration
 
 // Wizard steps
 const currentStep = ref(1)
@@ -149,6 +146,12 @@ function updateCheckoutTimestamp(): void {
 onMounted(async () => {
   // Fetch cart from backend to ensure we have latest data
   await cartStore.fetchCart()
+
+  // Redirect if cart is empty (only check on client after hydration)
+  if (cartStore.cart.items.length === 0) {
+    router.push(localePath('/cart'))
+    return
+  }
 
   // Fetch saved participants if authenticated
   if (authStore.isAuthenticated) {
