@@ -1,6 +1,7 @@
 package com.northernchile.api.booking;
 
 import com.northernchile.api.availability.AvailabilityValidator;
+import com.northernchile.api.booking.event.BookingEventPublisher;
 import com.northernchile.api.exception.ScheduleFullException;
 import com.northernchile.api.model.Booking;
 import com.northernchile.api.model.BookingStatus;
@@ -16,7 +17,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +42,7 @@ public class BookingCreationServiceImpl implements BookingCreationService {
     private final AvailabilityValidator availabilityValidator;
     private final PricingService pricingService;
     private final SavedParticipantService savedParticipantService;
-    private final BookingService bookingService;
+    private final BookingEventPublisher eventPublisher;
 
     public BookingCreationServiceImpl(
             TourScheduleRepository scheduleRepository,
@@ -50,13 +50,13 @@ public class BookingCreationServiceImpl implements BookingCreationService {
             AvailabilityValidator availabilityValidator,
             PricingService pricingService,
             SavedParticipantService savedParticipantService,
-            @Lazy BookingService bookingService) {
+            BookingEventPublisher eventPublisher) {
         this.scheduleRepository = scheduleRepository;
         this.bookingRepository = bookingRepository;
         this.availabilityValidator = availabilityValidator;
         this.pricingService = pricingService;
         this.savedParticipantService = savedParticipantService;
-        this.bookingService = bookingService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -121,8 +121,8 @@ public class BookingCreationServiceImpl implements BookingCreationService {
 
         log.info("Created booking {} from payment session {}", bookingId, session.getId());
 
-        // Send confirmation notifications
-        sendConfirmationNotifications(bookingId);
+        // Publish event to trigger confirmation notifications asynchronously
+        eventPublisher.publishBookingCreated(bookingId);
 
         return bookingId;
     }
@@ -183,19 +183,4 @@ public class BookingCreationServiceImpl implements BookingCreationService {
         }
     }
 
-    /**
-     * Sends booking confirmation notifications.
-     * Detaches entity and reloads to ensure all lazy associations are available.
-     */
-    private void sendConfirmationNotifications(UUID bookingId) {
-        try {
-            // Detach entity from persistence context to force fresh load with all relations
-            // This ensures lazy associations are properly loaded for async email processing
-            Booking reloadedBooking = bookingRepository.findByIdWithDetails(bookingId)
-                    .orElseThrow(() -> new IllegalStateException("Booking not found after save: " + bookingId));
-            bookingService.sendBookingConfirmationNotifications(reloadedBooking);
-        } catch (Exception e) {
-            log.error("Failed to send confirmation email for booking {}", bookingId, e);
-        }
-    }
 }

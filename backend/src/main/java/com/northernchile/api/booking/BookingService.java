@@ -3,6 +3,7 @@ package com.northernchile.api.booking;
 import com.northernchile.api.audit.AuditLogService;
 import com.northernchile.api.booking.dto.BookingClientUpdateReq;
 import com.northernchile.api.booking.dto.BookingRes;
+import com.northernchile.api.booking.event.BookingCreatedEvent;
 import com.northernchile.api.config.NotificationConfig;
 import com.northernchile.api.exception.InvalidBookingStateException;
 import com.northernchile.api.exception.ResourceNotFoundException;
@@ -17,6 +18,8 @@ import com.northernchile.api.tour.TourUtils;
 import com.northernchile.api.util.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,6 +110,27 @@ public class BookingService {
         if (adminEmail != null && (tourOwner == null || !adminEmail.equalsIgnoreCase(tourOwner.getEmail()))) {
             emailService.sendNewBookingNotificationToAdmin(booking, adminEmail);
             log.info("Sent booking notification to general admin: {}", adminEmail);
+        }
+    }
+
+    /**
+     * Handles BookingCreatedEvent to send confirmation notifications asynchronously.
+     * This decouples booking creation from email sending and removes circular dependencies.
+     *
+     * @param event The booking created event containing the booking ID
+     */
+    @EventListener
+    @Async
+    @Transactional(readOnly = true)
+    public void handleBookingCreated(BookingCreatedEvent event) {
+        log.info("Handling BookingCreatedEvent for booking: {}", event.bookingId());
+        try {
+            Booking booking = bookingRepository.findByIdWithDetails(event.bookingId())
+                    .orElseThrow(() -> new IllegalStateException("Booking not found: " + event.bookingId()));
+            sendBookingConfirmationNotifications(booking);
+        } catch (Exception e) {
+            log.error("Failed to send confirmation notifications for booking {}: {}",
+                    event.bookingId(), e.getMessage(), e);
         }
     }
 
