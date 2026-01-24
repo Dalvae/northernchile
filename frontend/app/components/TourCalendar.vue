@@ -546,14 +546,15 @@ function handleEventClick(info: EventClickArg) {
   }
 }
 
+// Watch only the array reference and length, not deep properties
+// This avoids expensive object traversal on every property change
 watch(
-  () => props.tours,
-  async () => {
-    if (props.tours.length > 0) {
+  () => [props.tours, props.tours.length] as const,
+  async ([newTours], [oldTours]) => {
+    if (newTours !== oldTours && newTours.length > 0) {
       await fetchSchedules()
     }
-  },
-  { deep: true }
+  }
 )
 
 defineExpose({
