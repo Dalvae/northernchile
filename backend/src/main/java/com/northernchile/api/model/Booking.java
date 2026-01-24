@@ -3,6 +3,7 @@ package com.northernchile.api.model;
 import com.northernchile.api.audit.AuditableEntity;
 import com.northernchile.api.audit.AuditEntityListener;
 import jakarta.persistence.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -32,6 +33,7 @@ public class Booking implements AuditableEntity {
     private TourSchedule schedule;
 
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<Participant> participants;
 
     @Column(name = "tour_date", nullable = false)
