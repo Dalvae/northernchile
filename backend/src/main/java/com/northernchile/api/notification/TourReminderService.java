@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -62,18 +63,25 @@ public class TourReminderService {
 
         int successCount = 0;
         int failCount = 0;
+        List<Booking> sentReminders = new ArrayList<>();
 
         for (Booking booking : upcomingBookings) {
             try {
                 sendReminderEmail(booking);
                 // Mark reminder as sent to prevent duplicates
                 booking.setReminderSentAt(Instant.now());
-                bookingRepository.save(booking);
+                sentReminders.add(booking);
                 successCount++;
             } catch (Exception e) {
                 log.error("Failed to send reminder email for booking: {}", booking.getId(), e);
                 failCount++;
             }
+        }
+
+        // Batch save all bookings with sent reminders
+        if (!sentReminders.isEmpty()) {
+            bookingRepository.saveAll(sentReminders);
+            log.debug("Batch saved {} booking reminder timestamps", sentReminders.size());
         }
 
         log.info("Tour reminder check completed: {} sent, {} failed", successCount, failCount);
