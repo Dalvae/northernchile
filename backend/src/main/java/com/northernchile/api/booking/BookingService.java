@@ -18,8 +18,10 @@ import com.northernchile.api.tour.TourUtils;
 import com.northernchile.api.util.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,9 +121,9 @@ public class BookingService {
      *
      * @param event The booking created event containing the booking ID
      */
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Async
-    @Transactional(readOnly = true)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public void handleBookingCreated(BookingCreatedEvent event) {
         log.info("Handling BookingCreatedEvent for booking: {}", event.bookingId());
         try {

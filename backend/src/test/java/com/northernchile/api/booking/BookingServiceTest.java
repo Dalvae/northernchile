@@ -349,6 +349,54 @@ class BookingServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("Event Handler Tests")
+    class EventHandlerTests {
+
+        @Test
+        @DisplayName("Should fetch booking when handling BookingCreatedEvent")
+        void shouldFetchBookingOnBookingCreatedEvent() {
+            // Given
+            UUID bookingId = UUID.randomUUID();
+            Booking booking = new Booking();
+            booking.setId(bookingId);
+            booking.setUser(testUser);
+            booking.setSchedule(testSchedule);
+            booking.setLanguageCode("es-CL");
+            booking.setParticipants(new ArrayList<>());
+
+            com.northernchile.api.booking.event.BookingCreatedEvent event =
+                    new com.northernchile.api.booking.event.BookingCreatedEvent(bookingId);
+
+            when(bookingRepository.findByIdWithDetails(bookingId))
+                    .thenReturn(Optional.of(booking));
+
+            // When
+            bookingService.handleBookingCreated(event);
+
+            // Then - verify booking was fetched for notification processing
+            verify(bookingRepository).findByIdWithDetails(bookingId);
+        }
+
+        @Test
+        @DisplayName("Should handle missing booking gracefully in event handler")
+        void shouldHandleMissingBookingInEventHandler() {
+            // Given
+            UUID nonExistentBookingId = UUID.randomUUID();
+            com.northernchile.api.booking.event.BookingCreatedEvent event =
+                    new com.northernchile.api.booking.event.BookingCreatedEvent(nonExistentBookingId);
+
+            when(bookingRepository.findByIdWithDetails(nonExistentBookingId))
+                    .thenReturn(Optional.empty());
+
+            // When - should not throw, just log error
+            bookingService.handleBookingCreated(event);
+
+            // Then - verify no crash and booking was attempted to be fetched
+            verify(bookingRepository).findByIdWithDetails(nonExistentBookingId);
+        }
+    }
+
     // Helper method to create mock BookingRes for tests
     private BookingRes createMockBookingRes() {
         return new BookingRes(

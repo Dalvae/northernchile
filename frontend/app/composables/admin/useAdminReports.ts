@@ -40,7 +40,7 @@ export const useAdminReports = () => {
       }),
 
     // Audit Logs
-    fetchAuditLogRess: (params?: Record<string, string>) =>
+    fetchAuditLogs: (params?: Record<string, string>) =>
       $fetch<PageAuditLogRes>('/api/admin/audit-logs', { params, ...baseFetchOptions }),
 
     fetchAuditStats: () =>

@@ -419,7 +419,7 @@ const entityTypeFilterOptions = [
 ]
 
 // Fetch audit logs
-const fetchAuditLogRess = async () => {
+const fetchAuditLogs = async () => {
   pending.value = true
   try {
     const params = new URLSearchParams({
@@ -433,7 +433,7 @@ const fetchAuditLogRess = async () => {
     if (filters.value.userEmail)
       params.append('userEmail', filters.value.userEmail)
 
-    const response = await $fetch<AuditLogRessResponse>(
+    const response = await $fetch<AuditLogsResponse>(
       `/api/admin/audit-logs?${params.toString()}`
     )
 
@@ -472,13 +472,13 @@ const debouncedFetch = () => {
 // Reset pagination and fetch
 const resetPaginationAndFetch = () => {
   pagination.value.currentPage = 0
-  fetchAuditLogRess()
+  fetchAuditLogs()
 }
 
 // Go to page
 const goToPage = (page: number) => {
   pagination.value.currentPage = page
-  fetchAuditLogRess()
+  fetchAuditLogs()
 }
 
 // Computed visible pages for pagination
@@ -513,7 +513,7 @@ const visiblePages = computed(() => {
 // Helper functions
 type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'tertiary' | 'warning' | 'neutral'
 
-interface AuditLogRessResponse {
+interface AuditLogsResponse {
   data: AuditLogRes[]
   totalItems: number
   totalPages: number
@@ -559,7 +559,7 @@ function getActionIcon(action: string): string {
 
 // Initialize
 onMounted(() => {
-  fetchAuditLogRess()
+  fetchAuditLogs()
   fetchStats()
 })
 </script>
