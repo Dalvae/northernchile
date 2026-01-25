@@ -1,4 +1,5 @@
 import type { SavedParticipantRes, SavedParticipantReq } from 'api-client'
+import logger from '~/utils/logger'
 
 /**
  * Composable for managing saved participants.
@@ -25,7 +26,7 @@ export const useSavedParticipants = () => {
       selfParticipant.value = data?.find(p => p.isSelf) || null
     } catch (e) {
       error.value = 'Error al cargar participantes guardados'
-      console.error('Failed to fetch saved participants:', e)
+      logger.error('Failed to fetch saved participants:', e)
     } finally {
       loading.value = false
     }
@@ -44,7 +45,7 @@ export const useSavedParticipants = () => {
       // 404 is expected if no self participant exists
       const status = (e as { statusCode?: number })?.statusCode
       if (status !== 404) {
-        console.error('Failed to fetch self participant:', e)
+        logger.error('Failed to fetch self participant:', e)
       }
       selfParticipant.value = null
     }
@@ -68,7 +69,7 @@ export const useSavedParticipants = () => {
       return result
     } catch (e) {
       error.value = 'Error al crear participante'
-      console.error('Failed to create participant:', e)
+      logger.error('Failed to create participant:', e)
       return null
     } finally {
       loading.value = false
@@ -100,7 +101,7 @@ export const useSavedParticipants = () => {
       return result
     } catch (e) {
       error.value = 'Error al guardar participante'
-      console.error('Failed to create/update self participant:', e)
+      logger.error('Failed to create/update self participant:', e)
       return null
     } finally {
       loading.value = false
@@ -131,7 +132,7 @@ export const useSavedParticipants = () => {
       return result
     } catch (e) {
       error.value = 'Error al actualizar participante'
-      console.error('Failed to update participant:', e)
+      logger.error('Failed to update participant:', e)
       return null
     } finally {
       loading.value = false
@@ -156,7 +157,7 @@ export const useSavedParticipants = () => {
       return true
     } catch (e) {
       error.value = 'Error al eliminar participante'
-      console.error('Failed to delete participant:', e)
+      logger.error('Failed to delete participant:', e)
       return false
     } finally {
       loading.value = false

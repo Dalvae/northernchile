@@ -5,6 +5,7 @@
  */
 
 import { formatFileSize } from '~/utils/media'
+import logger from '~/utils/logger'
 
 export const useImageOptimizer = () => {
   /**
@@ -173,7 +174,7 @@ export const useImageOptimizer = () => {
         savings
       }
     } catch (error) {
-      console.error('Error optimizing image:', error)
+      logger.error('Error optimizing image:', error)
       // Si falla la optimización, retornar archivo original
       return {
         file,

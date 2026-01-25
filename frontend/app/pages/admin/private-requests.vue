@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PrivateTourRequest } from 'api-client'
 import { PRIVATE_REQUEST_STATUS_OPTIONS, getStatusColor as getAdminStatusColor } from '~/utils/adminOptions'
+import logger from '~/utils/logger'
 
 definePageMeta({
   layout: 'admin'
@@ -25,7 +26,7 @@ const {
       const response = await $fetch<PrivateTourRequest[]>('/api/admin/private-tours/requests')
       return response
     } catch (err) {
-      console.error('Error fetching private tour requests:', err)
+      logger.error('Error fetching private tour requests:', err)
       toast.add({
         color: 'error',
         title: 'Error',
@@ -120,7 +121,7 @@ const updateRequestStatus = async () => {
     closeDetailsModal()
     await refresh()
   } catch (err) {
-    console.error('Error updating request:', err)
+    logger.error('Error updating request:', err)
     toast.add({
       color: 'error',
       title: 'Error',

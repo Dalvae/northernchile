@@ -4,6 +4,7 @@ import AdminStatusBadge from '~/components/admin/StatusBadge.vue'
 import AdminCountryCell from '~/components/admin/CountryCell.vue'
 import type { UserRes } from 'api-client'
 import { USER_ROLE_FILTER_OPTIONS } from '~/utils/adminOptions'
+import logger from '~/utils/logger'
 
 definePageMeta({
   layout: 'admin'
@@ -98,7 +99,7 @@ async function handleDelete(user: UserRes) {
     })
     refresh()
   } catch (error) {
-    console.error('Error deleting user:', error)
+    logger.error('Error deleting user:', error)
     toast.add({
       color: 'error',
       title: 'Error',

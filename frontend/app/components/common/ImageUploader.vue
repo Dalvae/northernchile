@@ -102,6 +102,8 @@
 </template>
 
 <script setup lang="ts">
+import logger from '~/utils/logger'
+
 const props = defineProps<{
   modelValue?: string
   folder?: string
@@ -200,7 +202,7 @@ const processFile = async (file: File) => {
       optimizationInfo.value = ''
     }
   } catch (err) {
-    console.error('Error processing file:', err)
+    logger.error('Error processing file:', err)
     error.value = 'Error al procesar la imagen'
     isOptimizing.value = false
     optimizationInfo.value = ''

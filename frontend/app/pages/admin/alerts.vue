@@ -438,6 +438,7 @@
 <script setup lang="ts">
 import type { WeatherAlertRes, AlertHistoryRes } from 'api-client'
 import { getStatusColor } from '~/utils/adminOptions'
+import logger from '~/utils/logger'
 
 definePageMeta({
   layout: 'admin'
@@ -574,7 +575,7 @@ const checkAlertsManually = async () => {
 
     await refreshAlerts()
   } catch (error) {
-    console.error('Error checking alerts:', error)
+    logger.error('Error checking alerts:', error)
     toast.add({
       title: 'Error',
       description: 'No se pudo verificar las alertas',
@@ -627,7 +628,7 @@ const resolveAlert = async () => {
     await refreshAlerts()
     closeResolveModal()
   } catch (error: unknown) {
-    console.error('Error resolving alert:', error)
+    logger.error('Error resolving alert:', error)
     const apiError = error as { data?: { error?: string } }
     toast.add({
       title: 'Error',

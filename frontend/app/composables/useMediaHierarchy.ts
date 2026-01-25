@@ -1,6 +1,7 @@
 import type { TourRes, TourScheduleRes } from 'api-client'
 import type { TreeItem } from '@nuxt/ui'
 import { getLocalDateString } from '~/utils/dateUtils'
+import logger from '~/utils/logger'
 
 export interface MediaHierarchyNode extends TreeItem {
   id: string
@@ -31,7 +32,7 @@ export function useMediaHierarchy() {
       // Fetch all tours (no pagination for hierarchy - adjust if you have many tours)
       tours.value = await adminStore.fetchTours()
     } catch (error) {
-      console.error('Error loading tours:', error)
+      logger.error('Error loading tours:', error)
       tours.value = []
     } finally {
       loading.value = false
@@ -62,7 +63,7 @@ export function useMediaHierarchy() {
       schedulesByTour.value[tourId] = schedules
       return schedules
     } catch (error) {
-      console.error(`Error loading schedules for tour ${tourId}:`, error)
+      logger.error(`Error loading schedules for tour ${tourId}:`, error)
       return []
     } finally {
       loading.value = false

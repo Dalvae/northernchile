@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { formatFileSize } from '~/utils/media'
+import logger from '~/utils/logger'
 
 const props = defineProps<{
   modelValue: boolean
@@ -116,7 +117,7 @@ async function processFiles(files: File[]) {
       }
     }
   } catch (error) {
-    console.error('Error optimizing images:', error)
+    logger.error('Error optimizing images:', error)
     toast.add({ color: 'error', title: 'Error al optimizar imágenes', description: 'Las imágenes se subirán sin optimizar.' })
 
     // Add original files if optimization fails (with size check)
@@ -177,7 +178,7 @@ async function startUpload() {
       item.status = 'success'
       item.url = result.url
     } catch (error: unknown) {
-      console.error('Upload error:', error)
+      logger.error('Upload error:', error)
       item.status = 'error'
       item.error = error instanceof Error ? error.message : 'Error al subir'
     }

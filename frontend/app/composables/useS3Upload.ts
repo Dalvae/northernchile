@@ -1,4 +1,5 @@
 import type { Ref } from 'vue'
+import logger from '~/utils/logger'
 
 interface UploadResponse {
   key: string
@@ -97,7 +98,7 @@ export const useS3Upload = () => {
 
       return response
     } catch (error: unknown) {
-      console.error('Upload error:', error)
+      logger.error('Upload error:', error)
       const errorData = error && typeof error === 'object' && 'data' in error
         ? (error as { data?: { error?: string } }).data
         : undefined
@@ -135,7 +136,7 @@ export const useS3Upload = () => {
 
       return response.uploadUrl
     } catch (error: unknown) {
-      console.error('Error getting presigned URL:', error)
+      logger.error('Error getting presigned URL:', error)
       toast.add({
         title: 'Error',
         description: 'Failed to get upload URL',
@@ -180,7 +181,7 @@ export const useS3Upload = () => {
 
       return true
     } catch (error) {
-      console.error('Direct upload error:', error)
+      logger.error('Direct upload error:', error)
       toast.add({
         title: 'Upload Failed',
         description: 'Failed to upload file to S3',
@@ -214,7 +215,7 @@ export const useS3Upload = () => {
 
       return true
     } catch (error) {
-      console.error('Delete error:', error)
+      logger.error('Delete error:', error)
       toast.add({
         title: 'Delete Failed',
         description: 'Failed to delete file',
@@ -240,7 +241,7 @@ export const useS3Upload = () => {
 
       return response.url
     } catch (error) {
-      console.error('Error getting public URL:', error)
+      logger.error('Error getting public URL:', error)
       return null
     }
   }

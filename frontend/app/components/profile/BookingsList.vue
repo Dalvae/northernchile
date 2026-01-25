@@ -2,6 +2,7 @@
 import type { BookingRes, LocalTime } from 'api-client'
 import { parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
 import { getStatusColor } from '~/utils/adminOptions'
+import logger from '~/utils/logger'
 
 const { locale, t } = useI18n()
 const authStore = useAuthStore()
@@ -29,7 +30,7 @@ async function fetchBookings() {
     })
     bookings.value = response
   } catch (error: unknown) {
-    console.error('Error fetching bookings:', error)
+    logger.error('Error fetching bookings:', error)
     toast.add({
       color: 'error',
       title: t('common.error'),
@@ -87,7 +88,7 @@ function downloadBooking(booking: BookingRes) {
       description: t('profile.pdf_download_success_description')
     })
   } catch (error) {
-    console.error('Error generating PDF:', error)
+    logger.error('Error generating PDF:', error)
     toast.add({
       color: 'error',
       title: t('profile.pdf_download_error'),
@@ -120,7 +121,7 @@ async function cancelBooking(bookingId: string) {
       description: t('profile.booking_cancelled_refund', { amount: formatPrice(result.refundAmount) })
     })
   } catch (error: unknown) {
-    console.error('Error cancelling booking:', error)
+    logger.error('Error cancelling booking:', error)
     const err = error as { data?: { message?: string }, statusCode?: number }
     const errorMessage = err?.data?.message || t('profile.booking_cancel_error')
 

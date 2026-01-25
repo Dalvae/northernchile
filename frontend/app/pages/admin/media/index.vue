@@ -3,6 +3,7 @@ import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import type { MediaRes, PageMediaRes } from 'api-client'
 import { formatFileSize, formatDate, getMediaTypeLabel, getMediaTypeBadgeColor } from '~/utils/media'
+import logger from '~/utils/logger'
 
 definePageMeta({
   layout: 'admin',
@@ -173,7 +174,7 @@ async function loadMoreForLightbox() {
       allLoadedMedia.value = [...allLoadedMedia.value, ...response.content]
     }
   } catch (error) {
-    console.error('Error loading more media:', error)
+    logger.error('Error loading more media:', error)
   } finally {
     lightboxLoadingMore.value = false
   }
@@ -320,7 +321,7 @@ async function deleteMediaItem(id: string) {
     allLoadedMedia.value = [] // Reset accumulated media
     await refresh()
   } catch (error) {
-    console.error('Error deleting media:', error)
+    logger.error('Error deleting media:', error)
     toast.add({ color: 'error', title: 'Error al eliminar medio' })
   }
 }
@@ -354,7 +355,7 @@ async function bulkDelete() {
       await deleteAdminMedia(id)
       deleted++
     } catch (error) {
-      console.error(`Error deleting media ${id}:`, error)
+      logger.error(`Error deleting media ${id}:`, error)
     }
   }
 

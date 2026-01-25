@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { MediaRes } from 'api-client'
 import { formatFileSize } from '~/utils/media'
+import logger from '~/utils/logger'
 
 const props = defineProps<{
   modelValue: boolean
@@ -47,7 +48,7 @@ async function fetchMedia() {
     media.value = response.content || []
     totalItems.value = response.totalElements || 0
   } catch (error) {
-    console.error('Error fetching media:', error)
+    logger.error('Error fetching media:', error)
     showErrorToast(error, 'Error al cargar medios')
   } finally {
     loading.value = false

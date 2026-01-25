@@ -261,6 +261,7 @@
 
 <script setup lang="ts">
 import FullCalendar from '@fullcalendar/vue3'
+import logger from '~/utils/logger'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin, { type DateClickArg } from '@fullcalendar/interaction'
@@ -397,7 +398,7 @@ const loadCalendarData = async () => {
       ? data.allAlerts.filter((a: WeatherAlertRes) => a.status === 'PENDING').length
       : 0
   } catch (error) {
-    console.error('Error loading calendar data:', error)
+    logger.error('Error loading calendar data:', error)
     toast.add({
       title: 'Error',
       description: 'No se pudieron cargar los datos del calendario',
@@ -423,7 +424,7 @@ const generateSchedules = async () => {
     // Recargar datos
     await loadCalendarData()
   } catch (error) {
-    console.error('Error generating schedules:', error)
+    logger.error('Error generating schedules:', error)
     toast.add({
       title: 'Error',
       description: 'No se pudieron generar los schedules',
@@ -566,7 +567,7 @@ const saveSchedule = async () => {
     await loadCalendarData()
     closeScheduleModal()
   } catch (error: unknown) {
-    console.error('Error saving schedule:', error)
+    logger.error('Error saving schedule:', error)
     const apiError = error as { data?: { message?: string } }
     toast.add({
       title: 'Error',

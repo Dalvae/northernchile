@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import logger from '~/utils/logger'
+
 const route = useRoute()
 const toast = useToast()
 const { getCountryLabel, getCountryFlag } = useCountries()
@@ -37,7 +39,7 @@ const {
     )
     return response
   } catch (err) {
-    console.error('Error fetching participants:', err)
+    logger.error('Error fetching participants:', err)
     toast.add({
       color: 'error',
       title: 'Error',

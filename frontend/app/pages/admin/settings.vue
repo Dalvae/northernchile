@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SystemSettingsRes } from 'api-client'
+import logger from '~/utils/logger'
 
 definePageMeta({
   layout: 'admin'
@@ -19,7 +20,7 @@ const { data: settings, pending, error, refresh } = await useAsyncData<SystemSet
       const response = await fetchAdminSettings()
       return response
     } catch (err) {
-      console.error('Error fetching settings:', err)
+      logger.error('Error fetching settings:', err)
       toast.add({
         color: 'error',
         title: 'Error',

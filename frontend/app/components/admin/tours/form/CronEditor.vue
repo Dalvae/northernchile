@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import logger from '~/utils/logger'
+
 const props = defineProps<{
   modelValue: string
 }>()
@@ -57,7 +59,7 @@ watch(() => props.modelValue, (newVal) => {
       }
     }
   } catch (e) {
-    console.error('Error parsing cron', e)
+    logger.error('Error parsing cron', e)
   }
 }, { immediate: true })
 

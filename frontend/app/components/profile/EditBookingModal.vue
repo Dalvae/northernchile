@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { BookingRes, ParticipantRes, ParticipantUpdateReq } from 'api-client'
+import logger from '~/utils/logger'
 
 const props = defineProps<{
   booking: BookingRes
@@ -63,7 +64,7 @@ async function saveChanges() {
     isOpen.value = false
     emit('saved')
   } catch (error: unknown) {
-    console.error('Error updating booking:', error)
+    logger.error('Error updating booking:', error)
     const apiError = error as { data?: { message?: string } }
     toast.add({
       color: 'error',

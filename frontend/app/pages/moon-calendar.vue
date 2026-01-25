@@ -227,6 +227,7 @@
 <script setup lang="ts">
 import { getLocalDateString, getTodayString, parseDateOnly, CHILE_TIMEZONE } from '~/utils/dateUtils'
 import type { MoonPhaseDTO } from 'api-client'
+import logger from '~/utils/logger'
 
 const { t, locale } = useI18n()
 
@@ -362,7 +363,7 @@ const fetchMoonData = async () => {
 
     moonData.value = response
   } catch (error) {
-    console.error('Error fetching moon data:', error)
+    logger.error('Error fetching moon data:', error)
   } finally {
     pending.value = false
   }
@@ -378,7 +379,7 @@ const fetchNextFullMoons = async () => {
     )
     nextFullMoons.value = response
   } catch (error) {
-    console.error('Error fetching next full moons:', error)
+    logger.error('Error fetching next full moons:', error)
   }
 }
 

@@ -365,6 +365,7 @@
 
 <script setup lang="ts">
 import type { AuditLogRes } from 'api-client'
+import logger from '~/utils/logger'
 
 definePageMeta({
   layout: 'admin'
@@ -442,7 +443,7 @@ const fetchAuditLogs = async () => {
     pagination.value.totalPages = response.totalPages
     pagination.value.currentPage = response.currentPage
   } catch (error) {
-    console.error('Error fetching audit logs:', error)
+    logger.error('Error fetching audit logs:', error)
   } finally {
     pending.value = false
   }
@@ -456,7 +457,7 @@ const fetchStats = async () => {
     )
     stats.value = response
   } catch (error) {
-    console.error('Error fetching stats:', error)
+    logger.error('Error fetching stats:', error)
   }
 }
 

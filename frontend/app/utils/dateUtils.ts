@@ -60,10 +60,8 @@ export function getTodayString(): string {
  * getLocalDateString(new Date()) // Returns today's date, not tomorrow's
  */
 export function getLocalDateString(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+  // Use sv-SE locale for YYYY-MM-DD format in Chile timezone
+  return date.toLocaleDateString('sv-SE', { timeZone: CHILE_TIMEZONE })
 }
 
 /**

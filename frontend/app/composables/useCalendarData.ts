@@ -10,6 +10,7 @@
 
 import { unixToDateString } from '~/utils/dateUtils'
 import type { MoonPhaseDTO, TourScheduleRes } from 'api-client'
+import logger from '~/utils/logger'
 
 export type MoonPhase = MoonPhaseDTO
 
@@ -65,7 +66,7 @@ export const useCalendarData = () => {
       })
       return response
     } catch (error) {
-      console.error('Error fetching moon phases:', error)
+      logger.error('Error fetching moon phases:', error)
       return []
     }
   }
@@ -109,7 +110,7 @@ export const useCalendarData = () => {
 
       return weatherMap
     } catch (error) {
-      console.error('Error fetching weather forecast:', error)
+      logger.error('Error fetching weather forecast:', error)
       return new Map()
     }
   }
@@ -127,7 +128,7 @@ export const useCalendarData = () => {
       )
       return response
     } catch (error) {
-      console.error('Error fetching schedules:', error)
+      logger.error('Error fetching schedules:', error)
       return []
     }
   }
@@ -140,7 +141,7 @@ export const useCalendarData = () => {
       const response = await $fetch<WeatherAlert[]>('/api/admin/alerts')
       return response
     } catch (error) {
-      console.error('Error fetching alerts:', error)
+      logger.error('Error fetching alerts:', error)
       return []
     }
   }
@@ -214,7 +215,7 @@ export const useCalendarData = () => {
         allAlerts: alerts || []
       }
     } catch (error) {
-      console.error('Error loading calendar data:', error)
+      logger.error('Error loading calendar data:', error)
       // Retornar datos vacíos en caso de error
       return {
         moonPhases: new Map(),

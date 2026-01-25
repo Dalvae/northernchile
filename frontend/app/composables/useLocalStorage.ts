@@ -1,4 +1,5 @@
 import { ref, onMounted, type Ref } from 'vue'
+import logger from '~/utils/logger'
 
 /**
  * Un composable de Vue 3 para interactuar con localStorage de forma segura en Nuxt 3 (SSR).
@@ -23,7 +24,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [Ref<T>, (valu
         localStorage.setItem(key, JSON.stringify(value))
       }
     } catch (error) {
-      console.error(`Error al guardar en localStorage con la clave "${key}":`, error)
+      logger.error(`Error al guardar en localStorage con la clave "${key}":`, error)
     }
   }
 
@@ -37,7 +38,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [Ref<T>, (valu
         storedValue.value = JSON.parse(item)
       }
     } catch (error) {
-      console.error(`Error al leer de localStorage con la clave "${key}":`, error)
+      logger.error(`Error al leer de localStorage con la clave "${key}":`, error)
     }
   })
 

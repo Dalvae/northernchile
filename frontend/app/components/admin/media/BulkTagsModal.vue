@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import logger from '~/utils/logger'
+
 const props = defineProps<{
   modelValue: boolean
   mediaIds: string[]
@@ -39,7 +41,7 @@ const { isOpen, isSubmitting, handleSubmit } = useControlledModalForm({
         await updateAdminMedia(mediaId, { tags: finalTags })
         updated++
       } catch (error) {
-        console.error(`Error updating media ${mediaId}:`, error)
+        logger.error(`Error updating media ${mediaId}:`, error)
         failed++
       }
     }

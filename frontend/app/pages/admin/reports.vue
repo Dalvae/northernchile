@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CalendarDate } from '@internationalized/date'
+import logger from '~/utils/logger'
 
 definePageMeta({
   layout: 'admin'
@@ -63,7 +64,7 @@ const {
       const response = await fetchReportsOverview(startDate.value, endDate.value)
       return response
     } catch (err: unknown) {
-      console.error('Error fetching overview:', err)
+      logger.error('Error fetching overview:', err)
       const errorData = err && typeof err === 'object' && 'data' in err
         ? (err as { data?: { message?: string } }).data
         : undefined
@@ -93,7 +94,7 @@ const {
       const response = await fetchBookingsByDayReport(startDate.value, endDate.value)
       return response
     } catch (err) {
-      console.error('Error fetching bookings by day:', err)
+      logger.error('Error fetching bookings by day:', err)
       return []
     }
   },
@@ -115,7 +116,7 @@ const {
       const response = await fetchTopToursReport(startDate.value, endDate.value, 10)
       return response
     } catch (err) {
-      console.error('Error fetching top tours:', err)
+      logger.error('Error fetching top tours:', err)
       return []
     }
   },

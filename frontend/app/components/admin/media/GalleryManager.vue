@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MediaRes } from 'api-client'
+import logger from '~/utils/logger'
 
 const props = defineProps<{
   tourId?: string
@@ -60,7 +61,7 @@ async function fetchGallery() {
       ? await fetchTourGallery(props.tourId)
       : await fetchScheduleGallery(props.scheduleId!)
   } catch (error) {
-    console.error('Error fetching gallery:', error)
+    logger.error('Error fetching gallery:', error)
     toast.add({ color: 'error', title: 'Error al cargar galería' })
   } finally {
     loading.value = false
@@ -85,7 +86,7 @@ async function removeFromGallery(mediaId: string) {
     await invalidatePublicCache()
     emit('update')
   } catch (error) {
-    console.error('Error removing media:', error)
+    logger.error('Error removing media:', error)
     toast.add({ color: 'error', title: 'Error al eliminar' })
     await fetchGallery() // Reload on error
   }
@@ -104,7 +105,7 @@ async function deleteMediaPermanently(mediaId: string) {
     await invalidatePublicCache()
     emit('update')
   } catch (error) {
-    console.error('Error deleting media:', error)
+    logger.error('Error deleting media:', error)
     toast.add({ color: 'error', title: 'Error al borrar foto' })
     await fetchGallery() // Reload on error
   }
@@ -130,7 +131,7 @@ async function onEditSuccess() {
     await fetchGallery()
     await invalidatePublicCache()
   } catch (error) {
-    console.error('Error refreshing after edit:', error)
+    logger.error('Error refreshing after edit:', error)
     toast.add({ color: 'warning', title: 'Guardado, pero hubo un error al refrescar' })
   }
   emit('update')
@@ -153,7 +154,7 @@ async function setHero(mediaId: string) {
     await invalidatePublicCache()
     emit('update')
   } catch (error) {
-    console.error('Error setting hero:', error)
+    logger.error('Error setting hero:', error)
     toast.add({ color: 'error', title: 'Error al establecer imagen destacada' })
   }
 }
@@ -175,7 +176,7 @@ async function toggleFeatured(mediaId: string) {
     await invalidatePublicCache()
     emit('update')
   } catch (error) {
-    console.error('Error toggling featured:', error)
+    logger.error('Error toggling featured:', error)
     toast.add({ color: 'error', title: 'Error al actualizar estado' })
   }
 }
@@ -237,7 +238,7 @@ async function saveOrder() {
     await invalidatePublicCache()
     emit('update')
   } catch (error) {
-    console.error('Error saving order:', error)
+    logger.error('Error saving order:', error)
     toast.add({ color: 'error', title: 'Error al guardar orden' })
     await fetchGallery() // Reload
   }
@@ -261,7 +262,7 @@ async function handleMediaSelected(selectedMediaIds: string[]) {
     await invalidatePublicCache()
     emit('update')
   } catch (error) {
-    console.error('Error assigning media:', error)
+    logger.error('Error assigning media:', error)
     toast.add({ color: 'error', title: 'Error al asignar fotos' })
   }
 }

@@ -11,6 +11,8 @@
  * - DUPLICATE_BOOKING: Duplicate booking attempt
  */
 
+import logger from '~/utils/logger'
+
 /**
  * Standard API error response from backend
  */
@@ -237,7 +239,7 @@ export function useApiError() {
 
     // Log validation errors if present
     if (apiError.errors) {
-      console.error('Validation errors:', apiError.errors)
+      logger.error('Validation errors:', apiError.errors)
     }
   }
 

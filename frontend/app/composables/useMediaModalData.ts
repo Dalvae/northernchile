@@ -1,4 +1,5 @@
 import type { TourRes, TourScheduleRes } from 'api-client'
+import logger from '~/utils/logger'
 
 export interface MediaModalData {
   tours: Ref<TourRes[]>
@@ -52,7 +53,7 @@ export function useMediaModalData(): MediaModalData {
       schedules.value = schedulesData || []
       loaded.value = true
     } catch (error) {
-      console.error('Error loading media modal data:', error)
+      logger.error('Error loading media modal data:', error)
     } finally {
       loading.value = false
     }
