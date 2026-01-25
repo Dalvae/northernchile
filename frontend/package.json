@@ -3,8 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate:api": "curl -f ${OPENAPI_URL:-http://localhost:8080/api-docs} -o openapi.json && pnpm openapi-generator-cli generate -i openapi.json -g typescript-axios -o ./lib/api-client --additional-properties=supportsES6=true,typescriptThreePlus=true",
-    "predev": "pnpm generate:api",
+    "generate:api": "bash scripts/generate-api.sh",
+    "generate:api:local": "curl -f ${OPENAPI_URL:-http://localhost:8080/api-docs} -o openapi.json && pnpm openapi-generator-cli generate -i openapi.json -g typescript-axios -o ./lib/api-client --additional-properties=supportsES6=true,typescriptThreePlus=true",
+    "predev": "pnpm generate:api:local",
     "prebuild": "pnpm generate:api",
     "build": "nuxt build",
     "dev": "nuxt dev",
