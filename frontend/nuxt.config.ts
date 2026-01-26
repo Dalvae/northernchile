@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import viteTsconfigPaths from 'vite-tsconfig-paths'
+import { defineLocalBusiness } from 'nuxt-schema-org/schema'
 
 const apiBaseUrl
   = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
@@ -332,37 +333,39 @@ export default defineNuxtConfig({
   },
 
   schemaOrg: {
-    identity: {
-      type: 'TravelAgency',
-      name: 'Northern Chile Tours',
-      url: process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.com',
-      logo: '/images/logo.png',
-      description: 'Tours astronómicos y expediciones en San Pedro de Atacama.',
-      email: 'contacto@northernchile.com',
-      address: {
+    identity: defineLocalBusiness({
+      '@type': 'TravelAgency',
+      'name': 'Northern Chile Tours',
+      'url': process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.com',
+      'logo': '/images/logo.png',
+      'description': 'Tours astronómicos y expediciones en San Pedro de Atacama.',
+      'email': 'contacto@northernchile.com',
+      'address': {
+        streetAddress: 'Caracoles 166',
         addressLocality: 'San Pedro de Atacama',
         addressRegion: 'Antofagasta',
         postalCode: '1410000',
         addressCountry: 'CL'
       },
-      telephone: '+56942693271',
-      priceRange: '$$',
-      openingHoursSpecification: [
+      'geo': {
+        '@type': 'GeoCoordinates',
+        'latitude': '-22.9087',
+        'longitude': '-68.1997'
+      },
+      'telephone': '+56942693271',
+      'priceRange': '$$',
+      'openingHoursSpecification': [
         {
-          dayOfWeek: [
-            'Monday',
-            'Tuesday',
-            'Wednesday',
-            'Thursday',
-            'Friday',
-            'Saturday',
-            'Sunday'
-          ],
+          dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
           opens: '09:00',
           closes: '23:00'
         }
+      ],
+      'sameAs': [
+        'https://www.instagram.com/northernchile',
+        'https://www.facebook.com/northernchile'
       ]
-    }
+    })
   },
 
   sitemap: {
