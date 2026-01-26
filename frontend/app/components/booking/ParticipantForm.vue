@@ -21,7 +21,7 @@
           <USelect
             :model-value="selectedSavedParticipantId"
             :items="savedParticipantSelectItems"
-            placeholder="Seleccionar participante guardado..."
+            :placeholder="t('booking.select_saved_participant_placeholder')"
             size="lg"
             icon="i-lucide-users"
             class="w-full"
@@ -34,7 +34,7 @@
         :label="t('booking.full_name')"
         name="fullName"
         required
-        :help="participant.fullName && participant.fullName.length < 2 ? 'Mínimo 2 caracteres' : undefined"
+        :help="participant.fullName && participant.fullName.length < 2 ? t('booking.min_chars', { count: 2 }) : undefined"
       >
         <UInput
           :model-value="participant.fullName"
@@ -54,7 +54,7 @@
           :label="t('booking.document_id')"
           name="documentId"
           required
-          :help="participant.documentId && participant.documentId.length < 3 ? 'Mínimo 3 caracteres' : undefined"
+          :help="participant.documentId && participant.documentId.length < 3 ? t('booking.min_chars', { count: 3 }) : undefined"
         >
           <UInput
             :model-value="participant.documentId"
@@ -277,12 +277,12 @@ const selectedSavedParticipantId = computed(() => props.participant.savedPartici
 
 const savedParticipantSelectItems = computed(() => {
   const options = [
-    { label: 'Ingresar manualmente', value: '' }
+    { label: t('booking.enter_manually'), value: '' }
   ]
 
   savedParticipantOptions.value.forEach((p) => {
     options.push({
-      label: p.isSelf ? `${p.fullName} (Yo)` : p.fullName,
+      label: p.isSelf ? `${p.fullName} ${t('booking.self_suffix')}` : p.fullName,
       value: p.id
     })
   })

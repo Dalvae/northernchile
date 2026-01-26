@@ -239,7 +239,11 @@
     "saved_participant": "Participante salvo",
     "mark_as_self": "Sou eu (sincronizar com meu perfil)",
     "mark_as_self_tooltip": "Estes dados serão salvos no seu perfil",
-    "save_for_future": "Salvar para reservas futuras"
+    "save_for_future": "Salvar para reservas futuras",
+    "select_saved_participant_placeholder": "Selecionar participante salvo...",
+    "enter_manually": "Inserir manualmente",
+    "self_suffix": "(Eu)",
+    "min_chars": "Mínimo {count} caracteres"
   },
   "cart": {
     "title": "Carrinho de Compras",

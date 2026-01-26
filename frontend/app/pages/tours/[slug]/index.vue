@@ -4,7 +4,7 @@ import type { TourRes, TourScheduleRes, ContentBlock, TourImageRes, ItineraryIte
 import { useCalendarData } from '~/composables/useCalendarData'
 import { logger } from '~/utils/logger'
 import { useCurrency } from '~/composables/useCurrency'
-import { getTodayString, getLocalDateString } from '~/utils/dateUtils'
+import { getTodayString, getLocalDateString, CHILE_TIMEZONE } from '~/utils/dateUtils'
 import { useIntersectionObserver } from '@vueuse/core'
 
 const route = useRoute()
@@ -380,7 +380,8 @@ function formatScheduleDate(datetime: string) {
   return date.toLocaleDateString(locale.value, {
     weekday: 'short',
     day: 'numeric',
-    month: 'short'
+    month: 'short',
+    timeZone: CHILE_TIMEZONE
   })
 }
 
@@ -388,7 +389,8 @@ function formatScheduleTime(datetime: string) {
   const date = new Date(datetime)
   return date.toLocaleTimeString(locale.value, {
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
+    timeZone: CHILE_TIMEZONE
   })
 }
 

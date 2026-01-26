@@ -125,12 +125,18 @@ export const useCartStore = defineStore('cart', () => {
     const previousCart = JSON.parse(JSON.stringify(_cart.value)) as CartRes
 
     // Optimistic update: add item immediately for fast UI feedback
-    const optimisticItem = {
+    // Create a minimal placeholder item - actual data will come from server response
+    const optimisticItem: CartItemRes = {
+      itemId: `temp-${itemData.scheduleId}`,
       scheduleId: itemData.scheduleId,
+      tourId: '',
+      tourName: '',
       numParticipants: itemData.numParticipants,
+      pricePerParticipant: 0,
       itemTotal: 0,
-      pricePerParticipant: 0
-    } as unknown as CartItemRes
+      durationHours: 0,
+      startDatetime: ''
+    }
 
     // Ensure items array exists
     if (!_cart.value.items) {

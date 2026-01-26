@@ -108,7 +108,11 @@ export const usePaymentStore = defineStore('payment', {
      * Set current payment state (for PaymentSession flow)
      */
     setCurrentPayment(payment: Partial<PaymentSessionRes>) {
-      this.currentPayment = payment as PaymentSessionRes
+      // Merge with existing state to preserve previously set fields
+      this.currentPayment = {
+        ...this.currentPayment,
+        ...payment
+      } as PaymentSessionRes
     },
 
     /**

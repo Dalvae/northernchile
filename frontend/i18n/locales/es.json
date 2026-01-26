@@ -243,7 +243,11 @@
     "saved_participant": "Participante guardado",
     "mark_as_self": "Soy yo (sincronizar con mi perfil)",
     "mark_as_self_tooltip": "Estos datos se guardarán en tu perfil",
-    "save_for_future": "Guardar para futuras reservas"
+    "save_for_future": "Guardar para futuras reservas",
+    "select_saved_participant_placeholder": "Seleccionar participante guardado...",
+    "enter_manually": "Ingresar manualmente",
+    "self_suffix": "(Yo)",
+    "min_chars": "Mínimo {count} caracteres"
   },
   "cart": {
     "title": "Carrito de Compras",

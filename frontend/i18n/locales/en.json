@@ -243,7 +243,11 @@
     "saved_participant": "Saved participant",
     "mark_as_self": "This is me (sync with my profile)",
     "mark_as_self_tooltip": "This data will be saved to your profile",
-    "save_for_future": "Save for future bookings"
+    "save_for_future": "Save for future bookings",
+    "select_saved_participant_placeholder": "Select saved participant...",
+    "enter_manually": "Enter manually",
+    "self_suffix": "(Me)",
+    "min_chars": "Minimum {count} characters"
   },
   "cart": {
     "title": "Shopping Cart",

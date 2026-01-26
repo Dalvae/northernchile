@@ -4,6 +4,7 @@ import type { BookingRes, LocalTime } from 'api-client'
 import { getGroupedRowModel } from '@tanstack/vue-table'
 import type { GroupingOptions } from '@tanstack/vue-table'
 import { getStatusColor, getBookingStatusLabel } from '~/utils/adminOptions'
+import { createInstant } from '~/utils/dateUtils'
 
 import AdminCountryCell from '~/components/admin/CountryCell.vue'
 
@@ -311,8 +312,10 @@ async function handleRefund() {
 // Check if booking is within 24 hours
 function isWithin24Hours(tourDate: string, tourTime?: LocalTime | string | null): boolean {
   const now = new Date()
-  const timeStr = formatLocalTime(tourTime) || '00:00:00'
-  const tourDateTime = new Date(`${tourDate}T${timeStr}`)
+  const timeStr = formatLocalTime(tourTime) || '00:00'
+  // Use createInstant to properly handle Chile timezone
+  const tourInstant = createInstant(tourDate, timeStr)
+  const tourDateTime = new Date(tourInstant)
   const hoursUntilTour = (tourDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)
   return hoursUntilTour < 24
 }
