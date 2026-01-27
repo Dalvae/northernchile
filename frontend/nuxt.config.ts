@@ -338,6 +338,7 @@ export default defineNuxtConfig({
       'name': 'Northern Chile Tours',
       'url': process.env.NUXT_PUBLIC_BASE_URL || 'https://www.northernchile.com',
       'logo': '/images/logo.png',
+      'image': '/__og-image__/image/og.png',
       'description': 'Tours astronómicos y expediciones en San Pedro de Atacama.',
       'email': 'contacto@northernchile.com',
       'address': {
