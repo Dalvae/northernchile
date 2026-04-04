@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PrivateTourRequest } from 'api-client'
+import type { PagePrivateTourRequest, PrivateTourRequest } from 'api-client'
 import { PRIVATE_REQUEST_STATUS_OPTIONS, getStatusColor as getAdminStatusColor } from '~/utils/adminOptions'
 import logger from '~/utils/logger'
 
@@ -23,8 +23,8 @@ const {
   'private-tour-requests',
   async () => {
     try {
-      const response = await $fetch<PrivateTourRequest[]>('/api/admin/private-tours/requests')
-      return response
+      const response = await $fetch<PagePrivateTourRequest>('/api/admin/private-tours/requests')
+      return response.content ?? []
     } catch (err) {
       logger.error('Error fetching private tour requests:', err)
       toast.add({
@@ -135,15 +135,7 @@ const updateRequestStatus = async () => {
 // Use centralized status color function
 const getStatusColor = getAdminStatusColor
 
-const formatDateTime = (datetime: string) => {
-  return new Date(datetime).toLocaleString('es-CL', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+const { formatDate } = useDateTime()
 
 const { formatPrice } = useCurrency()
 const formatCurrency = (value: number | null | undefined) => value != null ? formatPrice(value) : '-' as string
@@ -338,7 +330,7 @@ const formatCurrency = (value: number | null | undefined) => value != null ? for
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
                   <div class="text-sm text-default">
-                    {{ request.requestedDatetime ? formatDateTime(request.requestedDatetime) : '-' }}
+                    {{ request.requestedDatetime ? formatDate(request.requestedDatetime) : '-' }}
                   </div>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap">
@@ -475,7 +467,7 @@ const formatCurrency = (value: number | null | undefined) => value != null ? for
                   <span
                     class="text-sm font-medium text-default"
                   >{{
-                    formatDateTime(selectedRequest?.requestedDatetime || '')
+                    formatDate(selectedRequest?.requestedDatetime || '')
                   }}</span>
                 </div>
                 <div class="flex justify-between">
