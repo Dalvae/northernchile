@@ -1,6 +1,13 @@
 import { fileURLToPath } from 'node:url'
 import viteTsconfigPaths from 'vite-tsconfig-paths'
 import { defineLocalBusiness } from 'nuxt-schema-org/schema'
+import {
+  CONTACT_EMAIL,
+  CONTACT_PHONE_TEL,
+  FACEBOOK_URL,
+  INSTAGRAM_URL,
+  TRIPADVISOR_URL
+} from './shared/siteConfig'
 
 const apiBaseUrl
   = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
@@ -340,20 +347,8 @@ export default defineNuxtConfig({
       'logo': '/images/logo.png',
       'image': '/__og-image__/image/og.png',
       'description': 'Tours astronómicos y expediciones en San Pedro de Atacama.',
-      'email': 'contacto@northernchile.com',
-      'address': {
-        streetAddress: 'Caracoles 166',
-        addressLocality: 'San Pedro de Atacama',
-        addressRegion: 'Antofagasta',
-        postalCode: '1410000',
-        addressCountry: 'CL'
-      },
-      'geo': {
-        '@type': 'GeoCoordinates',
-        'latitude': '-22.9087',
-        'longitude': '-68.1997'
-      },
-      'telephone': '+56942693271',
+      'email': CONTACT_EMAIL,
+      'telephone': CONTACT_PHONE_TEL,
       'priceRange': '$$',
       'openingHoursSpecification': [
         {
@@ -363,8 +358,9 @@ export default defineNuxtConfig({
         }
       ],
       'sameAs': [
-        'https://www.instagram.com/northernchile',
-        'https://www.facebook.com/northernchile'
+        INSTAGRAM_URL,
+        FACEBOOK_URL,
+        TRIPADVISOR_URL
       ]
     })
   },

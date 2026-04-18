@@ -244,7 +244,7 @@ const props = withDefaults(defineProps<{
 
           <Text style="margin: 30px 0 0 0; color: #374151;">
             <strong th:text="#{email.booking.confirmation.questions}">¿Preguntas?</strong><br>
-            <span th:text="#{email.booking.confirmation.contact}">Contáctanos en contacto@northernchile.com o +56 9 5765 5764</span>
+            <span th:text="#{email.booking.confirmation.contact}">Contáctanos en contacto@northernchile.com o +56 9 2704 8302</span>
           </Text>
         </Section>
 

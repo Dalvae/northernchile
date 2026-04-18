@@ -100,7 +100,7 @@ public class AppProperties {
 
     public static class Manifest {
         private String operatorEmail = "contacto@northernchile.com";
-        private String emergencyContact = "+56 9 5765 5764";
+        private String emergencyContact = "+56 9 2704 8302";
 
         public String getOperatorEmail() {
             return operatorEmail;

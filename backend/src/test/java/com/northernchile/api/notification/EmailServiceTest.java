@@ -317,7 +317,7 @@ class EmailServiceTest {
                     "19:00",
                     "Hotel Plaza San Pedro",
                     "Ropa abrigada, cámara fotográfica",
-                    "+56 9 5765 5764",
+                    "+56 9 2704 8302",
                     "es-CL"
             );
 

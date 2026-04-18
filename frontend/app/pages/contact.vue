@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '@nuxt/ui'
+import {
+  CONTACT_EMAIL,
+  CONTACT_PHONE_DISPLAY,
+  CONTACT_PHONE_TEL,
+  CONTACT_SOCIAL_LINKS
+} from '~~/shared/siteConfig'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -68,6 +74,10 @@ const state = reactive({
 })
 
 type Schema = typeof state
+type ContactDetail = {
+  text: string
+  href?: string
+}
 
 function validate(state: Partial<Schema>): FormError[] {
   const errors = []
@@ -80,28 +90,30 @@ function validate(state: Partial<Schema>): FormError[] {
 
 const contactInfo = computed(() => [
   {
-    icon: 'i-lucide-map-pin',
-    title: t('contact.info.location.title'),
-    details: [
-      t('contact.info.location.city'),
-      t('contact.info.location.region')
-    ]
-  },
-  {
     icon: 'i-lucide-phone',
     title: t('contact.info.phone.title'),
     details: [
-      t('contact.info.phone.number'),
-      t('contact.info.phone.hours')
-    ]
+      {
+        text: CONTACT_PHONE_DISPLAY,
+        href: `tel:${CONTACT_PHONE_TEL}`
+      },
+      {
+        text: t('contact.info.phone.hours')
+      }
+    ] as ContactDetail[]
   },
   {
     icon: 'i-lucide-mail',
     title: t('contact.info.email.title'),
     details: [
-      t('contact.info.email.info'),
-      t('contact.info.email.reservations')
-    ]
+      {
+        text: CONTACT_EMAIL,
+        href: `mailto:${CONTACT_EMAIL}`
+      },
+      {
+        text: t('contact.info.email.delivery')
+      }
+    ] as ContactDetail[]
   }
 ])
 
@@ -209,13 +221,24 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
                   {{ info.title }}
                 </h3>
                 <div class="space-y-0.5">
-                  <p
+                  <template
                     v-for="detail in info.details"
-                    :key="detail"
-                    class="text-neutral-600 dark:text-neutral-300"
+                    :key="`${info.title}-${detail.text}`"
                   >
-                    {{ detail }}
-                  </p>
+                    <a
+                      v-if="detail.href"
+                      :href="detail.href"
+                      class="block text-neutral-600 dark:text-neutral-300 hover:text-primary transition-colors"
+                    >
+                      {{ detail.text }}
+                    </a>
+                    <p
+                      v-else
+                      class="text-neutral-600 dark:text-neutral-300"
+                    >
+                      {{ detail.text }}
+                    </p>
+                  </template>
                 </div>
               </div>
             </div>
@@ -228,14 +251,15 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
             </h3>
             <div class="flex gap-4">
               <UButton
-                v-for="social in ['facebook', 'instagram', 'whatsapp']"
-                :key="social"
-                :to="`https://${social}.com`"
+                v-for="social in CONTACT_SOCIAL_LINKS"
+                :key="social.label"
+                :to="social.url"
                 target="_blank"
                 color="neutral"
                 variant="ghost"
                 size="lg"
-                :icon="`i-simple-icons-${social}`"
+                :icon="social.icon"
+                :aria-label="social.label"
                 class="hover:bg-neutral-100 dark:hover:bg-neutral-800"
               />
             </div>
@@ -329,52 +353,17 @@ async function onSubmit(_event: FormSubmitEvent<Schema>) {
         </div>
       </div>
 
-      <!-- FAQ & Map Section -->
+      <!-- FAQ Section -->
       <div class="mt-24 pt-16 border-t border-neutral-200 dark:border-neutral-800">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          <!-- FAQ -->
-          <div>
-            <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-8">
-              {{ t("contact.faq.title") }}
-            </h2>
-            <UAccordion
-              :items="faqs"
-              color="neutral"
-              variant="soft"
-              size="md"
-            />
-          </div>
-
-          <!-- Simple Map Link -->
-          <div>
-            <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-8">
-              {{ t("contact.map.title") }}
-            </h2>
-            <div class="bg-neutral-100 dark:bg-neutral-800 rounded-xl overflow-hidden h-[300px] relative group">
-              <!-- Static Image for performance/design -->
-              <NuxtImg
-                src="https://images.unsplash.com/photo-1518558997970-4ddc236affcd?q=80&w=1000&auto=format&fit=crop"
-                alt="San Pedro de Atacama"
-                class="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500"
-                format="webp"
-                loading="lazy"
-                placeholder
-              />
-              <div class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/10 transition-colors">
-                <UButton
-                  to="https://maps.google.com/?q=San+Pedro+de+Atacama"
-                  target="_blank"
-                  color="neutral"
-                  variant="solid"
-                  icon="i-lucide-map-pin"
-                  size="lg"
-                >
-                  {{ t("contact.map.button") }}
-                </UButton>
-              </div>
-            </div>
-          </div>
-        </div>
+        <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-8">
+          {{ t("contact.faq.title") }}
+        </h2>
+        <UAccordion
+          :items="faqs"
+          color="neutral"
+          variant="soft"
+          size="md"
+        />
       </div>
     </UContainer>
   </div>

@@ -14,6 +14,15 @@
       </div>
 
       <div class="flex gap-2">
+        <UButton
+          color="secondary"
+          variant="soft"
+          icon="i-lucide-calendar-range"
+          @click="openBulkScheduleModal"
+        >
+          Crear en Lote
+        </UButton>
+
         <!-- Badge de alertas -->
         <UButton
           v-if="pendingAlerts > 0"
@@ -97,7 +106,7 @@
               <h3
                 class="text-xl font-semibold text-default"
               >
-                {{ isEditMode ? "Editar Schedule" : "Crear Schedule" }}
+                {{ scheduleModalTitle }}
               </h3>
               <!-- Ver participantes button -->
               <UButton
@@ -120,118 +129,307 @@
             />
           </div>
 
+          <div
+            v-if="!isEditMode"
+            class="flex gap-2 pt-4"
+          >
+            <UButton
+              type="button"
+              color="primary"
+              :variant="scheduleModalMode === 'single' ? 'solid' : 'soft'"
+              @click="setScheduleModalMode('single')"
+            >
+              Individual
+            </UButton>
+            <UButton
+              type="button"
+              color="secondary"
+              :variant="scheduleModalMode === 'bulk' ? 'solid' : 'soft'"
+              @click="setScheduleModalMode('bulk')"
+            >
+              En Lote
+            </UButton>
+          </div>
+
           <!-- Form -->
           <form
             class="space-y-4 py-4"
-            @submit.prevent="saveSchedule"
+            @submit.prevent="handleScheduleSubmit"
           >
-            <!-- Tour Selection -->
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
-              >
-                Tour <span class="text-error">*</span>
-              </label>
-              <USelect
-                v-model="scheduleForm.tourId"
-                :items="tourOptions"
-                option-attribute="label"
-                value-attribute="value"
-                placeholder="Selecciona un tour"
-                size="lg"
-                :disabled="isEditMode"
-                class="w-full"
-              />
-              <p
-                v-if="formErrors.tourId"
-                class="mt-1 text-sm text-error"
-              >
-                {{ formErrors.tourId }}
-              </p>
-            </div>
-
-            <!-- Date and Time -->
-            <div class="grid grid-cols-2 gap-4">
+            <template v-if="scheduleModalMode === 'bulk'">
               <div>
                 <label
-                  class="block text-sm font-medium text-default mb-2"
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
                 >
-                  Fecha <span class="text-error">*</span>
+                  Tour <span class="text-error">*</span>
                 </label>
-                <UInput
-                  v-model="scheduleForm.date"
-                  type="date"
+                <USelect
+                  v-model="bulkScheduleForm.tourId"
+                  :items="tourOptions"
+                  option-attribute="label"
+                  value-attribute="value"
+                  placeholder="Selecciona un tour"
                   size="lg"
                   class="w-full"
                 />
                 <p
-                  v-if="formErrors.date"
+                  v-if="formErrors.tourId"
                   class="mt-1 text-sm text-error"
                 >
-                  {{ formErrors.date }}
+                  {{ formErrors.tourId }}
                 </p>
               </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    class="block text-sm font-medium text-default mb-2"
+                  >
+                    Desde <span class="text-error">*</span>
+                  </label>
+                  <UInput
+                    v-model="bulkScheduleForm.startDate"
+                    type="date"
+                    size="lg"
+                    class="w-full"
+                  />
+                  <p
+                    v-if="formErrors.startDate"
+                    class="mt-1 text-sm text-error"
+                  >
+                    {{ formErrors.startDate }}
+                  </p>
+                </div>
+                <div>
+                  <label
+                    class="block text-sm font-medium text-default mb-2"
+                  >
+                    Hasta <span class="text-error">*</span>
+                  </label>
+                  <UInput
+                    v-model="bulkScheduleForm.endDate"
+                    type="date"
+                    size="lg"
+                    class="w-full"
+                  />
+                  <p
+                    v-if="formErrors.endDate"
+                    class="mt-1 text-sm text-error"
+                  >
+                    {{ formErrors.endDate }}
+                  </p>
+                </div>
+              </div>
+
               <div>
                 <label
                   class="block text-sm font-medium text-default mb-2"
                 >
-                  Hora <span class="text-error">*</span>
+                  Días a crear <span class="text-error">*</span>
                 </label>
-                <UInput
-                  v-model="scheduleForm.time"
-                  type="time"
+                <div class="flex flex-wrap gap-2">
+                  <UButton
+                    v-for="weekday in weekdayOptions"
+                    :key="weekday.value"
+                    type="button"
+                    size="sm"
+                    :color="isBulkWeekdaySelected(weekday.value) ? 'primary' : 'neutral'"
+                    :variant="isBulkWeekdaySelected(weekday.value) ? 'solid' : 'outline'"
+                    @click="toggleBulkWeekday(weekday.value)"
+                  >
+                    {{ weekday.label }}
+                  </UButton>
+                </div>
+
+                <div class="flex gap-2 mt-3">
+                  <UButton
+                    type="button"
+                    size="xs"
+                    color="neutral"
+                    variant="ghost"
+                    @click="selectAllBulkWeekdays"
+                  >
+                    Todos
+                  </UButton>
+                  <UButton
+                    type="button"
+                    size="xs"
+                    color="neutral"
+                    variant="ghost"
+                    @click="clearBulkWeekdays"
+                  >
+                    Limpiar
+                  </UButton>
+                </div>
+
+                <p
+                  v-if="formErrors.weekdays"
+                  class="mt-1 text-sm text-error"
+                >
+                  {{ formErrors.weekdays }}
+                </p>
+                <p class="mt-2 text-xs text-muted">
+                  {{ bulkSelectionSummary }}
+                </p>
+                <p class="mt-1 text-xs text-muted">
+                  Los schedules existentes para el mismo tour y hora se omitirán automáticamente.
+                </p>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    class="block text-sm font-medium text-default mb-2"
+                  >
+                    Hora <span class="text-error">*</span>
+                  </label>
+                  <UInput
+                    v-model="bulkScheduleForm.time"
+                    type="time"
+                    size="lg"
+                    class="w-full"
+                  />
+                  <p
+                    v-if="formErrors.time"
+                    class="mt-1 text-sm text-error"
+                  >
+                    {{ formErrors.time }}
+                  </p>
+                </div>
+                <div>
+                  <label
+                    class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
+                  >
+                    Cupos Máximos <span class="text-error">*</span>
+                  </label>
+                  <UInput
+                    v-model.number="bulkScheduleForm.maxParticipants"
+                    type="number"
+                    min="1"
+                    max="100"
+                    size="lg"
+                    placeholder="Ej: 15"
+                    class="w-full"
+                  />
+                  <p
+                    v-if="formErrors.maxParticipants"
+                    class="mt-1 text-sm text-error"
+                  >
+                    {{ formErrors.maxParticipants }}
+                  </p>
+                </div>
+              </div>
+            </template>
+
+            <template v-else>
+              <!-- Tour Selection -->
+              <div>
+                <label
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
+                >
+                  Tour <span class="text-error">*</span>
+                </label>
+                <USelect
+                  v-model="scheduleForm.tourId"
+                  :items="tourOptions"
+                  option-attribute="label"
+                  value-attribute="value"
+                  placeholder="Selecciona un tour"
                   size="lg"
+                  :disabled="isEditMode"
                   class="w-full"
                 />
                 <p
-                  v-if="formErrors.time"
+                  v-if="formErrors.tourId"
                   class="mt-1 text-sm text-error"
                 >
-                  {{ formErrors.time }}
+                  {{ formErrors.tourId }}
                 </p>
               </div>
-            </div>
 
-            <!-- Max Participants -->
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
-              >
-                Cupos Máximos <span class="text-error">*</span>
-              </label>
-              <UInput
-                v-model.number="scheduleForm.maxParticipants"
-                type="number"
-                min="1"
-                max="100"
-                size="lg"
-                placeholder="Ej: 15"
-                class="w-full"
-              />
-              <p
-                v-if="formErrors.maxParticipants"
-                class="mt-1 text-sm text-error"
-              >
-                {{ formErrors.maxParticipants }}
-              </p>
-            </div>
+              <!-- Date and Time -->
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    class="block text-sm font-medium text-default mb-2"
+                  >
+                    Fecha <span class="text-error">*</span>
+                  </label>
+                  <UInput
+                    v-model="scheduleForm.date"
+                    type="date"
+                    size="lg"
+                    class="w-full"
+                  />
+                  <p
+                    v-if="formErrors.date"
+                    class="mt-1 text-sm text-error"
+                  >
+                    {{ formErrors.date }}
+                  </p>
+                </div>
+                <div>
+                  <label
+                    class="block text-sm font-medium text-default mb-2"
+                  >
+                    Hora <span class="text-error">*</span>
+                  </label>
+                  <UInput
+                    v-model="scheduleForm.time"
+                    type="time"
+                    size="lg"
+                    class="w-full"
+                  />
+                  <p
+                    v-if="formErrors.time"
+                    class="mt-1 text-sm text-error"
+                  >
+                    {{ formErrors.time }}
+                  </p>
+                </div>
+              </div>
 
-            <!-- Status (only in edit mode) -->
-            <div v-if="isEditMode">
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
-              >
-                Estado
-              </label>
-              <USelect
-                v-model="scheduleForm.status"
-                :items="statusOptions"
-                option-attribute="label"
-                value-attribute="value"
-                size="lg"
-                class="w-full"
-              />
-            </div>
+              <!-- Max Participants -->
+              <div>
+                <label
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
+                >
+                  Cupos Máximos <span class="text-error">*</span>
+                </label>
+                <UInput
+                  v-model.number="scheduleForm.maxParticipants"
+                  type="number"
+                  min="1"
+                  max="100"
+                  size="lg"
+                  placeholder="Ej: 15"
+                  class="w-full"
+                />
+                <p
+                  v-if="formErrors.maxParticipants"
+                  class="mt-1 text-sm text-error"
+                >
+                  {{ formErrors.maxParticipants }}
+                </p>
+              </div>
+
+              <!-- Status (only in edit mode) -->
+              <div v-if="isEditMode">
+                <label
+                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
+                >
+                  Estado
+                </label>
+                <USelect
+                  v-model="scheduleForm.status"
+                  :items="statusOptions"
+                  option-attribute="label"
+                  value-attribute="value"
+                  size="lg"
+                  class="w-full"
+                />
+              </div>
+            </template>
           </form>
 
           <!-- Footer -->
@@ -248,9 +446,9 @@
             <UButton
               color="primary"
               :loading="savingSchedule"
-              @click="saveSchedule"
+              @click="handleScheduleSubmit"
             >
-              {{ isEditMode ? "Actualizar" : "Crear" }}
+              {{ scheduleSubmitLabel }}
             </UButton>
           </div>
         </div>
@@ -289,6 +487,12 @@ const { fetchCalendarData, hasAdverseConditions, getWeatherIcon }
   = useCalendarData()
 
 const { formatLocalTime } = useDateTime()
+const { fetchAdminSchedules } = useAdminData()
+
+const BULK_CREATE_BATCH_SIZE = 8
+const DEFAULT_BULK_WEEKDAYS = [1, 2, 3, 4, 5, 6, 0]
+
+type ScheduleModalMode = 'single' | 'bulk'
 
 // Calendar data interface
 interface CalendarDataResponse {
@@ -306,9 +510,9 @@ const selectedSchedule = ref<TourScheduleRes | null>(null)
 const generating = ref(false)
 const savingSchedule = ref(false)
 const pendingAlerts = ref(0)
+const scheduleModalMode = ref<ScheduleModalMode>('single')
 
-// Form state
-const scheduleForm = ref({
+const createEmptyScheduleForm = () => ({
   tourId: '',
   date: '',
   time: '',
@@ -316,6 +520,22 @@ const scheduleForm = ref({
   status: 'OPEN'
 })
 
+const createEmptyBulkScheduleForm = () => {
+  const today = getLocalDateString(new Date())
+
+  return {
+    tourId: '',
+    startDate: today,
+    endDate: today,
+    time: '',
+    maxParticipants: 10,
+    weekdays: [...DEFAULT_BULK_WEEKDAYS]
+  }
+}
+
+// Form state
+const scheduleForm = ref(createEmptyScheduleForm())
+const bulkScheduleForm = ref(createEmptyBulkScheduleForm())
 const formErrors = ref<Record<string, string>>({})
 
 // Tours and guides data
@@ -340,8 +560,29 @@ const statusOptions = [
   { value: 'CANCELLED', label: 'Cancelado' },
   { value: 'CLOSED', label: 'Cerrado' }
 ]
+const weekdayOptions = [
+  { value: 1, label: 'Lun' },
+  { value: 2, label: 'Mar' },
+  { value: 3, label: 'Mié' },
+  { value: 4, label: 'Jue' },
+  { value: 5, label: 'Vie' },
+  { value: 6, label: 'Sáb' },
+  { value: 0, label: 'Dom' }
+]
 
 const isEditMode = computed(() => !!selectedSchedule.value)
+const scheduleModalTitle = computed(() => {
+  if (isEditMode.value) return 'Editar Schedule'
+  return scheduleModalMode.value === 'bulk'
+    ? 'Crear Schedules en Lote'
+    : 'Crear Schedule'
+})
+const scheduleSubmitLabel = computed(() => {
+  if (isEditMode.value) return 'Actualizar'
+  return scheduleModalMode.value === 'bulk'
+    ? 'Crear en Lote'
+    : 'Crear'
+})
 
 // Map de tours por ID para acceso rápido
 const toursMap = computed(() => {
@@ -355,26 +596,94 @@ const toursMap = computed(() => {
   return map
 })
 
+const applyTourDefaults = (tourId: string, target: { time: string, maxParticipants: number }) => {
+  const selectedTour = toursMap.value.get(tourId)
+  if (!selectedTour) return
+
+  if (selectedTour.defaultStartTime) {
+    target.time = formatLocalTime(selectedTour.defaultStartTime)
+  }
+
+  if (selectedTour.defaultMaxParticipants) {
+    target.maxParticipants = selectedTour.defaultMaxParticipants
+  }
+}
+
 // Watch para pre-llenar la hora y cupo cuando se selecciona un tour
 watch(() => scheduleForm.value.tourId, (newTourId) => {
   if (!newTourId || isEditMode.value) return // No modificar en modo edición
 
-  const selectedTour = toursMap.value.get(newTourId)
-  if (selectedTour) {
-    // Auto-rellenar hora
-    if (selectedTour.defaultStartTime) {
-      scheduleForm.value.time = formatLocalTime(selectedTour.defaultStartTime)
-    }
-    // Auto-rellenar cupo máximo
-    if (selectedTour.defaultMaxParticipants) {
-      scheduleForm.value.maxParticipants = selectedTour.defaultMaxParticipants
-    }
-  }
+  applyTourDefaults(newTourId, scheduleForm.value)
+})
+
+watch(() => bulkScheduleForm.value.tourId, (newTourId) => {
+  if (!newTourId) return
+  applyTourDefaults(newTourId, bulkScheduleForm.value)
 })
 
 // Rango de fechas del calendario
 const startDate = ref('')
 const endDate = ref('')
+
+const formatTimeForPayload = (time: string) => (
+  time.length === 5 ? `${time}:00` : time
+)
+
+const formatTimeForComparison = (time: string) => time.slice(0, 5)
+
+const localDateStringToDate = (date: string) => new Date(`${date}T12:00:00`)
+
+const getChileTimeString = (value: string | Date) => {
+  const date = value instanceof Date ? value : new Date(value)
+
+  return date.toLocaleTimeString('es-CL', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: CHILE_TIMEZONE
+  })
+}
+
+const buildScheduleKey = (tourId: string, date: string, time: string) =>
+  `${tourId}|${date}|${formatTimeForComparison(time)}`
+
+const bulkSelectedDates = computed(() => {
+  const { startDate: rangeStart, endDate: rangeEnd, weekdays } = bulkScheduleForm.value
+
+  if (!rangeStart || !rangeEnd || weekdays.length === 0) return []
+
+  const start = localDateStringToDate(rangeStart)
+  const end = localDateStringToDate(rangeEnd)
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) {
+    return []
+  }
+
+  const dates: string[] = []
+  const current = new Date(start)
+
+  while (current <= end) {
+    if (weekdays.includes(current.getDay())) {
+      dates.push(getLocalDateString(current))
+    }
+    current.setDate(current.getDate() + 1)
+  }
+
+  return dates
+})
+
+const bulkSelectionSummary = computed(() => {
+  if (!bulkScheduleForm.value.startDate || !bulkScheduleForm.value.endDate) {
+    return 'Selecciona un rango para calcular las fechas a crear.'
+  }
+
+  const count = bulkSelectedDates.value.length
+  if (count === 0) {
+    return 'No hay fechas que coincidan con el rango y los días seleccionados.'
+  }
+
+  return `${count} ${count === 1 ? 'fecha coincide' : 'fechas coinciden'} con el rango y los días seleccionados.`
+})
 
 // Inicializar fechas
 onMounted(() => {
@@ -439,6 +748,7 @@ const generateSchedules = async () => {
 const handleEventClick = (info: EventClickArg) => {
   const schedule = info.event.extendedProps.schedule as TourScheduleRes
   selectedSchedule.value = schedule
+  scheduleModalMode.value = 'single'
 
   // Fill form with schedule data
   // startDatetime is an Instant (ISO with Z), parse it correctly
@@ -446,12 +756,7 @@ const handleEventClick = (info: EventClickArg) => {
   scheduleForm.value = {
     tourId: schedule.tourId,
     date: getLocalDateString(scheduleDate),
-    time: scheduleDate.toLocaleTimeString('es-CL', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-      timeZone: CHILE_TIMEZONE
-    }),
+    time: getChileTimeString(scheduleDate),
     maxParticipants: schedule.maxParticipants || 10,
     status: schedule.status || 'OPEN'
   }
@@ -462,6 +767,7 @@ const handleEventClick = (info: EventClickArg) => {
 // Click en día vacío
 const handleDateClick = (info: DateClickArg) => {
   selectedSchedule.value = null
+  scheduleModalMode.value = 'single'
 
   // Pre-fill with clicked date
   const clickedDate = info.dateStr
@@ -476,22 +782,75 @@ const handleDateClick = (info: DateClickArg) => {
   showScheduleModal.value = true
 }
 
+const openBulkScheduleModal = () => {
+  const fallbackDate = startDate.value || getLocalDateString(new Date())
+
+  selectedSchedule.value = null
+  scheduleModalMode.value = 'bulk'
+  formErrors.value = {}
+  bulkScheduleForm.value = {
+    ...createEmptyBulkScheduleForm(),
+    startDate: fallbackDate,
+    endDate: fallbackDate
+  }
+  showScheduleModal.value = true
+}
+
+const setScheduleModalMode = (mode: ScheduleModalMode) => {
+  if (isEditMode.value || scheduleModalMode.value === mode) return
+
+  if (mode === 'bulk') {
+    bulkScheduleForm.value = {
+      ...bulkScheduleForm.value,
+      tourId: scheduleForm.value.tourId,
+      startDate: scheduleForm.value.date || bulkScheduleForm.value.startDate,
+      endDate: scheduleForm.value.date || bulkScheduleForm.value.endDate,
+      time: scheduleForm.value.time,
+      maxParticipants: scheduleForm.value.maxParticipants
+    }
+  } else {
+    scheduleForm.value = {
+      ...scheduleForm.value,
+      tourId: bulkScheduleForm.value.tourId,
+      date: bulkScheduleForm.value.startDate,
+      time: bulkScheduleForm.value.time,
+      maxParticipants: bulkScheduleForm.value.maxParticipants
+    }
+  }
+
+  formErrors.value = {}
+  scheduleModalMode.value = mode
+}
+
+const isBulkWeekdaySelected = (weekday: number) =>
+  bulkScheduleForm.value.weekdays.includes(weekday)
+
+const toggleBulkWeekday = (weekday: number) => {
+  bulkScheduleForm.value.weekdays = isBulkWeekdaySelected(weekday)
+    ? bulkScheduleForm.value.weekdays.filter(day => day !== weekday)
+    : [...bulkScheduleForm.value.weekdays, weekday]
+}
+
+const selectAllBulkWeekdays = () => {
+  bulkScheduleForm.value.weekdays = [...DEFAULT_BULK_WEEKDAYS]
+}
+
+const clearBulkWeekdays = () => {
+  bulkScheduleForm.value.weekdays = []
+}
+
 // Close modal and reset form
 const closeScheduleModal = () => {
   showScheduleModal.value = false
   selectedSchedule.value = null
+  scheduleModalMode.value = 'single'
   formErrors.value = {}
-  scheduleForm.value = {
-    tourId: '',
-    date: '',
-    time: '',
-    maxParticipants: 10,
-    status: 'OPEN'
-  }
+  scheduleForm.value = createEmptyScheduleForm()
+  bulkScheduleForm.value = createEmptyBulkScheduleForm()
 }
 
 // Validate form
-const validateForm = (): boolean => {
+const validateSingleForm = (): boolean => {
   formErrors.value = {}
 
   if (!scheduleForm.value.tourId) {
@@ -516,9 +875,73 @@ const validateForm = (): boolean => {
   return Object.keys(formErrors.value).length === 0
 }
 
+const validateBulkForm = (): boolean => {
+  formErrors.value = {}
+
+  if (!bulkScheduleForm.value.tourId) {
+    formErrors.value.tourId = 'Debes seleccionar un tour'
+  }
+
+  if (!bulkScheduleForm.value.startDate) {
+    formErrors.value.startDate = 'La fecha inicial es requerida'
+  }
+
+  if (!bulkScheduleForm.value.endDate) {
+    formErrors.value.endDate = 'La fecha final es requerida'
+  }
+
+  if (
+    bulkScheduleForm.value.startDate
+    && bulkScheduleForm.value.endDate
+    && bulkScheduleForm.value.startDate > bulkScheduleForm.value.endDate
+  ) {
+    formErrors.value.endDate = 'La fecha final debe ser igual o posterior a la inicial'
+  }
+
+  if (!bulkScheduleForm.value.time) {
+    formErrors.value.time = 'La hora es requerida'
+  }
+
+  if (
+    !bulkScheduleForm.value.maxParticipants
+    || bulkScheduleForm.value.maxParticipants < 1
+  ) {
+    formErrors.value.maxParticipants = 'Debe ser al menos 1'
+  }
+
+  if (bulkScheduleForm.value.weekdays.length === 0) {
+    formErrors.value.weekdays = 'Selecciona al menos un día'
+  }
+
+  if (bulkSelectedDates.value.length === 0 && !formErrors.value.weekdays) {
+    formErrors.value.weekdays = 'El rango no genera fechas válidas con los días seleccionados'
+  }
+
+  return Object.keys(formErrors.value).length === 0
+}
+
+const extendCalendarRange = (rangeStart: string, rangeEnd: string) => {
+  if (!startDate.value || rangeStart < startDate.value) {
+    startDate.value = rangeStart
+  }
+
+  if (!endDate.value || rangeEnd > endDate.value) {
+    endDate.value = rangeEnd
+  }
+}
+
+const handleScheduleSubmit = async () => {
+  if (scheduleModalMode.value === 'bulk' && !isEditMode.value) {
+    await saveBulkSchedules()
+    return
+  }
+
+  await saveSchedule()
+}
+
 // Save schedule (create or update)
 const saveSchedule = async () => {
-  if (!validateForm()) return
+  if (!validateSingleForm()) return
 
   savingSchedule.value = true
 
@@ -527,7 +950,7 @@ const saveSchedule = async () => {
     const payload: TourScheduleCreateReq & { date?: string, time?: string } = {
       tourId: scheduleForm.value.tourId,
       date: scheduleForm.value.date,
-      time: scheduleForm.value.time.length === 5 ? `${scheduleForm.value.time}:00` : scheduleForm.value.time,
+      time: formatTimeForPayload(scheduleForm.value.time),
       maxParticipants: scheduleForm.value.maxParticipants
     }
 
@@ -572,6 +995,111 @@ const saveSchedule = async () => {
     toast.add({
       title: 'Error',
       description: apiError.data?.message || 'No se pudo guardar el schedule',
+      color: 'error'
+    })
+  } finally {
+    savingSchedule.value = false
+  }
+}
+
+const saveBulkSchedules = async () => {
+  if (!validateBulkForm()) return
+
+  savingSchedule.value = true
+
+  try {
+    const candidateDates = [...bulkSelectedDates.value]
+    const comparisonTime = formatTimeForComparison(bulkScheduleForm.value.time)
+    const existingSchedules = await fetchAdminSchedules({
+      start: bulkScheduleForm.value.startDate,
+      end: bulkScheduleForm.value.endDate
+    })
+
+    const existingKeys = new Set(
+      existingSchedules.map(schedule =>
+        buildScheduleKey(
+          schedule.tourId,
+          getLocalDateString(new Date(schedule.startDatetime)),
+          getChileTimeString(schedule.startDatetime)
+        ))
+    )
+
+    const datesToCreate = candidateDates.filter(date =>
+      !existingKeys.has(
+        buildScheduleKey(bulkScheduleForm.value.tourId, date, comparisonTime)
+      ))
+
+    const skipped = candidateDates.length - datesToCreate.length
+
+    if (datesToCreate.length === 0) {
+      toast.add({
+        title: 'Sin cambios',
+        description: skipped > 0
+          ? 'Todas las fechas seleccionadas ya tienen un schedule para ese tour y hora.'
+          : 'No hay fechas válidas para crear.',
+        color: 'warning'
+      })
+      return
+    }
+
+    let created = 0
+    let failed = 0
+
+    for (let index = 0; index < datesToCreate.length; index += BULK_CREATE_BATCH_SIZE) {
+      const batch = datesToCreate.slice(index, index + BULK_CREATE_BATCH_SIZE)
+      const results = await Promise.allSettled(
+        batch.map(date =>
+          $fetch('/api/admin/schedules', {
+            method: 'POST',
+            body: {
+              tourId: bulkScheduleForm.value.tourId,
+              date,
+              time: formatTimeForPayload(bulkScheduleForm.value.time),
+              maxParticipants: bulkScheduleForm.value.maxParticipants
+            }
+          })
+        )
+      )
+
+      results.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          created++
+        } else {
+          failed++
+          logger.error('Error creating bulk schedule:', result.reason)
+        }
+      })
+    }
+
+    extendCalendarRange(
+      bulkScheduleForm.value.startDate,
+      bulkScheduleForm.value.endDate
+    )
+    await loadCalendarData()
+
+    if (failed > 0) {
+      toast.add({
+        title: 'Creación parcial',
+        description: `${created} creados, ${skipped} omitidos, ${failed} fallaron.`,
+        color: 'warning'
+      })
+    } else {
+      toast.add({
+        title: 'Schedules creados',
+        description: skipped > 0
+          ? `${created} creados y ${skipped} omitidos por ya existir.`
+          : `${created} ${created === 1 ? 'schedule creado' : 'schedules creados'} correctamente.`,
+        color: 'success'
+      })
+    }
+
+    closeScheduleModal()
+  } catch (error: unknown) {
+    logger.error('Error creating bulk schedules:', error)
+    const apiError = error as { data?: { message?: string } }
+    toast.add({
+      title: 'Error',
+      description: apiError.data?.message || 'No se pudieron crear los schedules en lote',
       color: 'error'
     })
   } finally {

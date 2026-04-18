@@ -118,7 +118,7 @@ const props = withDefaults(defineProps<{
             style="margin: 0 0 24px 0; color: #64748b; font-size: 14px;"
             th:text="#{email.reminder.contact}"
           >
-            Contáctanos en contacto@northernchile.com o +56 9 5765 5764
+            Contáctanos en contacto@northernchile.com o +56 9 2704 8302
           </Text>
 
           <Text

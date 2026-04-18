@@ -473,8 +473,8 @@
       "subtitle": "In the heart of the world's driest desert, we invite you to gaze at the universe with fresh eyes. Where science, history, and nature merge under the same sky.",
       "astro_title": "Astronomy with Soul",
       "astro_desc": "You won't just look at stars: you'll learn to read them. Our guides, experts in astronomy and Andean worldview, reveal the secrets of the cosmos and how ancient peoples interpreted it.",
-      "geo_title": "Living Landscapes",
-      "geo_desc": "Connect with living geology. From the salt mirrors of the Hidden Lagoons of Baltinache to the mineral palette of the Rainbow Valley. Walk upon golden dunes that narrate millions of years of history.",
+      "geo_title": "Explore More Experiences",
+      "geo_desc": "Beyond the traditional stargazing tour, we also design private experiences and special formats to experience the Atacama sky at your own pace.",
       "learn_more": "Learn more"
     }
   },
@@ -777,13 +777,14 @@
       },
       "phone": {
         "title": "Phone",
-        "number": "+56 9 4269 3271",
+        "number": "+56 9 2704 8302",
         "hours": "Open 24/7"
       },
       "email": {
         "title": "Email",
-        "info": "info{'@'}northernchile.com",
-        "reservations": "reservations{'@'}northernchile.com"
+        "info": "contacto{'@'}northernchile.com",
+        "reservations": "contacto{'@'}northernchile.com",
+        "delivery": "Contact form requests and reservations go directly to this email."
       }
     },
     "social": {

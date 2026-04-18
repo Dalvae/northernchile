@@ -32,10 +32,10 @@ public class ManifestService {
     private final BookingRepository bookingRepository;
     private final EmailService emailService;
 
-    @Value("${manifest.operator-email:contacto@northernchile.com}")
+    @Value("${app.manifest.operator-email:contacto@northernchile.com}")
     private String operatorEmail;
 
-    @Value("${manifest.emergency-contact:+56 9 5765 5764}")
+    @Value("${app.manifest.emergency-contact:+56 9 2704 8302}")
     private String emergencyContact;
 
     public ManifestService(BookingRepository bookingRepository, EmailService emailService) {

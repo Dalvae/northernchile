@@ -1,11 +1,11 @@
 <script setup lang="ts">
-const { t } = useI18n()
+import { WHATSAPP_URL } from '~~/shared/siteConfig'
 
-const WHATSAPP_NUMBER = '56942693271'
+const { t } = useI18n()
 
 const whatsappUrl = computed(() => {
   const message = encodeURIComponent(t('whatsapp.default_message'))
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`
+  return `${WHATSAPP_URL}?text=${message}`
 })
 
 const isMounted = ref(false)

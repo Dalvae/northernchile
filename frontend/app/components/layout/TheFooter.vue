@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { PUBLIC_SOCIAL_LINKS } from '~~/shared/siteConfig'
+
 const { t } = useI18n()
 const localePath = useLocalePath()
 
@@ -57,30 +59,14 @@ const legalLinks = computed(() => [
           </h3>
           <div class="flex gap-2">
             <UButton
+              v-for="social in PUBLIC_SOCIAL_LINKS"
+              :key="social.label"
               variant="ghost"
               color="neutral"
-              icon="i-simple-icons-instagram"
-              to="https://instagram.com"
+              :icon="social.icon"
+              :to="social.url"
               target="_blank"
-              aria-label="Instagram"
-              class="hover:text-primary hover:bg-white/5"
-            />
-            <UButton
-              variant="ghost"
-              color="neutral"
-              icon="i-simple-icons-facebook"
-              to="https://facebook.com"
-              target="_blank"
-              aria-label="Facebook"
-              class="hover:text-primary hover:bg-white/5"
-            />
-            <UButton
-              variant="ghost"
-              color="neutral"
-              icon="i-simple-icons-tripadvisor"
-              to="#"
-              target="_blank"
-              aria-label="TripAdvisor"
+              :aria-label="social.label"
               class="hover:text-primary hover:bg-white/5"
             />
           </div>
@@ -96,7 +82,7 @@ const legalLinks = computed(() => [
 
         <!-- CAMBIO 2: Tu firma -->
         <div class="flex items-center gap-1">
-          <span>Made by</span>
+          <span>{{ t('footer.made_by') }}</span>
           <a
             href="https://portfolio.dalvae.cl/"
             target="_blank"

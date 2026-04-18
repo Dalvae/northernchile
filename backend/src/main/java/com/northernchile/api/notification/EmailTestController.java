@@ -256,7 +256,7 @@ public class EmailTestController {
         ctx.setVariable("tourTime", "20:00");
         ctx.setVariable("pickupLocation", "Hotel Explora, San Pedro de Atacama");
         ctx.setVariable("equipmentList", "• Ropa abrigada\n• Linterna\n• Agua\n• Cámara fotográfica");
-        ctx.setVariable("emergencyContact", "+56 9 5765 5764");
+        ctx.setVariable("emergencyContact", "+56 9 2704 8302");
         return ctx;
     }
 
