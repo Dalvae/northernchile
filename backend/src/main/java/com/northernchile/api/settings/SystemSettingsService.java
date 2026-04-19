@@ -90,7 +90,7 @@ public class SystemSettingsService {
             new SystemSettingsRes.BookingSettingsRes(24, 90, 6, false);
 
         SystemSettingsRes.AstronomicalSettingsRes astronomicalTours = 
-            new SystemSettingsRes.AstronomicalSettingsRes(90, true, 90);
+            new SystemSettingsRes.AstronomicalSettingsRes(90, true, 365);
 
         SystemSettingsRes.NotificationSettingsRes notifications = 
             new SystemSettingsRes.NotificationSettingsRes(true, false, true, true, true);

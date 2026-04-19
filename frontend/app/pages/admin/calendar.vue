@@ -489,6 +489,7 @@ const { fetchCalendarData, hasAdverseConditions, getWeatherIcon }
 const { formatLocalTime } = useDateTime()
 const { fetchAdminSchedules } = useAdminData()
 
+const MAX_SCHEDULE_WINDOW_DAYS = 365
 const BULK_CREATE_BATCH_SIZE = 8
 const DEFAULT_BULK_WEEKDAYS = [1, 2, 3, 4, 5, 6, 0]
 
@@ -632,6 +633,11 @@ const formatTimeForPayload = (time: string) => (
 const formatTimeForComparison = (time: string) => time.slice(0, 5)
 
 const localDateStringToDate = (date: string) => new Date(`${date}T12:00:00`)
+const getScheduleLimitDateString = () => {
+  const maxDate = new Date()
+  maxDate.setDate(maxDate.getDate() + MAX_SCHEDULE_WINDOW_DAYS)
+  return getLocalDateString(maxDate)
+}
 
 const getChileTimeString = (value: string | Date) => {
   const date = value instanceof Date ? value : new Date(value)
@@ -690,9 +696,9 @@ onMounted(() => {
   const today = new Date()
   startDate.value = getLocalDateString(today)
 
-  // Mostrar próximos 60 días (máximo para tours astronómicos)
+  // Mostrar el próximo año de schedules
   const end = new Date(today)
-  end.setDate(end.getDate() + 60)
+  end.setDate(end.getDate() + MAX_SCHEDULE_WINDOW_DAYS)
   endDate.value = getLocalDateString(end)
 
   loadCalendarData()
@@ -861,6 +867,10 @@ const validateSingleForm = (): boolean => {
     formErrors.value.date = 'La fecha es requerida'
   }
 
+  if (scheduleForm.value.date && scheduleForm.value.date > getScheduleLimitDateString()) {
+    formErrors.value.date = 'La fecha no puede superar un año desde hoy'
+  }
+
   if (!scheduleForm.value.time) {
     formErrors.value.time = 'La hora es requerida'
   }
@@ -896,6 +906,15 @@ const validateBulkForm = (): boolean => {
     && bulkScheduleForm.value.startDate > bulkScheduleForm.value.endDate
   ) {
     formErrors.value.endDate = 'La fecha final debe ser igual o posterior a la inicial'
+  }
+
+  const maxScheduleDate = getScheduleLimitDateString()
+  if (bulkScheduleForm.value.startDate && bulkScheduleForm.value.startDate > maxScheduleDate) {
+    formErrors.value.startDate = 'La fecha inicial no puede superar un año desde hoy'
+  }
+
+  if (bulkScheduleForm.value.endDate && bulkScheduleForm.value.endDate > maxScheduleDate) {
+    formErrors.value.endDate = 'La fecha final no puede superar un año desde hoy'
   }
 
   if (!bulkScheduleForm.value.time) {

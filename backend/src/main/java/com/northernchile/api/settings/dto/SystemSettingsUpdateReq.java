@@ -27,7 +27,7 @@ public record SystemSettingsUpdateReq(
     public record AstronomicalSettings(
         @Min(0) @Max(100) Integer moonIlluminationThreshold,
         Boolean autoBlockFullMoon,
-        @Min(1) @Max(180) Integer scheduleGenerationDaysAhead
+        @Min(1) @Max(365) Integer scheduleGenerationDaysAhead
     ) {}
 
     public record NotificationSettings(

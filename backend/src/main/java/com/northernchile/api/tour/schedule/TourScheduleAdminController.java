@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/admin/schedules")
 @RequiresPermission(Permission.VIEW_SCHEDULE)
 public class TourScheduleAdminController {
+    private static final int DEFAULT_SCHEDULE_WINDOW_DAYS = 365;
 
     private final TourScheduleRepository tourScheduleRepository;
     private final TourScheduleService tourScheduleService;
@@ -62,8 +63,8 @@ public class TourScheduleAdminController {
      * GET /api/admin/schedules?start=2025-11-01&end=2025-11-14&mode=future
      * Obtiene todos los schedules en un rango de fechas (para el calendario)
      * Si no se proporcionan fechas:
-     *   - mode=future (default): próximos 90 días
-     *   - mode=past: últimos 90 días (para asignar medios a tours pasados)
+     *   - mode=future (default): próximos 365 días
+     *   - mode=past: últimos 365 días (para asignar medios a tours pasados)
      */
     @GetMapping
     @Transactional(readOnly = true)
@@ -78,13 +79,13 @@ public class TourScheduleAdminController {
         LocalDate defaultEnd;
 
         if ("past".equals(mode)) {
-            // For media management: last 90 days
-            defaultStart = start != null ? start : LocalDate.now().minusDays(90);
+            // For media management: last 365 days
+            defaultStart = start != null ? start : LocalDate.now().minusDays(DEFAULT_SCHEDULE_WINDOW_DAYS);
             defaultEnd = end != null ? end : LocalDate.now();
         } else {
-            // Default (future): next 90 days
+            // Default (future): next 365 days
             defaultStart = start != null ? start : LocalDate.now();
-            defaultEnd = end != null ? end : LocalDate.now().plusDays(90);
+            defaultEnd = end != null ? end : LocalDate.now().plusDays(DEFAULT_SCHEDULE_WINDOW_DAYS);
         }
 
         Instant startInstant = DateTimeUtils.toInstantStartOfDay(defaultStart);

@@ -31,8 +31,8 @@ public class TourScheduleGeneratorService {
     private static final Logger logger = LoggerFactory.getLogger(TourScheduleGeneratorService.class);
 
     // Ventana fija de generación para todos los tours
-    // Siempre intentamos tener hasta 90 días de schedules futuros.
-    private static final int DAYS_AHEAD_ALL = 90;
+    // Siempre intentamos tener hasta 365 días de schedules futuros.
+    private static final int DAYS_AHEAD_ALL = 365;
 
     // Ventana "cercana" donde sí aplicamos filtros de pronóstico duro
     private static final int HARD_WEATHER_WINDOW_DAYS = 2;
@@ -58,11 +58,9 @@ public class TourScheduleGeneratorService {
     }
 
     /**
-     * Se ejecuta automáticamente cada día a las 2 AM
-     * Genera schedules con límites diferenciados según tipo de tour:
-     * - Tours astronómicos: 60 días (solo validación lunar - cálculo local)
-     * - Tours sensibles al clima: 8 días (límite OpenWeatherMap)
-     * - Tours normales: 30 días
+     * Se ejecuta automáticamente cada día a las 2 AM.
+     * Genera schedules para el próximo año.
+     * Las validaciones duras de clima solo se aplican en la ventana cercana.
      */
     @Scheduled(cron = "0 0 2 * * *", zone = "America/Santiago")
     @Transactional
@@ -82,7 +80,7 @@ public class TourScheduleGeneratorService {
 
         logger.info("Encontrados {} tours recurrentes publicados", recurringTours.size());
 
-        // Batch load ALL existing schedules for the 90-day window in one query
+        // Batch load ALL existing schedules for the full generation window in one query
         List<UUID> tourIds = recurringTours.stream().map(Tour::getId).toList();
         Instant startInstant = today.atStartOfDay(DateTimeUtils.CHILE_ZONE).toInstant();
         Instant endInstant = endDate.atStartOfDay(DateTimeUtils.CHILE_ZONE).toInstant();

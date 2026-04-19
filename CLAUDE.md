@@ -162,7 +162,7 @@ This enables flexible availability management, individual date cancellations, an
 - Backend services must filter by `owner_id` for `PARTNER_ADMIN` requests
 
 ### Recurrence and Automation
-Tours can be recurring (`is_recurring = true`) with `recurrence_rule` (cron expression). A scheduled service (`TourScheduleGeneratorService`) automatically creates `TourSchedule` instances for the next 90 days based on recurrence rules.
+Tours can be recurring (`is_recurring = true`) with `recurrence_rule` (cron expression). A scheduled service (`TourScheduleGeneratorService`) automatically creates `TourSchedule` instances for the next 365 days based on recurrence rules.
 
 ### Business Rules
 - **Astronomical tours**: Cannot be scheduled on full moon nights (>90% illumination)
