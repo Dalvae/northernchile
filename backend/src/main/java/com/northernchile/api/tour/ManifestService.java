@@ -35,7 +35,7 @@ public class ManifestService {
     @Value("${app.manifest.operator-email:contacto@northernchile.com}")
     private String operatorEmail;
 
-    @Value("${app.manifest.emergency-contact:+56 9 2704 8302}")
+    @Value("${app.manifest.emergency-contact:+56 9 2201 4902}")
     private String emergencyContact;
 
     public ManifestService(BookingRepository bookingRepository, EmailService emailService) {

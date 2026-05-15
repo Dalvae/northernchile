@@ -1,6 +1,6 @@
 export const CONTACT_EMAIL = 'contacto@northernchile.com'
-export const CONTACT_PHONE_DISPLAY = '+56 9 2704 8302'
-export const CONTACT_PHONE_E164 = '56927048302'
+export const CONTACT_PHONE_DISPLAY = '+56 9 2201 4902'
+export const CONTACT_PHONE_E164 = '56922014902'
 export const CONTACT_PHONE_TEL = `+${CONTACT_PHONE_E164}`
 
 export const INSTAGRAM_URL = 'https://www.instagram.com/northernchilespa/'

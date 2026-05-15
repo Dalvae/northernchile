@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<{
   tourTime: '19:00',
   pickupLocation: 'Hotel Explora, San Pedro de Atacama',
   equipmentList: 'Ropa abrigada, linterna, agua',
-  emergencyContact: '+56 9 2704 8302'
+  emergencyContact: '+56 9 2201 4902'
 })
 </script>
 
