@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
 import java.util.Map;
 
 /**
@@ -43,92 +42,91 @@ public class WebhookController {
         @ApiResponse(responseCode = "409", description = "Duplicate request")
     })
     public ResponseEntity<Map<String, String>> handleMercadoPagoWebhook(
-            @RequestBody String rawBody,
+            @RequestBody(required = false) String rawBody,
+            @RequestParam(required = false) Map<String, String> queryParams,
             @RequestHeader(value = "x-signature", required = false) String xSignature,
             @RequestHeader(value = "x-request-id", required = false) String requestId) {
 
         log.info("Received Mercado Pago webhook with request ID: {}", requestId);
 
         try {
-            // 1. Parse payload first to extract data.id for signature verification
-            @SuppressWarnings("unchecked")
-            Map<String, Object> payload = new com.fasterxml.jackson.databind.ObjectMapper().readValue(rawBody, Map.class);
+            Map<String, String> query = queryParams != null ? queryParams : Map.of();
 
-            // 2. Extract payment ID from payload for signature verification
-            // MercadoPago sends different payload formats:
-            // Format 1: { "id": "12345", "type": "payment", ... }
-            // Format 2: { "data": { "id": "12345" }, "type": "payment", ... }
-            String dataId = null;
-            Object dataObj = payload.get("data"); // Extract data object for later use
+            // MercadoPago delivers the resource id in the query string (data.id) for modern
+            // webhooks, and/or in the JSON body. The "type"/"topic" field says what it is.
+            // CRITICAL: the x-signature manifest is built from the query-string data.id.
+            String queryDataId = query.get("data.id");
+            String queryId = query.get("id");
+            String type = firstNonBlank(query.get("type"), query.get("topic"));
 
-            // Try root level "id" first (most common format)
-            Object rootId = payload.get("id");
-            if (rootId != null) {
-                dataId = rootId.toString();
-                log.debug("Found payment ID at root level: {}", dataId);
-            } else if (dataObj instanceof Map) {
-                // Try nested "data.id"
-                @SuppressWarnings("unchecked")
-                Map<String, Object> data = (Map<String, Object>) dataObj;
-                Object id = data.get("id");
-                if (id != null) {
-                    dataId = id.toString();
-                    log.debug("Found payment ID in data object: {}", dataId);
+            // Parse the body defensively. Possible shapes:
+            //   { "data": { "id": "12345" }, "type": "payment" }   (modern)
+            //   { "resource": "12345", "topic": "payment" }         (legacy IPN)
+            //   { "resource": ".../merchant_orders/9", "topic": "merchant_order" }
+            String bodyDataId = null;
+            String bodyResource = null;
+            if (rawBody != null && !rawBody.isBlank()) {
+                try {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> payload = new com.fasterxml.jackson.databind.ObjectMapper()
+                        .readValue(rawBody, Map.class);
+                    if (payload.get("data") instanceof Map<?, ?> data && data.get("id") != null) {
+                        bodyDataId = data.get("id").toString();
+                    }
+                    if (type == null && payload.get("type") != null) {
+                        type = payload.get("type").toString();
+                    }
+                    if (type == null && payload.get("topic") != null) {
+                        type = payload.get("topic").toString();
+                    }
+                    if (payload.get("resource") != null) {
+                        bodyResource = payload.get("resource").toString();
+                    }
+                } catch (Exception e) {
+                    log.warn("Could not parse Mercado Pago webhook body: {}", e.getMessage());
                 }
             }
 
-            if (dataId == null) {
-                log.warn("Mercado Pago webhook payload: {}", payload);
-            }
+            // Id MercadoPago used to build the signature manifest (query data.id preferred).
+            String signatureId = firstNonBlank(queryDataId, bodyDataId, queryId);
 
-            // 3. Verify signature using the correct method with data.id, request-id, and x-signature
-            if (!webhookSecurityService.verifyMercadoPagoSignature(dataId, requestId, xSignature)) {
+            // 1. Verify signature
+            if (!webhookSecurityService.verifyMercadoPagoSignature(signatureId, requestId, xSignature)) {
                 log.error("Mercado Pago webhook signature verification failed");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid signature"));
             }
 
-            // 4. Check for duplicate requests
+            // 2. Deduplicate by request id (replay protection). MercadoPago retries the same
+            //    notification for a long time, so we do NOT reject by age here.
             if (requestId != null && webhookSecurityService.isDuplicateRequest(requestId)) {
                 log.warn("Duplicate Mercado Pago webhook request detected: {}", requestId);
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of("error", "Duplicate request"));
             }
 
-            // 5. Validate timestamp (if present in payload)
-            if (dataObj instanceof Map) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> data = (Map<String, Object>) dataObj;
-                Object dateCreated = data.get("date_created");
-                if (dateCreated != null) {
-                    try {
-                        Instant timestamp = Instant.parse(dateCreated.toString());
-                        if (!webhookSecurityService.isValidTimestamp(timestamp.getEpochSecond())) {
-                            log.error("Mercado Pago webhook timestamp validation failed");
-                            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body(Map.of("error", "Invalid or expired timestamp"));
-                        }
-                    } catch (Exception e) {
-                        log.warn("Could not parse Mercado Pago timestamp: {}", dateCreated);
-                    }
-                }
+            // 3. We only act on payment notifications. Anything else (merchant_order, test
+            //    pings, etc.) is acknowledged so MercadoPago stops retrying it.
+            if (!"payment".equalsIgnoreCase(type)) {
+                log.info("MercadoPago webhook type '{}' - acknowledging without processing", type);
+                return ResponseEntity.ok(Map.of("status", "acknowledged", "reason", "not_a_payment"));
             }
 
-            // 6. Check if we have a valid data.id (payment ID) to process
-            if (dataId == null || dataId.isEmpty()) {
-                // MercadoPago sends various webhook types (e.g., "test", "created" notifications)
-                // that don't have payment data - acknowledge them without processing
-                String action = payload.get("action") != null ? payload.get("action").toString() : "unknown";
-                String type = payload.get("type") != null ? payload.get("type").toString() : "unknown";
-                log.info("MercadoPago webhook without payment ID - type: {}, action: {} - acknowledging", type, action);
+            // 4. Resolve the MercadoPago payment id. For legacy IPN the numeric payment id
+            //    can arrive in the body "resource".
+            String resourceId = (bodyResource != null && bodyResource.matches("\\d+")) ? bodyResource : null;
+            String paymentId = firstNonBlank(queryDataId, bodyDataId, queryId, resourceId);
+            if (paymentId == null || paymentId.isBlank()) {
+                log.info("MercadoPago payment webhook without payment id - acknowledging");
                 return ResponseEntity.ok(Map.of("status", "acknowledged", "reason", "no_payment_id"));
             }
 
-            // 7. Process webhook - confirm the payment session
-            PaymentSessionRes response = paymentSessionService.confirmMercadoPagoSession(dataId, dataId);
+            // 5. Confirm the session. Pass ONLY the payment id; the service fetches the payment
+            //    from MercadoPago to recover our session UUID (external_reference).
+            PaymentSessionRes response = paymentSessionService.confirmMercadoPagoSession(paymentId, null);
             log.info("Mercado Pago webhook processed successfully: {}", response.sessionId());
 
-            // 8. Mark request as processed
+            // 6. Mark request as processed
             if (requestId != null) {
                 webhookSecurityService.markRequestAsProcessed(requestId);
             }
@@ -138,8 +136,23 @@ public class WebhookController {
         } catch (Exception e) {
             log.error("Error processing Mercado Pago webhook", e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("error", e.getMessage()));
+                .body(Map.of("error", e.getMessage() != null ? e.getMessage() : "error"));
         }
+    }
+
+    /**
+     * Returns the first non-null, non-blank value, or null if none qualify.
+     */
+    private static String firstNonBlank(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
     }
 
     @PostMapping("/transbank")

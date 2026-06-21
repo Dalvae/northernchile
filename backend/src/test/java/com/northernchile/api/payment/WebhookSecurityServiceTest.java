@@ -136,6 +136,93 @@ class WebhookSecurityServiceTest {
     }
 
     @Nested
+    @DisplayName("Mercado Pago x-signature manifest (production method)")
+    class MercadoPagoManifestTests {
+
+        private String xSignatureFor(String manifest, String ts) {
+            return "ts=" + ts + ",v1=" + generateHmacSha256(manifest, TEST_MP_SECRET);
+        }
+
+        @Test
+        @DisplayName("Should accept signature from id;request-id;ts manifest")
+        void shouldAcceptValidManifestSignature() {
+            // Given - the real payment id (data.id), as MercadoPago signs it
+            String dataId = "164935915228";
+            String requestId = "5abe9f6b-e670-40cc-b046-bfa6ed5aa960";
+            String ts = "1781908765";
+            String manifest = "id:" + dataId + ";request-id:" + requestId + ";ts:" + ts + ";";
+
+            // When
+            boolean result = webhookSecurityService.verifyMercadoPagoSignature(
+                    dataId, requestId, xSignatureFor(manifest, ts));
+
+            // Then
+            assertThat(result).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should reject when verifying with the wrong id (the bug we fixed)")
+        void shouldRejectWhenIdMismatch() {
+            // Given - MercadoPago signed with the real payment id...
+            String paymentId = "164935915228";
+            String requestId = "5abe9f6b-e670-40cc-b046-bfa6ed5aa960";
+            String ts = "1781908765";
+            String manifest = "id:" + paymentId + ";request-id:" + requestId + ";ts:" + ts + ";";
+
+            // When - ...but we verify with the merchant_order id (old behaviour)
+            boolean result = webhookSecurityService.verifyMercadoPagoSignature(
+                    "41986075873", requestId, xSignatureFor(manifest, ts));
+
+            // Then
+            assertThat(result).isFalse();
+        }
+
+        @Test
+        @DisplayName("Should lowercase alphanumeric data.id before hashing")
+        void shouldLowercaseAlphanumericDataId() {
+            // Given - MercadoPago lowercases the id in the manifest
+            String dataId = "AbC123dEf";
+            String requestId = "req-1";
+            String ts = "1781900000";
+            String manifest = "id:" + dataId.toLowerCase() + ";request-id:" + requestId + ";ts:" + ts + ";";
+
+            // When
+            boolean result = webhookSecurityService.verifyMercadoPagoSignature(
+                    dataId, requestId, xSignatureFor(manifest, ts));
+
+            // Then
+            assertThat(result).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should omit id segment when data.id is absent")
+        void shouldOmitIdWhenAbsent() {
+            // Given - notifications without a data.id (manifest has no id: segment)
+            String requestId = "req-2";
+            String ts = "1781900001";
+            String manifest = "request-id:" + requestId + ";ts:" + ts + ";";
+
+            // When
+            boolean result = webhookSecurityService.verifyMercadoPagoSignature(
+                    null, requestId, xSignatureFor(manifest, ts));
+
+            // Then
+            assertThat(result).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should reject a malformed x-signature header")
+        void shouldRejectMalformedHeader() {
+            // When
+            boolean result = webhookSecurityService.verifyMercadoPagoSignature(
+                    "164935915228", "req", "not-a-valid-header");
+
+            // Then
+            assertThat(result).isFalse();
+        }
+    }
+
+    @Nested
     @DisplayName("Transbank Signature Verification")
     class TransbankSignatureTests {
 

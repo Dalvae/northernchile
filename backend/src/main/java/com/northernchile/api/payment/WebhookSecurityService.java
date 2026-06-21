@@ -87,10 +87,14 @@ public class WebhookSecurityService {
                 return false;
             }
 
-            // Build the template for signature verification
+            // Build the template (manifest) exactly as MercadoPago does.
             // Format: id:<data.id>;request-id:<x-request-id>;ts:<timestamp>;
+            // Parts not present in the notification must be omitted, and an alphanumeric
+            // data.id must be lowercased before hashing.
             StringBuilder template = new StringBuilder();
-            template.append("id:").append(dataId != null ? dataId : "").append(";");
+            if (dataId != null && !dataId.isBlank()) {
+                template.append("id:").append(dataId.toLowerCase()).append(";");
+            }
             if (requestId != null && !requestId.isBlank()) {
                 template.append("request-id:").append(requestId).append(";");
             }
