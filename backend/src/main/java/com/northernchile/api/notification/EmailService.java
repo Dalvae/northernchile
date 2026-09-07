@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
@@ -125,6 +129,23 @@ public class EmailService {
 
             String customerName = (booking.getUser() != null) ? booking.getUser().getFullName() : "Cliente desconocido";
             String customerEmail = (booking.getUser() != null) ? booking.getUser().getEmail() : "";
+            String customerPhone = (booking.getUser() != null && booking.getUser().getPhoneNumber() != null
+                    && !booking.getUser().getPhoneNumber().isBlank())
+                    ? booking.getUser().getPhoneNumber().trim() : "No informado";
+
+            // Participant list (name + phone + email) so admins can contact the group directly
+            List<Map<String, String>> participantList = new ArrayList<>();
+            if (booking.getParticipants() != null) {
+                for (var participant : booking.getParticipants()) {
+                    Map<String, String> row = new LinkedHashMap<>();
+                    row.put("fullName", participant.getFullName() != null ? participant.getFullName() : "-");
+                    row.put("phoneNumber", participant.getPhoneNumber() != null && !participant.getPhoneNumber().isBlank()
+                            ? participant.getPhoneNumber().trim() : "-");
+                    row.put("email", participant.getEmail() != null && !participant.getEmail().isBlank()
+                            ? participant.getEmail().trim() : "-");
+                    participantList.add(row);
+                }
+            }
 
             // Format tour date safely
             String formattedTourDate = "No disponible";
@@ -149,7 +170,9 @@ public class EmailService {
             context.setVariable("tourDate", formattedTourDate);
             context.setVariable("customerName", customerName);
             context.setVariable("customerEmail", customerEmail);
+            context.setVariable("customerPhone", customerPhone);
             context.setVariable("participantCount", (booking.getParticipants() != null) ? booking.getParticipants().size() : 0);
+            context.setVariable("participantList", participantList);
             context.setVariable("subtotal", String.format("$%,.0f", booking.getSubtotal()));
             context.setVariable("taxAmount", String.format("$%,.0f", booking.getTaxAmount()));
             context.setVariable("totalAmount", String.format("$%,.0f", booking.getTotalAmount()));

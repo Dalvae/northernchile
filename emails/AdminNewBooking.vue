@@ -16,6 +16,7 @@ const props = withDefaults(defineProps<{
   tourDate?: string
   customerName?: string
   customerEmail?: string
+  customerPhone?: string
   participantCount?: string
   subtotal?: string
   taxAmount?: string
@@ -29,6 +30,7 @@ const props = withDefaults(defineProps<{
   tourDate: '15/01/2025 20:00',
   customerName: 'Juan Pérez',
   customerEmail: 'cliente@email.com',
+  customerPhone: '+56 9 1234 5678',
   participantCount: '2',
   subtotal: '$100.000 CLP',
   taxAmount: '$19.000 CLP',
@@ -226,6 +228,27 @@ const statusBadgeStyle = {
             >
               <tr>
                 <td style="font-weight: 600; color: #1a2232; width: 45%; padding: 6px 0;">
+                  Teléfono:
+                </td>
+                <td
+                  style="color: #1a2232; padding: 6px 0; font-weight: 600;"
+                  th:text="${customerPhone}"
+                >
+                  {{ props.customerPhone }}
+                </td>
+              </tr>
+            </table>
+
+            <table
+              role="presentation"
+              cellspacing="0"
+              cellpadding="0"
+              border="0"
+              width="100%"
+              style="margin: 12px 0;"
+            >
+              <tr>
+                <td style="font-weight: 600; color: #1a2232; width: 45%; padding: 6px 0;">
                   Participantes:
                 </td>
                 <td
@@ -233,6 +256,49 @@ const statusBadgeStyle = {
                   th:text="${participantCount}"
                 >
                   {{ props.participantCount }}
+                </td>
+              </tr>
+            </table>
+
+            <!-- Participant contact list -->
+            <table
+              role="presentation"
+              cellspacing="0"
+              cellpadding="0"
+              border="0"
+              width="100%"
+              style="margin: 12px 0; border-top: 1px solid #d1fae5;"
+              th:if="${participantList != null and !participantList.isEmpty()}"
+            >
+              <tr>
+                <td style="font-weight: 600; color: #1a2232; padding: 10px 0 4px 0; font-size: 13px;">
+                  Participante
+                </td>
+                <td style="font-weight: 600; color: #1a2232; padding: 10px 0 4px 0; font-size: 13px;">
+                  Teléfono
+                </td>
+                <td style="font-weight: 600; color: #1a2232; padding: 10px 0 4px 0; font-size: 13px;">
+                  Email
+                </td>
+              </tr>
+              <tr th:each="p : ${participantList}">
+                <td
+                  style="color: #1a2232; padding: 4px 0; font-size: 13px;"
+                  th:text="${p.fullName}"
+                >
+                  {{ props.customerName }}
+                </td>
+                <td
+                  style="color: #1a2232; padding: 4px 0; font-size: 13px;"
+                  th:text="${p.phoneNumber}"
+                >
+                  {{ props.customerPhone }}
+                </td>
+                <td
+                  style="color: #1a2232; padding: 4px 0; font-size: 13px; word-break: break-all;"
+                  th:text="${p.email}"
+                >
+                  {{ props.customerEmail }}
                 </td>
               </tr>
             </table>

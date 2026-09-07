@@ -41,6 +41,7 @@ const templates: EmailTemplate[] = [
       tourDate: '${tourDate}',
       customerName: '${customerName}',
       customerEmail: '${customerEmail}',
+      customerPhone: '${customerPhone}',
       participantCount: '${participantCount}',
       subtotal: '${subtotal}',
       taxAmount: '${taxAmount}',
