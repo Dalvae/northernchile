@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { h, resolveComponent, computed } from 'vue'
+import { h, resolveComponent, computed, ref, watch } from 'vue'
 import type { BookingRes, LocalTime } from 'api-client'
 import { getGroupedRowModel } from '@tanstack/vue-table'
 import type { GroupingOptions } from '@tanstack/vue-table'
@@ -27,6 +27,21 @@ const q = ref('')
 const activeTab = ref<'upcoming' | 'past'>('upcoming')
 const viewMode = ref<'manifest' | 'bookings'>('manifest')
 
+// Search runs on the backend (customer, email, participant, document, booking id,
+// tour name). Debounce so we don't fire a request per keystroke.
+const searchTerm = ref('')
+watchDebounced(q, (value) => {
+  searchTerm.value = value.trim()
+}, { debounce: 300 })
+
+// "Anteriores" is paginated server-side; "Proximas" loads the whole window at once
+// because the guide needs to see every upcoming tour.
+const PAST_PAGE_SIZE = 50
+const page = ref(1)
+watch([activeTab, searchTerm], () => {
+  page.value = 1
+})
+
 // The backend endpoint is paginated (default 20). Ask it for the bookings whose
 // tour starts in the window relevant to the active tab instead of relying on the
 // first page. A 1-day margin around "now" keeps the exact day cut client-side
@@ -34,11 +49,17 @@ const viewMode = ref<'manifest' | 'bookings'>('manifest')
 const DAY_MS = 24 * 60 * 60 * 1000
 const bookingsQueryParams = computed(() => {
   const now = Date.now()
-  const params: Record<string, string> = { size: '500', sort: 'createdAt,desc' }
+  const params: Record<string, string> = { sort: 'createdAt,desc' }
+  if (searchTerm.value) {
+    params.q = searchTerm.value
+  }
   if (activeTab.value === 'upcoming') {
     params.from = new Date(now - DAY_MS).toISOString()
+    params.size = '500'
   } else {
     params.to = new Date(now + DAY_MS).toISOString()
+    params.size = String(PAST_PAGE_SIZE)
+    params.page = String(page.value - 1)
   }
   return params
 })
@@ -50,11 +71,22 @@ const {
 } = useAsyncData('admin-bookings', () => fetchAdminBookings(bookingsQueryParams.value), {
   server: false,
   lazy: true,
-  watch: [activeTab],
+  watch: [bookingsQueryParams],
   default: () => ({ content: [], totalElements: 0, totalPages: 0 })
 })
 
 const bookings = computed(() => bookingsPage.value?.content ?? [])
+const totalBookings = computed(() => bookingsPage.value?.totalElements ?? 0)
+const showPagination = computed(() => activeTab.value === 'past' && totalBookings.value > PAST_PAGE_SIZE)
+
+// Order by tour date/time: next tour first for upcoming, most recent first for past.
+function tourSortKey(booking: BookingRes): string {
+  return `${booking.tourDate ?? ''}T${booking.tourStartTime ?? ''}`
+}
+function compareByTourDate(a: BookingRes, b: BookingRes): number {
+  const cmp = tourSortKey(a).localeCompare(tourSortKey(b))
+  return activeTab.value === 'upcoming' ? cmp : -cmp
+}
 
 // Refund modal state
 const refundModal = ref(false)
@@ -89,7 +121,7 @@ const participantRows = computed<ParticipantRow[]>(() => {
   const today = new Date()
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
-  for (const booking of bookings.value) {
+  for (const booking of [...bookings.value].sort(compareByTourDate)) {
     // Only show CONFIRMED bookings
     if (booking.status !== 'CONFIRMED') {
       continue
@@ -109,18 +141,6 @@ const participantRows = computed<ParticipantRow[]>(() => {
     }
 
     for (const participant of booking.participants) {
-      // Filter by search query
-      if (q.value) {
-        const query = q.value.toLowerCase()
-        const matchesSearch
-          = participant.fullName?.toLowerCase().includes(query)
-            || booking.tourName?.toLowerCase().includes(query)
-            || booking.userFullName?.toLowerCase().includes(query)
-            || participant.documentId?.toLowerCase().includes(query)
-
-        if (!matchesSearch) continue
-      }
-
       rows.push({
         scheduleId: booking.scheduleId,
         tourName: booking.tourName,
@@ -152,18 +172,7 @@ const filteredBookings = computed(() => {
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
   return bookings.value.filter((booking) => {
-    // Filter by search query
-    if (q.value) {
-      const query = q.value.toLowerCase()
-      const matchesSearch
-        = booking.tourName?.toLowerCase().includes(query)
-          || booking.userFullName?.toLowerCase().includes(query)
-          || booking.id?.toLowerCase().includes(query)
-
-      if (!matchesSearch) return false
-    }
-
-    // Filter by date based on active tab
+    // Filter by date based on active tab (search is done by the backend)
     if (!booking.tourDate) return false
     const tourDateStr = booking.tourDate
     if (activeTab.value === 'upcoming' && tourDateStr < todayStr) {
@@ -174,7 +183,7 @@ const filteredBookings = computed(() => {
     }
 
     return true
-  })
+  }).sort(compareByTourDate)
 })
 
 const manifestColumns = [
@@ -628,6 +637,23 @@ function isWithin24Hours(tourDate: string, tourTime?: LocalTime | string | null)
           </template>
         </UTable>
       </div>
+    </div>
+
+    <!-- Pagination (Anteriores only) -->
+    <div
+      v-if="showPagination"
+      class="flex items-center justify-between mt-4"
+    >
+      <span class="text-sm text-muted">
+        {{ totalBookings }} reservas anteriores
+      </span>
+      <UPagination
+        v-model:page="page"
+        :total="totalBookings"
+        :items-per-page="PAST_PAGE_SIZE"
+        :sibling-count="1"
+        show-edges
+      />
     </div>
 
     <!-- Refund Modal -->

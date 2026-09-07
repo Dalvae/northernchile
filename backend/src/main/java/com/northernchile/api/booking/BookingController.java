@@ -90,7 +90,8 @@ public class BookingController {
     /**
      * Get paginated bookings for admin (filtered by ownership for Partner Admin).
      * Supports pagination via ?page=0&size=20&sort=createdAt,desc and an optional
-     * tour start-date window via ?from=2026-09-06T03:00:00Z&to=... (ISO-8601 instants, [from, to)).
+     * tour start-date window via ?from=2026-09-06T03:00:00Z&to=... (ISO-8601 instants, [from, to))
+     * and a free-text search via ?q= (customer, email, participant, document, booking id, tour name).
      */
     @GetMapping("/admin/bookings")
     @RequiresPermission(Permission.VIEW_ALL_BOOKINGS)
@@ -98,8 +99,9 @@ public class BookingController {
             @CurrentUser User currentUser,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+            @RequestParam(required = false) String q,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<BookingRes> bookings = bookingService.getBookingsForAdminPaged(currentUser, from, to, pageable);
+        Page<BookingRes> bookings = bookingService.getBookingsForAdminPaged(currentUser, from, to, q, pageable);
         return ResponseEntity.ok(bookings);
     }
 

@@ -145,24 +145,35 @@ public class BookingService {
      */
     @Transactional(readOnly = true)
     public Page<BookingRes> getBookingsForAdminPaged(User admin, Pageable pageable) {
-        return getBookingsForAdminPaged(admin, null, null, pageable);
+        return getBookingsForAdminPaged(admin, null, null, null, pageable);
     }
 
     /**
-     * Paginated admin listing filtered by tour start date range [from, to).
-     * Null bounds are open-ended.
+     * Paginated admin listing filtered by tour start date range [from, to) and an
+     * optional free-text search. Null bounds are open-ended; blank search matches all.
      */
     @Transactional(readOnly = true)
-    public Page<BookingRes> getBookingsForAdminPaged(User admin, Instant from, Instant to, Pageable pageable) {
+    public Page<BookingRes> getBookingsForAdminPaged(User admin, Instant from, Instant to, String search, Pageable pageable) {
         Instant lower = from != null ? from : Instant.EPOCH;
         Instant upper = to != null ? to : MAX_TOUR_DATE;
+        String pattern = toSearchPattern(search);
         if (Role.SUPER_ADMIN.getRoleName().equals(admin.getRole())) {
-            return bookingRepository.findAllWithDetailsPaged(lower, upper, pageable)
+            return bookingRepository.findAllWithDetailsPaged(lower, upper, pattern, pageable)
                     .map(bookingMapper::toBookingRes);
         } else {
-            return bookingRepository.findByTourOwnerIdPaged(admin.getId(), lower, upper, pageable)
+            return bookingRepository.findByTourOwnerIdPaged(admin.getId(), lower, upper, pattern, pageable)
                     .map(bookingMapper::toBookingRes);
         }
+    }
+
+    /** Builds the lowercase LIKE pattern expected by {@link BookingRepository#ADMIN_SEARCH_PREDICATE}. */
+    static String toSearchPattern(String search) {
+        if (search == null || search.isBlank()) {
+            return "%";
+        }
+        String escaped = search.trim().toLowerCase()
+                .replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        return "%" + escaped + "%";
     }
 
     @Transactional(readOnly = true)

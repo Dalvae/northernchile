@@ -16,6 +16,18 @@ import java.util.UUID;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, UUID> {
+
+    /**
+     * Free-text admin search. {@code :q} is a lowercase LIKE pattern ("%term%"); the
+     * caller passes "%" to disable the filter. Matches customer name/email, booking id,
+     * tour name (any language) and any participant's name or document.
+     */
+    String ADMIN_SEARCH_PREDICATE =
+            "(:q = '%' OR lower(u.fullName) LIKE :q OR lower(u.email) LIKE :q " +
+            "OR lower(cast(b.id as string)) LIKE :q " +
+            "OR lower(cast(t.nameTranslations as string)) LIKE :q " +
+            "OR EXISTS (SELECT 1 FROM Participant p WHERE p.booking = b " +
+            "AND (lower(p.fullName) LIKE :q OR lower(p.documentId) LIKE :q)))";
     /**
      * Count confirmed participants for a schedule.
      * Note: Locking should be done on the TourSchedule (via findByIdWithLock),
@@ -70,13 +82,16 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
            "LEFT JOIN FETCH b.schedule s " +
            "LEFT JOIN FETCH s.tour t " +
            "LEFT JOIN FETCH t.owner " +
-           "LEFT JOIN FETCH b.user " +
+           "LEFT JOIN FETCH b.user u " +
            "LEFT JOIN FETCH b.participants " +
-           "WHERE s.startDatetime >= :from AND s.startDatetime < :to",
-           countQuery = "SELECT COUNT(DISTINCT b) FROM Booking b JOIN b.schedule s " +
-           "WHERE s.startDatetime >= :from AND s.startDatetime < :to")
+           "WHERE s.startDatetime >= :from AND s.startDatetime < :to " +
+           "AND " + ADMIN_SEARCH_PREDICATE,
+           countQuery = "SELECT COUNT(DISTINCT b) FROM Booking b JOIN b.schedule s JOIN s.tour t LEFT JOIN b.user u " +
+           "WHERE s.startDatetime >= :from AND s.startDatetime < :to " +
+           "AND " + ADMIN_SEARCH_PREDICATE)
     Page<Booking> findAllWithDetailsPaged(@Param("from") Instant from,
                                           @Param("to") Instant to,
+                                          @Param("q") String q,
                                           Pageable pageable);
 
     /**
@@ -86,15 +101,18 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
            "LEFT JOIN FETCH b.schedule s " +
            "LEFT JOIN FETCH s.tour t " +
            "LEFT JOIN FETCH t.owner o " +
-           "LEFT JOIN FETCH b.user " +
+           "LEFT JOIN FETCH b.user u " +
            "LEFT JOIN FETCH b.participants " +
-           "WHERE o.id = :ownerId AND s.startDatetime >= :from AND s.startDatetime < :to",
+           "WHERE o.id = :ownerId AND s.startDatetime >= :from AND s.startDatetime < :to " +
+           "AND " + ADMIN_SEARCH_PREDICATE,
            countQuery = "SELECT COUNT(DISTINCT b) FROM Booking b " +
-           "JOIN b.schedule s JOIN s.tour t JOIN t.owner o " +
-           "WHERE o.id = :ownerId AND s.startDatetime >= :from AND s.startDatetime < :to")
+           "JOIN b.schedule s JOIN s.tour t JOIN t.owner o LEFT JOIN b.user u " +
+           "WHERE o.id = :ownerId AND s.startDatetime >= :from AND s.startDatetime < :to " +
+           "AND " + ADMIN_SEARCH_PREDICATE)
     Page<Booking> findByTourOwnerIdPaged(@Param("ownerId") UUID ownerId,
                                          @Param("from") Instant from,
                                          @Param("to") Instant to,
+                                         @Param("q") String q,
                                          Pageable pageable);
 
     @Query("SELECT DISTINCT b FROM Booking b " +
