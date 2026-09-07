@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,6 +40,8 @@ import java.util.stream.Collectors;
 public class BookingService {
 
     private static final Logger log = LoggerFactory.getLogger(BookingService.class);
+    /** Open upper bound for tour-date range filters (far future, within PostgreSQL timestamp range). */
+    private static final Instant MAX_TOUR_DATE = Instant.parse("9999-12-31T00:00:00Z");
 
     private final BookingRepository bookingRepository;
     private final EmailService emailService;
@@ -142,11 +145,22 @@ public class BookingService {
      */
     @Transactional(readOnly = true)
     public Page<BookingRes> getBookingsForAdminPaged(User admin, Pageable pageable) {
+        return getBookingsForAdminPaged(admin, null, null, pageable);
+    }
+
+    /**
+     * Paginated admin listing filtered by tour start date range [from, to).
+     * Null bounds are open-ended.
+     */
+    @Transactional(readOnly = true)
+    public Page<BookingRes> getBookingsForAdminPaged(User admin, Instant from, Instant to, Pageable pageable) {
+        Instant lower = from != null ? from : Instant.EPOCH;
+        Instant upper = to != null ? to : MAX_TOUR_DATE;
         if (Role.SUPER_ADMIN.getRoleName().equals(admin.getRole())) {
-            return bookingRepository.findAllWithDetailsPaged(pageable)
+            return bookingRepository.findAllWithDetailsPaged(lower, upper, pageable)
                     .map(bookingMapper::toBookingRes);
         } else {
-            return bookingRepository.findByTourOwnerIdPaged(admin.getId(), pageable)
+            return bookingRepository.findByTourOwnerIdPaged(admin.getId(), lower, upper, pageable)
                     .map(bookingMapper::toBookingRes);
         }
     }

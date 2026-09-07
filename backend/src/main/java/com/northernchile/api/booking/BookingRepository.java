@@ -63,16 +63,21 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     Optional<Booking> findByIdWithDetails(UUID id);
 
     /**
-     * Paginated version of findAllWithDetails for admin listing.
+     * Paginated version of findAllWithDetails for admin listing, restricted to
+     * bookings whose tour starts within [from, to).
      */
     @Query(value = "SELECT DISTINCT b FROM Booking b " +
            "LEFT JOIN FETCH b.schedule s " +
            "LEFT JOIN FETCH s.tour t " +
            "LEFT JOIN FETCH t.owner " +
            "LEFT JOIN FETCH b.user " +
-           "LEFT JOIN FETCH b.participants",
-           countQuery = "SELECT COUNT(DISTINCT b) FROM Booking b")
-    Page<Booking> findAllWithDetailsPaged(Pageable pageable);
+           "LEFT JOIN FETCH b.participants " +
+           "WHERE s.startDatetime >= :from AND s.startDatetime < :to",
+           countQuery = "SELECT COUNT(DISTINCT b) FROM Booking b JOIN b.schedule s " +
+           "WHERE s.startDatetime >= :from AND s.startDatetime < :to")
+    Page<Booking> findAllWithDetailsPaged(@Param("from") Instant from,
+                                          @Param("to") Instant to,
+                                          Pageable pageable);
 
     /**
      * Paginated bookings filtered by tour owner for partner admin listing.
@@ -83,10 +88,14 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
            "LEFT JOIN FETCH t.owner o " +
            "LEFT JOIN FETCH b.user " +
            "LEFT JOIN FETCH b.participants " +
-           "WHERE o.id = :ownerId",
+           "WHERE o.id = :ownerId AND s.startDatetime >= :from AND s.startDatetime < :to",
            countQuery = "SELECT COUNT(DISTINCT b) FROM Booking b " +
-           "JOIN b.schedule s JOIN s.tour t JOIN t.owner o WHERE o.id = :ownerId")
-    Page<Booking> findByTourOwnerIdPaged(@Param("ownerId") UUID ownerId, Pageable pageable);
+           "JOIN b.schedule s JOIN s.tour t JOIN t.owner o " +
+           "WHERE o.id = :ownerId AND s.startDatetime >= :from AND s.startDatetime < :to")
+    Page<Booking> findByTourOwnerIdPaged(@Param("ownerId") UUID ownerId,
+                                         @Param("from") Instant from,
+                                         @Param("to") Instant to,
+                                         Pageable pageable);
 
     @Query("SELECT DISTINCT b FROM Booking b " +
            "LEFT JOIN FETCH b.schedule s " +

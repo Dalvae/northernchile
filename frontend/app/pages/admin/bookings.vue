@@ -23,21 +23,38 @@ const { formatPrice: formatCurrency } = useCurrency()
 const { formatLocalTime } = useDateTime()
 const toast = useToast()
 
+const q = ref('')
+const activeTab = ref<'upcoming' | 'past'>('upcoming')
+const viewMode = ref<'manifest' | 'bookings'>('manifest')
+
+// The backend endpoint is paginated (default 20). Ask it for the bookings whose
+// tour starts in the window relevant to the active tab instead of relying on the
+// first page. A 1-day margin around "now" keeps the exact day cut client-side
+// (done in America/Santiago local date below) independent of timezone offsets.
+const DAY_MS = 24 * 60 * 60 * 1000
+const bookingsQueryParams = computed(() => {
+  const now = Date.now()
+  const params: Record<string, string> = { size: '500', sort: 'createdAt,desc' }
+  if (activeTab.value === 'upcoming') {
+    params.from = new Date(now - DAY_MS).toISOString()
+  } else {
+    params.to = new Date(now + DAY_MS).toISOString()
+  }
+  return params
+})
+
 const {
   data: bookingsPage,
   pending,
   refresh
-} = useAsyncData('admin-bookings', () => fetchAdminBookings(), {
+} = useAsyncData('admin-bookings', () => fetchAdminBookings(bookingsQueryParams.value), {
   server: false,
   lazy: true,
+  watch: [activeTab],
   default: () => ({ content: [], totalElements: 0, totalPages: 0 })
 })
 
 const bookings = computed(() => bookingsPage.value?.content ?? [])
-
-const q = ref('')
-const activeTab = ref<'upcoming' | 'past'>('upcoming')
-const viewMode = ref<'manifest' | 'bookings'>('manifest')
 
 // Refund modal state
 const refundModal = ref(false)

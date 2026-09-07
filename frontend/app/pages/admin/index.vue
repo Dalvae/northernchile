@@ -19,7 +19,9 @@ const adminStore = useAdminStore()
 
 const { data: bookingsPage, pending: pendingBookings } = await useAsyncData(
   'admin-bookings-dashboard',
-  () => fetchAdminBookings(),
+  // Newest first: the endpoint is paginated, so without an explicit sort the
+  // dashboard would only ever see the oldest page of bookings.
+  () => fetchAdminBookings({ sort: 'createdAt,desc', size: '100' }),
   { server: false, lazy: true, default: () => ({ content: [], totalElements: 0, totalPages: 0 }) }
 )
 const bookingsData = computed(() => bookingsPage.value?.content ?? [])
@@ -57,7 +59,7 @@ const latestBookings = computed<BookingRes[]>(() => {
 const stats = computed(() => {
   const allTours = Array.isArray(tours.value) ? tours.value : []
   const allBookings = Array.isArray(bookingsData.value) ? bookingsData.value : []
-  const totalBookings = allBookings.length
+  const totalBookings = bookingsPage.value?.totalElements ?? allBookings.length
   const activeTours = allTours.filter(t => t.status === 'PUBLISHED').length
 
   // Calcular ingresos del mes actual

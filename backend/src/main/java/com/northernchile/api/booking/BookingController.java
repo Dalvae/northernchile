@@ -11,11 +11,14 @@ import com.northernchile.api.security.annotations.RequiresPermission;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -86,14 +89,17 @@ public class BookingController {
 
     /**
      * Get paginated bookings for admin (filtered by ownership for Partner Admin).
-     * Supports pagination via ?page=0&size=20&sort=createdAt,desc
+     * Supports pagination via ?page=0&size=20&sort=createdAt,desc and an optional
+     * tour start-date window via ?from=2026-09-06T03:00:00Z&to=... (ISO-8601 instants, [from, to)).
      */
     @GetMapping("/admin/bookings")
     @RequiresPermission(Permission.VIEW_ALL_BOOKINGS)
     public ResponseEntity<Page<BookingRes>> getAdminBookings(
             @CurrentUser User currentUser,
-            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
-        Page<BookingRes> bookings = bookingService.getBookingsForAdminPaged(currentUser, pageable);
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<BookingRes> bookings = bookingService.getBookingsForAdminPaged(currentUser, from, to, pageable);
         return ResponseEntity.ok(bookings);
     }
 

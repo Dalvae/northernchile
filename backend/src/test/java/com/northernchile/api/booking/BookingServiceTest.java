@@ -38,6 +38,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -305,14 +306,14 @@ class BookingServiceTest {
 
             Pageable pageable = PageRequest.of(0, 20);
             Page<Booking> bookingPage = new PageImpl<>(List.of(new Booking()));
-            when(bookingRepository.findAllWithDetailsPaged(pageable)).thenReturn(bookingPage);
+            when(bookingRepository.findAllWithDetailsPaged(any(Instant.class), any(Instant.class), eq(pageable))).thenReturn(bookingPage);
             when(bookingMapper.toBookingRes(any())).thenReturn(createMockBookingRes());
 
             // When
             Page<BookingRes> result = bookingService.getBookingsForAdminPaged(superAdmin, pageable);
 
             // Then
-            verify(bookingRepository).findAllWithDetailsPaged(pageable);
+            verify(bookingRepository).findAllWithDetailsPaged(any(Instant.class), any(Instant.class), eq(pageable));
             assertThat(result.getContent()).isNotEmpty();
         }
 
@@ -336,7 +337,7 @@ class BookingServiceTest {
 
             Pageable pageable = PageRequest.of(0, 20);
             Page<Booking> bookingPage = new PageImpl<>(List.of(new Booking()));
-            when(bookingRepository.findByTourOwnerIdPaged(partnerAdmin.getId(), pageable))
+            when(bookingRepository.findByTourOwnerIdPaged(eq(partnerAdmin.getId()), any(Instant.class), any(Instant.class), eq(pageable)))
                     .thenReturn(bookingPage);
             when(bookingMapper.toBookingRes(any())).thenReturn(createMockBookingRes());
 
@@ -344,8 +345,8 @@ class BookingServiceTest {
             Page<BookingRes> result = bookingService.getBookingsForAdminPaged(partnerAdmin, pageable);
 
             // Then
-            verify(bookingRepository).findByTourOwnerIdPaged(partnerAdmin.getId(), pageable);
-            verify(bookingRepository, never()).findAllWithDetailsPaged(any());
+            verify(bookingRepository).findByTourOwnerIdPaged(eq(partnerAdmin.getId()), any(Instant.class), any(Instant.class), eq(pageable));
+            verify(bookingRepository, never()).findAllWithDetailsPaged(any(), any(), any());
         }
     }
 
